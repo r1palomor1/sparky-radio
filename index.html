@@ -315,20 +315,18 @@
     color: var(--dim); background: var(--tab-bg);
     border: 1px solid var(--border); border-radius: 2px;
     cursor: pointer; padding: 3px 6px;
-    opacity: 0; transition: opacity .15s, color .15s, border-color .15s, box-shadow .15s;
+    opacity: 1; transition: color .15s, border-color .15s, box-shadow .15s;
     flex-shrink: 0; font-family: 'Share Tech Mono', monospace; white-space: nowrap;
   }
-  .pl-item:hover .pl-fav { opacity: 1; }
   .pl-fav:hover { color: var(--fav) !important; border-color: var(--fav) !important; box-shadow: var(--glowfav); }
-  .pl-fav.is-fav { opacity: 1; color: var(--fav); border-color: var(--fav); }
+  .pl-fav.is-fav { color: var(--fav); border-color: var(--fav); }
 
   /* remove button */
   .pl-remove {
     font-size: 12px; color: var(--dim); background: none; border: none;
-    cursor: pointer; padding: 2px 4px; opacity: 0;
-    transition: opacity .15s, color .15s; flex-shrink: 0;
+    cursor: pointer; padding: 2px 4px; opacity: 1;
+    transition: color .15s; flex-shrink: 0;
   }
-  .pl-item:hover .pl-remove { opacity: 1; }
   .pl-remove:hover { color: #ff4444; }
 
   /* empty / loading */
@@ -702,14 +700,15 @@ function renderStations() {
         </div>
       </div>
       <div class="pl-badge">${st.bitrate?st.bitrate+'k':'—'}</div>
-      <button class="pl-fav${favd?' is-fav':''}" data-fav="${i}">${favd?'★ FAV':'+ FAV'}</button>
+      <button class="pl-fav${favd?' is-fav':''}" data-fav="${i}">${favd?'- FAV':'+ FAV'}</button>
+      ${favd ? `<button class="pl-edit" data-edit="${i}" title="Edit station">✎</button>` : ''}
       <button class="pl-remove" data-rm="${i}">✕</button>
     </div>`;
   }).join('');
 
   pl.querySelectorAll('.pl-item').forEach(el=>{
     el.addEventListener('click', e=>{
-      if(e.target.classList.contains('pl-fav')||e.target.classList.contains('pl-remove')) return;
+      if(e.target.classList.contains('pl-fav')||e.target.classList.contains('pl-remove')||e.target.classList.contains('pl-edit')) return;
       currentIdx=parseInt(el.dataset.idx); activeTab='stations'; playStationObj(stations[currentIdx]); renderStations();
     });
   });
@@ -727,6 +726,23 @@ function renderStations() {
       stations.splice(idx,1);
       if(currentIdx>=idx) currentIdx=Math.max(-1,currentIdx-1);
       renderStations();
+    });
+  });
+  pl.querySelectorAll('.pl-edit').forEach(btn=>{
+    btn.addEventListener('click', e=>{
+      e.stopPropagation();
+      const idx = parseInt(btn.dataset.edit);
+      const st = stations[idx];
+      let favs = loadFavs();
+      let favIdx = favs.findIndex(f => f.url === (st.url_resolved||st.url));
+      if (favIdx !== -1) {
+        const newName = prompt('Edit station name:', favs[favIdx].name);
+        if (newName !== null) favs[favIdx].name = newName;
+        const newUrl = prompt('Edit station URL:', favs[favIdx].url);
+        if (newUrl !== null) favs[favIdx].url = newUrl;
+        saveFavs(favs);
+        renderStations();
+      }
     });
   });
 }
