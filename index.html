@@ -366,7 +366,51 @@
   .footer-meta { font-size: 9px; color: var(--dim); letter-spacing: 1px; text-align: right; }
   .footer-meta span { color: var(--text); }
   .toggle-group { display: flex; gap: 4px; }
+  /* MODAL EDIT DIALOG */
+  .modal-overlay {
+    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+    background: rgba(0,0,0,0.55); z-index: 1000; display: none; align-items: center; justify-content: center;
+  }
+  .modal {
+    background: var(--panel); border: 1px solid var(--accent); border-radius: 6px;
+    box-shadow: 0 8px 40px #000a, 0 1px 0 #fff2;
+    padding: 28px 32px 18px 32px; min-width: 420px; max-width: 98vw;
+    display: flex; flex-direction: column; gap: 16px;
+    position: relative;
+    animation: modalIn .2s cubic-bezier(.4,0,.2,1);
+  }
+  @keyframes modalIn { 0%{transform:scale(.95); opacity:0} 100%{transform:scale(1); opacity:1} }
+  .modal label { font-size: 12px; color: var(--dim); margin-bottom: 2px; }
+  .modal input[type="text"] {
+    width: 100%; font-size: 13px; padding: 7px 10px; border-radius: 2px;
+    border: 1px solid var(--border); background: var(--viz-bg); color: var(--text);
+    margin-bottom: 8px; outline: none; transition: border-color .2s;
+  }
+  .modal input[type="text"]:focus { border-color: var(--accent); }
+  .modal-btn-row { display: flex; gap: 12px; justify-content: flex-end; margin-top: 6px; }
+  .modal-btn {
+    padding: 7px 18px; border-radius: 2px; border: none; font-family: 'Share Tech Mono', monospace;
+    font-size: 12px; letter-spacing: 1px; cursor: pointer; background: var(--accent); color: #fff;
+    transition: background .2s;
+  }
+  .modal-btn.cancel { background: var(--border); color: var(--dim); }
 </style>
+</head>
+<body>
+<!-- Edit Station Modal -->
+<div class="modal-overlay" id="editModalOverlay">
+  <div class="modal" id="editModal">
+    <div style="font-size:15px;font-weight:bold;margin-bottom:2px;">Edit Station</div>
+    <label for="editStationName">Label</label>
+    <input type="text" id="editStationName" maxlength="80">
+    <label for="editStationUrl">URL</label>
+    <input type="text" id="editStationUrl" maxlength="300">
+    <div class="modal-btn-row">
+      <button class="modal-btn cancel" id="editModalCancel">Cancel</button>
+      <button class="modal-btn" id="editModalSave">Save</button>
+    </div>
+  </div>
+</div>
 </head>
 <body>
 <div class="app">
@@ -456,9 +500,15 @@
   </div>
 
   <!-- PLAYLIST HEADER -->
-  <div class="playlist-header">
-    <div class="pl-label" id="plLabel">Stations</div>
-    <div class="pl-count" id="plCount">0 FOUND</div>
+  <div class="playlist-header" style="display: flex; align-items: center; justify-content: space-between; padding-right: 10px;">
+    <div style="display: flex; align-items: center; width: 100%;">
+      <div style="width: 32px; text-align: left; font-size: 10px; color: var(--dim); letter-spacing: 1px;">Index</div>
+      <div style="width: 18px;"></div>
+      <div style="flex: 1; min-width: 0; font-size: 10px; color: var(--dim); letter-spacing: 1px;">Stations</div>
+      <div style="width: 60px; text-align: left; font-size: 10px; color: var(--dim); letter-spacing: 1px;">Bitrate</div>
+      <div style="width: 70px;"></div>
+    </div>
+    <div class="pl-count" id="plCount" style="white-space:nowrap;">0 FOUND</div>
   </div>
 
   <!-- PLAYLIST -->
@@ -736,12 +786,14 @@ function renderStations() {
       let favs = loadFavs();
       let favIdx = favs.findIndex(f => f.url === (st.url_resolved||st.url));
       if (favIdx !== -1) {
-        const newName = prompt('Edit station name:', favs[favIdx].name);
-        if (newName !== null) favs[favIdx].name = newName;
-        const newUrl = prompt('Edit station URL:', favs[favIdx].url);
-        if (newUrl !== null) favs[favIdx].url = newUrl;
-        saveFavs(favs);
-        renderStations();
+        openEditModal(favs[favIdx].name, favs[favIdx].url, (newName, newUrl) => {
+          if (newName !== null && newUrl !== null) {
+            favs[favIdx].name = newName;
+            favs[favIdx].url = newUrl;
+            saveFavs(favs);
+            renderStations();
+          }
+        });
       }
     });
   });
@@ -765,13 +817,14 @@ function renderFavs() {
         </div>
       </div>
       <div class="pl-badge" style="color:var(--fav);border-color:var(--fav)">★</div>
+      <button class="pl-edit" data-editfav="${i}" title="Edit favorite station">✎</button>
       <button class="pl-remove" data-rmfav="${i}">✕</button>
     </div>`;
   }).join('');
 
   pl.querySelectorAll('.pl-item').forEach(el=>{
     el.addEventListener('click', e=>{
-      if(e.target.classList.contains('pl-remove')) return;
+      if(e.target.classList.contains('pl-remove')||e.target.classList.contains('pl-edit')) return;
       currentIdx=parseInt(el.dataset.idx); activeTab='favs'; playStationObj(loadFavs()[currentIdx]); renderFavs();
     });
   });
@@ -780,6 +833,23 @@ function renderFavs() {
       const f=loadFavs()[parseInt(btn.dataset.rmfav)];
       if(currentSrc&&(currentSrc.url_resolved||currentSrc.url)===f.url) stopPlayback();
       removeFavByUrl(f.url); renderFavs();
+    });
+  });
+  pl.querySelectorAll('[data-editfav]').forEach(btn=>{
+    btn.addEventListener('click', e=>{
+      e.stopPropagation();
+      const idx = parseInt(btn.dataset.editfav);
+      let favs = loadFavs();
+      if (favs[idx]) {
+        openEditModal(favs[idx].name, favs[idx].url, (newName, newUrl) => {
+          if (newName !== null && newUrl !== null) {
+            favs[idx].name = newName;
+            favs[idx].url = newUrl;
+            saveFavs(favs);
+            renderFavs();
+          }
+        });
+      }
     });
   });
 }
@@ -868,6 +938,44 @@ document.getElementById('btnRemove').addEventListener('click', ()=>{
 // ══ INIT ══════════════════════════════════
 refreshFavBadge();
 searchStations('jazz');
+</script>
+<script>
+// Custom Edit Modal logic
+function openEditModal(name, url, onSave) {
+  const overlay = document.getElementById('editModalOverlay');
+  const nameInput = document.getElementById('editStationName');
+  const urlInput = document.getElementById('editStationUrl');
+  const saveBtn = document.getElementById('editModalSave');
+  const cancelBtn = document.getElementById('editModalCancel');
+  nameInput.value = name || '';
+  urlInput.value = url || '';
+  overlay.style.display = 'flex';
+  nameInput.focus();
+  function closeModal() {
+    overlay.style.display = 'none';
+    saveBtn.onclick = null;
+    cancelBtn.onclick = null;
+    overlay.onclick = null;
+    document.onkeydown = null;
+  }
+  saveBtn.onclick = function(e) {
+    e.preventDefault();
+    closeModal();
+    onSave(nameInput.value.trim(), urlInput.value.trim());
+  };
+  cancelBtn.onclick = function(e) {
+    e.preventDefault();
+    closeModal();
+    onSave(null, null);
+  };
+  overlay.onclick = function(e) {
+    if (e.target === overlay) { closeModal(); onSave(null, null); }
+  };
+  document.onkeydown = function(e) {
+    if (e.key === 'Escape') { closeModal(); onSave(null, null); }
+    if (e.key === 'Enter' && document.activeElement !== cancelBtn) { saveBtn.click(); }
+  };
+}
 </script>
 </body>
 </html>
