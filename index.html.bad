@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="icon.png">
+<link rel="apple-touch-icon" href="icon.png">           
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SPARKY · Internet Radio</title>
@@ -191,7 +194,6 @@
   .seek-track:hover .seek-fill::after { display: block; }
   .vol-group { display: flex; align-items: center; gap: 6px; font-size: 9px; color: var(--dim); letter-spacing: 1px; }
   input[type=range] {
-    appearance: none;
     -webkit-appearance: none; width: 70px; height: 3px;
     background: var(--seek-bg); border-radius: 2px; outline: none; cursor: pointer;
   }
@@ -315,26 +317,16 @@
     cursor: pointer; padding: 3px 6px;
     opacity: 1; transition: color .15s, border-color .15s, box-shadow .15s;
     flex-shrink: 0; font-family: 'Share Tech Mono', monospace; white-space: nowrap;
-    margin-left: 4px;
   }
   .pl-fav:hover { color: var(--fav) !important; border-color: var(--fav) !important; box-shadow: var(--glowfav); }
   .pl-fav.is-fav { color: var(--fav); border-color: var(--fav); }
 
-  .pl-edit {
-    font-size: 12px; color: var(--dim); background: none; border: none;
-    cursor: pointer; padding: 2px 4px; opacity: 1;
-    transition: color .15s; flex-shrink: 0;
-    margin-left: 2px;
-  }
-  .pl-edit:hover { color: var(--accent); }
-
   /* remove button */
   .pl-remove {
     font-size: 12px; color: var(--dim); background: none; border: none;
-    cursor: pointer; padding: 2px 4px; opacity: 0;
-    transition: opacity .15s, color .15s; flex-shrink: 0;
+    cursor: pointer; padding: 2px 4px; opacity: 1;
+    transition: color .15s; flex-shrink: 0;
   }
-  .pl-item:hover .pl-remove { opacity: 1; }
   .pl-remove:hover { color: #ff4444; }
 
   /* empty / loading */
@@ -374,7 +366,51 @@
   .footer-meta { font-size: 9px; color: var(--dim); letter-spacing: 1px; text-align: right; }
   .footer-meta span { color: var(--text); }
   .toggle-group { display: flex; gap: 4px; }
+  /* MODAL EDIT DIALOG */
+  .modal-overlay {
+    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+    background: rgba(0,0,0,0.55); z-index: 1000; display: none; align-items: center; justify-content: center;
+  }
+  .modal {
+    background: var(--panel); border: 1px solid var(--accent); border-radius: 6px;
+    box-shadow: 0 8px 40px #000a, 0 1px 0 #fff2;
+    padding: 28px 32px 18px 32px; min-width: 420px; max-width: 98vw;
+    display: flex; flex-direction: column; gap: 16px;
+    position: relative;
+    animation: modalIn .2s cubic-bezier(.4,0,.2,1);
+  }
+  @keyframes modalIn { 0%{transform:scale(.95); opacity:0} 100%{transform:scale(1); opacity:1} }
+  .modal label { font-size: 12px; color: var(--dim); margin-bottom: 2px; }
+  .modal input[type="text"] {
+    width: 100%; font-size: 13px; padding: 7px 10px; border-radius: 2px;
+    border: 1px solid var(--border); background: var(--viz-bg); color: var(--text);
+    margin-bottom: 8px; outline: none; transition: border-color .2s;
+  }
+  .modal input[type="text"]:focus { border-color: var(--accent); }
+  .modal-btn-row { display: flex; gap: 12px; justify-content: flex-end; margin-top: 6px; }
+  .modal-btn {
+    padding: 7px 18px; border-radius: 2px; border: none; font-family: 'Share Tech Mono', monospace;
+    font-size: 12px; letter-spacing: 1px; cursor: pointer; background: var(--accent); color: #fff;
+    transition: background .2s;
+  }
+  .modal-btn.cancel { background: var(--border); color: var(--dim); }
 </style>
+</head>
+<body>
+<!-- Edit Station Modal -->
+<div class="modal-overlay" id="editModalOverlay">
+  <div class="modal" id="editModal">
+    <div style="font-size:15px;font-weight:bold;margin-bottom:2px;">Edit Station</div>
+    <label for="editStationName">Label</label>
+    <input type="text" id="editStationName" maxlength="80">
+    <label for="editStationUrl">URL</label>
+    <input type="text" id="editStationUrl" maxlength="300">
+    <div class="modal-btn-row">
+      <button class="modal-btn cancel" id="editModalCancel">Cancel</button>
+      <button class="modal-btn" id="editModalSave">Save</button>
+    </div>
+  </div>
+</div>
 </head>
 <body>
 <div class="app">
@@ -464,9 +500,15 @@
   </div>
 
   <!-- PLAYLIST HEADER -->
-  <div class="playlist-header">
-    <div class="pl-label" id="plLabel">Stations</div>
-    <div class="pl-count" id="plCount">0 FOUND</div>
+  <div class="playlist-header" style="display: flex; align-items: center; justify-content: space-between; padding-right: 10px;">
+    <div style="display: flex; align-items: center; width: 100%;">
+      <div style="width: 32px; text-align: left; font-size: 10px; color: var(--dim); letter-spacing: 1px;">Index</div>
+      <div style="width: 18px;"></div>
+      <div style="flex: 1; min-width: 0; font-size: 10px; color: var(--dim); letter-spacing: 1px;">Stations</div>
+      <div style="width: 60px; text-align: left; font-size: 10px; color: var(--dim); letter-spacing: 1px;">Bitrate</div>
+      <div style="width: 70px;"></div>
+    </div>
+    <div class="pl-count" id="plCount" style="white-space:nowrap;">0 FOUND</div>
   </div>
 
   <!-- PLAYLIST -->
@@ -709,7 +751,7 @@ function renderStations() {
       </div>
       <div class="pl-badge">${st.bitrate?st.bitrate+'k':'—'}</div>
       <button class="pl-fav${favd?' is-fav':''}" data-fav="${i}">${favd?'- FAV':'+ FAV'}</button>
-      ${favd ? `<button class="pl-edit" data-edit="${i}" title="Edit favorite">✎</button>` : ''}
+      ${favd ? `<button class="pl-edit" data-edit="${i}" title="Edit station">✎</button>` : ''}
       <button class="pl-remove" data-rm="${i}">✕</button>
     </div>`;
   }).join('');
@@ -775,7 +817,7 @@ function renderFavs() {
         </div>
       </div>
       <div class="pl-badge" style="color:var(--fav);border-color:var(--fav)">★</div>
-      <button class="pl-edit" data-editfav="${i}" title="Edit favorite">✎</button>
+      <button class="pl-edit" data-editfav="${i}" title="Edit favorite station">✎</button>
       <button class="pl-remove" data-rmfav="${i}">✕</button>
     </div>`;
   }).join('');
@@ -810,60 +852,8 @@ function renderFavs() {
       }
     });
   });
-} // <-- This closing brace was missing, causing the script to break
-</script>
-<!-- Custom Edit Modal -->
-<div class="modal-overlay" id="editModalOverlay" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
-  <div class="modal" style="background:var(--panel);padding:24px 20px 16px 20px;border-radius:6px;box-shadow:0 8px 32px #0008;min-width:260px;max-width:90vw;">
-    <div style="font-size:15px;font-weight:bold;margin-bottom:2px;">Edit Station</div>
-    <label for="editStationName">Label</label>
-    <input type="text" id="editStationName" maxlength="80" style="width:100%;margin-bottom:8px;">
-    <label for="editStationUrl">URL</label>
-    <input type="text" id="editStationUrl" maxlength="300" style="width:100%;margin-bottom:12px;">
-    <div style="display:flex;gap:10px;justify-content:flex-end;">
-      <button class="modal-btn cancel" id="editModalCancel">Cancel</button>
-      <button class="modal-btn" id="editModalSave">Save</button>
-    </div>
-  </div>
-</div>
-<script>
-function openEditModal(name, url, onSave) {
-  const overlay = document.getElementById('editModalOverlay');
-  const nameInput = document.getElementById('editStationName');
-  const urlInput = document.getElementById('editStationUrl');
-  const saveBtn = document.getElementById('editModalSave');
-  const cancelBtn = document.getElementById('editModalCancel');
-  nameInput.value = name || '';
-  urlInput.value = url || '';
-  overlay.style.display = 'flex';
-  nameInput.focus();
-  function closeModal() {
-    overlay.style.display = 'none';
-    saveBtn.onclick = null;
-    cancelBtn.onclick = null;
-    overlay.onclick = null;
-    document.onkeydown = null;
-  }
-  saveBtn.onclick = function(e) {
-    e.preventDefault();
-    closeModal();
-    onSave(nameInput.value.trim(), urlInput.value.trim());
-  };
-  cancelBtn.onclick = function(e) {
-    e.preventDefault();
-    closeModal();
-    onSave(null, null);
-  };
-  overlay.onclick = function(e) {
-    if (e.target === overlay) { closeModal(); onSave(null, null); }
-  };
-  document.onkeydown = function(e) {
-    if (e.key === 'Escape') { closeModal(); onSave(null, null); }
-    if (e.key === 'Enter' && document.activeElement !== cancelBtn) { saveBtn.click(); }
-  };
 }
-</script>
-<script>
+
 // ══ TRANSPORT ═════════════════════════════
 document.getElementById('btnPlay').addEventListener('click', ()=>{
   if(audioCtx?.state==='suspended') audioCtx.resume();
@@ -915,13 +905,17 @@ async function searchStations(q) {
   const servers=['de1.api.radio-browser.info','nl1.api.radio-browser.info','at1.api.radio-browser.info'];
   const srv=servers[Math.floor(Math.random()*servers.length)];
   try {
-    const r=await fetch(`https://${srv}/json/stations/search?`+new URLSearchParams({name:q,limit:60,hidebroken:true,order:'clickcount',reverse:true}),{headers:{'User-Agent':'SPARKY-RadioPlayer/1.0'}});
-    if(!r.ok) throw 0;
-    stations=(await r.json()).filter(s=>s.url_resolved||s.url);
+    const url = `https://${srv}/json/stations/search?` + new URLSearchParams({name:q,limit:60,hidebroken:true,order:'clickcount',reverse:true});
+    const r = await fetch(url, {headers:{'User-Agent':'SPARKY-RadioPlayer/1.0'}});
+    if(!r.ok) throw new Error('API returned status ' + r.status);
+    stations = (await r.json()).filter(s=>s.url_resolved||s.url);
     renderStations();
-  } catch {
-    document.getElementById('playlist').innerHTML='<div class="pl-empty"><div class="pl-empty-icon">⚠</div><div>CONNECTION FAILED — RETRY</div></div>';
-    document.getElementById('plCount').textContent='ERROR';
+  } catch (err) {
+    let msg = 'CONNECTION FAILED — RETRY';
+    if (err && err.message) msg += `<br><span style="font-size:10px;color:var(--dim);">${err.message}</span>`;
+    document.getElementById('playlist').innerHTML = `<div class="pl-empty"><div class="pl-empty-icon">⚠</div><div>${msg}</div></div>`;
+    document.getElementById('plCount').textContent = 'ERROR';
+    if (typeof console !== 'undefined') console.error('Search error:', err);
   }
 }
 
@@ -948,6 +942,44 @@ document.getElementById('btnRemove').addEventListener('click', ()=>{
 // ══ INIT ══════════════════════════════════
 refreshFavBadge();
 searchStations('jazz');
+</script>
+<script>
+// Custom Edit Modal logic
+function openEditModal(name, url, onSave) {
+  const overlay = document.getElementById('editModalOverlay');
+  const nameInput = document.getElementById('editStationName');
+  const urlInput = document.getElementById('editStationUrl');
+  const saveBtn = document.getElementById('editModalSave');
+  const cancelBtn = document.getElementById('editModalCancel');
+  nameInput.value = name || '';
+  urlInput.value = url || '';
+  overlay.style.display = 'flex';
+  nameInput.focus();
+  function closeModal() {
+    overlay.style.display = 'none';
+    saveBtn.onclick = null;
+    cancelBtn.onclick = null;
+    overlay.onclick = null;
+    document.onkeydown = null;
+  }
+  saveBtn.onclick = function(e) {
+    e.preventDefault();
+    closeModal();
+    onSave(nameInput.value.trim(), urlInput.value.trim());
+  };
+  cancelBtn.onclick = function(e) {
+    e.preventDefault();
+    closeModal();
+    onSave(null, null);
+  };
+  overlay.onclick = function(e) {
+    if (e.target === overlay) { closeModal(); onSave(null, null); }
+  };
+  document.onkeydown = function(e) {
+    if (e.key === 'Escape') { closeModal(); onSave(null, null); }
+    if (e.key === 'Enter' && document.activeElement !== cancelBtn) { saveBtn.click(); }
+  };
+}
 </script>
 </body>
 </html>
