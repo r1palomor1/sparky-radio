@@ -6,6 +6,7 @@
 <title>SPARKY · Internet Radio</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="material-symbols.css">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -775,6 +776,8 @@ function renderFavs() {
         </div>
       </div>
       <div class="pl-badge" style="color:var(--fav);border-color:var(--fav)">★</div>
+      <button class="btn" style="min-width:28px;min-height:28px;padding:0;justify-content:center;" data-upfav="${i}" title="Move up"><span class="material-symbols-outlined">arrow_upward_alt</span></button>
+      <button class="btn" style="min-width:28px;min-height:28px;padding:0;justify-content:center;" data-downfav="${i}" title="Move down"><span class="material-symbols-outlined">arrow_downward_alt</span></button>
       <button class="pl-edit" data-editfav="${i}" title="Edit favorite">✎</button>
       <button class="pl-remove" data-rmfav="${i}">✕</button>
     </div>`;
@@ -791,6 +794,30 @@ function renderFavs() {
       const f=loadFavs()[parseInt(btn.dataset.rmfav)];
       if(currentSrc&&(currentSrc.url_resolved||currentSrc.url)===f.url) stopPlayback();
       removeFavByUrl(f.url); renderFavs();
+    });
+  });
+  pl.querySelectorAll('[data-upfav]').forEach(btn=>{
+    btn.addEventListener('click', e=>{
+      e.stopPropagation();
+      const idx = parseInt(btn.dataset.upfav);
+      let favs = loadFavs();
+      if (idx > 0) {
+        [favs[idx-1], favs[idx]] = [favs[idx], favs[idx-1]];
+        saveFavs(favs);
+        renderFavs();
+      }
+    });
+  });
+  pl.querySelectorAll('[data-downfav]').forEach(btn=>{
+    btn.addEventListener('click', e=>{
+      e.stopPropagation();
+      const idx = parseInt(btn.dataset.downfav);
+      let favs = loadFavs();
+      if (idx < favs.length - 1) {
+        [favs[idx+1], favs[idx]] = [favs[idx], favs[idx+1]];
+        saveFavs(favs);
+        renderFavs();
+      }
     });
   });
   pl.querySelectorAll('[data-editfav]').forEach(btn=>{
