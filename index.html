@@ -93,6 +93,29 @@
     transition: background 0.3s, border-color 0.3s;
   }
 
+  /* ── RESPONSIVE ─────────────────────────── */
+  /* Tablet: fill height, wider card */
+  @media (min-width: 600px) and (max-width: 1023px) {
+    body { padding: 12px; align-items: flex-start; }
+    .app {
+      max-width: min(94vw, 580px);
+      min-height: calc(100dvh - 24px);
+      display: flex; flex-direction: column;
+    }
+    .playlist { flex: 1; height: auto; min-height: 170px; max-height: 320px; }
+  }
+  /* Mobile: full-height, internal playlist scroll */
+  @media (max-width: 599px) {
+    body { align-items: stretch; padding: 0; overflow: hidden; }
+    .app {
+      max-width: 100%; height: 100dvh;
+      border-left: none; border-right: none; border-radius: 0;
+      display: flex; flex-direction: column; overflow: hidden;
+    }
+    .playlist { flex: 1; min-height: 0; height: 0; overflow-y: auto; }
+    .logo-title { font-size: 13px; letter-spacing: 2px; white-space: nowrap; }
+  }
+
   /* ── HEADER ─────────────────────────────── */
   .header {
     background: var(--ctrl-bg);
