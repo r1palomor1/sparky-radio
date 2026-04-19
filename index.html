@@ -140,18 +140,18 @@
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
   #statusText { font-size: 10px; letter-spacing: 2px; color: var(--dim); font-weight: 600; }
 
-  /* ── VISUALIZER ─────────────────────────── */
+  /* ── VISUALIZER (compact strip below header) ── */
   .visualizer {
-    height: 90px; background: var(--viz-bg);
+    height: 28px; background: var(--viz-bg);
     border-bottom: 1px solid var(--border);
-    display: flex; align-items: flex-end; gap: 1px; padding: 6px 10px 0;
+    display: flex; align-items: flex-end; gap: 1px; padding: 4px 10px 0;
     overflow: hidden;
   }
   .bar {
     flex: 1;
     background: linear-gradient(to top, #2a5c34, var(--accent), var(--green));
-    border-radius: 2px 2px 0 0; height: 8px;
-    transition: height .08s ease; opacity: .88;
+    border-radius: 1px 1px 0 0; height: 4px;
+    transition: height .08s ease; opacity: .9;
   }
 
   /* ── NOW PLAYING ────────────────────────── */
@@ -392,6 +392,60 @@
   .footer-actions { display: flex; gap: 5px; }
   .footer-meta { font-size: 10px; color: var(--dim); letter-spacing: 1px; white-space: nowrap; font-weight: 600; }
   .footer-meta span { color: var(--text); }
+
+  /* ── STATION CARD ───────────────────────── */
+  .station-card {
+    min-height: 86px; background: var(--viz-bg);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center;
+    padding: 10px 14px; gap: 14px;
+  }
+  .sc-idle {
+    width: 100%; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    color: var(--dim); font-size: 10px; letter-spacing: 2px; gap: 6px;
+    opacity: .4; font-weight: 600;
+  }
+  .sc-idle-icon { font-size: 22px; }
+  .sc-art {
+    flex-shrink: 0; width: 62px; height: 62px;
+    border-radius: 6px; overflow: hidden;
+    border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    background: var(--subdim);
+  }
+  .sc-favicon { width: 100%; height: 100%; object-fit: cover; }
+  .sc-initials {
+    width: 62px; height: 62px;
+    background: var(--subdim); color: var(--accent);
+    font-family: 'Orbitron', monospace; font-weight: 700;
+    font-size: 18px; letter-spacing: 1px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .sc-info {
+    flex: 1; overflow: hidden;
+    display: flex; flex-direction: column; gap: 7px;
+  }
+  .sc-meta-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .sc-meta-badge {
+    font-size: 10px; padding: 2px 7px; border-radius: 2px;
+    background: var(--subdim); color: var(--dim);
+    border: 1px solid var(--border); letter-spacing: .5px; font-weight: 600;
+  }
+  .sc-tags { display: flex; gap: 4px; flex-wrap: wrap; }
+  .sc-tag {
+    font-size: 9px; padding: 2px 7px; border-radius: 10px;
+    background: color-mix(in srgb, var(--accent) 14%, transparent);
+    color: var(--accent);
+    border: 1px solid color-mix(in srgb, var(--accent) 28%, transparent);
+    letter-spacing: .5px; font-weight: 600; text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .sc-link {
+    font-size: 15px; text-decoration: none; opacity: .7;
+    transition: opacity .15s; line-height: 1;
+  }
+  .sc-link:hover { opacity: 1; }
 </style>
 </head>
 <body>
@@ -413,7 +467,7 @@
     </div>
   </div>
 
-  <!-- VISUALIZER -->
+  <!-- VISUALIZER (compact 28px strip) -->
   <div class="visualizer">
     <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
     <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
@@ -667,6 +721,26 @@ function updateNowPlaying(st) {
   document.getElementById('npCountry').textContent = st?.countrycode||'—';
   document.getElementById('npBitrate').textContent = st?.bitrate ? st.bitrate+' kbps' : '—';
   document.getElementById('npCodec').textContent   = st?.codec||'—';
+  updateStationCard(st);
+}
+
+// ══ STATION CARD ══════════════════════════
+function updateStationCard(st) {
+  const card = document.getElementById('stationCard');
+  if (!card) return;
+  if (!st) {
+    card.innerHTML = '<div class="sc-idle"><div class="sc-idle-icon">📡</div><div>SELECT A STATION</div></div>';
+    return;
+  }
+  const initials = (st.name||'?').replace(/[^A-Za-z0-9]/g,'').slice(0,2).toUpperCase()||'??';
+  const faviconHtml = st.favicon
+    ? `<img src="${esc(st.favicon)}" class="sc-favicon" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="sc-initials" style="display:none">${initials}</div>`
+    : `<div class="sc-initials">${initials}</div>`;
+  const votes = st.votes ? `<span class="sc-meta-badge">▲ ${Number(st.votes).toLocaleString()}</span>` : '';
+  const lang  = st.language ? `<span class="sc-meta-badge">${esc(st.language)}</span>` : '';
+  const link  = st.homepage ? `<a href="${esc(st.homepage)}" target="_blank" class="sc-link" title="Station website">🔗</a>` : '';
+  const tags  = (st.tags||'').split(',').slice(0,4).filter(t=>t.trim()).map(t=>`<span class="sc-tag">${esc(t.trim())}</span>`).join('');
+  card.innerHTML = `<div class="sc-art">${faviconHtml}</div><div class="sc-info"><div class="sc-meta-row">${votes}${lang}${link}</div><div class="sc-tags">${tags}</div></div>`;
 }
 
 // ══ PLAYBACK ══════════════════════════════
@@ -700,6 +774,7 @@ function stopPlayback() {
   setStatus('','IDLE');
   document.getElementById('btnPlay').innerHTML='&#9654; PLAY';
   stopTimer(); idleViz(); renderCurrent();
+  updateStationCard(null);
 }
 
 function renderCurrent() { activeTab==='stations' ? renderStations() : renderFavs(); }
