@@ -224,18 +224,15 @@
     display: flex; gap: 3px; align-items: center;
   }
   .pl-badge-mini i { font-style: normal; font-size: 10px; }
-  
-  .np-ticker { display: flex; align-items: center; width: 100%; overflow: hidden; }
-  .np-name-wrap { flex: 1; overflow: hidden; white-space: nowrap; position: relative; }
-  .np-icon { 
-    flex-shrink: 0; width: 38px; height: 38px; background: var(--viz-bg); 
-    border-radius: 4px; border: 1px solid var(--border); display: flex; 
-    align-items: center; justify-content: center; margin-right: 12px; overflow: hidden;
-  }
-  .np-icon img { width: 100%; height: 100%; object-fit: cover; }
-  .np-icon .np-initials { font-family: 'Orbitron', sans-serif; font-weight: 900; color: var(--accent); font-size: 13px; opacity: 0.8; }
 
-  /* ── VOLUME BAR ─────────────────────────── */
+  .np-ticker { display: flex; align-items: center; width: 100%; overflow: hidden; margin-top: 10px; }
+  .np-name-wrap { flex: 1; overflow: hidden; white-space: nowrap; position: relative; }
+  .np-name { 
+    display: inline-block; font-size: 20px; font-weight: 900; 
+    color: var(--text); padding-right: 50px; text-transform: uppercase;
+    font-family: 'Orbitron', sans-serif;
+  }
+
   .volume-bar {
     padding: 12px 14px; background: var(--np-bg);
     border-bottom: 1px solid var(--border);
@@ -598,7 +595,6 @@
   </div>
 
   <!-- EQ PRO CONSOLE -->
-  <!-- EQ PRO CONSOLE -->
   <div class="eq-rack" id="eqRack">
     <div class="eq-row">
       <div class="eq-scale-side"><div>+15</div><div>0</div><div>-15</div></div>
@@ -632,9 +628,8 @@
       <button class="btn btn-sm btn-eq-toggle" id="btnEq">EQ</button>
     </div>
     <div class="np-ticker">
-      <div class="np-icon" id="npIcon"><div class="np-initials">—</div></div>
       <div class="np-name-wrap">
-        <div class="np-name" id="npName">— SELECT A STATION —</div>
+        <div id="npName" class="np-name">SELECT A STATION</div>
       </div>
     </div>
     <div class="np-meta">
