@@ -180,11 +180,9 @@
   }
 
   /* ── NOW PLAYING ────────────────────────── */
-  .now-playing {
-    padding: 10px 14px 8px; background: var(--np-bg);
-    border-bottom: 1px solid var(--border);
-  }
-  .np-label { font-size: 10px; letter-spacing: 3px; color: var(--text); text-transform: uppercase; margin-bottom: 4px; font-weight: 700; opacity: 0.9; }
+  .now-playing { padding: 10px 14px 8px; background: var(--np-bg); border-bottom: 1px solid var(--border); }
+  .np-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+  .np-label { font-size: 10px; letter-spacing: 3px; color: var(--text); text-transform: uppercase; font-weight: 700; opacity: 0.9; margin: 0; }
   .np-ticker { overflow: hidden; white-space: nowrap; margin-bottom: 5px; }
   .np-name {
     font-family: 'Orbitron', monospace; font-size: 19px; font-weight: 700;
@@ -404,18 +402,43 @@
   .spinner { width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite; }
   @keyframes spin{to{transform:rotate(360deg)}}
 
-  /* EQ panel — hidden, kept in DOM for JS compatibility */
-  .eq-panel { padding: 10px 14px; background: var(--tab-bg); border-top: 1px solid var(--border); display: none; }
-  .eq-panel.open { display: block; }
-  .eq-label { font-size: 8px; letter-spacing: 3px; color: var(--dim); text-transform: uppercase; margin-bottom: 10px; }
-  .eq-bars { display: flex; align-items: flex-end; gap: 6px; height: 50px; }
-  .eq-band { flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; }
-  .eq-freq { font-size:7px; color:var(--dim); white-space:nowrap; }
-  .eq-track {
-    flex:1; background:var(--seek-bg); border-radius:2px; cursor:pointer;
-    position:relative; height:40px; display:flex; align-items:flex-end; overflow:hidden;
+  /* ── EQ RACK ────────────────────────────── */
+  .eq-rack {
+    max-height: 0; overflow: hidden; background: var(--viz-bg);
+    border-bottom: 1px solid var(--border); transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity: 0;
   }
-  .eq-fill { width:100%; background:linear-gradient(to top,var(--accent),var(--green)); border-radius:2px; transition:height .1s; }
+  .eq-rack.open { max-height: 140px; padding: 12px 14px; opacity: 1; }
+  .eq-row { display: flex; align-items: stretch; gap: 6px; height: 85px; justify-content: space-between; }
+  .eq-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .eq-slider-box {
+    flex: 1; width: 14px; background: var(--subdim); border: 1px solid var(--border);
+    border-radius: 2px; position: relative; cursor: pointer;
+  }
+  .eq-fader {
+    position: absolute; left: -2px; width: 18px; height: 6px;
+    background: var(--accent); border-radius: 1px;
+    box-shadow: 0 0 8px var(--accent);
+    bottom: 50%; transition: bottom 0.1s linear;
+  }
+  .eq-label-freq { font-size: 8px; color: var(--dim); letter-spacing: .5px; text-transform: uppercase; font-weight: 700; margin-top: 2px; }
+  .eq-presets { display: flex; gap: 4px; margin-top: 10px; justify-content: center; flex-wrap: wrap; }
+  .btn-preset { padding: 3px 7px; font-size: 9px; letter-spacing: 1px; background: var(--bg); font-weight: 700; opacity: 0.9; }
+  .btn-preset.active { border-color: var(--fav); color: var(--fav); }
+  .btn-save { background: var(--subdim); border-color: var(--accent); color: var(--accent); }
+
+  /* ── MODALS ─────────────────────────────── */
+  .modal-overlay {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 2000;
+  }
+  .modal-content {
+    background: var(--panel); border: 1px solid var(--accent);
+    padding: 20px; width: 90%; max-width: 320px; border-radius: 4px;
+    box-shadow: 0 0 30px rgba(0,0,0,0.5); font-family: 'Share Tech Mono', monospace;
+  }
+  .modal-header { font-size: 10px; color: var(--accent); margin-bottom: 12px; letter-spacing: 2px; text-transform: uppercase; border-bottom: 1px solid var(--border); padding-bottom: 5px; }
+  .modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 15px; }
 
   /* ── FOOTER ─────────────────────────────── */
   .footer {
@@ -511,9 +534,26 @@
     <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
   </div>
 
+  <!-- EQ PRO RACK -->
+  <div class="eq-rack" id="eqRack">
+    <div class="eq-row" id="eqRow"></div>
+    <div class="eq-presets">
+      <button class="btn btn-sm btn-preset" id="pre-flat" onclick="setEqPreset('flat')">FLAT</button>
+      <button class="btn btn-sm btn-preset" id="pre-bass" onclick="setEqPreset('bass')">BASS+</button>
+      <button class="btn btn-sm btn-preset" id="pre-vocal" onclick="setEqPreset('vocal')">VOCAL</button>
+      <button class="btn btn-sm btn-preset" id="pre-jazz" onclick="setEqPreset('jazz')">JAZZ</button>
+      <button class="btn btn-sm btn-preset" id="pre-custom" onclick="setEqPreset('custom')">CUSTOM</button>
+      <button class="btn btn-sm btn-preset btn-save" onclick="saveCustomEq()" title="Save settings to active preset">SAVE</button>
+      <button class="btn btn-sm btn-preset" onclick="resetEqDefaults()" title="Reset all to defaults">RESET</button>
+    </div>
+  </div>
+
   <!-- NOW PLAYING -->
   <div class="now-playing">
-    <div class="np-label">Now Playing</div>
+    <div class="np-header">
+      <div class="np-label">Now Playing</div>
+      <button class="btn btn-sm btn-eq-toggle" id="btnEq">EQ</button>
+    </div>
     <div class="np-ticker"><div class="np-name" id="npName">— SELECT A STATION —</div></div>
     <div class="np-meta">
       <div>COUNTRY: <span id="npCountry">—</span></div>
@@ -537,11 +577,9 @@
     <button class="btn btn-play" id="btnPlay">&#9654; PLAY</button>
     <button class="btn btn-icon" id="btnStop">&#9632;</button>
     <button class="btn btn-icon" id="btnNext">&#9654;&#9654;</button>
-    <!-- toggle-group kept hidden for JS event-listener compatibility -->
-    <div class="toggle-group">
-      <button class="btn btn-sm" id="btnShuffle">&#9783;</button>
-      <button class="btn btn-sm" id="btnRepeat">&#8635;</button>
-      <button class="btn btn-sm" id="btnEq">EQ</button>
+    <div style="display:none">
+       <button id="btnShuffle"></button>
+       <button id="btnRepeat"></button>
     </div>
   </div>
 
@@ -579,17 +617,13 @@
     </div>
   </div>
 
-  <!-- EQ Panel — in DOM for JS, never opens since btnEq is hidden -->
-  <div class="eq-panel" id="eqPanel">
-    <div class="eq-label">Equalizer</div>
-    <div class="eq-bars" id="eqBars"></div>
-  </div>
+
 
   <!-- FOOTER -->
   <div class="footer">
     <div class="footer-actions">
-      <button class="btn btn-sm" id="btnAdd">+ ADD URL</button>
-      <button class="btn btn-sm" id="btnRemove">&#9003; DEL</button>
+      <button class="btn btn-sm" id="btnAdd">+ ADD</button>
+      <button class="btn btn-sm" id="btnRemove">&#9003;</button>
     </div>
     <div class="footer-meta">
       STATIONS: <span id="footerCount">0</span> &nbsp;|&nbsp; FAVS: <span id="footerFavs">0</span>
@@ -679,18 +713,104 @@ const EQ_FREQS = [60,170,310,600,1000,3000,6000,12000];
 const EQ_LABELS= ['60Hz','170Hz','310Hz','600Hz','1kHz','3kHz','6kHz','12kHz'];
 const eqNodes  = [], eqVals = new Array(8).fill(0);
 
+const FACTORY_PRESETS = {
+  flat:  [0,0,0,0,0,0,0,0],
+  bass:  [8,6,3,0,0,0,0,0],
+  vocal: [-4,-2,2,6,4,2,0,0],
+  jazz:  [4,2,0,0,2,4,6,4],
+  custom:[0,0,0,0,0,0,0,0]
+};
+let currentPresets = JSON.parse(localStorage.getItem('sparky_eq_v3') || JSON.stringify(FACTORY_PRESETS));
+let activePreset = 'flat';
+
 EQ_LABELS.forEach((label, i) => {
-  const band = document.createElement('div'); band.className = 'eq-band';
-  band.innerHTML = `<div class="eq-track" id="eqT${i}"><div class="eq-fill" id="eqF${i}" style="height:50%"></div></div><div class="eq-freq">${label}</div>`;
-  document.getElementById('eqBars').appendChild(band);
-  document.getElementById('eqT'+i).addEventListener('click', e => {
-    const r = document.getElementById('eqT'+i).getBoundingClientRect();
-    const p = 1 - (e.clientY - r.top) / r.height;
-    eqVals[i] = (p-.5)*24;
-    document.getElementById('eqF'+i).style.height = (p*100)+'%';
+  const col = document.createElement('div'); col.className = 'eq-col';
+  col.innerHTML = `
+    <div class="eq-slider-box" id="eqS${i}">
+      <div class="eq-fader" id="eqF${i}" style="bottom:50%"></div>
+    </div>
+    <div class="eq-label-freq">${label}</div>
+  `;
+  document.getElementById('eqRow').appendChild(col);
+  
+  const updateFader = (y) => {
+    const box = document.getElementById('eqS'+i);
+    const rect = box.getBoundingClientRect();
+    let p = 1 - (y - rect.top) / rect.height;
+    p = Math.max(0, Math.min(1, p));
+    eqVals[i] = (p - 0.5) * 30; // +/- 15dB
+    document.getElementById('eqF'+i).style.bottom = (p * 100) + '%';
     if (eqNodes[i]) eqNodes[i].gain.value = eqVals[i];
+  };
+
+  const box = document.getElementById('eqS'+i);
+  box.addEventListener('mousedown', e => {
+    updateFader(e.clientY);
+    const move = (me) => updateFader(me.clientY);
+    const up = () => { window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', up); };
+    window.addEventListener('mousemove', move);
+    window.addEventListener('mouseup', up);
+  });
+  box.addEventListener('touchstart', e => {
+    updateFader(e.touches[0].clientY);
+    const move = (te) => { te.preventDefault(); updateFader(te.touches[0].clientY); };
+    const up = () => { window.removeEventListener('touchmove', move); window.removeEventListener('touchend', up); };
+    window.addEventListener('touchmove', move, {passive:false});
+    window.addEventListener('touchend', up);
   });
 });
+
+function sparkyAlert(msg, header="SYSTEM MESSAGE") {
+  document.getElementById('sparkyModalHeader').textContent = header;
+  document.getElementById('sparkyModalText').textContent = msg;
+  document.getElementById('sparkyModalCancel').style.display = 'none';
+  document.getElementById('sparkyModal').style.display = 'flex';
+  document.getElementById('sparkyModalOk').onclick = () => { document.getElementById('sparkyModal').style.display = 'none'; };
+}
+
+function sparkyConfirm(msg, onOk, header="SYSTEM CONFIRM") {
+  document.getElementById('sparkyModalHeader').textContent = header;
+  document.getElementById('sparkyModalText').textContent = msg;
+  document.getElementById('sparkyModalCancel').style.display = 'inline-block';
+  document.getElementById('sparkyModal').style.display = 'flex';
+  document.getElementById('sparkyModalOk').onclick = () => { document.getElementById('sparkyModal').style.display = 'none'; onOk(); };
+  document.getElementById('sparkyModalCancel').onclick = () => { document.getElementById('sparkyModal').style.display = 'none'; };
+}
+
+function setEqPreset(p) {
+  activePreset = p;
+  const vals = currentPresets[p] || FACTORY_PRESETS.flat;
+  document.querySelectorAll('.btn-preset').forEach(b => b.classList.remove('active'));
+  if (document.getElementById('pre-'+p)) document.getElementById('pre-'+p).classList.add('active');
+  vals.forEach((v, i) => {
+    eqVals[i] = v;
+    const pcent = ((v/30) + 0.5) * 100;
+    document.getElementById('eqF'+i).style.bottom = pcent + '%';
+    if (eqNodes[i]) eqNodes[i].gain.value = v;
+  });
+}
+
+function saveCustomEq() {
+  currentPresets[activePreset] = [...eqVals];
+  localStorage.setItem('sparky_eq_v3', JSON.stringify(currentPresets));
+  sparkyAlert(`Preset [${activePreset.toUpperCase()}] updated and saved to memory.`);
+}
+
+function resetEqDefaults() {
+  if (activePreset) {
+    sparkyConfirm(`Reset active preset [${activePreset.toUpperCase()}] to factory defaults?`, () => {
+      currentPresets[activePreset] = [...FACTORY_PRESETS[activePreset]];
+      localStorage.setItem('sparky_eq_v3', JSON.stringify(currentPresets));
+      setEqPreset(activePreset);
+    }, "PRESET RESET");
+  } else {
+    sparkyConfirm(`Reset ALL presets to factory defaults?`, () => {
+      currentPresets = JSON.parse(JSON.stringify(FACTORY_PRESETS));
+      localStorage.setItem('sparky_eq_v3', JSON.stringify(currentPresets));
+      setEqPreset('flat');
+    }, "GLOBAL RESET");
+  }
+}
 
 // ══ AUDIO INIT ════════════════════════════
 function initAudio() {
@@ -967,7 +1087,19 @@ function renderFavs() {
   });
 } // <-- This closing brace was missing, causing the script to break
 </script>
-<!-- Custom Edit Modal -->
+  <!-- CUSTOM SPARKY MODAL -->
+  <div id="sparkyModal" class="modal-overlay" style="display:none">
+    <div class="modal-content">
+      <div class="modal-header" id="sparkyModalHeader">SYSTEM ALERT</div>
+      <div id="sparkyModalText" style="font-size:12px; line-height:1.4; color:var(--text)"></div>
+      <div class="modal-footer">
+        <button class="btn btn-sm" style="background:var(--bg)" id="sparkyModalCancel">CANCEL</button>
+        <button class="btn btn-sm" id="sparkyModalOk">PROCEED</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Custom Edit Modal -->
 <div class="modal-overlay" id="editModalOverlay" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
   <div class="modal" style="background:var(--panel);padding:24px 20px 16px 20px;border-radius:6px;box-shadow:0 8px 32px #0008;min-width:260px;max-width:90vw;">
     <div style="font-size:15px;font-weight:bold;margin-bottom:2px;">Edit Station</div>
@@ -1052,7 +1184,7 @@ document.getElementById('btnPrev').addEventListener('click', ()=>{
 document.getElementById('btnShuffle').addEventListener('click', function(){ shuffle=!shuffle; this.classList.toggle('active',shuffle); });
 document.getElementById('btnRepeat').addEventListener('click', function(){ repeat=!repeat; this.classList.toggle('active',repeat); audioEl.loop=repeat; });
 document.getElementById('btnEq').addEventListener('click', function(){
-  const p=document.getElementById('eqPanel'); p.classList.toggle('open'); this.classList.toggle('active',p.classList.contains('open'));
+  const r=document.getElementById('eqRack'); r.classList.toggle('open'); this.classList.toggle('active',r.classList.contains('open'));
 });
 document.getElementById('volSlider').addEventListener('input', function(){ audioEl.volume=this.value/100; });
 
@@ -1131,6 +1263,7 @@ if ('mediaSession' in navigator) {
 }
 
 // ══ INIT ══════════════════════════════════
+setEqPreset(activePreset);
 refreshFavBadge();
 searchStations('jazz');
 </script>
