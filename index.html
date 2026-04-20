@@ -405,27 +405,68 @@
   /* ── EQ RACK ────────────────────────────── */
   .eq-rack {
     max-height: 0; overflow: hidden; background: var(--viz-bg);
-    border-bottom: 1px solid var(--border); transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    border-bottom: 2px solid var(--border); transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
     opacity: 0;
   }
-  .eq-rack.open { max-height: 140px; padding: 12px 14px; opacity: 1; }
-  .eq-row { display: flex; align-items: stretch; gap: 6px; height: 85px; justify-content: space-between; }
-  .eq-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .eq-rack.open { max-height: 320px; padding: 20px; opacity: 1; }
+  .eq-row { display: flex; align-items: stretch; gap: 8px; height: 100px; justify-content: space-between; margin-bottom: 20px; }
+  .eq-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px; }
   .eq-slider-box {
-    flex: 1; width: 14px; background: var(--subdim); border: 1px solid var(--border);
-    border-radius: 2px; position: relative; cursor: pointer;
+    flex: 1; width: 18px; background: var(--bg); border: 1px solid var(--border);
+    border-radius: 3px; position: relative; cursor: pointer;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+  }
+  .eq-slider-box::before {
+    content: ''; position: absolute; top: 50%; left: 0; right: 0;
+    height: 1px; background: var(--accent); opacity: 0.45; pointer-events: none;
+    box-shadow: 0 0 4px var(--accent);
   }
   .eq-fader {
-    position: absolute; left: -2px; width: 18px; height: 6px;
-    background: var(--accent); border-radius: 1px;
-    box-shadow: 0 0 8px var(--accent);
-    bottom: 50%; transition: bottom 0.1s linear;
+    position: absolute; left: -3px; width: 24px; height: 10px;
+    background: var(--accent); border-radius: 2px;
+    box-shadow: 0 0 12px var(--accent), 0 1px 2px rgba(0,0,0,0.5);
+    bottom: 50%; transform: translateY(50%); 
+    transition: bottom 0.1s linear; z-index: 2;
   }
-  .eq-label-freq { font-size: 8px; color: var(--dim); letter-spacing: .5px; text-transform: uppercase; font-weight: 700; margin-top: 2px; }
-  .eq-presets { display: flex; gap: 4px; margin-top: 10px; justify-content: center; flex-wrap: wrap; }
-  .btn-preset { padding: 3px 7px; font-size: 9px; letter-spacing: 1px; background: var(--bg); font-weight: 700; opacity: 0.9; }
-  .btn-preset.active { border-color: var(--fav); color: var(--fav); }
-  .btn-save { background: var(--subdim); border-color: var(--accent); color: var(--accent); }
+  .eq-fader::after {
+    content: attr(data-db);
+    position: absolute; top: -22px; left: 50%; transform: translateX(-50%);
+    background: var(--panel); color: var(--accent); border: 1.5px solid var(--accent);
+    padding: 2px 6px; border-radius: 3px; font-size: 11px; font-weight: 900;
+    opacity: 0; transition: opacity 0.1s; pointer-events: none;
+    white-space: nowrap; box-shadow: 0 4px 10px rgba(0,0,0,0.6);
+    font-family: 'Share Tech Mono', monospace; z-index: 10;
+  }
+  .eq-fader:hover::after, .eq-slider-box:active .eq-fader::after { opacity: 1; }
+  .eq-label-freq { font-size: 9px; color: var(--dim); letter-spacing: 1px; text-transform: uppercase; font-weight: 700; }
+  
+  .eq-scale-side { 
+    display: flex; flex-direction: column; justify-content: space-between; 
+    height: 100px; padding-bottom: 15px; font-size: 7px; color: var(--dim); 
+    font-weight: bold; opacity: 0.7; text-align: center; width: 22px;
+  }
+  .eq-presets { 
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; 
+    margin-bottom: 12px;
+  }
+  .btn-preset { 
+    padding: 6px 4px; font-size: 10px; letter-spacing: 1.5px; 
+    background: var(--bg); font-weight: 700; opacity: 0.9;
+    border-radius: 3px; border: 1px solid var(--border);
+    transition: all 0.2s;
+  }
+  .btn-preset.active { 
+    border-color: var(--fav); color: var(--fav); 
+    background: color-mix(in srgb, var(--fav) 10%, var(--bg));
+    box-shadow: 0 0 10px rgba(144, 104, 0, 0.2);
+  }
+  .eq-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .btn-action { 
+    padding: 8px; font-size: 11px; letter-spacing: 2px; font-weight: 800;
+    text-transform: uppercase;
+  }
+  .btn-save { border-color: var(--accent); color: var(--accent); background: color-mix(in srgb, var(--accent) 15%, var(--bg)); }
+  .btn-reset { border-color: var(--accent2); color: var(--accent2); background: color-mix(in srgb, var(--accent2) 15%, var(--bg)); opacity: 0.8; }
 
   /* ── MODALS ─────────────────────────────── */
   .modal-overlay {
@@ -534,17 +575,31 @@
     <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
   </div>
 
-  <!-- EQ PRO RACK -->
+  <!-- EQ PRO CONSOLE -->
+  <!-- EQ PRO CONSOLE -->
   <div class="eq-rack" id="eqRack">
-    <div class="eq-row" id="eqRow"></div>
-    <div class="eq-presets">
-      <button class="btn btn-sm btn-preset" id="pre-flat" onclick="setEqPreset('flat')">FLAT</button>
-      <button class="btn btn-sm btn-preset" id="pre-bass" onclick="setEqPreset('bass')">BASS+</button>
-      <button class="btn btn-sm btn-preset" id="pre-vocal" onclick="setEqPreset('vocal')">VOCAL</button>
-      <button class="btn btn-sm btn-preset" id="pre-jazz" onclick="setEqPreset('jazz')">JAZZ</button>
-      <button class="btn btn-sm btn-preset" id="pre-custom" onclick="setEqPreset('custom')">CUSTOM</button>
-      <button class="btn btn-sm btn-preset btn-save" onclick="saveCustomEq()" title="Save settings to active preset">SAVE</button>
-      <button class="btn btn-sm btn-preset" onclick="resetEqDefaults()" title="Reset all to defaults">RESET</button>
+    <div class="eq-row">
+      <div class="eq-scale-side"><div>+15</div><div>0</div><div>-15</div></div>
+      <div id="eqRow" style="display:flex; flex:1; justify-content:space-between; gap:8px;"></div>
+      <div class="eq-scale-side"><div>+15</div><div>0</div><div>-15</div></div>
+    </div>
+    <div class="eq-console">
+      <div class="eq-presets">
+        <button class="btn btn-sm btn-preset" id="pre-flat" onclick="setEqPreset('flat')">FLAT</button>
+        <button class="btn btn-sm btn-preset" id="pre-bass" onclick="setEqPreset('bass')">BASS+</button>
+        <button class="btn btn-sm btn-preset" id="pre-vocal" onclick="setEqPreset('vocal')">VOCAL</button>
+        <button class="btn btn-sm btn-preset" id="pre-jazz" onclick="setEqPreset('jazz')">JAZZ</button>
+        <button class="btn btn-sm btn-preset" id="pre-pop" onclick="setEqPreset('pop')">POP</button>
+        <button class="btn btn-sm btn-preset" id="pre-rock" onclick="setEqPreset('rock')">ROCK</button>
+        <button class="btn btn-sm btn-preset" id="pre-hiphop" onclick="setEqPreset('hiphop')">HIP-HOP</button>
+        <button class="btn btn-sm btn-preset" id="pre-classic" onclick="setEqPreset('classic')">CLASSIC</button>
+        <button class="btn btn-sm btn-preset" id="pre-electron" onclick="setEqPreset('electron')">ELECTRON</button>
+        <button class="btn btn-sm btn-preset" id="pre-custom" onclick="setEqPreset('custom')">CUSTOM</button>
+      </div>
+      <div class="eq-actions">
+        <button class="btn btn-sm btn-action btn-save" onclick="saveCustomEq()" title="Commit current to active memory">SAVE TO MEMORY</button>
+        <button class="btn btn-sm btn-action btn-reset" onclick="resetEqDefaults()" title="Restore factory specs">RESTORE DEFAULTS</button>
+      </div>
     </div>
   </div>
 
@@ -714,13 +769,18 @@ const EQ_LABELS= ['60Hz','170Hz','310Hz','600Hz','1kHz','3kHz','6kHz','12kHz'];
 const eqNodes  = [], eqVals = new Array(8).fill(0);
 
 const FACTORY_PRESETS = {
-  flat:  [0,0,0,0,0,0,0,0],
-  bass:  [8,6,3,0,0,0,0,0],
-  vocal: [-4,-2,2,6,4,2,0,0],
-  jazz:  [4,2,0,0,2,4,6,4],
-  custom:[0,0,0,0,0,0,0,0]
+  flat:    [0,0,0,0,0,0,0,0],
+  bass:    [5,4,2,0,-1,-1,1,2],
+  vocal:   [-2,-1,0,2,4,5,3,2],
+  jazz:    [2,2,1,0,2,3,2,2],
+  pop:     [2,1,0,1,2,3,3,4],
+  rock:    [4,3,1,-1,0,2,3,3],
+  hiphop:  [5,4,2,0,1,2,2,3],
+  classic: [0,0,0,1,2,3,2,2],
+  electron:[4,3,1,0,0,2,3,4],
+  custom:  [3,2,1,0,1,2,2,3]
 };
-let currentPresets = JSON.parse(localStorage.getItem('sparky_eq_v3') || JSON.stringify(FACTORY_PRESETS));
+let currentPresets = JSON.parse(localStorage.getItem('sparky_eq_v5') || JSON.stringify(FACTORY_PRESETS));
 let activePreset = 'flat';
 
 EQ_LABELS.forEach((label, i) => {
@@ -738,9 +798,12 @@ EQ_LABELS.forEach((label, i) => {
     const rect = box.getBoundingClientRect();
     let p = 1 - (y - rect.top) / rect.height;
     p = Math.max(0, Math.min(1, p));
-    eqVals[i] = (p - 0.5) * 30; // +/- 15dB
-    document.getElementById('eqF'+i).style.bottom = (p * 100) + '%';
-    if (eqNodes[i]) eqNodes[i].gain.value = eqVals[i];
+    let v = (p - 0.5) * 30; // +/- 15dB
+    eqVals[i] = v;
+    const f = document.getElementById('eqF'+i);
+    f.style.bottom = (p * 100) + '%';
+    f.setAttribute('data-db', v.toFixed(1) + 'dB');
+    if (eqNodes[i]) eqNodes[i].gain.value = v;
   };
 
   const box = document.getElementById('eqS'+i);
@@ -785,30 +848,35 @@ function setEqPreset(p) {
   vals.forEach((v, i) => {
     eqVals[i] = v;
     const pcent = ((v/30) + 0.5) * 100;
-    document.getElementById('eqF'+i).style.bottom = pcent + '%';
+    const f = document.getElementById('eqF'+i);
+    f.style.bottom = pcent + '%';
+    f.setAttribute('data-db', v.toFixed(1) + 'dB');
     if (eqNodes[i]) eqNodes[i].gain.value = v;
   });
 }
 
 function saveCustomEq() {
-  currentPresets[activePreset] = [...eqVals];
-  localStorage.setItem('sparky_eq_v3', JSON.stringify(currentPresets));
-  sparkyAlert(`Preset [${activePreset.toUpperCase()}] updated and saved to memory.`);
+  const p = activePreset.toUpperCase();
+  sparkyConfirm(`Commit current levels to the [${p}] memory bank? This will overwrite existing specs.`, () => {
+    currentPresets[activePreset] = [...eqVals];
+    localStorage.setItem('sparky_eq_v5', JSON.stringify(currentPresets));
+    sparkyAlert(`Preset [${p}] has been updated and saved.`, "SAVE SUCCESSFUL");
+  }, "CONFIRM MEMORY WRITE");
 }
 
 function resetEqDefaults() {
   if (activePreset) {
-    sparkyConfirm(`Reset active preset [${activePreset.toUpperCase()}] to factory defaults?`, () => {
+    sparkyConfirm(`RESTORE FACTORY SPECS: Reset [${activePreset.toUpperCase()}] to original calibrated levels?`, () => {
       currentPresets[activePreset] = [...FACTORY_PRESETS[activePreset]];
-      localStorage.setItem('sparky_eq_v3', JSON.stringify(currentPresets));
+      localStorage.setItem('sparky_eq_v5', JSON.stringify(currentPresets));
       setEqPreset(activePreset);
-    }, "PRESET RESET");
+    }, "PRESET RECOVERY");
   } else {
-    sparkyConfirm(`Reset ALL presets to factory defaults?`, () => {
+    sparkyConfirm(`GLOBAL SYSTEM RESET: Revert ALL presets to factory defaults?`, () => {
       currentPresets = JSON.parse(JSON.stringify(FACTORY_PRESETS));
-      localStorage.setItem('sparky_eq_v3', JSON.stringify(currentPresets));
+      localStorage.setItem('sparky_eq_v5', JSON.stringify(currentPresets));
       setEqPreset('flat');
-    }, "GLOBAL RESET");
+    }, "SYSTEM RECOVERY");
   }
 }
 
