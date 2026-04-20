@@ -1015,19 +1015,6 @@ function updateNowPlaying(st) {
   document.getElementById('npTrend').textContent   = st?.clicktrend !== undefined ? (st.clicktrend > 0 ? '+'+st.clicktrend : st.clicktrend) : '—';
   document.getElementById('npCountry').textContent = st?.countrycode||'—';
   document.getElementById('npCodec').textContent   = st?.codec||'—';
-  document.getElementById('npBitrate').textContent = st?.bitrate ? st.bitrate+' kbps' : '—';
-
-  // subtle icon
-  const iconBox = document.getElementById('npIcon');
-  if (st) {
-    const initials = (st.name||'?').replace(/[^A-Za-z0-9]/g,'').slice(0,2).toUpperCase()||'??';
-    const favHtml = st.favicon 
-      ? `<img src="${esc(st.favicon)}" onerror="this.parentElement.innerHTML='<div class=\"np-initials\">${initials}</div>'">`
-      : `<div class="np-initials">${initials}</div>`;
-    iconBox.innerHTML = favHtml;
-  } else {
-    iconBox.innerHTML = '<div class="np-initials">—</div>';
-  }
 
   updateStationCard(st);
 }
