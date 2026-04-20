@@ -723,12 +723,22 @@ function saveFavs(f) { localStorage.setItem(FAV_KEY, JSON.stringify(f)); }
 
 function isFav(st) {
   const u = st.url_resolved || st.url;
-  return loadFavs().some(f => f.url === u);
+  const uuid = st.stationuuid || st.id;
+  return loadFavs().some(f => (uuid && f.id === uuid) || f.url === u);
 }
 function addFav(st) {
   const favs = loadFavs(), u = st.url_resolved || st.url;
-  if (!favs.some(f => f.url === u)) {
-    favs.push({ name: st.name, url: u, bitrate: st.bitrate, codec: st.codec, countrycode: st.countrycode, tags: st.tags||'' });
+  const uuid = st.stationuuid || st.id || '';
+  if (!favs.some(f => (uuid && f.id === uuid) || f.url === u)) {
+    favs.push({ 
+      id: uuid,
+      name: st.name, 
+      url: u, 
+      bitrate: st.bitrate, 
+      codec: st.codec, 
+      countrycode: st.countrycode, 
+      tags: st.tags||'' 
+    });
     saveFavs(favs);
   }
   refreshFavBadge();
@@ -996,7 +1006,10 @@ function renderStations() {
   }
   pl.innerHTML = stations.map((st,i) => {
     const url  = st.url_resolved||st.url;
-    const actv = currentSrc && (currentSrc.url_resolved||currentSrc.url)===url && activeTab==='stations';
+    const actv = currentSrc && (
+      (currentSrc.stationuuid && currentSrc.stationuuid === st.stationuuid) ||
+      (currentSrc.url_resolved || currentSrc.url) === url
+    ) && activeTab==='stations';
     const favd = isFav(st);
     return `<div class="pl-item${actv?' active':''}" data-idx="${i}">
       <div class="pl-num">${actv?'▶':(i+1).toString().padStart(2,'0')}</div>
@@ -1064,7 +1077,11 @@ function renderFavs() {
     pl.innerHTML='<div class="pl-empty"><div class="pl-empty-icon">★</div><div>NO FAVORITES YET</div><div class="pl-empty-hint">HOVER A STATION AND CLICK + FAV</div></div>'; return;
   }
   pl.innerHTML = favs.map((st,i)=>{
-    const actv = currentSrc&&(currentSrc.url_resolved||currentSrc.url)===st.url&&activeTab==='favs';
+    const actv = currentSrc && (
+      (currentSrc.stationuuid && currentSrc.stationuuid === st.id) ||
+      (currentSrc.id && currentSrc.id === st.id) ||
+      (currentSrc.url_resolved || currentSrc.url) === st.url
+    ) && activeTab==='favs';
     return `<div class="pl-item${actv?' active':''}" data-idx="${i}">
       <div class="pl-num">${actv?'▶':(i+1).toString().padStart(2,'0')}</div>
       <div class="pl-item-info">
@@ -1249,18 +1266,46 @@ audioEl.addEventListener('playing', ()=>setStatus('playing','CONNECTED'));
 
 // ══ SEARCH ════════════════════════════════
 async function searchStations(q) {
-  document.getElementById('playlist').innerHTML='<div class="pl-loading"><div class="spinner"></div>SCANNING...</div>';
-  document.getElementById('plCount').textContent='SCANNING...';
-  const servers=['de1.api.radio-browser.info','nl1.api.radio-browser.info','at1.api.radio-browser.info'];
-  const srv=servers[Math.floor(Math.random()*servers.length)];
-  try {
-    const r=await fetch(`https://${srv}/json/stations/search?`+new URLSearchParams({name:q,limit:60,hidebroken:true,order:'clickcount',reverse:true}),{headers:{'User-Agent':'SPARKY-RadioPlayer/1.0'}});
-    if(!r.ok) throw 0;
-    stations=(await r.json()).filter(s=>s.url_resolved||s.url);
+  const playlist = document.getElementById('playlist');
+  const countLabel = document.getElementById('plCount');
+  playlist.innerHTML = '<div class="pl-loading"><div class="spinner"></div>SCANNING MIRRORS...</div>';
+  countLabel.textContent = 'SCANNING...';
+  
+  const mirrors = ['de1.api.radio-browser.info', 'at1.api.radio-browser.info', 'nl1.api.radio-browser.info'];
+  // Randomize start mirror
+  for (let i = mirrors.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [mirrors[i], mirrors[j]] = [mirrors[j], mirrors[i]];
+  }
+
+  let success = false;
+  for (const srv of mirrors) {
+    try {
+      const response = await fetch(`https://${srv}/json/stations/search?` + new URLSearchParams({
+        name: q,
+        limit: 60,
+        hidebroken: true,
+        order: 'clickcount',
+        reverse: true
+      }), { 
+        headers: { 'User-Agent': 'SparkyRadio/2.0 (Web; ModernAPI)' } 
+      });
+
+      if (!response.ok) continue;
+      
+      stations = (await response.json()).filter(s => s.url_resolved || s.url);
+      success = true;
+      break;
+    } catch (err) {
+      console.warn(`Mirror ${srv} unreachable, attempting fallback...`);
+    }
+  }
+
+  if (success) {
     renderStations();
-  } catch {
-    document.getElementById('playlist').innerHTML='<div class="pl-empty"><div class="pl-empty-icon">⚠</div><div>CONNECTION FAILED — RETRY</div></div>';
-    document.getElementById('plCount').textContent='ERROR';
+  } else {
+    playlist.innerHTML = '<div class="pl-empty"><div class="pl-empty-icon">⚠</div><div>ALL MIRRORS UNREACHABLE</div><div class="pl-empty-hint">Check your connection or try again later</div></div>';
+    countLabel.textContent = 'ERROR';
   }
 }
 
