@@ -830,9 +830,17 @@ function syncFavMetadata(st) {
       favs[favIdx].favicon = st.favicon;
       changed = true;
     }
+    if ((st.clickcount || st.c) !== undefined && favs[favIdx].clickcount !== (st.clickcount || st.c)) {
+      favs[favIdx].clickcount = st.clickcount || st.c;
+      changed = true;
+    }
+    if ((st.clicktrend || st.ct) !== undefined && favs[favIdx].clicktrend !== (st.clicktrend || st.ct)) {
+      favs[favIdx].clicktrend = st.clicktrend || st.ct;
+      changed = true;
+    }
     
     if (changed) {
-      console.log(`[SYNC] Refreshing metadata for: ${st.name}`);
+      console.log(`[SYNC] Refreshing telemetry for: ${st.name}`);
       saveFavs(favs);
     }
   }
@@ -1018,9 +1026,9 @@ function updateNowPlaying(st) {
   nm.className = 'np-name'+(st?' running':'');
   
   // Metadata row
-  document.getElementById('npVotes').textContent   = st?.votes ? Number(st.votes).toLocaleString() : '—';
-  document.getElementById('npClicks').textContent  = st?.clickcount ? Number(st.clickcount).toLocaleString() : '—';
-  document.getElementById('npTrend').textContent   = st?.clicktrend !== undefined ? (st.clicktrend > 0 ? '+'+st.clicktrend : st.clicktrend) : '—';
+  document.getElementById('npVotes').textContent   = fmtK(st?.votes || st?.v || 0);
+  document.getElementById('npClicks').textContent  = fmtK(st?.clickcount || st?.c || 0);
+  document.getElementById('npTrend').textContent   = (st?.clicktrend !== undefined || st?.ct !== undefined) ? ((st.clicktrend||st.ct) > 0 ? '+'+(st.clicktrend||st.ct) : (st.clicktrend||st.ct)) : '—';
   document.getElementById('npCountry').textContent = st?.countrycode||'—';
   document.getElementById('npCodec').textContent   = st?.codec||'—';
 
@@ -1123,7 +1131,7 @@ function renderStations() {
     pl.innerHTML='<div class="pl-empty"><div class="pl-empty-icon">📡</div><div>SEARCH TO DISCOVER STATIONS</div></div>'; return;
   }
   pl.innerHTML = stations.map((st,i) => {
-    syncFavMetadata(st); // Structural Fix: Refresh individual favorite stats on render
+    syncFavMetadata(st); // Live sync metadata during discovery scroll
     const url  = st.url_resolved||st.url;
     const actv = currentSrc && (
       (currentSrc.stationuuid && currentSrc.stationuuid === st.stationuuid) ||
@@ -1221,13 +1229,17 @@ function renderFavs() {
         <button class="btn-stack" data-downfav="${i}" title="Move down"><span class="material-symbols-outlined">expand_more</span></button>
       </div>
       <div class="pl-main">
-        <div class="pl-item-name">${esc(st.name)}</div>
+        <div class="pl-item-name">
+          ${esc(st.name)}
+          ${(st.clickcount||st.c) > 1500 ? '<span class="pl-status-badge hot">HOT</span>' : ''}
+          ${(st.clicktrend||st.ct) > 50 ? '<span class="pl-status-badge trending">TRENDING</span>' : ''}
+        </div>
         <div class="pl-item-sub-row">
           <div class="pl-item-sub">${esc(st.countrycode||'--')} · ${esc((st.tags||'').split(',')[0])}</div>
           <div class="pl-badge-group">
-            <div class="pl-badge-mini"><i>🔥</i> ${fmtK(st.clickcount)}</div>
-            <div class="pl-badge-mini"><i>👍</i> ${fmtK(st.votes)}</div>
-            <div class="pl-badge-mini"><i>📈</i> ${fmtK(st.clicktrend)}</div>
+            <div class="pl-badge-mini"><i>🔥</i> ${fmtK(st.clickcount || st.c)}</div>
+            <div class="pl-badge-mini"><i>👍</i> ${fmtK(st.votes || st.v || st.votes)}</div>
+            <div class="pl-badge-mini"><i>📈</i> ${fmtK(st.clicktrend || st.ct)}</div>
           </div>
         </div>
       </div>
