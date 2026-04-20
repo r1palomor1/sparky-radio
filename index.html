@@ -19,8 +19,8 @@
     --accent2:   #e86030;
     --green:     #80d090;
     --fav:       #e8c840;
-    --text:      #ccc8c0;
-    --dim:       #60584e;
+    --text:      #ece8e0;
+    --dim:       #8a8278;
     --subdim:    #2e2a26;
     --viz-bg:    #131210;
     --np-bg:     #1e1c1a;
@@ -45,10 +45,10 @@
     --panel:     #b8b4a0;
     --panel2:    #b2ae9c;
     --border:    #8e8a78;
-    --accent:    #2a7a3a;
+    --accent:    #051a08;
     --accent2:   #c83820;
-    --green:     #186828;
-    --fav:       #906800;
+    --green:     #000000;
+    --fav:       #5a3800;
     --text:      #0c0800;
     --dim:       #30240e;
     --subdim:    #9a9684;
@@ -57,7 +57,7 @@
     --ctrl-bg:   #b0ac9a;
     --pl-bg:     #b6b2a0;
     --pl-hover:  #c0bca8;
-    --pl-active: #a8b8a0;
+    --pl-active: #d0dbc8;
     --pl-footer: #b0ac9a;
     --seek-bg:   #8a8674;
     --tab-bg:    #aca896;
@@ -165,10 +165,12 @@
 
   /* ── VISUALIZER (compact strip below header) ── */
   .visualizer {
-    height: 28px; background: var(--viz-bg);
-    border-bottom: 1px solid var(--border);
-    display: flex; align-items: flex-end; gap: 1px; padding: 4px 10px 0;
+    height: 32px; background: var(--viz-bg);
+    border: 1px solid var(--border); border-top: none;
+    display: flex; align-items: flex-end; gap: 2px; padding: 0;
     overflow: hidden;
+    width: 60%; margin: 0 auto;
+    justify-content: center; border-radius: 0 0 4px 4px;
   }
   .bar {
     flex: 1;
@@ -182,7 +184,7 @@
     padding: 10px 14px 8px; background: var(--np-bg);
     border-bottom: 1px solid var(--border);
   }
-  .np-label { font-size: 10px; letter-spacing: 3px; color: var(--dim); text-transform: uppercase; margin-bottom: 4px; font-weight: 600; }
+  .np-label { font-size: 10px; letter-spacing: 3px; color: var(--text); text-transform: uppercase; margin-bottom: 4px; font-weight: 700; opacity: 0.9; }
   .np-ticker { overflow: hidden; white-space: nowrap; margin-bottom: 5px; }
   .np-name {
     font-family: 'Orbitron', monospace; font-size: 19px; font-weight: 700;
@@ -241,9 +243,10 @@
   }
   .btn {
     background: var(--panel2); border: 1px solid var(--border);
-    color: var(--dim); font-family: 'Share Tech Mono', monospace;
+    color: var(--text); font-family: 'Share Tech Mono', monospace;
     font-size: 11px; letter-spacing: 1px; cursor: pointer;
     padding: 7px 12px; border-radius: 2px; transition: all .15s;
+    opacity: 0.85;
     display: flex; align-items: center; justify-content: center;
     gap: 5px; white-space: nowrap;
   }
@@ -264,44 +267,51 @@
 
   /* ── TAB + SEARCH COMBINED ROW ──────────── */
   .tab-search-row {
-    display: flex; align-items: stretch;
+    display: flex; flex-direction: column;
     background: var(--tab-bg); border-bottom: 1px solid var(--border);
-    min-height: 36px;
   }
-  .tab-bar { display: flex; border-right: 1px solid var(--border); flex-shrink: 0; }
+  .tab-bar { display: flex; width: 100%; border-bottom: 1px solid var(--border); }
   .tab {
-    padding: 8px 11px;
-    font-family: 'Share Tech Mono', monospace; font-size: 10px; letter-spacing: 1.5px;
+    flex: 1;
+    padding: 10px 11px;
+    font-family: 'Share Tech Mono', monospace; font-size: 11px; letter-spacing: 1.5px;
     color: var(--dim); cursor: pointer; border: none; background: none;
     text-align: center; text-transform: uppercase;
     border-bottom: 2px solid transparent; transition: all .2s;
-    display: flex; align-items: center; gap: 5px; white-space: nowrap;
+    display: flex; align-items: center; justify-content: center; gap: 5px; white-space: nowrap;
     font-weight: 600;
   }
   .tab:hover { color: var(--text); }
-  .tab.active { color: var(--text); border-bottom-color: var(--accent); background: var(--tab-active); }
+  .tab.active { color: var(--fav); border-bottom-color: var(--fav); background: var(--tab-active); }
   .tab.fav-tab.active { color: var(--fav); border-bottom-color: var(--fav); }
   .tab-badge {
     font-size: 10px; padding: 1px 5px;
     background: var(--subdim); border-radius: 8px; color: var(--dim);
     transition: all .2s; font-weight: 600;
   }
-  .tab.active .tab-badge { background: color-mix(in srgb,var(--accent) 20%,transparent); color: var(--accent); }
+  .tab.active .tab-badge { background: color-mix(in srgb,var(--fav) 20%,transparent); color: var(--fav); }
   .tab.fav-tab.active .tab-badge { background: color-mix(in srgb,var(--fav) 20%,transparent); color: var(--fav); }
   .search-area {
-    flex: 1; display: flex; align-items: center; gap: 6px;
-    padding: 5px 10px;
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 12px;
   }
   .search-wrap { flex: 1; position: relative; }
   .search-icon { position: absolute; left: 8px; top: 50%; transform: translateY(-50%); color: var(--dim); font-size: 11px; pointer-events: none; }
   input[type=text] {
     width: 100%; background: var(--subdim); border: 1px solid var(--border);
     color: var(--text); font-family: 'Share Tech Mono', monospace;
-    font-size: 10px; letter-spacing: .5px; padding: 5px 8px 5px 26px;
+    font-size: 13px; font-weight: 700; letter-spacing: .5px; padding: 6px 30px 6px 26px;
     outline: none; border-radius: 2px; transition: border-color .2s;
   }
   input[type=text]:focus { border-color: var(--accent); box-shadow: 0 0 6px color-mix(in srgb,var(--accent) 15%,transparent); }
-  input[type=text]::placeholder { color: var(--dim); }
+  input[type=text]::placeholder { color: var(--text); opacity: 0.6; }
+  .search-clear {
+    position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+    background: none; border: none; color: var(--dim); cursor: pointer;
+    font-size: 14px; padding: 4px; display: none; align-items: center; justify-content: center;
+    line-height: 1; transition: color .2s;
+  }
+  .search-clear:hover { color: var(--accent2); }
   .btn-search {
     font-family: 'Share Tech Mono', monospace; font-size: 10px;
     letter-spacing: 1.5px; padding: 5px 10px; white-space: nowrap; font-weight: 600;
@@ -312,8 +322,8 @@
     padding: 4px 14px; background: var(--tab-bg); border-bottom: 1px solid var(--border);
     display: flex; align-items: center; justify-content: space-between;
   }
-  .pl-label { font-size: 10px; letter-spacing: 3px; color: var(--dim); text-transform: uppercase; font-weight: 600; }
-  .pl-count { font-size: 10px; color: var(--accent); font-weight: 600; }
+  .pl-label { font-size: 10px; letter-spacing: 3px; color: var(--text); text-transform: uppercase; font-weight: 700; opacity: 0.9; }
+  .pl-count { font-size: 10px; color: var(--text); font-weight: 700; letter-spacing: 2px; opacity: 0.9; }
 
   /* ── PLAYLIST ───────────────────────────── */
   .playlist { height: 170px; overflow-y: auto; background: var(--pl-bg); }
@@ -347,7 +357,7 @@
     background: var(--tab-bg); border: 1px solid var(--border);
     color: var(--dim); border-radius: 2px; letter-spacing: 1px; flex-shrink: 0; font-weight: 600;
   }
-  .pl-item.active .pl-badge { border-color: var(--accent); color: var(--accent); }
+  .pl-item.active .pl-badge { border-color: var(--accent); color: var(--text); }
 
   /* + FAV button */
   .pl-fav {
@@ -549,6 +559,7 @@
       <div class="search-wrap">
         <span class="search-icon">&#128269;</span>
         <input type="text" id="searchInput" placeholder="Search stations…" />
+        <button class="search-clear" id="btnSearchClear" title="Clear search">&#10006;</button>
       </div>
       <button class="btn btn-search" id="btnSearch">SCAN</button>
     </div>
@@ -705,12 +716,12 @@ function drawViz() {
   rafId = requestAnimationFrame(drawViz);
   if (!analyser) return;
   analyser.getByteFrequencyData(vizData);
-  vizBars.forEach((b,i) => { b.style.height = (4 + (vizData[i]||0)/255*28)+'px'; });
+  vizBars.forEach((b,i) => { b.style.height = (4 + (vizData[i]||0)/255*26)+'px'; });
 }
 function idleViz() {
   cancelAnimationFrame(rafId); let t=0;
   (function tick(){ rafId=requestAnimationFrame(tick); t+=.05;
-    vizBars.forEach((b,i)=>{ b.style.height=(4+Math.abs(Math.sin(t+i*.4))*5)+'px'; }); })();
+    vizBars.forEach((b,i)=>{ b.style.height=(4+Math.abs(Math.sin(t+i*.4))*10)+'px'; }); })();
 }
 idleViz();
 
@@ -777,6 +788,7 @@ function playStationObj(st) {
   audioEl.volume = document.getElementById('volSlider').value/100;
   setStatus('buffering','BUFFERING');
   updateNowPlaying(st);
+  updateMediaSession(st);
   audioEl.play().then(()=>{
     isPlaying=true; setStatus('playing','CONNECTED');
     document.getElementById('btnPlay').innerHTML='&#9646;&#9646; PAUSE';
@@ -1072,6 +1084,15 @@ document.getElementById('btnSearch').addEventListener('click', ()=>{
   const q=document.getElementById('searchInput').value.trim();
   if(q){ switchTab('stations'); searchStations(q); }
 });
+document.getElementById('searchInput').addEventListener('input', e => {
+  document.getElementById('btnSearchClear').style.display = e.target.value ? 'flex' : 'none';
+});
+document.getElementById('btnSearchClear').addEventListener('click', () => {
+  const inp = document.getElementById('searchInput');
+  inp.value = '';
+  inp.focus();
+  document.getElementById('btnSearchClear').style.display = 'none';
+});
 document.getElementById('searchInput').addEventListener('keydown', e=>{
   if(e.key==='Enter'){ const q=e.target.value.trim(); if(q){ switchTab('stations'); searchStations(q); } }
 });
@@ -1087,6 +1108,27 @@ document.getElementById('btnRemove').addEventListener('click', ()=>{
   if(activeTab==='favs'){ const f=loadFavs()[currentIdx]; removeFavByUrl(f.url); stopPlayback(); renderFavs(); }
   else { stations.splice(currentIdx,1); stopPlayback(); renderStations(); }
 });
+
+// ══ MEDIA SESSION (Lock Screen) ══════════
+function updateMediaSession(st) {
+  if (!('mediaSession' in navigator)) return;
+  navigator.mediaSession.metadata = new MediaMetadata({
+    title: st.name,
+    artist: st.countrycode ? `Country: ${st.countrycode}` : 'International',
+    album: 'SPARKY RADIO',
+    artwork: [
+      { src: st.favicon || 'icon-192.png', sizes: '192x192', type: 'image/png' },
+      { src: st.favicon || 'icon-512.png', sizes: '512x512', type: 'image/png' }
+    ]
+  });
+}
+if ('mediaSession' in navigator) {
+  navigator.mediaSession.setActionHandler('play', () => document.getElementById('btnPlay').click());
+  navigator.mediaSession.setActionHandler('pause', () => document.getElementById('btnPlay').click());
+  navigator.mediaSession.setActionHandler('previoustrack', () => document.getElementById('btnPrev').click());
+  navigator.mediaSession.setActionHandler('nexttrack', () => document.getElementById('btnNext').click());
+  navigator.mediaSession.setActionHandler('stop', stopPlayback);
+}
 
 // ══ INIT ══════════════════════════════════
 refreshFavBadge();
