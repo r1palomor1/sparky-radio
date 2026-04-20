@@ -353,17 +353,17 @@
   .pl-fav.is-fav { color: var(--fav); border-color: var(--fav); }
 
   .pl-edit {
-    font-size: 12px; color: var(--dim); background: none; border: none;
+    font-size: 12px; color: var(--text); background: none; border: none;
     cursor: pointer; padding: 2px 4px; opacity: 1;
-    transition: color .15s; flex-shrink: 0;
+    transition: color .15s, opacity .15s; flex-shrink: 0;
     margin-left: 2px;
   }
-  .pl-edit:hover { color: var(--accent); }
+  .pl-edit:hover { color: var(--accent); opacity: 1; }
 
   /* remove button */
   .pl-remove {
-    font-size: 12px; color: var(--dim); background: none; border: none;
-    cursor: pointer; padding: 2px 4px; opacity: 0;
+    font-size: 12px; color: var(--text); background: none; border: none;
+    cursor: pointer; padding: 2px 4px; opacity: 0.8;
     transition: opacity .15s, color .15s; flex-shrink: 0;
   }
   .pl-item:hover .pl-remove { opacity: 1; }
@@ -1072,7 +1072,6 @@ function renderFavs() {
         <div class="pl-item-sub">${esc(st.countrycode||'')}${st.tags?' · '+esc(st.tags.split(',').slice(0,3).join(', ')):''}
         </div>
       </div>
-      <div class="pl-badge" style="color:var(--fav);border-color:var(--fav)">★</div>
       <button class="btn" style="min-width:28px;min-height:28px;padding:0;justify-content:center;" data-upfav="${i}" title="Move up"><span class="material-symbols-outlined">arrow_upward_alt</span></button>
       <button class="btn" style="min-width:28px;min-height:28px;padding:0;justify-content:center;" data-downfav="${i}" title="Move down"><span class="material-symbols-outlined">arrow_downward_alt</span></button>
       <button class="pl-edit" data-editfav="${i}" title="Edit favorite">✎</button>
