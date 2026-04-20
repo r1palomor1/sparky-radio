@@ -199,38 +199,20 @@
   .np-meta span { color: var(--text); }
   .np-sep { color: var(--border); }
 
-  /* ── TIME BAR ───────────────────────────── */
-  .time-bar {
-    padding: 8px 14px; background: var(--np-bg);
+  /* ── VOLUME BAR ─────────────────────────── */
+  .volume-bar {
+    padding: 12px 14px; background: var(--np-bg);
     border-bottom: 1px solid var(--border);
-    display: flex; align-items: center; gap: 10px;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
   }
-  .time-display {
-    font-family: 'Orbitron', monospace; font-size: 22px; font-weight: 700;
-    color: var(--accent); min-width: 72px; letter-spacing: 2px; flex-shrink: 0;
-  }
-  .seek-track {
-    flex: 1; height: 4px; background: var(--seek-bg); border-radius: 2px;
-    position: relative; cursor: pointer; overflow: visible;
-  }
-  .seek-fill {
-    height: 100%; background: linear-gradient(90deg, var(--accent), var(--green));
-    border-radius: 2px; width: 0%; transition: width .5s linear; position: relative;
-  }
-  .seek-fill::after {
-    content: ''; position: absolute; right: -5px; top: -3px;
-    width: 10px; height: 10px; background: var(--text); border-radius: 50%;
-    box-shadow: 0 0 5px var(--accent); display: none;
-  }
-  .seek-track:hover .seek-fill::after { display: block; }
-  .vol-group { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--dim); letter-spacing: 1px; flex-shrink: 0; font-weight: 600; }
+  .vol-group { display: flex; align-items: center; gap: 10px; font-size: 11px; color: var(--dim); letter-spacing: 2px; font-weight: 700; width: 60%; }
   input[type=range] {
-    appearance: none; -webkit-appearance: none; width: 60px; height: 3px;
+    appearance: none; -webkit-appearance: none; flex: 1; height: 3px;
     background: var(--seek-bg); border-radius: 2px; outline: none; cursor: pointer;
   }
   input[type=range]::-webkit-slider-thumb {
-    -webkit-appearance: none; width: 10px; height: 10px; border-radius: 50%;
-    background: var(--accent); cursor: pointer;
+    -webkit-appearance: none; width: 12px; height: 12px; border-radius: 50%;
+    background: var(--accent); cursor: pointer; box-shadow: 0 0 5px var(--accent);
   }
 
   /* ── CONTROLS ───────────────────────────── */
@@ -619,11 +601,12 @@
     <span id="npBitrate" style="display:none">—</span>
   </div>
 
-  <!-- TIME BAR -->
-  <div class="time-bar">
-    <div class="time-display" id="timeDisplay">00:00</div>
-    <div class="seek-track"><div class="seek-fill" id="seekFill"></div></div>
-    <div class="vol-group">VOL <input type="range" id="volSlider" min="0" max="100" value="80"></div>
+  <!-- VOLUME BAR -->
+  <div class="volume-bar">
+    <div class="vol-group">
+      <span>VOL</span>
+      <input type="range" id="volSlider" min="0" max="100" value="80">
+    </div>
   </div>
 
   <!-- CONTROLS -->
@@ -689,6 +672,18 @@
 <audio id="audioEl" crossorigin="anonymous"></audio>
 
 <script>
+// ══ STORAGE MIGRATION ══════════════════════
+(function migrate() {
+  const map = { 'sparky_favorites_v2':'sparky_favorites', 'sparky_eq_v5':'sparky_eq_presets', 'sparky_volume_v2':'sparky_volume' };
+  Object.entries(map).forEach(([oldK, newK]) => {
+    const data = localStorage.getItem(oldK);
+    if (data !== null) {
+      if (localStorage.getItem(newK) === null) localStorage.setItem(newK, data);
+      localStorage.removeItem(oldK);
+    }
+  });
+})();
+
 // ══ STATE ══════════════════════════════════
 const audioEl = document.getElementById('audioEl');
 let stations   = [];
@@ -698,7 +693,7 @@ let currentSrc = null;   // the station object currently loaded
 let isPlaying  = false;
 let shuffle    = false;
 let repeat     = false;
-let elapsed    = 0, startTime = 0, timerInterval = null, rafId;
+let rafId;
 let audioCtx, analyser, srcNode;
 
 // ══ THEME ══════════════════════════════════
@@ -719,7 +714,7 @@ applyTheme();
 document.getElementById('themeToggle').addEventListener('click', () => { isDark = !isDark; applyTheme(); });
 
 // ══ FAVORITES (localStorage) ═══════════════
-const FAV_KEY = 'sparky_favorites_v2';
+const FAV_KEY = 'sparky_favorites';
 
 function loadFavs() {
   try { return JSON.parse(localStorage.getItem(FAV_KEY)) || []; } catch { return []; }
@@ -780,7 +775,7 @@ const FACTORY_PRESETS = {
   electron:[4,3,1,0,0,2,3,4],
   custom:  [3,2,1,0,1,2,2,3]
 };
-let currentPresets = JSON.parse(localStorage.getItem('sparky_eq_v5') || JSON.stringify(FACTORY_PRESETS));
+let currentPresets = JSON.parse(localStorage.getItem('sparky_eq_presets') || JSON.stringify(FACTORY_PRESETS));
 let activePreset = 'flat';
 
 EQ_LABELS.forEach((label, i) => {
@@ -859,7 +854,7 @@ function saveCustomEq() {
   const p = activePreset.toUpperCase();
   sparkyConfirm(`Commit current levels to the [${p}] memory bank? This will overwrite existing specs.`, () => {
     currentPresets[activePreset] = [...eqVals];
-    localStorage.setItem('sparky_eq_v5', JSON.stringify(currentPresets));
+    localStorage.setItem('sparky_eq_presets', JSON.stringify(currentPresets));
     sparkyAlert(`Preset [${p}] has been updated and saved.`, "SAVE SUCCESSFUL");
   }, "CONFIRM MEMORY WRITE");
 }
@@ -868,13 +863,13 @@ function resetEqDefaults() {
   if (activePreset) {
     sparkyConfirm(`RESTORE FACTORY SPECS: Reset [${activePreset.toUpperCase()}] to original calibrated levels?`, () => {
       currentPresets[activePreset] = [...FACTORY_PRESETS[activePreset]];
-      localStorage.setItem('sparky_eq_v5', JSON.stringify(currentPresets));
+      localStorage.setItem('sparky_eq_presets', JSON.stringify(currentPresets));
       setEqPreset(activePreset);
     }, "PRESET RECOVERY");
   } else {
     sparkyConfirm(`GLOBAL SYSTEM RESET: Revert ALL presets to factory defaults?`, () => {
       currentPresets = JSON.parse(JSON.stringify(FACTORY_PRESETS));
-      localStorage.setItem('sparky_eq_v5', JSON.stringify(currentPresets));
+      localStorage.setItem('sparky_eq_presets', JSON.stringify(currentPresets));
       setEqPreset('flat');
     }, "SYSTEM RECOVERY");
   }
@@ -919,21 +914,7 @@ function setStatus(state, txt) {
   document.getElementById('statusText').textContent = txt.toUpperCase();
 }
 
-// ══ TIMER ═════════════════════════════════
-function startTimer() {
-  clearInterval(timerInterval); startTime = Date.now() - elapsed*1000;
-  timerInterval = setInterval(()=>{
-    elapsed = (Date.now()-startTime)/1000;
-    document.getElementById('timeDisplay').textContent =
-      Math.floor(elapsed/60).toString().padStart(2,'0')+':'+Math.floor(elapsed%60).toString().padStart(2,'0');
-    document.getElementById('seekFill').style.width = Math.min((elapsed/3600)*100,100)+'%';
-  },500);
-}
-function stopTimer() {
-  clearInterval(timerInterval); elapsed=0;
-  document.getElementById('timeDisplay').textContent='00:00';
-  document.getElementById('seekFill').style.width='0%';
-}
+
 
 // ══ NOW PLAYING ═══════════════════════════
 function updateNowPlaying(st) {
@@ -980,7 +961,7 @@ function playStationObj(st) {
   audioEl.play().then(()=>{
     isPlaying=true; setStatus('playing','CONNECTED');
     document.getElementById('btnPlay').innerHTML='&#9646;&#9646; PAUSE';
-    startTimer(); cancelAnimationFrame(rafId); drawViz();
+    cancelAnimationFrame(rafId); drawViz();
   }).catch(()=>{ setStatus('error','ERROR'); document.getElementById('btnPlay').innerHTML='&#9654; PLAY'; });
 }
 
@@ -996,7 +977,7 @@ function stopPlayback() {
   isPlaying=false; currentSrc=null;
   setStatus('','IDLE');
   document.getElementById('btnPlay').innerHTML='&#9654; PLAY';
-  stopTimer(); idleViz(); renderCurrent();
+  idleViz(); renderCurrent();
   updateStationCard(null);
 }
 
@@ -1226,7 +1207,7 @@ document.getElementById('btnPlay').addEventListener('click', ()=>{
     if(currentSrc){
       audioEl.play().then(()=>{ isPlaying=true; setStatus('playing','CONNECTED');
         document.getElementById('btnPlay').innerHTML='&#9646;&#9646; PAUSE';
-        startTimer(); cancelAnimationFrame(rafId); drawViz(); });
+        cancelAnimationFrame(rafId); drawViz(); });
     } else {
       const list=activeTab==='favs'?loadFavs():stations;
       if(list.length){ currentIdx=0; playStationObj(list[0]); renderCurrent(); }
@@ -1234,7 +1215,7 @@ document.getElementById('btnPlay').addEventListener('click', ()=>{
   } else {
     audioEl.pause(); isPlaying=false; setStatus('','PAUSED');
     document.getElementById('btnPlay').innerHTML='&#9654; PLAY';
-    clearInterval(timerInterval); idleViz();
+    idleViz();
   }
 });
 
@@ -1254,7 +1235,11 @@ document.getElementById('btnRepeat').addEventListener('click', function(){ repea
 document.getElementById('btnEq').addEventListener('click', function(){
   const r=document.getElementById('eqRack'); r.classList.toggle('open'); this.classList.toggle('active',r.classList.contains('open'));
 });
-document.getElementById('volSlider').addEventListener('input', function(){ audioEl.volume=this.value/100; });
+document.getElementById('volSlider').addEventListener('input', function(){
+  const v = this.value;
+  audioEl.volume = v / 100;
+  localStorage.setItem('sparky_volume', v);
+});
 
 audioEl.addEventListener('ended', ()=>{
   if(!repeat){ const list=activeTab==='favs'?loadFavs():stations; if(list.length) playAtIndex(shuffle?Math.floor(Math.random()*list.length):(currentIdx+1)%list.length); else stopPlayback(); }
@@ -1331,6 +1316,11 @@ if ('mediaSession' in navigator) {
 }
 
 // ══ INIT ══════════════════════════════════
+const savedVol = localStorage.getItem('sparky_volume');
+if (savedVol !== null) {
+  document.getElementById('volSlider').value = savedVol;
+  audioEl.volume = savedVol / 100;
+}
 setEqPreset(activePreset);
 refreshFavBadge();
 searchStations('jazz');
