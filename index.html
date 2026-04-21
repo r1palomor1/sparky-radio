@@ -781,6 +781,7 @@ let shuffle    = false;
 let repeat     = false;
 let rafId, hls;
 let audioCtx, analyser, srcNode;
+let sortTooltipTimeout;
 
 // ══ THEME ══════════════════════════════════
 // One-time migration: reset to dark mode for redesign v2
@@ -1543,6 +1544,16 @@ document.getElementById('btnSortMode').addEventListener('click', function() {
   sortMode = modes[idx];
   updateSortUI();
   renderCurrent();
+
+  // Mobile/Auto-Hide Logic: Keep visible then dismiss after 1.5s
+  const tip = document.getElementById('plSortTooltip');
+  if(tip) {
+    tip.classList.add('show');
+    clearTimeout(sortTooltipTimeout);
+    sortTooltipTimeout = setTimeout(() => {
+      tip.classList.remove('show');
+    }, 1500);
+  }
 });
 
 audioEl.addEventListener('ended', ()=>{
