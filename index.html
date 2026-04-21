@@ -866,7 +866,17 @@ function loadFavs() {
 function saveFavs(f) { localStorage.setItem(FAV_KEY, JSON.stringify(f)); }
 
 // Normalize URLs for collision-resistant identity checks (protocol/trailing-slash agnostic)
-function norm(u) { if(!u) return ''; return u.replace(/^https?:\/\//,'').replace(/\/$/,'').toLowerCase(); }
+function norm(u) {
+  if (!u) return '';
+  try {
+    // Structural Fix: Strip dynamic session IDs, timestamps, and query params that break matching
+    let n = u.split('?')[0].split('#')[0].toLowerCase().trim();
+    n = n.replace(/^https?:\/\//, '').replace(/\/$/, '');
+    return n;
+  } catch (e) {
+    return u.toLowerCase().trim();
+  }
+}
 
 function isFav(st) {
   const u = st.url_resolved || st.url;
@@ -913,7 +923,7 @@ function syncFavMetadata(st) {
   const favIdx = favs.findIndex(f => {
     const idMatch = uuid && (f.id === uuid || f.stationuuid === uuid);
     const urlMatch = norm(f.url) === norm(u);
-    if(urlMatch && !idMatch) console.log(`[SYNC-HINT] URL-Match found for ${f.name}, but ID is missing in record.`);
+    if(urlMatch && !idMatch) console.log(`[SYNC-HINT] Repairing signature for ${f.name}...`);
     return idMatch || urlMatch;
   });
   
