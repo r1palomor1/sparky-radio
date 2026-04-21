@@ -808,15 +808,19 @@ function loadFavs() {
 }
 function saveFavs(f) { localStorage.setItem(FAV_KEY, JSON.stringify(f)); }
 
+// Normalize URLs for collision-resistant identity checks (protocol/trailing-slash agnostic)
+function norm(u) { if(!u) return ''; return u.replace(/^https?:\/\//,'').replace(/\/$/,'').toLowerCase(); }
+
 function isFav(st) {
   const u = st.url_resolved || st.url;
   const uuid = st.stationuuid || st.id;
-  return loadFavs().some(f => (uuid && f.id === uuid) || f.url === u);
+  const fv = loadFavs();
+  return fv.some(f => (uuid && (f.id === uuid || f.stationuuid === uuid)) || norm(f.url) === norm(u));
 }
 function addFav(st) {
   const favs = loadFavs(), u = st.url_resolved || st.url;
   const uuid = st.stationuuid || st.id || '';
-  if (!favs.some(f => (uuid && f.id === uuid) || f.url === u)) {
+  if (!favs.some(f => (uuid && (f.id === uuid || f.stationuuid === uuid)) || norm(f.url) === norm(u))) {
     favs.push({ 
       id: uuid,
       name: st.name, 
@@ -832,7 +836,7 @@ function addFav(st) {
   refreshFavBadge();
 }
 function removeFavByUrl(u) {
-  saveFavs(loadFavs().filter(f => f.url !== u));
+  saveFavs(loadFavs().filter(f => norm(f.url) !== norm(u)));
   refreshFavBadge();
 }
 function refreshFavBadge() {
@@ -849,7 +853,7 @@ function syncFavMetadata(st) {
   const favs = loadFavs();
   const u = st.url_resolved || st.url;
   const uuid = st.stationuuid || st.id;
-  const favIdx = favs.findIndex(f => (uuid && f.id === uuid) || f.url === u);
+  const favIdx = favs.findIndex(f => (uuid && (f.id === uuid || f.stationuuid === uuid)) || norm(f.url) === norm(u));
   
   if (favIdx !== -1) {
     let changed = false;
@@ -903,23 +907,38 @@ function switchTab(tab) {
 }
 
 async function backgroundSyncFavs() {
-  const favs = loadFavs();
-  if(!favs.length) return;
-  // Background-sync individual stations to ensure global trending markers match local records
-  for(let f of favs) {
-    const id = f.id || f.stationuuid;
-    if(!id) continue;
+  const fv = loadFavs();
+  if(!fv.length) return;
+  const mirrors = ["de1.api.radio-browser.info","at1.api.radio-browser.info","nl1.api.radio-browser.info","all.api.radio-browser.info"];
+  
+  for(let f of fv) {
+    let id = f.id || f.stationuuid;
+    const m = mirrors[Math.floor(Math.random()*mirrors.length)];
     try {
-      const mirrors = ["de1.api.radio-browser.info","at1.api.radio-browser.info","nl1.api.radio-browser.info"];
-      const m = mirrors[Math.floor(Math.random()*mirrors.length)];
-      const r = await fetch(`https://${m}/json/stations/byuuid/${id}`);
+      if(!id) {
+        // Deep-Search Rescue: Find missing ID for orphaned favorites by Name+URL
+        const sr = await fetch(`https://${m}/json/stations/byname/${encodeURIComponent(f.name)}`);
+        const res = await sr.json();
+        const match = res.find(candidate => norm(candidate.url) === norm(f.url) || norm(candidate.url_resolved) === norm(f.url));
+        if(match) {
+          id = match.stationuuid;
+          let latest = loadFavs();
+          let idx = latest.findIndex(fav => norm(fav.url) === norm(f.url));
+          if(idx !== -1) { 
+            latest[idx].id = id; 
+            latest[idx].stationuuid = id; 
+            saveFavs(latest); 
+          }
+        } else continue;
+      }
+      
+      const r = await fetch(`https://${m}/json/stations/byuuid/${id}`, { cache: 'no-store' });
       const d = await r.json();
       if(d && d.length) {
         syncFavMetadata(d[0]);
-        // Re-render only if current tab is still favs
-        if(activeTab==='favs') renderFavs();
+        if(activeTab === 'favs') renderFavs();
       }
-    } catch(e) { /* silent catch for background work */ }
+    } catch(e) { /* background fail silent */ }
   }
 }
 
@@ -1312,9 +1331,9 @@ function renderFavs() {
 
   pl.innerHTML = favs.map((st,i)=>{
     const actv = currentSrc && (
-      (currentSrc.stationuuid && currentSrc.stationuuid === st.id) ||
-      (currentSrc.id && currentSrc.id === st.id) ||
-      (currentSrc.url_resolved || currentSrc.url) === st.url
+      (currentSrc.stationuuid && (currentSrc.stationuuid === st.id || currentSrc.stationuuid === st.stationuuid)) ||
+      (currentSrc.id && (currentSrc.id === st.id || currentSrc.id === st.stationuuid)) ||
+      norm(currentSrc.url_resolved || currentSrc.url) === norm(st.url)
     ) && activeTab==='favs';
     
     const isManual = sortMode === 'custom';
