@@ -1822,7 +1822,8 @@
     let stations = [];
     let currentIdx = -1;
     let activeTab = 'stations';
-    let sortMode = localStorage.getItem('sparky_sort_mode') || 'power';
+    let sortMode = 'power'; // Base sort mode
+    let favSortMode = localStorage.getItem('sparky_fav_sort_mode') || 'power';
     let currentSrc = null;   // the station object currently loaded
     let isPlaying = false;
     let shuffle = false;
@@ -1964,10 +1965,11 @@
       document.getElementById('searchArea').style.display = tab === 'stations' ? '' : 'none';
 
       if (tab === 'stations') {
-        if (sortMode === 'custom') sortMode = 'power';
+        sortMode = 'power';
         document.getElementById('plLabel').textContent = 'Stations';
         renderStations();
       } else {
+        sortMode = favSortMode;
         document.getElementById('plLabel').textContent = 'Favorites';
         renderFavs();
         backgroundSyncFavs();
@@ -2178,6 +2180,15 @@
       const nm = document.getElementById('npName');
       nm.textContent = st ? st.name : '— SELECT A STATION —';
       nm.className = 'np-name' + (st ? ' running' : '');
+
+      // Dynamic Velocity Calibration: 50px per second
+      if (st) {
+        const textWidth = nm.scrollWidth;
+        const containerWidth = nm.parentElement.offsetWidth;
+        // Calculation: Duration = (TextWidth + ContainerWidth) / Speed
+        const duration = (textWidth + containerWidth) / 50; 
+        nm.style.animationDuration = duration + 's';
+      }
 
       // Metadata row
       document.getElementById('npVotes').textContent = fmtK(st?.votes || st?.v || 0);
@@ -2651,7 +2662,12 @@
       let idx = (modes.indexOf(sortMode) + 1) % modes.length;
       if (idx < 0) idx = 0;
       sortMode = modes[idx];
-      localStorage.setItem('sparky_sort_mode', sortMode);
+
+      if (activeTab === 'favs') {
+        favSortMode = sortMode;
+        localStorage.setItem('sparky_fav_sort_mode', favSortMode);
+      }
+
       updateSortUI();
       renderCurrent();
 
