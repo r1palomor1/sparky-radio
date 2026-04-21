@@ -769,6 +769,8 @@
   });
 })();
 
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
 // ══ STATE ══════════════════════════════════
 const audioEl = document.getElementById('audioEl');
 let stations   = [];
@@ -912,6 +914,7 @@ async function backgroundSyncFavs() {
   const mirrors = ["de1.api.radio-browser.info","at1.api.radio-browser.info","nl1.api.radio-browser.info","all.api.radio-browser.info"];
   
   for(let f of fv) {
+    await sleep(300); // Polite Heartbeat Pause: Bypasses API rate-limiting and browser congestion
     let id = f.id || f.stationuuid;
     const m = mirrors[Math.floor(Math.random()*mirrors.length)];
     try {
