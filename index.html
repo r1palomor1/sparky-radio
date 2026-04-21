@@ -21,6 +21,7 @@
     }
 
     :root {
+      --text-scale: 1.0;
       --bg: #181614;
       --panel: #222020;
       --panel2: #282624;
@@ -157,7 +158,7 @@
       }
 
       .logo-title {
-        font-size: 13px;
+        font-size: calc(13px * var(--text-scale));
         letter-spacing: 2px;
         white-space: nowrap;
       }
@@ -176,7 +177,7 @@
     .logo-title {
       font-family: 'Orbitron', monospace;
       font-weight: 900;
-      font-size: 17px;
+      font-size: calc(17px * var(--text-scale));
       letter-spacing: 4px;
       color: var(--text);
       line-height: 1;
@@ -229,7 +230,7 @@
     }
 
     .toggle-icon {
-      font-size: 11px;
+      font-size: calc(11px * var(--text-scale));
       line-height: 1;
     }
 
@@ -284,7 +285,7 @@
     }
 
     #statusText {
-      font-size: 10px;
+      font-size: calc(10px * var(--text-scale));
       letter-spacing: 2px;
       color: var(--text);
       font-weight: 500;
@@ -332,7 +333,7 @@
     }
 
     .np-label {
-      font-size: 12px;
+      font-size: calc(12px * var(--text-scale));
       letter-spacing: 3px;
       color: var(--text);
       text-transform: uppercase;
@@ -349,7 +350,7 @@
 
     .np-name {
       font-family: 'Orbitron', monospace;
-      font-size: 19px;
+      font-size: calc(19px * var(--text-scale));
       font-weight: 700;
       color: var(--text);
       display: inline-block;
@@ -375,7 +376,7 @@
     .np-meta {
       display: flex;
       gap: 4px;
-      font-size: 11px;
+      font-size: calc(11px * var(--text-scale));
       color: var(--text);
       letter-spacing: 0.5px;
       align-items: center;
@@ -391,7 +392,7 @@
       padding: 4px 6px;
       border-radius: 2px;
       border: 1px solid var(--border);
-      font-size: 10px;
+      font-size: calc(10px * var(--text-scale));
       color: var(--text);
       font-weight: 500;
       display: flex;
@@ -405,7 +406,7 @@
     }
 
     .pl-status-badge {
-      font-size: 9px;
+      font-size: calc(9px * var(--text-scale));
       padding: 1px 4px;
       border-radius: 2px;
       font-weight: 700;
@@ -433,7 +434,7 @@
 
     .pl-badge-mini {
       font-family: 'Share Tech Mono', monospace;
-      font-size: 10px;
+      font-size: calc(10px * var(--text-scale));
       padding: 1px 4px;
       background: var(--subdim);
       border-radius: 2px;
@@ -447,7 +448,7 @@
 
     .pl-badge-mini i {
       font-style: normal;
-      font-size: 10px;
+      font-size: calc(10px * var(--text-scale));
     }
 
     .np-ticker {
@@ -467,7 +468,7 @@
 
     .np-name {
       display: inline-block;
-      font-size: 20px;
+      font-size: calc(20px * var(--text-scale));
       font-weight: 900;
       color: var(--text);
       padding-right: 50px;
@@ -489,7 +490,7 @@
       display: flex;
       align-items: center;
       gap: 10px;
-      font-size: 11px;
+      font-size: calc(11px * var(--text-scale));
       color: var(--text);
       letter-spacing: 2px;
       font-weight: 700;
@@ -533,7 +534,7 @@
       border: 1px solid var(--border);
       color: var(--text);
       font-family: 'Share Tech Mono', monospace;
-      font-size: 11px;
+      font-size: calc(11px * var(--text-scale));
       letter-spacing: 1px;
       cursor: pointer;
       padding: 7px 12px;
@@ -561,7 +562,7 @@
       border-color: var(--border);
       color: var(--text);
       padding: 8px 22px;
-      font-size: 13px;
+      font-size: calc(13px * var(--text-scale));
       letter-spacing: 1px;
     }
 
@@ -571,7 +572,7 @@
     }
 
     .btn-icon {
-      font-size: 14px;
+      font-size: calc(14px * var(--text-scale));
       padding: 7px 10px;
     }
 
@@ -583,7 +584,7 @@
 
     .btn-sm {
       padding: 5px 9px;
-      font-size: 10px;
+      font-size: calc(10px * var(--text-scale));
       letter-spacing: 1.5px;
       font-weight: 500;
     }
@@ -611,7 +612,7 @@
       flex: 1;
       padding: 10px 11px;
       font-family: 'Share Tech Mono', monospace;
-      font-size: 11px;
+      font-size: calc(11px * var(--text-scale));
       letter-spacing: 1.5px;
       color: var(--text);
       cursor: pointer;
@@ -648,7 +649,7 @@
     }
 
     .tab-badge {
-      font-size: 10px;
+      font-size: calc(10px * var(--text-scale));
       padding: 1px 5px;
       background: var(--subdim);
       border-radius: 8px;
@@ -665,6 +666,18 @@
     .tab.fav-tab.active .tab-badge {
       background: color-mix(in srgb, var(--fav) 20%, transparent);
       color: var(--fav);
+    }
+
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 12px;
+    flex-shrink: 0;
+    }
+
+    .pl-badge-group {
+      display: flex;
+      gap: 6px;
     }
 
     .search-area {
@@ -685,7 +698,7 @@
       top: 50%;
       transform: translateY(-50%);
       color: var(--text);
-      font-size: 11px;
+      font-size: calc(11px * var(--text-scale));
       pointer-events: none;
     }
 
@@ -695,7 +708,7 @@
       border: 1px solid var(--border);
       color: var(--text);
       font-family: 'Share Tech Mono', monospace;
-      font-size: 13px;
+      font-size: calc(13px * var(--text-scale));
       font-weight: 500;
       letter-spacing: .5px;
       padding: 6px 30px 6px 26px;
@@ -723,7 +736,7 @@
       border: none;
       color: var(--text);
       cursor: pointer;
-      font-size: 14px;
+      font-size: calc(14px * var(--text-scale));
       padding: 4px;
       display: none;
       align-items: center;
@@ -738,7 +751,7 @@
 
     .btn-search {
       font-family: 'Share Tech Mono', monospace;
-      font-size: 10px;
+      font-size: calc(10px * var(--text-scale));
       letter-spacing: 1.5px;
       padding: 5px 10px;
       white-space: nowrap;
@@ -784,7 +797,7 @@
     }
 
     .pl-sort-btn .material-symbols-outlined {
-      font-size: 14px;
+      font-size: calc(14px * var(--text-scale));
     }
 
     .pl-sort-tooltip {
@@ -794,7 +807,7 @@
       background: var(--panel);
       border: 1px solid var(--accent);
       color: var(--text);
-      font-size: 10px;
+      font-size: calc(10px * var(--text-scale));
       padding: 8px 12px;
       border-radius: 2px;
       display: none;
@@ -826,7 +839,7 @@
     }
 
     .pl-sort-row .material-symbols-outlined {
-      font-size: 14px;
+      font-size: calc(14px * var(--text-scale));
       width: 16px;
       text-align: center;
     }
@@ -834,7 +847,7 @@
     .pl-sort-row .sort-desc {
       font-weight: 700;
       text-transform: uppercase;
-      font-size: 9px;
+      font-size: calc(9px * var(--text-scale));
     }
 
     .pl-label {
@@ -842,7 +855,7 @@
       display: flex;
       align-items: center;
       padding: 0 12px;
-      font-size: 10px;
+      font-size: calc(11px * var(--text-scale));
       text-transform: uppercase;
       letter-spacing: 2px;
       color: var(--text);
@@ -855,7 +868,7 @@
       align-items: center;
       padding-right: 14px;
       color: var(--text);
-      font-size: 10px;
+      font-size: calc(10px * var(--text-scale));
       font-weight: 500;
       letter-spacing: 2px;
       opacity: 1;
@@ -926,7 +939,7 @@
     }
 
     .pl-num {
-      font-size: 11px;
+      font-size: calc(11px * var(--text-scale));
       color: var(--text);
       font-weight: 500;
       opacity: 1;
@@ -939,47 +952,57 @@
       flex: 1;
       display: flex;
       flex-direction: column;
-      justify-content: center;
-      padding: 8px 12px;
+      gap: 6px;
+      padding: 10px 12px 10px 8px;
+      min-width: 0;
       overflow: hidden;
+    }
+
+    .pl-item-name-row,
+    .pl-item-sub-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      flex-wrap: nowrap;
     }
 
     .pl-item-name {
-      font-weight: 500;
-      font-size: 13px;
-      color: var(--accent);
-      letter-spacing: 0.5px;
+      font-weight: 700;
+      color: var(--text);
+      font-size: calc(13px * var(--text-scale));
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      margin-bottom: 3px;
+      flex: 1;
+      min-width: 0;
     }
 
-    .pl-item-sub-row {
+    .pl-item-actions {
       display: flex;
-      align-items: center;
       gap: 8px;
-      flex-wrap: nowrap;
-      overflow: hidden;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    .pl-badge-group {
+      display: flex;
+      gap: 6px;
+      flex-shrink: 0;
+      align-items: center;
     }
 
     .pl-item-sub {
-      font-size: 10px;
-      color: var(--text);
-      opacity: 0.9;
+      font-size: calc(10px * var(--text-scale));
+      color: var(--dim);
+      font-family: 'Share Tech Mono', monospace;
+      text-transform: uppercase;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      font-weight: 500;
-    }
-
-    .pl-end {
-      width: auto;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      padding: 0 12px;
-      flex-shrink: 0;
+      flex: 1;
+      min-width: 0;
     }
 
     .pl-item.active {
@@ -999,7 +1022,7 @@
 
 
     .pl-badge {
-      font-size: 10px;
+      font-size: calc(10px * var(--text-scale));
       padding: 2px 5px;
       background: var(--tab-bg);
       border: 1px solid var(--border);
@@ -1017,7 +1040,7 @@
 
     /* + FAV button */
     .pl-fav {
-      font-size: 10px;
+      font-size: calc(10px * var(--text-scale));
       letter-spacing: .5px;
       color: var(--text);
       background: var(--tab-bg);
@@ -1046,7 +1069,7 @@
     }
 
     .pl-edit {
-      font-size: 12px;
+      font-size: calc(12px * var(--text-scale));
       color: var(--text);
       background: none;
       border: none;
@@ -1065,7 +1088,7 @@
 
     /* remove button */
     .pl-remove {
-      font-size: 12px;
+      font-size: calc(12px * var(--text-scale));
       color: var(--text);
       background: none;
       border: none;
@@ -1092,20 +1115,20 @@
       align-items: center;
       justify-content: center;
       color: var(--text);
-      font-size: 11px;
+      font-size: calc(11px * var(--text-scale));
       letter-spacing: 2px;
       gap: 8px;
       font-weight: 700;
     }
 
     .pl-empty-icon {
-      font-size: 28px;
+      font-size: calc(28px * var(--text-scale));
       opacity: .5;
       color: var(--accent);
     }
 
     .pl-empty-hint {
-      font-size: 10px;
+      font-size: calc(10px * var(--text-scale));
       color: var(--text);
       margin-top: 2px;
       opacity: 0.8;
@@ -1117,7 +1140,7 @@
       align-items: center;
       justify-content: center;
       color: var(--accent);
-      font-size: 10px;
+      font-size: calc(10px * var(--text-scale));
       letter-spacing: 2px;
       gap: 10px;
     }
@@ -1219,7 +1242,7 @@
       border: 1.5px solid var(--accent);
       padding: 2px 6px;
       border-radius: 3px;
-      font-size: 11px;
+      font-size: calc(11px * var(--text-scale));
       font-weight: 900;
       opacity: 0;
       transition: opacity 0.1s;
@@ -1236,7 +1259,7 @@
     }
 
     .eq-label-freq {
-      font-size: 9px;
+      font-size: calc(9px * var(--text-scale));
       color: var(--dim);
       letter-spacing: 1px;
       text-transform: uppercase;
@@ -1249,7 +1272,7 @@
       justify-content: space-between;
       height: 100px;
       padding-bottom: 15px;
-      font-size: 7px;
+      font-size: calc(7px * var(--text-scale));
       color: var(--dim);
       font-weight: bold;
       opacity: 0.7;
@@ -1266,7 +1289,7 @@
 
     .btn-preset {
       padding: 6px 4px;
-      font-size: 10px;
+      font-size: calc(10px * var(--text-scale));
       letter-spacing: 1.5px;
       background: var(--bg);
       font-weight: 700;
@@ -1291,7 +1314,7 @@
 
     .btn-action {
       padding: 8px;
-      font-size: 11px;
+      font-size: calc(11px * var(--text-scale));
       letter-spacing: 2px;
       font-weight: 800;
       text-transform: uppercase;
@@ -1336,7 +1359,7 @@
     }
 
     .modal-header {
-      font-size: 10px;
+      font-size: calc(10px * var(--text-scale));
       color: var(--accent);
       margin-bottom: 12px;
       letter-spacing: 2px;
@@ -1369,7 +1392,7 @@
     }
 
     .footer-meta {
-      font-size: 11px;
+      font-size: calc(11px * var(--text-scale));
       color: var(--text);
       letter-spacing: 2px;
       white-space: nowrap;
@@ -1404,7 +1427,7 @@
       align-items: center;
       justify-content: center;
       color: var(--dim);
-      font-size: 10px;
+      font-size: calc(10px * var(--text-scale));
       letter-spacing: 2px;
       gap: 6px;
       opacity: .4;
@@ -1412,7 +1435,7 @@
     }
 
     .sc-idle-icon {
-      font-size: 22px;
+      font-size: calc(22px * var(--text-scale));
     }
 
     .sc-art {
@@ -1441,7 +1464,7 @@
       color: var(--accent);
       font-family: 'Orbitron', monospace;
       font-weight: 700;
-      font-size: 18px;
+      font-size: calc(18px * var(--text-scale));
       letter-spacing: 1px;
       display: flex;
       align-items: center;
@@ -1464,7 +1487,7 @@
     }
 
     .sc-meta-badge {
-      font-size: 10px;
+      font-size: calc(10px * var(--text-scale));
       padding: 2px 7px;
       border-radius: 2px;
       background: var(--subdim);
@@ -1481,7 +1504,7 @@
     }
 
     .sc-tag {
-      font-size: 9px;
+      font-size: calc(9px * var(--text-scale));
       padding: 2px 7px;
       border-radius: 10px;
       background: color-mix(in srgb, var(--accent) 14%, transparent);
@@ -1494,7 +1517,7 @@
     }
 
     .sc-link {
-      font-size: 15px;
+      font-size: calc(15px * var(--text-scale));
       text-decoration: none;
       opacity: .7;
       transition: opacity .15s;
@@ -1511,7 +1534,7 @@
       background: #000;
       color: #0f0;
       font-family: 'Share Tech Mono', monospace;
-      font-size: 10px;
+      font-size: calc(10px * var(--text-scale));
       font-weight: 500;
       padding: 10px;
       height: 200px;
@@ -1692,7 +1715,7 @@
           📡 STATIONS <span class="tab-badge" id="stationsBadge">0</span>
         </button>
         <button class="tab fav-tab" id="tabFavs" onclick="switchTab('favs')">
-          ★ FAVS <span class="tab-badge" id="favsBadge">0</span>
+          ★ FAVORITES <span class="tab-badge" id="favsBadge">0</span>
         </button>
       </div>
       <div class="search-area" id="searchArea">
@@ -1714,7 +1737,6 @@
         </button>
         <div class="pl-label" id="plLabel">Stations</div>
       </div>
-      <div class="pl-count" id="plCount">0 FOUND</div>
     </div>
 
     <!-- PLAYLIST -->
@@ -1732,9 +1754,6 @@
       <div class="footer-actions">
         <button class="btn btn-sm" id="btnAdd">+ ADD</button>
         <button class="btn btn-sm" id="btnRemove">&#9003;</button>
-      </div>
-      <div class="footer-meta">
-        STATIONS: <span id="footerCount">0</span> &nbsp;|&nbsp; FAVS: <span id="footerFavs">0</span>
       </div>
     </div>
   </div>
@@ -1826,6 +1845,7 @@
     let favSortMode = localStorage.getItem('sparky_fav_sort_mode') || 'power';
     let currentSrc = null;   // the station object currently loaded
     let isPlaying = false;
+    let textScale = parseFloat(localStorage.getItem('sparky_text_scale')) || 1.0;
     let shuffle = false;
     let repeat = false;
     let rafId, hls;
@@ -1901,7 +1921,6 @@
     function refreshFavBadge() {
       const n = loadFavs().length;
       document.getElementById('favsBadge').textContent = n;
-      document.getElementById('footerFavs').textContent = n;
     }
 
     /**
@@ -2186,7 +2205,7 @@
         const textWidth = nm.scrollWidth;
         const containerWidth = nm.parentElement.offsetWidth;
         // Calculation: Duration = (TextWidth + ContainerWidth) / Speed
-        const duration = (textWidth + containerWidth) / 50; 
+        const duration = (textWidth + containerWidth) / 50;
         nm.style.animationDuration = duration + 's';
       }
 
@@ -2289,9 +2308,7 @@
 
     function renderStations() {
       const pl = document.getElementById('playlist');
-      document.getElementById('plCount').textContent = stations.length + ' FOUND';
       document.getElementById('stationsBadge').textContent = stations.length;
-      document.getElementById('footerCount').textContent = stations.length;
       if (!stations.length) {
         pl.innerHTML = '<div class="pl-empty"><div class="pl-empty-icon">📡</div><div>SEARCH TO DISCOVER STATIONS</div></div>'; return;
       }
@@ -2325,23 +2342,25 @@
         <div class="pl-num">${actv ? '▶' : (i + 1).toString().padStart(2, '0')}</div>
       </div>
       <div class="pl-main">
-        <div class="pl-item-name">
-          ${esc(st.name)}
-          ${st.clickcount > 1500 ? '<span class="pl-status-badge hot">HOT</span>' : ''}
-          ${st.clicktrend > 50 ? '<span class="pl-status-badge trending">TRENDING</span>' : ''}
+        <div class="pl-item-name-row">
+          <div class="pl-item-name">
+            ${esc(st.name)}
+            ${st.clickcount > 1500 ? '<span class="pl-status-badge hot">HOT</span>' : ''}
+            ${st.clicktrend > 50 ? '<span class="pl-status-badge trending">TRENDING</span>' : ''}
+          </div>
+          <div class="pl-item-actions">
+            <button class="pl-fav${favd ? ' is-fav' : ''}" data-fav="${i}" title="${favd ? 'Remove' : 'Add'}">${favd ? '− FAV' : '+ FAV'}</button>
+            <button class="pl-remove" data-rm="${i}">✕</button>
+          </div>
         </div>
         <div class="pl-item-sub-row">
-          <div class="pl-item-sub">${esc(st.countrycode || '--')} · ${esc((st.tags || '').split(',')[0] || 'radio')}</div>
+          <div class="pl-item-sub">${esc(st.countrycode || '--')} · ${esc((st.tags || '').split(',').slice(0, 3).join(', ') || 'radio')}</div>
           <div class="pl-badge-group">
             <div class="pl-badge-mini"><i>🔥</i> ${fmtK(st.clickcount)}</div>
             <div class="pl-badge-mini"><i>👍</i> ${fmtK(st.votes)}</div>
             <div class="pl-badge-mini"><i>📈</i> ${fmtK(st.clicktrend)}</div>
           </div>
         </div>
-      </div>
-      <div class="pl-end">
-        <button class="pl-fav${favd ? ' is-fav' : ''}" data-fav="${i}" title="${favd ? 'Remove' : 'Add'}">${favd ? '− FAV' : '+ FAV'}</button>
-        <button class="pl-remove" data-rm="${i}">✕</button>
       </div>
     </div>`;
       }).join('');
@@ -2370,32 +2389,12 @@
           renderStations();
         });
       });
-      pl.querySelectorAll('.pl-edit').forEach(btn => {
-        btn.addEventListener('click', e => {
-          e.stopPropagation();
-          const idx = parseInt(btn.dataset.edit);
-          const st = stations[idx];
-          let favs = loadFavs();
-          let favIdx = favs.findIndex(f => f.url === (st.url_resolved || st.url));
-          if (favIdx !== -1) {
-            openEditModal(favs[favIdx].name, favs[favIdx].url, (newName, newUrl) => {
-              if (newName !== null && newUrl !== null) {
-                favs[favIdx].name = newName;
-                favs[favIdx].url = newUrl;
-                saveFavs(favs);
-                renderStations();
-              }
-            });
-          }
-        });
-      });
     }
 
     // ══ RENDER FAVORITES ══════════════════════
     function renderFavs() {
       const pl = document.getElementById('playlist'), favs = loadFavs();
       refreshFavBadge();
-      document.getElementById('plCount').textContent = favs.length + ' SAVED';
       if (!favs.length) {
         pl.innerHTML = '<div class="pl-empty"><div class="pl-empty-icon">★</div><div>NO FAVORITES YET</div><div class="pl-empty-hint">HOVER A STATION AND CLICK + FAV</div></div>'; return;
       }
@@ -2430,19 +2429,21 @@
         ${isManual ? `<button class="btn-stack" data-downfav="${i}" title="Move down"><span class="material-symbols-outlined">expand_more</span></button>` : ''}
       </div>
       <div class="pl-main">
-        <div class="pl-item-name">${esc(st.name)}</div>
+        <div class="pl-item-name-row">
+          <div class="pl-item-name">${esc(st.name)}</div>
+          <div class="pl-item-actions">
+            <button class="pl-edit" data-editfav="${i}" title="Edit">✎</button>
+            <button class="pl-remove" data-rmfav="${i}">✕</button>
+          </div>
+        </div>
         <div class="pl-item-sub-row">
-          <div class="pl-item-sub">${esc(st.countrycode || '--')} · ${esc((st.tags || '').split(',')[0] || 'radio')}</div>
+          <div class="pl-item-sub">${esc(st.countrycode || '--')} · ${esc((st.tags || '').split(',').slice(0, 3).join(', ') || 'radio')}</div>
           <div class="pl-badge-group">
             <div class="pl-badge-mini"><i>🔥</i> ${fmtK(st.clickcount || st.c)}</div>
             <div class="pl-badge-mini"><i>👍</i> ${fmtK(st.votes || st.v)}</div>
             <div class="pl-badge-mini"><i>📈</i> ${fmtK(st.clicktrend || st.ct)}</div>
           </div>
         </div>
-      </div>
-      <div class="pl-end">
-        <button class="pl-edit" data-editfav="${i}" title="Edit">✎</button>
-        <button class="pl-remove" data-rmfav="${i}">✕</button>
       </div>
     </div>`;
       }).join('');
@@ -2515,7 +2516,8 @@
   <div id="sparkyModal" class="modal-overlay" style="display:none">
     <div class="modal-content">
       <div class="modal-header" id="sparkyModalHeader">SYSTEM ALERT</div>
-      <div id="sparkyModalText" style="font-size:12px; line-height:1.4; color:var(--text)"></div>
+      <div id="sparkyModalText" style="font-size: calc(12px * var(--text-scale)); line-height:1.4; color:var(--text)">
+      </div>
       <div class="modal-footer">
         <button class="btn btn-sm" style="background:var(--bg)" id="sparkyModalCancel">CANCEL</button>
         <button class="btn btn-sm" id="sparkyModalOk">PROCEED</button>
@@ -2528,7 +2530,8 @@
   <div id="debugModal" class="modal-overlay" style="display:none">
     <div class="modal-content" style="max-width:380px">
       <div class="modal-header">Diagnostic Hub v1.0</div>
-      <div style="font-size:10px; color:var(--dim); margin-bottom:10px">Mobile Log Trace (Real-time)</div>
+      <div style="font-size: calc(10px * var(--text-scale)); color:var(--dim); margin-bottom:10px">Mobile Log Trace
+        (Real-time)</div>
       <div id="debugOutput" class="debug-log"></div>
       <div class="modal-footer" style="flex-wrap:wrap; gap:5px">
         <button class="btn btn-sm" style="background:#040; border-color:#0f0" onclick="auditFavs()">AUDIT VAULT</button>
@@ -2538,11 +2541,68 @@
     </div>
   </div>
 
+  <!-- COMMAND CENTER (SETTINGS) -->
+  <div id="settingsModal" class="modal-overlay" style="display:none">
+    <div class="modal-content" style="max-width:320px; padding: 15px;">
+      <div class="modal-header" style="margin-bottom: 20px;">COMMAND CENTER</div>
+
+      <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 25px;">
+        <button class="btn"
+          style="justify-content: flex-start; padding: 12px; width: 100%; border-color: var(--accent);"
+          onclick="document.getElementById('settingsModal').style.display='none'; document.getElementById('debugModal').style.display='flex';">
+          <span class="material-symbols-outlined" style="font-size: calc(18px * var(--text-scale));">terminal</span>
+          VIEW SYSTEM DIAGNOSTICS
+        </button>
+
+        <button class="btn"
+          style="justify-content: flex-start; padding: 12px; width: 100%; opacity: 0.5; cursor: not-allowed;" disabled>
+          <span class="material-symbols-outlined"
+            style="font-size: calc(18px * var(--text-scale));">settings_suggest</span>
+          ADVANCED HARDWARE CFG (LOCKED)
+        </button>
+      </div>
+
+      <div style="border-top: 1px solid var(--border); padding-top: 15px; margin-bottom: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <div
+            style="font-size: calc(9px * var(--text-scale)); color: var(--accent); letter-spacing: 1.5px; font-weight: 700;">
+            TEXT CALIBRATION</div>
+          <div id="textScaleLabel"
+            style="font-size: calc(10px * var(--text-scale)); color: var(--text); font-weight: 700;">100% (DEFAULT)
+          </div>
+        </div>
+        <input type="range" id="textScaleSlider" min="0.5" max="1.5" step="0.05" value="1.0"
+          style="width: 100%; margin-bottom: 8px;">
+        <div style="display: flex; justify-content: flex-end;">
+          <button class="btn btn-sm" style="font-size: calc(8px * var(--text-scale)); padding: 2px 6px;"
+            onclick="resetTextScale()">RESET TO 1x</button>
+        </div>
+      </div>
+
+      <div style="border-top: 1px solid var(--border); padding-top: 12px;">
+        <div
+          style="font-size: calc(9px * var(--text-scale)); color: var(--accent); letter-spacing: 1.5px; margin-bottom: 4px; font-weight: 700;">
+          DEPLOYMENT SIGNATURE</div>
+        <div
+          style="font-size: calc(10px * var(--text-scale)); color: var(--dim); line-height: 1.4; font-family: 'Share Tech Mono', monospace;">
+          ID: <span style="color:var(--text)">9dd8f5f</span><br>
+          REF: <span style="color:var(--text)">Elite Modernization v2.15: PPS Ticker Engine</span><br>
+          TS: <span style="color:var(--text)">04/21 14:21</span>
+        </div>
+      </div>
+
+      <div class="modal-footer" style="margin-top: 20px;">
+        <button class="btn btn-sm"
+          onclick="document.getElementById('settingsModal').style.display='none'">DISMISS</button>
+      </div>
+    </div>
+  </div>
+
   <div class="modal-overlay" id="editModalOverlay"
     style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
     <div class="modal"
       style="background:var(--panel);padding:24px 20px 16px 20px;border-radius:6px;box-shadow:0 8px 32px #0008;min-width:260px;max-width:90vw;">
-      <div style="font-size:15px;font-weight:bold;margin-bottom:2px;">Edit Station</div>
+      <div style="font-size: calc(15px * var(--text-scale));font-weight:bold;margin-bottom:2px;">Edit Station</div>
       <label for="editStationName">Label</label>
       <input type="text" id="editStationName" maxlength="80" style="width:100%;margin-bottom:8px;">
       <label for="editStationUrl">URL</label>
@@ -2692,9 +2752,7 @@
     // ══ SEARCH ════════════════════════════════
     async function searchStations(q) {
       const playlist = document.getElementById('playlist');
-      const countLabel = document.getElementById('plCount');
       playlist.innerHTML = '<div class="pl-loading"><div class="spinner"></div>SCANNING MIRRORS...</div>';
-      countLabel.textContent = 'SCANNING...';
 
       const mirrors = ['de1.api.radio-browser.info', 'at1.api.radio-browser.info', 'nl1.api.radio-browser.info'];
       // Randomize start mirror
@@ -2767,7 +2825,7 @@
     });
 
     document.getElementById('statusText').parentElement.addEventListener('click', () => {
-      document.getElementById('debugModal').style.display = 'flex';
+      document.getElementById('settingsModal').style.display = 'flex';
     });
     document.getElementById('searchInput').addEventListener('keydown', e => {
       if (e.key === 'Enter') { const q = e.target.value.trim(); if (q) { switchTab('stations'); searchStations(q); } }
@@ -2806,7 +2864,34 @@
       navigator.mediaSession.setActionHandler('stop', stopPlayback);
     }
 
+    // ══ TEXT SCALING ══════════════════════════
+    function applyTextScale(val) {
+      textScale = val;
+      document.documentElement.style.setProperty('--text-scale', val);
+      localStorage.setItem('sparky_text_scale', val);
+
+      const label = document.getElementById('textScaleLabel');
+      const slider = document.getElementById('textScaleSlider');
+      if (label) {
+        const percent = Math.round(val * 100);
+        label.textContent = `${percent}% ${val === 1.0 ? '(DEFAULT)' : ''}`;
+      }
+      if (slider) slider.value = val;
+    }
+
+    function resetTextScale() {
+      applyTextScale(1.0);
+    }
+
+    const tss = document.getElementById('textScaleSlider');
+    if (tss) {
+      tss.addEventListener('input', (e) => {
+        applyTextScale(parseFloat(e.target.value));
+      });
+    }
+
     // ══ INIT ══════════════════════════════════
+    applyTextScale(textScale);
     const savedVol = localStorage.getItem('sparky_volume');
     if (savedVol !== null) {
       document.getElementById('volSlider').value = savedVol;
