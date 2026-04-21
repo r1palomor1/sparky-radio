@@ -796,19 +796,42 @@
     navigator.clipboard.writeText(output.join('\n'));
     alert('LOGS COPIED TO CLIPBOARD');
   };
-  window.auditFavs = () => {
-    console.log('--- STARTING FAVORITES AUDIT ---');
+  window.auditFavs = async () => {
+    console.log('--- STARTING ACTIVE RESCUE AUDIT ---');
     const favs = JSON.parse(localStorage.getItem('sparky_favorites') || '[]');
     if (!favs.length) { console.warn('Vault is empty.'); return; }
     console.log(`Total Records: ${favs.length}`);
-    favs.forEach((f, i) => {
+    for (const [i, f] of favs.entries()) {
       const id = f.stationuuid || f.id;
-      const status = id ? 'LINKED' : 'ORPHAN (Legacy)';
-      console.log(`[${(i+1).toString().padStart(2,'0')}] ${f.name.slice(0,10)}.. | ID: ${id ? id.slice(0,8) : 'NONE'}`);
-      console.log(` > NORM-URL: ${norm(f.url)}`);
-    });
+      if (!id) {
+        console.log(`[!] Station ${f.name} is an ORPHAN. Attempting Active Rescue...`);
+        await rescueOrphan(f);
+      } else {
+        console.log(`[${(i+1).toString().padStart(2,'0')}] ${f.name.slice(0,10)}.. | ID: ${id.slice(0,8)} | LINKED`);
+      }
+    }
     console.log('--- AUDIT COMPLETE ---');
   };
+
+  async function rescueOrphan(st) {
+    const mirrors = ['de1.api.radio-browser.info', 'at1.api.radio-browser.info', 'nl1.api.radio-browser.info'];
+    const q = st.name.split('-')[0].trim(); // Use base name
+    for (const m of mirrors) {
+      try {
+        const res = await fetch(`https://${m}/json/stations/byname/${encodeURIComponent(q)}`);
+        if (!res.ok) continue;
+        const results = await res.json();
+        const match = results.find(r => norm(r.url_resolved || r.url) === norm(st.url));
+        if (match) {
+          console.log(`[RESCUE] SUCCESS! Found ID ${match.stationuuid} for ${st.name}`);
+          syncFavMetadata(match);
+          return true;
+        }
+      } catch (e) {}
+    }
+    console.warn(`[RESCUE] FAILED: Could not find clean signature match for ${st.name}`);
+    return false;
+  }
 })();
 
 // ══ STORAGE MIGRATION ══════════════════════
