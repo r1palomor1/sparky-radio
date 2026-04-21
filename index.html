@@ -2007,6 +2007,36 @@
     let shuffle = false;
     let repeat = false;
     let rafId, hls;
+    const APP_VERSION = "2.21";
+    const APP_CODENAME = "Smart-Tune Pro";
+
+    function getSoftwareFingerprint() {
+      const s = document.documentElement.innerHTML;
+      let hash = 0;
+      for (let i = 0; i < s.length; i++) {
+        hash = ((hash << 5) - hash) + s.charCodeAt(i);
+        hash |= 0;
+      }
+      return Math.abs(hash).toString(16).substring(0, 7);
+    }
+
+    function updateDeploymentUI() {
+      const idEl = document.getElementById('sigID');
+      const refEl = document.getElementById('sigREF');
+      const tsEl = document.getElementById('sigTS');
+      if (!idEl) return;
+
+      const modDate = new Date(document.lastModified);
+      const ts = (modDate.getMonth() + 1).toString().padStart(2, '0') + '/' +
+        modDate.getDate().toString().padStart(2, '0') + ' ' +
+        modDate.getHours().toString().padStart(2, '0') + ':' +
+        modDate.getMinutes().toString().padStart(2, '0');
+
+      idEl.textContent = getSoftwareFingerprint();
+      refEl.textContent = `Sparky Radio v${APP_VERSION}: ${APP_CODENAME}`;
+      tsEl.textContent = ts;
+    }
+    
     let audioCtx, analyser, srcNode;
     let sortTooltipTimeout;
 
@@ -2778,9 +2808,9 @@
           DEPLOYMENT SIGNATURE</div>
         <div
           style="font-size: calc(10px * var(--text-scale)); color: var(--dim); line-height: 1.4; font-family: 'Share Tech Mono', monospace;">
-          ID: <span style="color:var(--text)">9dd8f5f</span><br>
-          REF: <span style="color:var(--text)">Elite Modernization v2.15: PPS Ticker Engine</span><br>
-          TS: <span style="color:var(--text)">04/21 14:21</span>
+          ID: <span id="sigID" style="color:var(--text)">---</span><br>
+          REF: <span id="sigREF" style="color:var(--text)">---</span><br>
+          TS: <span id="sigTS" style="color:var(--text)">---</span>
         </div>
       </div>
 
@@ -3045,6 +3075,7 @@
 
     document.getElementById('statusText').parentElement.addEventListener('click', () => {
       document.getElementById('settingsModal').style.display = 'flex';
+      updateDeploymentUI();
     });
     document.getElementById('searchInput').addEventListener('keydown', e => {
       if (e.key === 'Enter') { const q = e.target.value.trim(); if (q) { switchTab('stations'); searchStations(q); } }
@@ -3192,6 +3223,7 @@
     setEqPreset(activePreset);
     refreshFavBadge();
     searchStations('jazz');
+    updateDeploymentUI();
   </script>
   <!-- Elite Modernization v2.8+ STABLE DEPLOYMENT TRIGGER -->
 </body>
