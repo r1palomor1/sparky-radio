@@ -332,11 +332,40 @@
 
   /* ── PLAYLIST HEADER ────────────────────── */
   .playlist-header {
-    padding: 4px 14px; background: var(--tab-bg); border-bottom: 1px solid var(--border);
-    display: flex; align-items: center; justify-content: space-between;
+    background: var(--ctrl-bg); height: 26px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: stretch; justify-content: space-between; padding: 0;
   }
-  .pl-label { font-size: 10px; letter-spacing: 3px; color: var(--text); text-transform: uppercase; font-weight: 700; opacity: 0.9; }
-  .pl-count { font-size: 10px; color: var(--text); font-weight: 700; letter-spacing: 2px; opacity: 0.9; }
+  .pl-header-left { display: flex; align-items: stretch; height: 100%; flex: 1; overflow: hidden; }
+  
+  .pl-sort-btn {
+    width: 28px; background: none; border: none; border-right: 1px solid var(--border);
+    color: var(--dim); cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: all .15s; position: relative;
+  }
+  .pl-sort-btn:hover { color: var(--accent); background: rgba(255,255,255,0.05); }
+  .pl-sort-btn .material-symbols-outlined { font-size: 14px; }
+
+  .pl-sort-tooltip {
+    position: absolute; left: 34px; top: 0; background: var(--panel);
+    border: 1px solid var(--accent); color: var(--text); font-size: 10px;
+    padding: 8px 12px; border-radius: 2px; display: none; flex-direction: column;
+    gap: 8px; z-index: 1000; box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+    font-family: 'Share Tech Mono', monospace; line-height: 1; letter-spacing: 0.5px;
+  }
+  .pl-sort-tooltip.show { display: flex; }
+  .pl-sort-row { display: flex; align-items: center; gap: 10px; opacity: 0.4; white-space: nowrap; transition: opacity .15s; }
+  .pl-sort-row.active { opacity: 1; color: var(--accent); }
+  .pl-sort-row .material-symbols-outlined { font-size: 14px; width: 16px; text-align: center; }
+  .pl-sort-row .sort-desc { font-weight: 700; text-transform: uppercase; font-size: 9px; }
+
+  .pl-label { 
+    height: 100%; display: flex; align-items: center; padding: 0 12px;
+    font-size: 10px; text-transform: uppercase; letter-spacing: 2px; color: var(--text); opacity: 0.9;
+  }
+  .pl-count { 
+    height: 100%; display: flex; align-items: center; padding-right: 14px;
+    color: var(--text); font-size: 10px; font-weight: 700; letter-spacing: 1px; opacity: 0.9;
+  }
 
   /* ── PLAYLIST ───────────────────────────── */
   .playlist { height: 170px; overflow-y: auto; background: var(--pl-bg); }
@@ -692,8 +721,14 @@
   </div>
 
   <!-- PLAYLIST HEADER -->
-  <div class="playlist-header">
-    <div class="pl-label" id="plLabel">Stations</div>
+  <div class="playlist-header" style="position: relative;">
+    <div id="plSortTooltip" class="pl-sort-tooltip"></div>
+    <div class="pl-header-left">
+      <button class="pl-sort-btn" id="btnSortMode">
+        <span class="material-symbols-outlined">bolt</span>
+      </button>
+      <div class="pl-label" id="plLabel">Stations</div>
+    </div>
     <div class="pl-count" id="plCount">0 FOUND</div>
   </div>
 
@@ -739,6 +774,7 @@ const audioEl = document.getElementById('audioEl');
 let stations   = [];
 let currentIdx = -1;
 let activeTab  = 'stations';
+let sortMode   = 'power';
 let currentSrc = null;   // the station object currently loaded
 let isPlaying  = false;
 let shuffle    = false;
@@ -852,12 +888,37 @@ function switchTab(tab) {
   document.getElementById('tabStations').classList.toggle('active', tab === 'stations');
   document.getElementById('tabFavs').classList.toggle('active', tab === 'favs');
   document.getElementById('searchArea').style.display = tab === 'stations' ? '' : 'none';
+  
   if (tab === 'stations') {
+    if(sortMode === 'custom') sortMode = 'power';
     document.getElementById('plLabel').textContent = 'Stations';
     renderStations();
   } else {
     document.getElementById('plLabel').textContent = 'Favorites';
     renderFavs();
+    backgroundSyncFavs();
+  }
+  updateSortUI();
+}
+
+async function backgroundSyncFavs() {
+  const favs = loadFavs();
+  if(!favs.length) return;
+  // Background-sync individual stations to ensure global trending markers match local records
+  for(let f of favs) {
+    const id = f.id || f.stationuuid;
+    if(!id) continue;
+    try {
+      const mirrors = ["de1.api.radio-browser.info","at1.api.radio-browser.info","nl1.api.radio-browser.info"];
+      const m = mirrors[Math.floor(Math.random()*mirrors.length)];
+      const r = await fetch(`https://${m}/json/stations/byuuid/${id}`);
+      const d = await r.json();
+      if(d && d.length) {
+        syncFavMetadata(d[0]);
+        // Re-render only if current tab is still favs
+        if(activeTab==='favs') renderFavs();
+      }
+    } catch(e) { /* silent catch for background work */ }
   }
 }
 
@@ -1130,6 +1191,23 @@ function renderStations() {
   if (!stations.length) {
     pl.innerHTML='<div class="pl-empty"><div class="pl-empty-icon">📡</div><div>SEARCH TO DISCOVER STATIONS</div></div>'; return;
   }
+
+  // Elite Power Ranking Engine
+  if (stations.length > 1) {
+    if (sortMode === 'power') {
+      const maxC = Math.max(...stations.map(s => s.clickcount||0), 1);
+      const maxV = Math.max(...stations.map(s => s.votes||0), 1);
+      const maxT = Math.max(...stations.map(s => s.clicktrend||0), 1);
+      stations.sort((a,b) => {
+        const sA = ((a.clickcount||0)/maxC*0.6) + ((a.votes||0)/maxV*0.3) + ((a.clicktrend||0)/maxT*0.1);
+        const sB = ((b.clickcount||0)/maxC*0.6) + ((b.votes||0)/maxV*0.3) + ((b.clicktrend||0)/maxT*0.1);
+        return sB - sA;
+      });
+    } else {
+      stations.sort((a,b) => (b.votes||0) - (a.votes||0));
+    }
+  }
+
   pl.innerHTML = stations.map((st,i) => {
     syncFavMetadata(st); // Live sync metadata during discovery scroll
     const url  = st.url_resolved||st.url;
@@ -1215,6 +1293,22 @@ function renderFavs() {
   if (!favs.length) {
     pl.innerHTML='<div class="pl-empty"><div class="pl-empty-icon">★</div><div>NO FAVORITES YET</div><div class="pl-empty-hint">HOVER A STATION AND CLICK + FAV</div></div>'; return;
   }
+  // Apply Tri-Mode Sorting to the Vault
+  if (favs.length > 1 && sortMode !== 'custom') {
+    if (sortMode === 'power') {
+      const maxC = Math.max(...favs.map(s => s.clickcount||s.c||0), 1);
+      const maxV = Math.max(...favs.map(s => s.votes||s.v||0), 1);
+      const maxT = Math.max(...favs.map(s => s.clicktrend||s.ct||0), 1);
+      favs.sort((a,b) => {
+        const sA = ((a.clickcount||a.c||0)/maxC*0.6) + ((a.votes||a.v||0)/maxV*0.3) + ((a.clicktrend||a.ct||0)/maxT*0.1);
+        const sB = ((b.clickcount||b.c||0)/maxC*0.6) + ((b.votes||b.v||0)/maxV*0.3) + ((b.clicktrend||b.ct||0)/maxT*0.1);
+        return sB - sA;
+      });
+    } else {
+      favs.sort((a,b) => (b.votes||b.v||0) - (a.votes||a.v||0));
+    }
+  }
+
   pl.innerHTML = favs.map((st,i)=>{
     const actv = currentSrc && (
       (currentSrc.stationuuid && currentSrc.stationuuid === st.id) ||
@@ -1222,11 +1316,12 @@ function renderFavs() {
       (currentSrc.url_resolved || currentSrc.url) === st.url
     ) && activeTab==='favs';
     
+    const isManual = sortMode === 'custom';
     return `<div class="pl-item${actv?' active':''}" data-idx="${i}">
       <div class="pl-sidebar">
-        <button class="btn-stack" data-upfav="${i}" title="Move up"><span class="material-symbols-outlined">expand_less</span></button>
+        ${isManual ? `<button class="btn-stack" data-upfav="${i}" title="Move up"><span class="material-symbols-outlined">expand_less</span></button>` : ''}
         <div class="pl-num">${actv?'▶':(i+1).toString().padStart(2,'0')}</div>
-        <button class="btn-stack" data-downfav="${i}" title="Move down"><span class="material-symbols-outlined">expand_more</span></button>
+        ${isManual ? `<button class="btn-stack" data-downfav="${i}" title="Move down"><span class="material-symbols-outlined">expand_more</span></button>` : ''}
       </div>
       <div class="pl-main">
         <div class="pl-item-name">
@@ -1253,12 +1348,12 @@ function renderFavs() {
   pl.querySelectorAll('.pl-item').forEach(el=>{
     el.addEventListener('click', e=>{
       if(e.target.classList.contains('pl-remove')||e.target.classList.contains('pl-edit')) return;
-      currentIdx=parseInt(el.dataset.idx); activeTab='favs'; playStationObj(loadFavs()[currentIdx]); renderFavs();
+      currentIdx=parseInt(el.dataset.idx); activeTab='favs'; playStationObj(favs[currentIdx]); renderFavs();
     });
   });
   pl.querySelectorAll('[data-rmfav]').forEach(btn=>{
     btn.addEventListener('click', e=>{ e.stopPropagation();
-      const f=loadFavs()[parseInt(btn.dataset.rmfav)];
+      const f=favs[parseInt(btn.dataset.rmfav)];
       sparkyConfirm(`Remove [${f.name}] from your favorites?`, () => {
         if(currentSrc&&(currentSrc.url_resolved||currentSrc.url)===f.url) stopPlayback();
         removeFavByUrl(f.url); renderFavs();
@@ -1293,14 +1388,19 @@ function renderFavs() {
     btn.addEventListener('click', e=>{
       e.stopPropagation();
       const idx = parseInt(btn.dataset.editfav);
-      let favs = loadFavs();
-      if (favs[idx]) {
-        openEditModal(favs[idx].name, favs[idx].url, (newName, newUrl) => {
+      const st = favs[idx]; // the station object in the current sorted view
+      if (st) {
+        openEditModal(st.name, st.url, (newName, newUrl) => {
           if (newName !== null && newUrl !== null) {
-            favs[idx].name = newName;
-            favs[idx].url = newUrl;
-            saveFavs(favs);
-            renderFavs();
+            // Find in master list to persist edit properly
+            let master = loadFavs();
+            let masterIdx = master.findIndex(f => f.url === st.url);
+            if(masterIdx !== -1) {
+              master[masterIdx].name = newName;
+              master[masterIdx].url = newUrl;
+              saveFavs(master);
+              renderFavs();
+            }
           }
         });
       }
@@ -1407,10 +1507,42 @@ document.getElementById('btnRepeat').addEventListener('click', function(){ repea
 document.getElementById('btnEq').addEventListener('click', function(){
   const r=document.getElementById('eqRack'); r.classList.toggle('open'); this.classList.toggle('active',r.classList.contains('open'));
 });
+function updateSortUI() {
+  const btn = document.getElementById('btnSortMode');
+  const tip = document.getElementById('plSortTooltip');
+  if(!btn || !tip) return;
+  
+  const icon = sortMode === 'power' ? 'bolt' : (sortMode === 'vote' ? 'how_to_vote' : 'star');
+  btn.innerHTML = `<span class="material-symbols-outlined">${icon}</span>`;
+  
+  const modes = activeTab === 'stations' ? ['power', 'vote'] : ['power', 'vote', 'custom'];
+  const labels = { power: 'Power Ranking', vote: 'Vote Ranking', custom: 'Custom Order' };
+  const icons  = { power: 'bolt', vote: 'how_to_vote', custom: 'star' };
+  
+  tip.innerHTML = modes.map(m => `
+    <div class="pl-sort-row${sortMode === m ? ' active' : ''}">
+      <span class="material-symbols-outlined">${icons[m]}</span>
+      <span class="sort-desc">${labels[m]}</span>
+    </div>
+  `).join('');
+}
+
+document.getElementById('btnSortMode').addEventListener('mouseenter', () => document.getElementById('plSortTooltip').classList.add('show'));
+document.getElementById('btnSortMode').addEventListener('mouseleave', () => document.getElementById('plSortTooltip').classList.remove('show'));
+
 document.getElementById('volSlider').addEventListener('input', function(){
   const v = this.value;
   audioEl.volume = v / 100;
   localStorage.setItem('sparky_volume', v);
+});
+
+document.getElementById('btnSortMode').addEventListener('click', function() {
+  const modes = activeTab === 'stations' ? ['power', 'vote'] : ['power', 'vote', 'custom'];
+  let idx = (modes.indexOf(sortMode) + 1) % modes.length;
+  if(idx < 0) idx = 0;
+  sortMode = modes[idx];
+  updateSortUI();
+  renderCurrent();
 });
 
 audioEl.addEventListener('ended', ()=>{
