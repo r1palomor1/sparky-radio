@@ -708,10 +708,10 @@
       border: 1px solid var(--border);
       color: var(--text);
       font-family: 'Share Tech Mono', monospace;
-      font-size: calc(13px * var(--text-scale));
+      font-size: calc(11px * var(--text-scale));
       font-weight: 500;
       letter-spacing: .5px;
-      padding: 6px 30px 6px 26px;
+      padding: 5px 30px 5px 26px;
       outline: none;
       border-radius: 2px;
       transition: border-color .2s;
@@ -905,7 +905,7 @@
       background: var(--pl-item);
       border-bottom: 1px solid var(--border);
       cursor: pointer;
-      min-height: 58px;
+      min-height: 50px;
       overflow: hidden;
     }
 
@@ -948,12 +948,155 @@
       letter-spacing: 2px;
     }
 
+    /* ── HEADER CONSOLE ────────────────────── */
+    .pro-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 8px 12px;
+      background: #0a0a0a; /* Force opaque to block grid */
+      border-bottom: 1px solid var(--border);
+      position: relative;
+    }
+
+    .pro-header-label {
+      font-size: calc(9px * var(--text-scale));
+      color: var(--dim);
+      letter-spacing: 1.5px;
+      font-weight: 500;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .visualizer {
+      flex: 1;
+      height: 30px;
+      display: flex;
+      align-items: flex-end;
+      gap: 2px;
+      padding-bottom: 2px;
+      background: #0a0a0a; /* Force opaque */
+      border: none !important;
+      position: relative;
+    }
+
+    .presets-area {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .preset-label {
+      font-size: calc(9px * var(--text-scale));
+      color: var(--accent);
+      font-weight: 500;
+      letter-spacing: 1px;
+    }
+
+    /* ── CUSTOM SELECT ─────────────────────── */
+    .preset-dropdown-wrap {
+      position: relative;
+      min-width: 110px;
+      width: fit-content;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: calc(10px * var(--text-scale));
+    }
+
+    .preset-trigger {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 3px 8px;
+      border-radius: 2px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .preset-trigger::after {
+      content: '▼';
+      font-size: 8px;
+      color: var(--dim);
+    }
+
+    .preset-options {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+      z-index: 1500;
+      display: none;
+      max-height: 250px;
+      overflow-y: auto;
+    }
+
+    .preset-options.show {
+      display: block;
+    }
+
+    .preset-options::-webkit-scrollbar {
+      width: 3px;
+    }
+    .preset-options::-webkit-scrollbar-track {
+      background: var(--viz-bg);
+    }
+    .preset-options::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 2px;
+    }
+    .preset-options::-webkit-scrollbar-thumb:hover {
+      background: var(--accent);
+    }
+
+    .preset-opt {
+      padding: 4px 8px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 5px;
+      transition: background 0.1s;
+    }
+
+    .preset-opt:hover {
+      background: var(--pl-hover);
+      color: var(--accent);
+    }
+
+    .preset-opt.add-opt {
+      color: var(--accent);
+      border-bottom: 1px solid var(--border);
+      font-weight: 700;
+    }
+
+    .preset-del {
+      opacity: 0.3;
+      padding: 2px 5px;
+      border-radius: 2px;
+      transition: all 0.2s;
+    }
+
+    .preset-del:hover {
+      opacity: 1;
+      background: var(--accent2);
+      color: #fff;
+    }
+
     .pl-main {
       flex: 1;
       display: flex;
       flex-direction: column;
-      gap: 6px;
-      padding: 10px 12px 10px 8px;
+      gap: 7px;
+      padding: 6px 12px 6px 8px;
       min-width: 0;
       overflow: hidden;
     }
@@ -969,9 +1112,10 @@
     }
 
     .pl-item-name {
-      font-weight: 700;
-      color: var(--text);
+      font-weight: 500;
+      color: var(--accent);
       font-size: calc(13px * var(--text-scale));
+      letter-spacing: 0.5px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -991,6 +1135,7 @@
       gap: 6px;
       flex-shrink: 0;
       align-items: center;
+      margin-top: 3px;
     }
 
     .pl-item-sub {
@@ -1292,7 +1437,7 @@
       font-size: calc(10px * var(--text-scale));
       letter-spacing: 1.5px;
       background: var(--bg);
-      font-weight: 700;
+      font-weight: 500;
       opacity: 0.9;
       border-radius: 3px;
       border: 1px solid var(--border);
@@ -1316,7 +1461,7 @@
       padding: 8px;
       font-size: calc(11px * var(--text-scale));
       letter-spacing: 2px;
-      font-weight: 800;
+      font-weight: 500;
       text-transform: uppercase;
     }
 
@@ -1597,36 +1742,42 @@
       </div>
     </div>
 
-    <!-- VISUALIZER (compact 28px strip) -->
-    <div class="visualizer">
-      <div class="bar"></div>
-      <div class="bar"></div>
-      <div class="bar"></div>
-      <div class="bar"></div>
-      <div class="bar"></div>
-      <div class="bar"></div>
-      <div class="bar"></div>
-      <div class="bar"></div>
-      <div class="bar"></div>
-      <div class="bar"></div>
-      <div class="bar"></div>
-      <div class="bar"></div>
-      <div class="bar"></div>
-      <div class="bar"></div>
-      <div class="bar"></div>
-      <div class="bar"></div>
-      <div class="bar"></div>
-      <div class="bar"></div>
-      <div class="bar"></div>
-      <div class="bar"></div>
-      <div class="bar"></div>
-      <div class="bar"></div>
-      <div class="bar"></div>
-      <div class="bar"></div>
-      <div class="bar"></div>
-      <div class="bar"></div>
-      <div class="bar"></div>
-      <div class="bar"></div>
+    <!-- PRO CONSOLE HEADER -->
+    <div class="pro-header-row">
+      <div class="pro-header-label">NOW PLAYING</div>
+      <div class="visualizer">
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+      </div>
+      <button class="btn btn-sm btn-eq-toggle" id="btnEq" style="margin:0; padding: 2px 8px;">EQ</button>
     </div>
 
     <!-- EQ PRO CONSOLE -->
@@ -1666,12 +1817,8 @@
       </div>
     </div>
 
-    <!-- NOW PLAYING -->
+    <!-- NOW PLAYING (Meta only) -->
     <div class="now-playing">
-      <div class="np-header">
-        <div class="np-label">Now Playing</div>
-        <button class="btn btn-sm btn-eq-toggle" id="btnEq">EQ</button>
-      </div>
       <div class="np-ticker">
         <div class="np-name-wrap">
           <div id="npName" class="np-name">SELECT A STATION</div>
@@ -1721,10 +1868,21 @@
       <div class="search-area" id="searchArea">
         <div class="search-wrap">
           <span class="search-icon">&#128269;</span>
-          <input type="text" id="searchInput" placeholder="Search stations…" />
+          <input type="text" id="searchInput" placeholder="Search e.g. Top +Charts ; Rock -Indie" />
           <button class="search-clear" id="btnSearchClear" title="Clear search">&#10006;</button>
         </div>
         <button class="btn btn-search" id="btnSearch">SCAN</button>
+      </div>
+    </div>
+
+    <!-- PRESETS ROW (Custom Selector) -->
+    <div class="presets-area">
+      <div class="preset-label">PRESETS</div>
+      <div class="preset-dropdown-wrap">
+        <div class="preset-trigger" id="presetTrigger">QUICK-TUNE</div>
+        <div class="preset-options" id="presetOptions">
+          <!-- Dynamic options -->
+        </div>
       </div>
     </div>
 
@@ -2053,6 +2211,16 @@
     };
     let currentPresets = JSON.parse(localStorage.getItem('sparky_eq_presets') || JSON.stringify(FACTORY_PRESETS));
     let activePreset = 'flat';
+    let lastSavedVals = [...(FACTORY_PRESETS.flat)];
+
+    function updateSaveButtonState() {
+      const btn = document.querySelector('.btn-save');
+      if (!btn) return;
+      const changed = eqVals.some((v, i) => Math.abs(v - lastSavedVals[i]) > 0.1);
+      btn.style.opacity = changed ? '1' : '0.35';
+      btn.style.pointerEvents = changed ? 'auto' : 'none';
+      btn.title = changed ? `Commit changes to [${activePreset.toUpperCase()}]` : `[${activePreset.toUpperCase()}] is currently synchronized`;
+    }
 
     EQ_LABELS.forEach((label, i) => {
       const col = document.createElement('div'); col.className = 'eq-col';
@@ -2075,6 +2243,7 @@
         f.style.bottom = (p * 100) + '%';
         f.setAttribute('data-db', v.toFixed(1) + 'dB');
         if (eqNodes[i]) eqNodes[i].gain.value = v;
+        updateSaveButtonState();
       };
 
       const box = document.getElementById('eqS' + i);
@@ -2111,6 +2280,23 @@
       document.getElementById('sparkyModalCancel').onclick = () => { document.getElementById('sparkyModal').style.display = 'none'; };
     }
 
+    function sparkyPrompt(msg, header, onOk) {
+      const modal = document.getElementById('sparkyModal');
+      const text = document.getElementById('sparkyModalText');
+      const hdr = document.getElementById('sparkyModalHeader');
+      const ok = document.getElementById('sparkyModalOk');
+      const cancel = document.getElementById('sparkyModalCancel');
+      hdr.textContent = header || "SYSTEM PROMPT";
+      text.innerHTML = `<div style="margin-bottom:10px">${msg}</div><input type="text" id="sparkyPromptInput" style="width:100%; background:var(--bg); border:1px solid var(--border); color:var(--text); padding:8px; outline:none; border-radius:2px;">`;
+      cancel.style.display = 'inline-block';
+      modal.style.display = 'flex';
+      const input = document.getElementById('sparkyPromptInput');
+      input.focus();
+      ok.onclick = () => { const val = input.value.trim(); modal.style.display = 'none'; if (onOk) onOk(val); };
+      cancel.onclick = () => { modal.style.display = 'none'; if (onOk) onOk(null); };
+      input.onkeydown = (e) => { if (e.key === 'Enter') ok.click(); if (e.key === 'Escape') cancel.click(); };
+    }
+
     function setEqPreset(p) {
       activePreset = p;
       const vals = currentPresets[p] || FACTORY_PRESETS.flat;
@@ -2124,13 +2310,17 @@
         f.setAttribute('data-db', v.toFixed(1) + 'dB');
         if (eqNodes[i]) eqNodes[i].gain.value = v;
       });
+      lastSavedVals = [...vals];
+      updateSaveButtonState();
     }
 
     function saveCustomEq() {
       const p = activePreset.toUpperCase();
       sparkyConfirm(`Commit current levels to the [${p}] memory bank? This will overwrite existing specs.`, () => {
         currentPresets[activePreset] = [...eqVals];
+        lastSavedVals = [...eqVals];
         localStorage.setItem('sparky_eq_presets', JSON.stringify(currentPresets));
+        updateSaveButtonState();
         sparkyAlert(`Preset [${p}] has been updated and saved.`, "SAVE SUCCESSFUL");
       }, "CONFIRM MEMORY WRITE");
     }
@@ -2175,7 +2365,7 @@
       rafId = requestAnimationFrame(drawViz);
       if (!analyser) return;
       analyser.getByteFrequencyData(vizData);
-      vizBars.forEach((b, i) => { b.style.height = (4 + (vizData[i] || 0) / 255 * 26) + 'px'; });
+      vizBars.forEach((b, i) => { b.style.height = (4 + (vizData[i] || 0) / 255 * 22) + 'px'; });
     }
     function idleViz() {
       cancelAnimationFrame(rafId); let t = 0;
@@ -2350,7 +2540,7 @@
           </div>
           <div class="pl-item-actions">
             <button class="pl-fav${favd ? ' is-fav' : ''}" data-fav="${i}" title="${favd ? 'Remove' : 'Add'}">${favd ? '− FAV' : '+ FAV'}</button>
-            <button class="pl-remove" data-rm="${i}">✕</button>
+            <button class="pl-remove" data-rmst="${i}">✕</button>
           </div>
         </div>
         <div class="pl-item-sub-row">
@@ -2382,11 +2572,14 @@
       pl.querySelectorAll('.pl-remove').forEach(btn => {
         btn.addEventListener('click', e => {
           e.stopPropagation();
-          const idx = parseInt(btn.dataset.rm);
-          if (currentSrc && (currentSrc.url_resolved || currentSrc.url) === (stations[idx].url_resolved || stations[idx].url)) stopPlayback();
-          stations.splice(idx, 1);
-          if (currentIdx >= idx) currentIdx = Math.max(-1, currentIdx - 1);
-          renderStations();
+          const idx = parseInt(btn.dataset.rmst);
+          const st = stations[idx];
+          sparkyConfirm(`Remove [${st.name}] from the station list?`, () => {
+            if (currentSrc && (currentSrc.url_resolved || currentSrc.url) === st.url) stopPlayback();
+            stations.splice(idx, 1);
+            if (currentIdx >= idx) currentIdx = Math.max(-1, currentIdx - 1);
+            renderStations();
+          }, "CONFIRM DELETION");
         });
       });
     }
@@ -2598,18 +2791,20 @@
     </div>
   </div>
 
-  <div class="modal-overlay" id="editModalOverlay"
-    style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
-    <div class="modal"
-      style="background:var(--panel);padding:24px 20px 16px 20px;border-radius:6px;box-shadow:0 8px 32px #0008;min-width:260px;max-width:90vw;">
-      <div style="font-size: calc(15px * var(--text-scale));font-weight:bold;margin-bottom:2px;">Edit Station</div>
-      <label for="editStationName">Label</label>
-      <input type="text" id="editStationName" maxlength="80" style="width:100%;margin-bottom:8px;">
-      <label for="editStationUrl">URL</label>
-      <input type="text" id="editStationUrl" maxlength="300" style="width:100%;margin-bottom:12px;">
-      <div style="display:flex;gap:10px;justify-content:flex-end;">
-        <button class="modal-btn cancel" id="editModalCancel">Cancel</button>
-        <button class="modal-btn" id="editModalSave">Save</button>
+  <div class="modal-overlay" id="editModalOverlay" style="display:none">
+    <div class="modal-content">
+      <div class="modal-header">EDIT STATION</div>
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <label style="font-size:calc(9px * var(--text-scale)); color:var(--accent)">STATION NAME</label>
+        <input type="text" id="editStationName" maxlength="80"
+          style="width:100%; background:var(--bg); border:1px solid var(--border); color:var(--text); padding:5px;">
+        <label style="font-size:calc(9px * var(--text-scale)); color:var(--accent); margin-top:8px;">STREAM URL</label>
+        <input type="text" id="editStationUrl" maxlength="300"
+          style="width:100%; background:var(--bg); border:1px solid var(--border); color:var(--text); padding:5px;">
+      </div>
+      <div class="modal-footer" style="margin-top:20px;">
+        <button class="btn btn-sm" style="background:var(--bg)" id="editModalCancel">CANCEL</button>
+        <button class="btn btn-sm" id="editModalSave">SAVE CHANGES</button>
       </div>
     </div>
   </div>
@@ -2709,7 +2904,7 @@
     }
 
     document.getElementById('btnSortMode').addEventListener('mouseenter', () => document.getElementById('plSortTooltip').classList.add('show'));
-    document.getElementById('btnSortMode').addEventListener('mouseleave', () => document.getElementById('plSortTooltip').classList.remove('show'));
+    document.getElementById('btnSortMode').addEventListener('mouseleave', () => document.getElementById('plSortTooltip').classList.add('show'));
 
     document.getElementById('volSlider').addEventListener('input', function () {
       const v = this.value;
@@ -2751,11 +2946,23 @@
 
     // ══ SEARCH ════════════════════════════════
     async function searchStations(q) {
+      if (!q) return;
       const playlist = document.getElementById('playlist');
-      playlist.innerHTML = '<div class="pl-loading"><div class="spinner"></div>SCANNING MIRRORS...</div>';
+      playlist.innerHTML = '<div class="pl-loading"><div class="spinner"></div>SMART SCANNING...</div>';
+
+      // --- SMART PARSER ---
+      const parts = q.split(/\s+/);
+      const required = [];
+      const excluded = [];
+      let baseQuery = "";
+      parts.forEach(p => {
+        if (p.startsWith('+') && p.length > 1) required.push(p.substring(1).toLowerCase());
+        else if (p.startsWith('-') && p.length > 1) excluded.push(p.substring(1).toLowerCase());
+        else baseQuery += (baseQuery ? " " : "") + p;
+      });
+      let apiQ = baseQuery || (required.length > 0 ? required[0] : q);
 
       const mirrors = ['de1.api.radio-browser.info', 'at1.api.radio-browser.info', 'nl1.api.radio-browser.info'];
-      // Randomize start mirror
       for (let i = mirrors.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [mirrors[i], mirrors[j]] = [mirrors[j], mirrors[i]];
@@ -2764,10 +2971,10 @@
       let success = false;
       for (const srv of mirrors) {
         try {
-          console.log(`[NET] Mirror Attempt: ${srv}`);
+          console.log(`[NET] Smart-Tune Attempt: ${srv}`);
           const response = await fetch(`https://${srv}/json/stations/search?` + new URLSearchParams({
-            name: q,
-            limit: 150,
+            name: apiQ,
+            limit: 250, 
             hidebroken: true,
             ssl_error: false,
             order: 'clickcount',
@@ -2782,19 +2989,27 @@
           const raw = await response.json();
           const valid = raw.filter(s => s.url_resolved || s.url);
 
-          // Elite Heuristic Curation: Normalized Multi-Metric Sorting (Resolves Scaling Bias)
-          const maxClicks = Math.max(...valid.map(s => Number(s.clickcount || 0)), 1);
-          const maxVotes = Math.max(...valid.map(s => Number(s.votes || 0)), 1);
-          const maxTrend = Math.max(...valid.map(s => Math.abs(Number(s.clicktrend || 0))), 1);
+          // --- SMART FILTERING ---
+          const filtered = valid.filter(st => {
+            const name = st.name.toLowerCase();
+            const tags = (st.tags || '').toLowerCase();
+            const blob = name + " " + tags;
+            for (const ex of excluded) if (blob.includes(ex)) return false;
+            for (const req of required) if (!blob.includes(req)) return false;
+            return true;
+          });
 
-          const getNormalizedScore = s => {
-            const pScore = (Number(s.clickcount || 0) / maxClicks) * 0.6;
-            const vScore = (Number(s.votes || 0) / maxVotes) * 0.3;
-            const tScore = (Number(s.clicktrend || 0) / maxTrend) * 0.1;
-            return pScore + vScore + tScore;
-          };
+          // Elite Heuristic Curation: Normalized Multi-Metric Sorting
+          if (filtered.length > 0) {
+            const maxClicks = Math.max(...filtered.map(s => Number(s.clickcount || 0)), 1);
+            const maxVotes = Math.max(...filtered.map(s => Number(s.votes || 0)), 1);
+            const maxTrend = Math.max(...filtered.map(s => Math.abs(Number(s.clicktrend || 0))), 1);
+            const getScore = s => ((Number(s.clickcount || 0)/maxClicks)*0.6) + ((Number(s.votes || 0)/maxVotes)*0.3) + ((Number(s.clicktrend || 0)/maxTrend)*0.1);
+            stations = filtered.sort((a,b) => getScore(b) - getScore(a));
+          } else {
+            stations = [];
+          }
 
-          stations = valid.sort((a, b) => getNormalizedScore(b) - getNormalizedScore(a));
           success = true;
           break;
         } catch (err) {
@@ -2804,6 +3019,7 @@
 
       if (success) {
         renderStations();
+        document.getElementById('stationsBadge').textContent = stations.length;
       } else {
         playlist.innerHTML = '<div class="pl-empty"><div class="pl-empty-icon">⚠</div><div>ALL MIRRORS UNREACHABLE</div><div class="pl-empty-hint">Check your connection or try again later</div></div>';
         countLabel.textContent = 'ERROR';
@@ -2816,12 +3032,15 @@
     });
     document.getElementById('searchInput').addEventListener('input', e => {
       document.getElementById('btnSearchClear').style.display = e.target.value ? 'flex' : 'none';
+      // Reset Preset label on manual typing
+      document.getElementById('presetTrigger').textContent = 'QUICK-TUNE';
     });
     document.getElementById('btnSearchClear').addEventListener('click', () => {
       const inp = document.getElementById('searchInput');
       inp.value = '';
       inp.focus();
       document.getElementById('btnSearchClear').style.display = 'none';
+      document.getElementById('presetTrigger').textContent = 'QUICK-TUNE';
     });
 
     document.getElementById('statusText').parentElement.addEventListener('click', () => {
@@ -2890,7 +3109,80 @@
       });
     }
 
+    // --- CUSTOM PRESETS ENGINE ---
+    const defaultPresets = ["Jazz", "Blues", "Rock", "Pop", "Classical", "News", "Country", "80s", "90s", "Charts"];
+    
+    function loadPresets() {
+      const custom = JSON.parse(localStorage.getItem('sparky_search_presets') || '[]');
+      const all = [...new Set([...defaultPresets, ...custom])].sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
+      const container = document.getElementById('presetOptions');
+      
+      let html = `<div class="preset-opt add-opt" data-val="ADD">+ ADD NEW PRESET</div>`;
+      all.forEach(p => {
+        const isDefault = defaultPresets.includes(p);
+        html += `
+          <div class="preset-opt" data-val="${p}">
+            <span>${p}</span>
+            ${!isDefault ? `<span class="preset-del" data-del="${p}">✕</span>` : ''}
+          </div>`;
+      });
+      container.innerHTML = html;
+      
+      // Re-bind listeners
+      container.querySelectorAll('.preset-opt').forEach(opt => {
+        opt.onclick = (e) => {
+          if (e.target.classList.contains('preset-del')) return;
+          handlePresetSelect(opt.dataset.val);
+        };
+      });
+      container.querySelectorAll('.preset-del').forEach(btn => {
+        btn.onclick = (e) => {
+          e.stopPropagation();
+          const val = btn.dataset.del;
+          sparkyConfirm(`Remove [${val}] from your hardware vault?`, () => {
+            const current = JSON.parse(localStorage.getItem('sparky_search_presets') || '[]');
+            const updated = current.filter(x => x !== val);
+            localStorage.setItem('sparky_search_presets', JSON.stringify(updated));
+            loadPresets();
+          }, "CONFIRM DELETION");
+        };
+      });
+    }
+
+    function handlePresetSelect(val) {
+      document.getElementById('presetOptions').classList.remove('show');
+      if (val === 'ADD') {
+        sparkyPrompt("Enter search term for new preset:", "Custom Preset", (term) => {
+          if (term && term.trim()) {
+            const custom = JSON.parse(localStorage.getItem('sparky_search_presets') || '[]');
+            if (!custom.includes(term.trim())) {
+              custom.push(term.trim());
+              localStorage.setItem('sparky_search_presets', JSON.stringify(custom));
+              loadPresets();
+              handlePresetSelect(term.trim());
+            }
+          }
+        });
+      } else {
+        document.getElementById('presetTrigger').textContent = val;
+        const inp = document.getElementById('searchInput');
+        inp.value = val;
+        inp.dispatchEvent(new Event('input'));
+        switchTab('stations'); searchStations(val);
+      }
+    }
+
+    document.getElementById('presetTrigger').onclick = (e) => {
+      e.stopPropagation();
+      document.getElementById('presetOptions').classList.toggle('show');
+    };
+
+    window.addEventListener('click', () => {
+      document.getElementById('presetOptions').classList.remove('show');
+    });
+
     // ══ INIT ══════════════════════════════════
+    loadPresets();
     applyTextScale(textScale);
     const savedVol = localStorage.getItem('sparky_volume');
     if (savedVol !== null) {
