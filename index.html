@@ -776,7 +776,7 @@ const audioEl = document.getElementById('audioEl');
 let stations   = [];
 let currentIdx = -1;
 let activeTab  = 'stations';
-let sortMode   = 'power';
+let sortMode   = localStorage.getItem('sparky_sort_mode') || 'power';
 let currentSrc = null;   // the station object currently loaded
 let isPlaying  = false;
 let shuffle    = false;
@@ -881,6 +881,12 @@ function syncFavMetadata(st) {
       favs[favIdx].clicktrend = st.clicktrend || st.ct;
       changed = true;
     }
+    // URL-Rescue Grafting: If favorite is missing an ID, graft it from the live signature
+    if (uuid && !favs[favIdx].id && !favs[favIdx].stationuuid) {
+      console.log(`[RESCUE] Grafting ID ${uuid} into legacy record: ${st.name}`);
+      favs[favIdx].id = uuid;
+      changed = true;
+    }
     
     if (changed) {
       console.log(`[SYNC] Refreshing telemetry for: ${st.name}`);
@@ -914,15 +920,16 @@ async function backgroundSyncFavs() {
   const mirrors = ["de1.api.radio-browser.info","at1.api.radio-browser.info","nl1.api.radio-browser.info","all.api.radio-browser.info"];
   
   for(let f of fv) {
-    await sleep(300); // Polite Heartbeat Pause: Bypasses API rate-limiting and browser congestion
+    await sleep(500); // Polite Heartbeat Sync: Prevents Vercel rate-limiting and browser congestion
     let id = f.id || f.stationuuid;
     const m = mirrors[Math.floor(Math.random()*mirrors.length)];
     try {
       if(!id) {
-        // Deep-Search Rescue: Find missing ID for orphaned favorites by Name+URL
-        const sr = await fetch(`https://${m}/json/stations/byname/${encodeURIComponent(f.name)}`);
+        // Master URL Rescue: Fingerprint search even if name/label was changed
+        const cleanUrl = f.url.split('?')[0]; 
+        const sr = await fetch(`https://${m}/json/stations/byurl?url=${encodeURIComponent(cleanUrl)}`);
         const res = await sr.json();
-        const match = res.find(candidate => norm(candidate.url) === norm(f.url) || norm(candidate.url_resolved) === norm(f.url));
+        const match = res && res.length ? res[0] : null;
         if(match) {
           id = match.stationuuid;
           let latest = loadFavs();
@@ -941,7 +948,7 @@ async function backgroundSyncFavs() {
         syncFavMetadata(d[0]);
         if(activeTab === 'favs') renderFavs();
       }
-    } catch(e) { /* background fail silent */ }
+    } catch(e) { console.error("[SYNC_ERROR]", e); }
   }
 }
 
@@ -1250,7 +1257,7 @@ function renderStations() {
           ${st.clicktrend > 50 ? '<span class="pl-status-badge trending">TRENDING</span>' : ''}
         </div>
         <div class="pl-item-sub-row">
-          <div class="pl-item-sub">${esc(st.countrycode||'--')} · ${esc((st.tags||'').split(',')[0])}</div>
+          <div class="pl-item-sub">${esc(st.countrycode||'--')} · ${esc((st.tags||'').split(',')[0]||'radio')}</div>
           <div class="pl-badge-group">
             <div class="pl-badge-mini"><i>🔥</i> ${fmtK(st.clickcount)}</div>
             <div class="pl-badge-mini"><i>👍</i> ${fmtK(st.votes)}</div>
@@ -1347,17 +1354,13 @@ function renderFavs() {
         ${isManual ? `<button class="btn-stack" data-downfav="${i}" title="Move down"><span class="material-symbols-outlined">expand_more</span></button>` : ''}
       </div>
       <div class="pl-main">
-        <div class="pl-item-name">
-          ${esc(st.name)}
-          ${(st.clickcount||st.c) > 1500 ? '<span class="pl-status-badge hot">HOT</span>' : ''}
-          ${(st.clicktrend||st.ct) > 50 ? '<span class="pl-status-badge trending">TRENDING</span>' : ''}
-        </div>
+        <div class="pl-item-name">${esc(st.name)}</div>
         <div class="pl-item-sub-row">
-          <div class="pl-item-sub">${esc(st.countrycode||'--')} · ${esc((st.tags||'').split(',')[0])}</div>
+          <div class="pl-item-sub">${esc(st.countrycode||'--')} · ${esc((st.tags||'').split(',')[0]||'radio')}</div>
           <div class="pl-badge-group">
-            <div class="pl-badge-mini"><i>🔥</i> ${fmtK(st.clickcount || st.c)}</div>
-            <div class="pl-badge-mini"><i>👍</i> ${fmtK(st.votes || st.v || st.votes)}</div>
-            <div class="pl-badge-mini"><i>📈</i> ${fmtK(st.clicktrend || st.ct)}</div>
+            <div class="pl-badge-mini"><i>🔥</i> ${fmtK(st.clickcount||st.c)}</div>
+            <div class="pl-badge-mini"><i>👍</i> ${fmtK(st.votes||st.v)}</div>
+            <div class="pl-badge-mini"><i>📈</i> ${fmtK(st.clicktrend||st.ct)}</div>
           </div>
         </div>
       </div>
@@ -1564,6 +1567,7 @@ document.getElementById('btnSortMode').addEventListener('click', function() {
   let idx = (modes.indexOf(sortMode) + 1) % modes.length;
   if(idx < 0) idx = 0;
   sortMode = modes[idx];
+  localStorage.setItem('sparky_sort_mode', sortMode);
   updateSortUI();
   renderCurrent();
 
