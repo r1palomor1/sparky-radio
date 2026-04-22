@@ -955,7 +955,8 @@
       justify-content: space-between;
       gap: 12px;
       padding: 8px 12px;
-      background: #0a0a0a; /* Force opaque to block grid */
+      background: #0a0a0a;
+      /* Force opaque to block grid */
       border-bottom: 1px solid var(--border);
       position: relative;
     }
@@ -976,18 +977,67 @@
       align-items: flex-end;
       gap: 2px;
       padding-bottom: 2px;
-      background: #0a0a0a; /* Force opaque */
+      background: #0a0a0a;
+      /* Force opaque */
       border: none !important;
       position: relative;
     }
 
-    .presets-area {
+    .filters-area {
       display: flex;
       align-items: center;
-      gap: 10px;
-      padding: 8px 12px;
+      gap: 12px;
+      padding: 6px 12px;
       background: var(--panel);
       border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+    }
+
+    .filter-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .filter-label {
+      font-size: calc(8px * var(--text-scale));
+      color: var(--dim);
+      letter-spacing: 1.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .hifi-toggle {
+      width: 24px;
+      height: 12px;
+      background: var(--subdim);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      position: relative;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .hifi-toggle.active {
+      background: color-mix(in srgb, var(--accent) 30%, transparent);
+      border-color: var(--accent);
+    }
+
+    .hifi-thumb {
+      position: absolute;
+      left: 2px;
+      top: 2px;
+      width: 6px;
+      height: 6px;
+      background: var(--dim);
+      border-radius: 50%;
+      transition: all 0.2s;
+    }
+
+    .hifi-toggle.active .hifi-thumb {
+      left: 14px;
+      background: var(--accent);
+      box-shadow: 0 0 5px var(--accent);
     }
 
     .preset-label {
@@ -1032,7 +1082,7 @@
       right: 0;
       background: var(--panel);
       border: 1px solid var(--border);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
       z-index: 1500;
       display: none;
       max-height: 250px;
@@ -1046,13 +1096,16 @@
     .preset-options::-webkit-scrollbar {
       width: 3px;
     }
+
     .preset-options::-webkit-scrollbar-track {
       background: var(--viz-bg);
     }
+
     .preset-options::-webkit-scrollbar-thumb {
       background: var(--border);
       border-radius: 2px;
     }
+
     .preset-options::-webkit-scrollbar-thumb:hover {
       background: var(--accent);
     }
@@ -1875,13 +1928,35 @@
       </div>
     </div>
 
-    <!-- PRESETS ROW (Custom Selector) -->
-    <div class="presets-area">
-      <div class="preset-label">PRESETS</div>
-      <div class="preset-dropdown-wrap">
-        <div class="preset-trigger" id="presetTrigger">QUICK-TUNE</div>
-        <div class="preset-options" id="presetOptions">
-          <!-- Dynamic options -->
+    <div class="filters-area">
+      <div class="filter-group">
+        <div class="filter-label">QUICK-TUNE</div>
+        <div class="preset-dropdown-wrap" style="min-width: 100px;">
+          <div class="preset-trigger" id="presetTrigger">QUICK-TUNE</div>
+          <div class="preset-options" id="presetOptions"></div>
+        </div>
+      </div>
+
+      <div class="filter-group">
+        <div class="filter-label">CTRY</div>
+        <div class="preset-dropdown-wrap" style="min-width: 55px;">
+          <div class="preset-trigger" id="filterCountryTrigger">ALL</div>
+          <div class="preset-options" id="filterCountryOptions"></div>
+        </div>
+      </div>
+
+      <div class="filter-group">
+        <div class="filter-label">LANG</div>
+        <div class="preset-dropdown-wrap" style="min-width: 55px;">
+          <div class="preset-trigger" id="filterLangTrigger">ALL</div>
+          <div class="preset-options" id="filterLangOptions"></div>
+        </div>
+      </div>
+
+      <div class="filter-group" style="margin-left:auto">
+        <div class="filter-label">HI-FI</div>
+        <div class="hifi-toggle" id="hifiToggle" title="Show only 128kbps+">
+          <div class="hifi-thumb"></div>
         </div>
       </div>
     </div>
@@ -2007,6 +2082,9 @@
     let shuffle = false;
     let repeat = false;
     let rafId, hls;
+    let filterCountry = 'ALL';
+    let filterLang = 'ALL';
+    let filterHiFi = false;
     const APP_VERSION = "2.22";
     const APP_CODENAME = "Smart-Tune Pro";
 
@@ -2036,7 +2114,7 @@
       refEl.textContent = `Sparky Radio v${APP_VERSION}: ${APP_CODENAME}`;
       tsEl.textContent = ts;
     }
-    
+
     let audioCtx, analyser, srcNode;
     let sortTooltipTimeout;
 
@@ -2791,7 +2869,7 @@
             style="font-size: calc(9px * var(--text-scale)); color: var(--accent); letter-spacing: 1.5px; font-weight: 700;">
             TEXT CALIBRATION</div>
           <div id="textScaleLabel"
-            style="font-size: calc(10px * var(--text-scale)); color: var(--text); font-weight: 700;">100% (DEFAULT)
+            style="font-size: calc(10px * var(--text-scale)); color: var(--text); font-weight: 500;">100% (DEFAULT)
           </div>
         </div>
         <input type="range" id="textScaleSlider" min="0.5" max="1.5" step="0.05" value="1.0"
@@ -3004,7 +3082,7 @@
           console.log(`[NET] Smart-Tune Attempt: ${srv}`);
           const response = await fetch(`https://${srv}/json/stations/search?` + new URLSearchParams({
             name: apiQ,
-            limit: 250, 
+            limit: 250,
             hidebroken: true,
             ssl_error: false,
             order: 'clickcount',
@@ -3031,11 +3109,23 @@
 
           // Elite Heuristic Curation: Normalized Multi-Metric Sorting
           if (filtered.length > 0) {
+            // Apply Country, Language, and Hi-Fi filters
+            if (filterCountry !== 'ALL') {
+              filtered = filtered.filter(s => (s.countrycode || '').toUpperCase() === filterCountry);
+            }
+            if (filterLang !== 'ALL') {
+              const l = filterLang.toLowerCase();
+              filtered = filtered.filter(s => (s.language || '').toLowerCase().includes(l));
+            }
+            if (filterHiFi) {
+              filtered = filtered.filter(s => Number(s.bitrate || 0) >= 128);
+            }
+
             const maxClicks = Math.max(...filtered.map(s => Number(s.clickcount || 0)), 1);
             const maxVotes = Math.max(...filtered.map(s => Number(s.votes || 0)), 1);
             const maxTrend = Math.max(...filtered.map(s => Math.abs(Number(s.clicktrend || 0))), 1);
-            const getScore = s => ((Number(s.clickcount || 0)/maxClicks)*0.6) + ((Number(s.votes || 0)/maxVotes)*0.3) + ((Number(s.clicktrend || 0)/maxTrend)*0.1);
-            stations = filtered.sort((a,b) => getScore(b) - getScore(a));
+            const getScore = s => ((Number(s.clickcount || 0) / maxClicks) * 0.6) + ((Number(s.votes || 0) / maxVotes) * 0.3) + ((Number(s.clicktrend || 0) / maxTrend) * 0.1);
+            stations = filtered.sort((a, b) => getScore(b) - getScore(a));
           } else {
             stations = [];
           }
@@ -3141,13 +3231,65 @@
     }
 
     // --- CUSTOM PRESETS ENGINE ---
+    // --- CUSTOM FILTERS ENGINE ---
+    const CTRY_LIST = ['ALL', 'US', 'UK', 'CA', 'FR', 'DE', 'ES', 'IT', 'NL', 'BR', 'JP'];
+    const LANG_LIST = ['ALL', 'English', 'Spanish', 'French', 'German', 'Italian', 'Portuguese', 'Russian', 'Japanese'];
+
+    function loadFilterOptions() {
+      const cCont = document.getElementById('filterCountryOptions');
+      const lCont = document.getElementById('filterLangOptions');
+      
+      cCont.innerHTML = CTRY_LIST.map(c => `<div class="preset-opt" data-val="${c}">${c}</div>`).join('');
+      lCont.innerHTML = LANG_LIST.map(l => `<div class="preset-opt" data-val="${l}">${l.toUpperCase().substring(0,3)}</div>`).join('');
+
+      cCont.querySelectorAll('.preset-opt').forEach(opt => {
+        opt.onclick = (e) => {
+          e.stopPropagation();
+          filterCountry = opt.dataset.val;
+          document.getElementById('filterCountryTrigger').textContent = filterCountry;
+          cCont.classList.remove('show');
+          searchStations(document.getElementById('searchInput').value);
+        };
+      });
+
+      lCont.querySelectorAll('.preset-opt').forEach(opt => {
+        opt.onclick = (e) => {
+          e.stopPropagation();
+          filterLang = opt.dataset.val;
+          document.getElementById('filterLangTrigger').textContent = filterLang.toUpperCase().substring(0,3);
+          lCont.classList.remove('show');
+          searchStations(document.getElementById('searchInput').value);
+        };
+      });
+    }
+
+    document.getElementById('filterCountryTrigger').onclick = (e) => {
+      e.stopPropagation();
+      document.getElementById('presetOptions').classList.remove('show');
+      document.getElementById('filterLangOptions').classList.remove('show');
+      document.getElementById('filterCountryOptions').classList.toggle('show');
+    };
+
+    document.getElementById('filterLangTrigger').onclick = (e) => {
+      e.stopPropagation();
+      document.getElementById('presetOptions').classList.remove('show');
+      document.getElementById('filterCountryOptions').classList.remove('show');
+      document.getElementById('filterLangOptions').classList.toggle('show');
+    };
+
+    document.getElementById('hifiToggle').onclick = () => {
+      filterHiFi = !filterHiFi;
+      document.getElementById('hifiToggle').classList.toggle('active', filterHiFi);
+      searchStations(document.getElementById('searchInput').value);
+    };
+
     const defaultPresets = ["Jazz", "Blues", "Rock", "Pop", "Classical", "News", "Country", "80s", "90s", "Charts"];
-    
+
     function loadPresets() {
       const custom = JSON.parse(localStorage.getItem('sparky_search_presets') || '[]');
       const all = [...new Set([...defaultPresets, ...custom])].sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
       const container = document.getElementById('presetOptions');
-      
+
       let html = `<div class="preset-opt add-opt" data-val="ADD">+ ADD NEW PRESET</div>`;
       all.forEach(p => {
         const isDefault = defaultPresets.includes(p);
@@ -3158,7 +3300,7 @@
           </div>`;
       });
       container.innerHTML = html;
-      
+
       // Re-bind listeners
       container.querySelectorAll('.preset-opt').forEach(opt => {
         opt.onclick = (e) => {
@@ -3222,6 +3364,7 @@
     }
     setEqPreset(activePreset);
     refreshFavBadge();
+    loadFilterOptions();
     searchStations('jazz');
     updateDeploymentUI();
   </script>
