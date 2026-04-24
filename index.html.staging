@@ -694,11 +694,50 @@
       padding: 12px 12px 18px;
     }
 
-    .search-actions {
+    .btn-filter-toggle {
+      background: var(--subdim);
+      border: 1px solid var(--border);
+      color: var(--text);
+      width: 32px;
+      height: 24px;
       display: flex;
       align-items: center;
-      gap: 5px;
+      justify-content: center;
+      border-radius: 2px;
+      cursor: pointer;
+      transition: all 0.2s;
       flex-shrink: 0;
+    }
+
+    .btn-filter-toggle:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .btn-filter-toggle.active {
+      color: var(--accent);
+      border-color: var(--accent);
+      background: color-mix(in srgb, var(--accent) 15%, transparent);
+    }
+
+    .btn-filter-toggle .material-symbols-outlined {
+      font-size: calc(18px * var(--text-scale));
+    }
+
+    .lower-rack {
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      overflow: hidden;
+      max-height: 1000px;
+      opacity: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .lower-rack.collapsed {
+      max-height: 0;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-10px);
     }
 
 
@@ -1015,52 +1054,6 @@
       z-index: 1100;
     }
 
-    .btn-filter-toggle {
-      background: var(--subdim);
-      border: 1px solid var(--border);
-      color: var(--text);
-      width: 32px;
-      height: 24px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 2px;
-      cursor: pointer;
-      transition: all 0.2s;
-      flex-shrink: 0;
-    }
-
-    .btn-filter-toggle:hover {
-      border-color: var(--accent);
-      color: var(--accent);
-    }
-
-    .btn-filter-toggle.active {
-      color: var(--accent);
-      border-color: var(--accent);
-      background: color-mix(in srgb, var(--accent) 15%, transparent);
-    }
-
-    .btn-filter-toggle .material-symbols-outlined {
-      font-size: calc(18px * var(--text-scale));
-    }
-
-    .lower-rack {
-      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-      overflow: hidden;
-      max-height: 1200px;
-      opacity: 1;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .lower-rack.collapsed {
-      max-height: 0;
-      opacity: 0;
-      pointer-events: none;
-      transform: translateY(-10px);
-    }
-
 
     .filter-group {
       display: flex;
@@ -1091,9 +1084,14 @@
     }
 
     .btn-hifi.active {
-      background: var(--accent) !important;
-      color: #000 !important;
-      border-color: var(--accent) !important;
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #FFF;
+      box-shadow: 0 0 8px var(--accent-glow);
+    }
+    
+    body.light .btn-hifi.active {
+      color: #FFF; /* Hard contrast for green button in light mode */
     }
 
     .preset-label {
@@ -1995,39 +1993,42 @@
           <button class="search-clear" id="btnSearchClear" title="Clear search">&#10006;</button>
         </div>
         <button class="btn btn-search" id="btnSearch">SCAN</button>
-        <button class="btn-filter-toggle" id="btnFilterToggle" title="Toggle Content Rack">
+        <button class="btn-filter-toggle" id="btnFilterToggle" title="Toggle Discovery Rack">
           <span class="material-symbols-outlined">list</span>
         </button>
-      </div>
-      <!-- PERSISTENT FILTERS (Always Visible) -->
-      <div class="filters-area">
-        <div class="filter-group">
-          <div class="filter-label" style="color: var(--accent);">&#10024;</div>
-          <div class="preset-dropdown-wrap" style="min-width: 100px;">
-            <div class="preset-trigger" id="presetTrigger">QUICK-TUNE</div>
-            <div class="preset-options" id="presetOptions"></div>
-          </div>
-        </div>
-        <div class="filter-group">
-          <div class="filter-label">CTRY</div>
-          <div class="preset-dropdown-wrap" style="min-width: 55px;">
-            <div class="preset-trigger" id="filterCountryTrigger">ALL</div>
-            <div class="preset-options" id="filterCountryOptions"></div>
-          </div>
-        </div>
-        <div class="filter-group">
-          <div class="filter-label">LANG</div>
-          <div class="preset-dropdown-wrap" style="min-width: 55px;">
-            <div class="preset-trigger" id="filterLangTrigger">ALL</div>
-            <div class="preset-options" id="filterLangOptions"></div>
-          </div>
-        </div>
-        <button class="btn-hifi active" id="btnHifi" title="Show only 128kbps+">HI-FI</button>
       </div>
     </div>
 
     <!-- LOWER RACK (Collapsible) -->
     <div class="lower-rack" id="filterRack">
+      <div class="filters-area">
+
+
+      <div class="filter-group">
+        <div class="filter-label" style="color: var(--accent);">&#10024;</div>
+        <div class="preset-dropdown-wrap" style="min-width: 100px;">
+          <div class="preset-trigger" id="presetTrigger">QUICK-TUNE</div>
+          <div class="preset-options" id="presetOptions"></div>
+        </div>
+      </div>
+
+      <div class="filter-group">
+        <div class="filter-label">CTRY</div>
+        <div class="preset-dropdown-wrap" style="min-width: 55px;">
+          <div class="preset-trigger" id="filterCountryTrigger">ALL</div>
+          <div class="preset-options" id="filterCountryOptions"></div>
+        </div>
+      </div>
+
+      <div class="filter-group">
+        <div class="filter-label">LANG</div>
+        <div class="preset-dropdown-wrap" style="min-width: 55px;">
+          <div class="preset-trigger" id="filterLangTrigger">ALL</div>
+          <div class="preset-options" id="filterLangOptions"></div>
+        </div>
+      </div>
+
+      </div>
 
     <!-- PLAYLIST HEADER -->
     <div class="playlist-header" style="position: relative;">
@@ -2058,7 +2059,6 @@
       </div>
     </div>
   </div>
-</div>
 
   <audio id="audioEl" crossorigin="anonymous"></audio>
 
@@ -3253,8 +3253,7 @@
       const rack = document.getElementById('filterRack');
       const btn = document.getElementById('btnFilterToggle');
       const isCollapsed = rack.classList.toggle('collapsed');
-      // Highlight green when collapsed to signal info is hidden
-      btn.classList.toggle('active', isCollapsed);
+      btn.classList.toggle('active', !isCollapsed);
       localStorage.setItem('sparky_filters_collapsed', isCollapsed);
     }
 
@@ -3263,7 +3262,7 @@
       const btn = document.getElementById('btnFilterToggle');
       if (rack.classList.contains('collapsed')) {
         rack.classList.remove('collapsed');
-        btn.classList.remove('active');
+        btn.classList.add('active');
         localStorage.setItem('sparky_filters_collapsed', false);
       }
     }
@@ -3425,7 +3424,6 @@
 
     document.getElementById('filterCountryTrigger').onclick = (e) => {
       e.stopPropagation();
-      expandFilters();
       document.getElementById('presetOptions').classList.remove('show');
       document.getElementById('filterLangOptions').classList.remove('show');
       document.getElementById('filterCountryOptions').classList.toggle('show');
@@ -3433,14 +3431,12 @@
 
     document.getElementById('filterLangTrigger').onclick = (e) => {
       e.stopPropagation();
-      expandFilters();
       document.getElementById('presetOptions').classList.remove('show');
       document.getElementById('filterCountryOptions').classList.remove('show');
       document.getElementById('filterLangOptions').classList.toggle('show');
     };
 
     document.getElementById('btnHifi').onclick = () => {
-      expandFilters();
       filterHiFi = !filterHiFi;
       document.getElementById('btnHifi').classList.toggle('active', filterHiFi);
       searchStations(document.getElementById('searchInput').value);
@@ -3510,7 +3506,6 @@
 
     document.getElementById('presetTrigger').onclick = (e) => {
       e.stopPropagation();
-      expandFilters();
       document.getElementById('filterCountryOptions').classList.remove('show');
       document.getElementById('filterLangOptions').classList.remove('show');
       document.getElementById('presetOptions').classList.toggle('show');
@@ -3569,9 +3564,9 @@
     const filtersCollapsed = localStorage.getItem('sparky_filters_collapsed') === 'true';
     if (filtersCollapsed) {
       document.getElementById('filterRack').classList.add('collapsed');
-      document.getElementById('btnFilterToggle').classList.add('active');
-    } else {
       document.getElementById('btnFilterToggle').classList.remove('active');
+    } else {
+      document.getElementById('btnFilterToggle').classList.add('active');
     }
 
     setEqPreset(activePreset);
