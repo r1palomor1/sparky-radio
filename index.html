@@ -49,6 +49,7 @@
       --glowfav: 0 0 8px #e8c84088, 0 0 20px #e8c84033;
       --app-border: #5e5248;
       --app-shadow: 0 8px 40px #00000080;
+      --pl-stripe: rgba(255, 255, 255, 0.05);
     }
 
     body.light {
@@ -79,6 +80,7 @@
       --glowfav: 0 0 6px rgba(127, 90, 0, 0.4);
       --app-border: #808050;
       --app-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
+      --pl-stripe: rgba(0, 0, 0, 0.06);
     }
 
     body {
@@ -912,6 +914,11 @@
       cursor: pointer;
       min-height: 50px;
       overflow: hidden;
+      transition: background 0.2s;
+    }
+
+    .pl-item:nth-child(even) {
+      background: var(--pl-stripe);
     }
 
     .pl-sidebar {
