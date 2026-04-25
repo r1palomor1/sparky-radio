@@ -91,6 +91,7 @@ let sortMode = 'power';
 let favSortMode = localStorage.getItem('sparky_fav_sort_mode') || 'power';
 let currentSrc = null;
 let isPlaying = false;
+let favs = []; // Global synced favorites list
 let textScale = parseFloat(localStorage.getItem('sparky_text_scale')) || 1.0;
 let shuffle = false;
 let repeat = false;
@@ -98,6 +99,7 @@ let rafId, hls;
 let filterCountry = 'ALL';
 let filterLang = 'ALL';
 let filterHiFi = true;
+let wasCollapsedBeforeEQ = false; // State persistence for EQ engaged mode
 let isSearching = false;
 const APP_CODENAME = "Smart-Tune Pro";
 
@@ -365,6 +367,13 @@ document.getElementById('btnEq').onclick = function() {
   const rack = document.getElementById('eqRack');
   const isOpen = rack.classList.toggle('open');
   this.classList.toggle('active', isOpen);
+
+  if (isOpen) {
+    wasCollapsedBeforeEQ = document.getElementById('filterRack').classList.contains('collapsed');
+    if (!wasCollapsedBeforeEQ) toggleFilters();
+  } else {
+    if (!wasCollapsedBeforeEQ) expandFilters();
+  }
 };
 
 document.querySelectorAll('.btn-preset').forEach(btn => {
@@ -560,7 +569,7 @@ function playStationObj(st) {
 }
 
 function playAtIndex(idx) {
-  const list = activeTab === 'favs' ? loadFavs() : stations;
+  const list = activeTab === 'favs' ? favs : stations;
   if (idx < 0 || idx >= list.length) return;
   currentIdx = idx; playStationObj(list[idx]);
   renderCurrent();
@@ -644,7 +653,8 @@ function renderStations() {
 }
 
 function renderFavs() {
-  const pl = document.getElementById('playlist'), favs = loadFavs();
+  const pl = document.getElementById('playlist');
+  favs = loadFavs(); // Sync global
   if (!pl) return;
   refreshFavBadge();
   if (!favs.length) {
@@ -717,8 +727,14 @@ document.getElementById('btnPlay').onclick = () => {
   } else { audioEl.pause(); isPlaying = false; setStatus('', 'PAUSED'); syncPlayBtns(); idleViz(); }
 };
 document.getElementById('btnStop').onclick = stopPlayback;
-document.getElementById('btnNext').onclick = () => { const l = activeTab === 'favs' ? loadFavs() : stations; if (l.length) playAtIndex((currentIdx + 1) % l.length); };
-document.getElementById('btnPrev').onclick = () => { const l = activeTab === 'favs' ? loadFavs() : stations; if (l.length) playAtIndex((currentIdx - 1 + l.length) % l.length); };
+document.getElementById('btnNext').onclick = () => { 
+  const l = activeTab === 'favs' ? favs : stations; 
+  if (l.length) playAtIndex((currentIdx + 1) % l.length); 
+};
+document.getElementById('btnPrev').onclick = () => { 
+  const l = activeTab === 'favs' ? favs : stations; 
+  if (l.length) playAtIndex((currentIdx - 1 + l.length) % l.length); 
+};
 
 // ══ FOOTER ACTIONS ════════════════════════
 document.getElementById('btnAdd').onclick = () => {

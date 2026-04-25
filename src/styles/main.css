@@ -1027,7 +1027,7 @@ body.light input[type=text] {
 .btn-filter-toggle {
   background: var(--subdim);
   border: 1px solid var(--border);
-  color: var(--text);
+  color: #fff !important; /* White when expanded */
   width: 32px;
   height: 24px;
   display: flex;
@@ -1041,11 +1041,10 @@ body.light input[type=text] {
 
 .btn-filter-toggle:hover {
   border-color: var(--accent);
-  color: var(--accent);
 }
 
 .btn-filter-toggle.active {
-  color: var(--accent);
+  color: var(--accent) !important; /* Green when collapsed */
   border-color: var(--accent);
   background: color-mix(in srgb, var(--accent) 15%, transparent);
 }
@@ -1055,7 +1054,7 @@ body.light input[type=text] {
 }
 
 .lower-rack {
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: none;
   overflow: hidden;
   max-height: 1200px;
   opacity: 1;
@@ -1461,13 +1460,13 @@ body.light .pl-item-sub {
   overflow: hidden;
   background: var(--viz-bg);
   border-bottom: 2px solid var(--border);
-  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: none;
   opacity: 0;
 }
 
 .eq-rack.open {
-  max-height: 320px;
-  padding: 20px;
+  max-height: 800px;
+  padding: 15px 14px;
   opacity: 1;
 }
 
@@ -1592,6 +1591,15 @@ body.light .pl-item-sub {
   border-radius: 3px;
   border: 1px solid var(--border);
   transition: all 0.2s;
+  color: var(--text);
+}
+
+body.light .btn-preset {
+  background: #454d55;
+  color: #fff;
+  border-color: #2c3136;
+  font-weight: 500;
+  text-shadow: 0 1px 1px rgba(0,0,0,0.3);
 }
 
 .btn-preset.active {
@@ -1599,6 +1607,15 @@ body.light .pl-item-sub {
   color: var(--fav);
   background: color-mix(in srgb, var(--fav) 10%, var(--bg));
   box-shadow: 0 0 10px rgba(144, 104, 0, 0.2);
+}
+
+body.light .btn-preset.active {
+  background: #5cb870; /* Glowing LED Green */
+  color: #000;
+  border-color: #1b4d2e;
+  box-shadow: 0 0 12px rgba(92, 184, 112, 0.4);
+  font-weight: 700;
+  text-shadow: none;
 }
 
 .eq-actions {
@@ -1923,4 +1940,24 @@ body.light .footer-meta span {
 
 .footer-player-mini .btn-play {
   min-width: 80px;
+}
+
+/* ── MOBILE RESPONSIVENESS ──────────────── */
+@media (max-width: 380px) {
+  .eq-rack.open {
+    max-height: 600px;
+    padding: 12px 10px;
+  }
+  .eq-presets {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .eq-col {
+    width: 24px;
+  }
+  .eq-label-freq {
+    font-size: 8px;
+  }
+  .eq-row {
+    gap: 4px;
+  }
 }
