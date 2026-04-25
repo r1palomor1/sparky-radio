@@ -867,6 +867,34 @@ document.getElementById('btnDebugClose').onclick = () => {
 document.getElementById('btnCopyLogs').onclick = () => window.copyLogs();
 document.getElementById('btnAuditFavs').onclick = () => window.auditFavs();
 
+document.getElementById('btnExportFavs').onclick = () => {
+  const data = JSON.stringify(loadFavs());
+  navigator.clipboard.writeText(data).then(() => {
+    sparkyAlert("Favorites Vault copied to clipboard! Save it in a safe place.", "BACKUP SUCCESSFUL");
+  }).catch(() => {
+    sparkyAlert("Clipboard access failed. Check permissions.", "EXPORT ERROR");
+  });
+};
+
+document.getElementById('btnImportFavs').onclick = () => {
+  sparkyPrompt("Paste your Vault Backup key below:", "RESTORE VAULT", (json) => {
+    if (!json?.trim()) return;
+    try {
+      const data = JSON.parse(json);
+      if (Array.isArray(data)) {
+        saveFavs(data);
+        refreshFavBadge();
+        if (activeTab === 'favs') renderFavs();
+        sparkyAlert(`Successfully restored ${data.length} stations!`, "RESTORE COMPLETE");
+      } else {
+        throw new Error("Invalid format");
+      }
+    } catch (e) {
+      sparkyAlert("Invalid Backup Key. Please ensure you copied the entire string.", "RESTORE FAILED");
+    }
+  });
+};
+
 function applyTextScale(val) {
   textScale = val;
   document.documentElement.style.setProperty('--text-scale', val);
