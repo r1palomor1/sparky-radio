@@ -2185,8 +2185,8 @@
     let isSearching = false;
     const APP_CODENAME = "Smart-Tune Pro";
 
-    const BUILD_COMMIT = "381e6a5";
-    const BUILD_REF = "fix: transition to static Git Commit Signature for deployment verification";
+    let BUILD_COMMIT = "__COMMIT_HASH__";
+    let BUILD_REF = "__COMMIT_MSG__";
 
     function updateDeploymentUI() {
       const idEl = document.getElementById('sigID');
@@ -2194,14 +2194,18 @@
       const tsEl = document.getElementById('sigTS');
       if (!idEl) return;
 
+      // Local Dev Guard: If placeholders aren't replaced by Vercel, show friendly local state
+      if (BUILD_COMMIT.startsWith('__')) BUILD_COMMIT = 'LOCAL_DEV';
+      if (BUILD_REF.startsWith('__')) BUILD_REF = 'Smart-Tune Pro (Dev Mode)';
+
       const modDate = new Date(document.lastModified);
       const ts = (modDate.getMonth() + 1).toString().padStart(2, '0') + '/' +
         modDate.getDate().toString().padStart(2, '0') + ' ' +
         modDate.getHours().toString().padStart(2, '0') + ':' +
         modDate.getMinutes().toString().padStart(2, '0');
 
-      idEl.textContent = BUILD_COMMIT;
-      refEl.textContent = `${BUILD_REF} (STABLE)`;
+      idEl.textContent = BUILD_COMMIT.substring(0, 7);
+      refEl.textContent = BUILD_REF.length > 30 ? BUILD_REF.substring(0, 27) + '...' : BUILD_REF;
       tsEl.textContent = ts;
     }
 
@@ -3004,8 +3008,8 @@
           GIT COMMIT SIGNATURE</div>
         <div
           style="font-size: calc(10px * var(--text-scale)); color: var(--dim); line-height: 1.6; font-family: 'Share Tech Mono', monospace;">
-          COMMIT HASH: <span id="sigID" style="color:var(--text); font-weight:700;">381e6a5</span><br>
-          BUILD REF: <span id="sigREF" style="color:var(--text)">---</span><br>
+          COMMIT HASH: <span id="sigID" style="color:var(--text); font-weight:700;">__COMMIT_HASH__</span><br>
+          BUILD REF: <span id="sigREF" style="color:var(--text)">__COMMIT_MSG__</span><br>
           LOCAL TS: <span id="sigTS" style="color:var(--text)">---</span>
         </div>
       </div>

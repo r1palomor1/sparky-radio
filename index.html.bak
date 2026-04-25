@@ -2185,8 +2185,8 @@
     let isSearching = false;
     const APP_CODENAME = "Smart-Tune Pro";
 
-    const BUILD_COMMIT = "a41e231";
-    const BUILD_REF = "Smart-Tune Pro";
+    const BUILD_COMMIT = "381e6a5";
+    const BUILD_REF = "fix: transition to static Git Commit Signature for deployment verification";
 
     function updateDeploymentUI() {
       const idEl = document.getElementById('sigID');
@@ -3004,7 +3004,7 @@
           GIT COMMIT SIGNATURE</div>
         <div
           style="font-size: calc(10px * var(--text-scale)); color: var(--dim); line-height: 1.6; font-family: 'Share Tech Mono', monospace;">
-          COMMIT HASH: <span id="sigID" style="color:var(--text); font-weight:700;">---</span><br>
+          COMMIT HASH: <span id="sigID" style="color:var(--text); font-weight:700;">381e6a5</span><br>
           BUILD REF: <span id="sigREF" style="color:var(--text)">---</span><br>
           LOCAL TS: <span id="sigTS" style="color:var(--text)">---</span>
         </div>
