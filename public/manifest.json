@@ -1,7 +1,7 @@
 {
   "name": "SPARKY Internet Radio",
   "short_name": "SPARKY",
-  "start_url": "index.html",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#0a0c0f",
   "theme_color": "#00e5ff",

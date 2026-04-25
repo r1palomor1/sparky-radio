@@ -2,6 +2,9 @@ const CACHE_NAME = 'sparky-radio';
 const ASSETS = [
   '/',
   '/index.html',
+  '/src/scripts/main.js',
+  '/src/styles/main.css',
+  '/material-symbols.css',
   '/icon-192.png',
   '/icon-512.png',
   '/manifest.json'

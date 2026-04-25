@@ -1,10 +1,13 @@
 {
   "name": "sparky-radio",
-  "version": "2.29.0",
-  "description": "Smart-Tune Pro Internet Radio PWA",
+  "version": "2.30.0",
+  "private": true,
   "scripts": {
-    "build": "mkdir -p public && cp index.html manifest.json sw.js material-symbols.css icon-192.png icon-512.png public/ && sed -i \"s/__COMMIT_HASH__/$VERCEL_GIT_COMMIT_SHA/g\" public/index.html && sed -i \"s/__COMMIT_MSG__/$VERCEL_GIT_COMMIT_MESSAGE/g\" public/index.html"
+    "dev": "vite",
+    "build": "vite build && sed -i \"s/__COMMIT_HASH__/$VERCEL_GIT_COMMIT_SHA/g\" dist/index.html && sed -i \"s/__COMMIT_MSG__/$VERCEL_GIT_COMMIT_MESSAGE/g\" dist/index.html",
+    "preview": "vite preview"
   },
-  "author": "Antigravity",
-  "license": "MIT"
+  "devDependencies": {
+    "vite": "^5.0.0"
+  }
 }
