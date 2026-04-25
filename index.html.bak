@@ -2185,16 +2185,8 @@
     let isSearching = false;
     const APP_CODENAME = "Smart-Tune Pro";
 
-    function getSoftwareFingerprint() {
-      // Fingerprint based on core script and structural DNA
-      const s = document.documentElement.innerHTML;
-      let hash = 0;
-      for (let i = 0; i < s.length; i++) {
-        hash = ((hash << 5) - hash) + s.charCodeAt(i);
-        hash |= 0;
-      }
-      return Math.abs(hash).toString(16).toUpperCase().substring(0, 8);
-    }
+    const BUILD_COMMIT = "a41e231";
+    const BUILD_REF = "Smart-Tune Pro";
 
     function updateDeploymentUI() {
       const idEl = document.getElementById('sigID');
@@ -2208,10 +2200,8 @@
         modDate.getHours().toString().padStart(2, '0') + ':' +
         modDate.getMinutes().toString().padStart(2, '0');
 
-      const fingerprint = getSoftwareFingerprint();
-      idEl.textContent = fingerprint;
-      // Structural Fix: Dynamic versioning based on fingerprint + codename
-      refEl.textContent = `${APP_CODENAME} (BUILD ${fingerprint.substring(0, 4)})`;
+      idEl.textContent = BUILD_COMMIT;
+      refEl.textContent = `${BUILD_REF} (STABLE)`;
       tsEl.textContent = ts;
     }
 
@@ -3011,10 +3001,10 @@
       <div style="border-top: 1px solid var(--border); padding-top: 12px;">
         <div
           style="font-size: calc(9px * var(--text-scale)); color: var(--accent); letter-spacing: 1.5px; margin-bottom: 6px; font-weight: 700;">
-          DYNAMIC DEPLOYMENT SIGNATURE</div>
+          GIT COMMIT SIGNATURE</div>
         <div
           style="font-size: calc(10px * var(--text-scale)); color: var(--dim); line-height: 1.6; font-family: 'Share Tech Mono', monospace;">
-          FINGERPRINT: <span id="sigID" style="color:var(--text); font-weight:700;">---</span><br>
+          COMMIT HASH: <span id="sigID" style="color:var(--text); font-weight:700;">---</span><br>
           BUILD REF: <span id="sigREF" style="color:var(--text)">---</span><br>
           LOCAL TS: <span id="sigTS" style="color:var(--text)">---</span>
         </div>
