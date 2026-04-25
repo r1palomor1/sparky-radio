@@ -3,7 +3,7 @@
   "version": "2.29.0",
   "description": "Smart-Tune Pro Internet Radio PWA",
   "scripts": {
-    "build": "sed -i \"s/__COMMIT_HASH__/$VERCEL_GIT_COMMIT_SHA/g\" index.html && sed -i \"s/__COMMIT_MSG__/$VERCEL_GIT_COMMIT_MESSAGE/g\" index.html"
+    "build": "mkdir -p public && cp index.html manifest.json sw.js material-symbols.css icon-192.png icon-512.png public/ && sed -i \"s/__COMMIT_HASH__/$VERCEL_GIT_COMMIT_SHA/g\" public/index.html && sed -i \"s/__COMMIT_MSG__/$VERCEL_GIT_COMMIT_MESSAGE/g\" public/index.html"
   },
   "author": "Antigravity",
   "license": "MIT"
