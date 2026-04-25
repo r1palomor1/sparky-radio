@@ -77,9 +77,6 @@ body.light {
 
 body {
   background: var(--bg);
-  background-image:
-    repeating-linear-gradient(0deg, transparent 0px, transparent 39px, var(--grid-line) 39px, var(--grid-line) 40px),
-    repeating-linear-gradient(90deg, transparent 0px, transparent 39px, var(--grid-line) 39px, var(--grid-line) 40px);
   min-height: 100vh;
   display: flex;
   align-items: center;
@@ -112,7 +109,8 @@ body {
 
   .app {
     max-width: min(94vw, 580px);
-    min-height: calc(100dvh - 24px);
+    height: auto;
+    max-height: calc(100dvh - 24px);
     display: flex;
     flex-direction: column;
   }
@@ -298,7 +296,7 @@ body {
 
 /* ── NOW PLAYING ────────────────────────── */
 .now-playing {
-  padding: 10px 14px 8px;
+  padding: 6px 14px 4px;
   background: var(--np-bg);
   border-bottom: 1px solid var(--border);
 }
@@ -326,7 +324,7 @@ body.light .np-label {
 .np-ticker {
   overflow: hidden;
   white-space: nowrap;
-  margin-bottom: 5px;
+  margin-bottom: 2px;
 }
 
 .np-name {
@@ -364,7 +362,7 @@ body.light .np-label {
   justify-content: center;
   flex-wrap: nowrap;
   font-weight: 600;
-  margin-top: 8px;
+  margin-top: 4px;
   overflow: hidden;
 }
 
@@ -447,7 +445,7 @@ body.light .pl-status-badge.trending {
   align-items: center;
   width: 100%;
   overflow: hidden;
-  margin-top: 10px;
+  margin-top: 5px;
 }
 
 .np-name-wrap {
