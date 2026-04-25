@@ -12,11 +12,6 @@
 *   **CORS/API Block**: Mobile browsers may be silently blocking the metadata refresh calls during background sync.
 *   **Storage Collision**: Potential discrepancy in how mobile Safari/Chrome handles the JSON serialization of the `sparky_favorites` object.
 
----
-
-## 🟠 MEDIUM PRIORITY: Versioning & Deployment Logic
-*   **Dynamic Versioning**: Investigate why the settings menu displays `v2.26` (or lags) despite codebase updates.
-*   **Structural Solution**: Transition from hard-coded `APP_VERSION` strings to a more dynamic deployment signature (possibly leveraging automated build timestamps or version sync hooks) to ensure the UI accurately reflects the current commit state.
 
 ---
 
@@ -29,3 +24,4 @@
 - [x] **Defaults Engine**: Persistent Country, Language, and HI-FI settings in Command Center.
 - [x] **Compact Player Mode**: Collapsible lower rack to optimize screen real estate.
 - [x] **Industrial-Beige**: Premium aesthetic overhaul with high-contrast palette.
+- [x] **Dynamic Deployment Signature**: Transitioned from manual `APP_VERSION` to cryptographic software fingerprinting (Build Hash + Auto-Timestamp).

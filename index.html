@@ -53,34 +53,34 @@
     }
 
     body.light {
-      --bg: #DCDCB0; /* Richer Industrial Beige */
-      --panel: #CECEA0;
-      --panel2: #C4C494;
-      --border: #A0A070;
-      --accent: #1B5E20; /* Darker, punchier green for Light Mode */
-      --accent2: #B71C1C;
-      --green: #1B5E20;
-      --fav: #7F5A00;
-      --text: #000000; /* Pure Black for maximum contrast */
-      --dim: #1A1A1A;
-      --subdim: #B8B880;
-      --viz-bg: #C0C090;
-      --np-bg: #D4D4A4;
-      --ctrl-bg: #CECEA0;
-      --pl-bg: #DCDCB0;
-      --pl-hover: #C4C494;
-      --pl-active: #B0C490;
-      --pl-footer: #CECEA0;
-      --seek-bg: #A0A070;
-      --tab-bg: #CECEA0;
-      --tab-active: #DCDCB0;
-      --grid-line: #A0A070;
-      --glow: 0 0 6px rgba(27, 94, 32, 0.4);
-      --glow2: 0 0 6px rgba(27, 94, 32, 0.4);
-      --glowfav: 0 0 6px rgba(127, 90, 0, 0.4);
-      --app-border: #808050;
+      --bg: #D5DBDB; 
+      --panel: #E5E7E9;
+      --panel2: #D0D3D4;
+      --border: #AAB7B8;
+      --accent: #2E86C1; 
+      --accent2: #C0392B;
+      --green: #2E86C1;
+      --fav: #C0392B; 
+      --text: #17202A; 
+      --dim: #2C3E50;
+      --subdim: #BDC3C7;
+      --viz-bg: #212F3D;
+      --np-bg: #D6DBDF;
+      --ctrl-bg: #E5E7E9;
+      --pl-bg: #D5DBDB;
+      --pl-hover: #D0D3D4;
+      --pl-active: #AED6F1;
+      --pl-footer: #E5E7E9;
+      --seek-bg: #AAB7B8;
+      --tab-bg: #D0D3D4;
+      --tab-active: #D5DBDB;
+      --grid-line: #AAB7B8;
+      --glow: 0 0 6px rgba(46, 134, 193, 0.4);
+      --glow2: 0 0 6px rgba(46, 134, 193, 0.4);
+      --glowfav: 0 0 6px rgba(192, 57, 43, 0.4);
+      --app-border: #808B96;
       --app-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
-      --pl-stripe: rgba(0, 0, 0, 0.06);
+      --pl-stripe: rgba(0, 0, 0, 0.04);
     }
 
     body {
@@ -675,12 +675,6 @@
       color: var(--fav);
     }
 
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 0 12px;
-    flex-shrink: 0;
-    }
 
     .pl-badge-group {
       display: flex;
@@ -691,7 +685,7 @@
       display: flex;
       align-items: center;
       gap: 10px;
-      padding: 12px 12px 18px;
+      padding: 12px 12px 12px;
     }
 
     .search-actions {
@@ -1010,12 +1004,17 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 2px;
+      gap: 0;
       padding: 6px 10px;
       background: var(--panel);
       border-bottom: 1px solid var(--border);
       position: relative;
       z-index: 1100;
+      transition: margin-top 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .filters-area.fav-mode-gap {
+      margin-top: 10px;
     }
 
     .btn-filter-toggle {
@@ -1121,7 +1120,7 @@
     /* ── CUSTOM SELECT ─────────────────────── */
     .preset-dropdown-wrap {
       position: relative;
-      min-width: 110px;
+      min-width: 50px;
       width: fit-content;
       font-family: 'Share Tech Mono', monospace;
       font-size: calc(10px * var(--text-scale));
@@ -2033,33 +2032,25 @@
       </div>
       <!-- PERSISTENT FILTERS (Always Visible) -->
       <div class="filters-area">
-        <div class="filter-group">
-          <div class="filter-label" style="color: var(--accent);">&#10024;</div>
-          <div class="preset-dropdown-wrap preset-qt-wrap">
-            <div class="preset-trigger" id="presetTrigger">QUICK-TUNE</div>
-            <div class="preset-options" id="presetOptions"></div>
-          </div>
+        <div class="filter-label" style="color: var(--accent);">&#10024;</div>
+        <div class="preset-dropdown-wrap preset-qt-wrap">
+          <div class="preset-trigger" id="presetTrigger">QUICK-TUNE</div>
+          <div class="preset-options" id="presetOptions"></div>
         </div>
-        <div class="filter-group">
-          <div class="filter-label">CTRY</div>
-          <div class="preset-dropdown-wrap preset-cl-wrap">
-            <div class="preset-trigger" id="filterCountryTrigger">ALL</div>
-            <div class="preset-options" id="filterCountryOptions"></div>
-          </div>
+        <div class="filter-label">CTRY</div>
+        <div class="preset-dropdown-wrap preset-cl-wrap">
+          <div class="preset-trigger" id="filterCountryTrigger">ALL</div>
+          <div class="preset-options" id="filterCountryOptions"></div>
         </div>
-        <div class="filter-group">
-          <div class="filter-label">LANG</div>
-          <div class="preset-dropdown-wrap preset-cl-wrap">
-            <div class="preset-trigger" id="filterLangTrigger">ALL</div>
-            <div class="preset-options" id="filterLangOptions"></div>
-          </div>
+        <div class="filter-label">LANG</div>
+        <div class="preset-dropdown-wrap preset-cl-wrap">
+          <div class="preset-trigger" id="filterLangTrigger">ALL</div>
+          <div class="preset-options" id="filterLangOptions"></div>
         </div>
-        <div class="filter-group" style="gap:6px;">
-          <button class="btn-hifi active" id="btnHifi" title="Show only 128kbps+">HI-FI</button>
-          <button class="btn-filter-toggle" id="btnFilterToggle" title="Toggle Discovery Rack" style="width:28px; height:20px;">
-            <span class="material-symbols-outlined" style="font-size:16px;">list</span>
-          </button>
-        </div>
+        <button class="btn-hifi active" id="btnHifi" title="Show only 128kbps+">HI-FI</button>
+        <button class="btn-filter-toggle" id="btnFilterToggle" title="Toggle Discovery Rack" style="width:28px; height:20px;">
+          <span class="material-symbols-outlined" style="font-size:16px;">list</span>
+        </button>
       </div>
     </div>
 
@@ -2084,8 +2075,8 @@
         <div>SEARCH TO DISCOVER STATIONS</div>
       </div>
     </div>
-
-
+    </div>
+    <!-- END LOWER RACK -->
 
     <!-- FOOTER -->
     <div class="footer">
@@ -2192,17 +2183,17 @@
     let filterLang = 'ALL';
     let filterHiFi = true;
     let isSearching = false;
-    const APP_VERSION = "2.28";
     const APP_CODENAME = "Smart-Tune Pro";
 
     function getSoftwareFingerprint() {
+      // Fingerprint based on core script and structural DNA
       const s = document.documentElement.innerHTML;
       let hash = 0;
       for (let i = 0; i < s.length; i++) {
         hash = ((hash << 5) - hash) + s.charCodeAt(i);
         hash |= 0;
       }
-      return Math.abs(hash).toString(16).substring(0, 7);
+      return Math.abs(hash).toString(16).toUpperCase().substring(0, 8);
     }
 
     function updateDeploymentUI() {
@@ -2217,8 +2208,10 @@
         modDate.getHours().toString().padStart(2, '0') + ':' +
         modDate.getMinutes().toString().padStart(2, '0');
 
-      idEl.textContent = getSoftwareFingerprint();
-      refEl.textContent = `Sparky Radio v${APP_VERSION}: ${APP_CODENAME}`;
+      const fingerprint = getSoftwareFingerprint();
+      idEl.textContent = fingerprint;
+      // Structural Fix: Dynamic versioning based on fingerprint + codename
+      refEl.textContent = `${APP_CODENAME} (BUILD ${fingerprint.substring(0, 4)})`;
       tsEl.textContent = ts;
     }
 
@@ -2355,6 +2348,7 @@
       document.getElementById('tabStations').classList.toggle('active', tab === 'stations');
       document.getElementById('tabFavs').classList.toggle('active', tab === 'favs');
       document.getElementById('searchArea').style.display = tab === 'stations' ? '' : 'none';
+      document.querySelector('.filters-area').classList.toggle('fav-mode-gap', tab === 'favs');
 
       if (tab === 'stations') {
         sortMode = 'power';
@@ -3016,13 +3010,13 @@
 
       <div style="border-top: 1px solid var(--border); padding-top: 12px;">
         <div
-          style="font-size: calc(9px * var(--text-scale)); color: var(--accent); letter-spacing: 1.5px; margin-bottom: 4px; font-weight: 700;">
-          DEPLOYMENT SIGNATURE</div>
+          style="font-size: calc(9px * var(--text-scale)); color: var(--accent); letter-spacing: 1.5px; margin-bottom: 6px; font-weight: 700;">
+          DYNAMIC DEPLOYMENT SIGNATURE</div>
         <div
-          style="font-size: calc(10px * var(--text-scale)); color: var(--dim); line-height: 1.4; font-family: 'Share Tech Mono', monospace;">
-          ID: <span id="sigID" style="color:var(--text)">---</span><br>
-          REF: <span id="sigREF" style="color:var(--text)">---</span><br>
-          TS: <span id="sigTS" style="color:var(--text)">---</span>
+          style="font-size: calc(10px * var(--text-scale)); color: var(--dim); line-height: 1.6; font-family: 'Share Tech Mono', monospace;">
+          FINGERPRINT: <span id="sigID" style="color:var(--text); font-weight:700;">---</span><br>
+          BUILD REF: <span id="sigREF" style="color:var(--text)">---</span><br>
+          LOCAL TS: <span id="sigTS" style="color:var(--text)">---</span>
         </div>
       </div>
 
@@ -3580,13 +3574,14 @@
       document.getElementById('volSlider').value = savedVol;
       audioEl.volume = savedVol / 100;
     }
-    // Defaults Calibration
+    // Defaults Calibration (Used for pinning, but not active on startup)
     const defC = localStorage.getItem('sparky_default_country') || 'ALL';
     const defL = localStorage.getItem('sparky_default_lang') || 'ALL';
-    const defHi = localStorage.getItem('sparky_default_hifi') !== 'false'; // Default to true
+    const defHi = localStorage.getItem('sparky_default_hifi') !== 'false'; 
     
-    filterCountry = defC;
-    filterLang = defL;
+    // Structural Fix: Default to ALL on startup to prevent search constraints
+    filterCountry = 'ALL';
+    filterLang = 'ALL';
     filterHiFi = defHi;
     
     document.getElementById('filterCountryTrigger').textContent = filterCountry;
