@@ -14,6 +14,12 @@
 
 ---
 
+## 🟠 MEDIUM PRIORITY: Versioning & Deployment Logic
+*   **Dynamic Versioning**: Investigate why the settings menu displays `v2.26` (or lags) despite codebase updates.
+*   **Structural Solution**: Transition from hard-coded `APP_VERSION` strings to a more dynamic deployment signature (possibly leveraging automated build timestamps or version sync hooks) to ensure the UI accurately reflects the current commit state.
+
+---
+
 ## ✅ COMPLETED: Pro-Debugger & UI Modernization
 - [x] **Smart-Tune Pro Engine**: Multi-metric power ranking and mirror fallback.
 - [x] **Mirror Feedback**: Real-time display of active Radio Browser mirror (e.g., DE, NL).
