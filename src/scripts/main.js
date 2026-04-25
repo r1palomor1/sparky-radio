@@ -868,31 +868,44 @@ document.getElementById('btnCopyLogs').onclick = () => window.copyLogs();
 document.getElementById('btnAuditFavs').onclick = () => window.auditFavs();
 
 document.getElementById('btnExportFavs').onclick = () => {
-  const data = JSON.stringify(loadFavs());
-  navigator.clipboard.writeText(data).then(() => {
-    sparkyAlert("Favorites Vault copied to clipboard! Save it in a safe place.", "BACKUP SUCCESSFUL");
-  }).catch(() => {
-    sparkyAlert("Clipboard access failed. Check permissions.", "EXPORT ERROR");
-  });
+  const data = JSON.stringify(loadFavs(), null, 2);
+  const blob = new Blob([data], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `sparky_favorites_${new Date().toISOString().split('T')[0]}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  sparkyAlert("Favorites Vault exported as JSON file.", "EXPORT SUCCESSFUL");
 };
 
 document.getElementById('btnImportFavs').onclick = () => {
-  sparkyPrompt("Paste your Vault Backup key below:", "RESTORE VAULT", (json) => {
-    if (!json?.trim()) return;
+  document.getElementById('importFile').click();
+};
+
+document.getElementById('importFile').onchange = (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (re) => {
     try {
-      const data = JSON.parse(json);
+      const data = JSON.parse(re.target.result);
       if (Array.isArray(data)) {
-        saveFavs(data);
-        refreshFavBadge();
-        if (activeTab === 'favs') renderFavs();
-        sparkyAlert(`Successfully restored ${data.length} stations!`, "RESTORE COMPLETE");
-      } else {
-        throw new Error("Invalid format");
-      }
-    } catch (e) {
-      sparkyAlert("Invalid Backup Key. Please ensure you copied the entire string.", "RESTORE FAILED");
+        sparkyConfirm(`Restore ${data.length} stations from file? This will overwrite current favorites.`, () => {
+          saveFavs(data);
+          refreshFavBadge();
+          if (activeTab === 'favs') renderFavs();
+          sparkyAlert("Vault Restored Successfully!", "RESTORE COMPLETE");
+        }, "CONFIRM RESTORE");
+      } else { throw new Error(); }
+    } catch (err) {
+      sparkyAlert("Invalid JSON file. Please use a valid Sparky Radio backup.", "RESTORE FAILED");
     }
-  });
+  };
+  reader.readAsText(file);
+  e.target.value = ''; // Reset for next time
 };
 
 function applyTextScale(val) {
