@@ -970,18 +970,30 @@
 
     /* ── HEADER CONSOLE ────────────────────── */
     .pro-header-row {
-      display: flex;
+      display: grid;
+      grid-template-columns: 80px 1fr 80px;
       align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      padding: 8px 12px;
+      padding: 8px 14px;
       background: #0a0a0a;
-      /* Force opaque to block grid */
       border-bottom: 1px solid var(--border);
       position: relative;
     }
 
+    .visualizer {
+      justify-self: center;
+      width: 100%;
+      max-width: 280px;
+      height: 30px;
+      display: flex;
+      align-items: flex-end;
+      gap: 2px;
+      padding-bottom: 2px;
+      background: #0a0a0a;
+      justify-content: center;
+    }
+
     .pro-header-label {
+      justify-self: start;
       font-size: calc(9px * var(--text-scale));
       color: var(--dim);
       letter-spacing: 1.5px;
@@ -990,17 +1002,8 @@
       white-space: nowrap;
     }
 
-    .visualizer {
-      flex: 1;
-      height: 30px;
-      display: flex;
-      align-items: flex-end;
-      gap: 2px;
-      padding-bottom: 2px;
-      background: #0a0a0a;
-      /* Force opaque */
-      border: none !important;
-      position: relative;
+    .btn-eq-toggle {
+      justify-self: end;
     }
 
     .filters-area {
@@ -1101,6 +1104,18 @@
       color: var(--accent);
       font-weight: 500;
       letter-spacing: 1px;
+    }
+
+    .preset-qt-wrap { min-width: 100px; flex-shrink: 1; }
+
+
+    .preset-cl-wrap { min-width: 55px; flex-shrink: 1; }
+
+    @media (max-width: 599px) {
+      .filters-area { padding: 6px 4px !important; gap: 4px !important; }
+      .preset-qt-wrap { min-width: 80px !important; }
+      .preset-cl-wrap { min-width: 45px !important; }
+      .btn-hifi { padding: 2px 5px !important; font-size: calc(7px * var(--text-scale)) !important; }
     }
 
     /* ── CUSTOM SELECT ─────────────────────── */
@@ -1798,6 +1813,25 @@
     }
 
     /* ── DIAGNOSTIC HUB ─────────────────────── */
+    .mirror-indicator {
+      position: absolute;
+      right: 32px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: calc(8px * var(--text-scale));
+      color: var(--accent);
+      background: var(--viz-bg);
+      padding: 1px 4px;
+      border-radius: 2px;
+      border: 1px solid var(--border);
+      pointer-events: none;
+      display: none;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      opacity: 0.8;
+      z-index: 5;
+    }
+
     .debug-log {
       background: #000;
       color: #0f0;
@@ -1992,37 +2026,40 @@
         <div class="search-wrap">
           <span class="search-icon">&#128269;</span>
           <input type="text" id="searchInput" placeholder="Search e.g. Top +Charts ; Rock -Indie" />
+          <span class="mirror-indicator" id="mirrorIndicator"></span>
           <button class="search-clear" id="btnSearchClear" title="Clear search">&#10006;</button>
         </div>
         <button class="btn btn-search" id="btnSearch">SCAN</button>
-        <button class="btn-filter-toggle" id="btnFilterToggle" title="Toggle Content Rack">
-          <span class="material-symbols-outlined">list</span>
-        </button>
       </div>
       <!-- PERSISTENT FILTERS (Always Visible) -->
       <div class="filters-area">
         <div class="filter-group">
           <div class="filter-label" style="color: var(--accent);">&#10024;</div>
-          <div class="preset-dropdown-wrap" style="min-width: 100px;">
+          <div class="preset-dropdown-wrap preset-qt-wrap">
             <div class="preset-trigger" id="presetTrigger">QUICK-TUNE</div>
             <div class="preset-options" id="presetOptions"></div>
           </div>
         </div>
         <div class="filter-group">
           <div class="filter-label">CTRY</div>
-          <div class="preset-dropdown-wrap" style="min-width: 55px;">
+          <div class="preset-dropdown-wrap preset-cl-wrap">
             <div class="preset-trigger" id="filterCountryTrigger">ALL</div>
             <div class="preset-options" id="filterCountryOptions"></div>
           </div>
         </div>
         <div class="filter-group">
           <div class="filter-label">LANG</div>
-          <div class="preset-dropdown-wrap" style="min-width: 55px;">
+          <div class="preset-dropdown-wrap preset-cl-wrap">
             <div class="preset-trigger" id="filterLangTrigger">ALL</div>
             <div class="preset-options" id="filterLangOptions"></div>
           </div>
         </div>
-        <button class="btn-hifi active" id="btnHifi" title="Show only 128kbps+">HI-FI</button>
+        <div class="filter-group" style="gap:2px;">
+          <button class="btn-hifi active" id="btnHifi" title="Show only 128kbps+">HI-FI</button>
+          <button class="btn-filter-toggle" id="btnFilterToggle" title="Toggle Discovery Rack" style="width:28px; height:20px;">
+            <span class="material-symbols-outlined" style="font-size:16px;">list</span>
+          </button>
+        </div>
       </div>
     </div>
 
@@ -2155,7 +2192,7 @@
     let filterLang = 'ALL';
     let filterHiFi = true;
     let isSearching = false;
-    const APP_VERSION = "2.24";
+    const APP_VERSION = "2.26";
     const APP_CODENAME = "Smart-Tune Pro";
 
     function getSoftwareFingerprint() {
@@ -3108,8 +3145,8 @@
   `).join('');
     }
 
-    document.getElementById('btnSortMode').addEventListener('mouseenter', () => document.getElementById('plSortTooltip').classList.add('show'));
-    document.getElementById('btnSortMode').addEventListener('mouseleave', () => document.getElementById('plSortTooltip').classList.add('show'));
+    // Tooltip handled via click timeout for mobile stability
+    // Removing hover listeners to prevent sticky tooltips on touch devices
 
     document.getElementById('volSlider').addEventListener('input', function () {
       const v = this.value;
@@ -3191,8 +3228,16 @@
           if (filterLang !== 'ALL') params.language = filterLang.toLowerCase();
 
           const response = await fetch(`https://${srv}/json/stations/search?` + new URLSearchParams(params), {
-            headers: { 'User-Agent': 'SparkyRadio/2.2 (Web; EliteCuration)' }
+            headers: { 'User-Agent': 'SparkyRadio/2.6 (Web; EliteCuration)' }
           });
+
+          // Mirror Feedback Update
+          const mirrorCode = srv.split('.')[0].toUpperCase();
+          const mirrorEl = document.getElementById('mirrorIndicator');
+          if (mirrorEl) {
+            mirrorEl.textContent = mirrorCode;
+            mirrorEl.style.display = 'block';
+          }
 
           console.log(`[NET] Status: ${response.status} (${srv})`);
           if (!response.ok) throw new Error('Status ' + response.status);
@@ -3253,8 +3298,13 @@
       const rack = document.getElementById('filterRack');
       const btn = document.getElementById('btnFilterToggle');
       const isCollapsed = rack.classList.toggle('collapsed');
-      // Highlight green when collapsed to signal info is hidden
-      btn.classList.toggle('active', isCollapsed);
+      
+      // Highlight green (active) ONLY when collapsed
+      if (isCollapsed) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
       localStorage.setItem('sparky_filters_collapsed', isCollapsed);
     }
 
@@ -3263,7 +3313,7 @@
       const btn = document.getElementById('btnFilterToggle');
       if (rack.classList.contains('collapsed')) {
         rack.classList.remove('collapsed');
-        btn.classList.remove('active');
+        btn.classList.remove('active'); // Ensure color resets to white/dim
         localStorage.setItem('sparky_filters_collapsed', false);
       }
     }
