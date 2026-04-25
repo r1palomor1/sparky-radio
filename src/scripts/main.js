@@ -615,7 +615,10 @@ function renderStations() {
   }
   pl.innerHTML = stations.map((st, i) => {
     const url = st.url_resolved || st.url;
-    const actv = currentSrc && (currentSrc.stationuuid === st.stationuuid || norm(currentSrc.url) === norm(url)) && activeTab === 'stations';
+    const actv = currentSrc && (
+      (st.stationuuid && currentSrc.stationuuid === st.stationuuid) || 
+      (norm(currentSrc.url) === norm(url))
+    ) && activeTab === 'stations';
     const favd = isFav(st);
     return `<div class="pl-item${actv ? ' active' : ''}" data-idx="${i}">
       <div class="pl-sidebar"><div class="pl-num">${actv ? '▶' : (i + 1).toString().padStart(2, '0')}</div></div>
@@ -667,7 +670,10 @@ function renderFavs() {
     } else { favs.sort((a, b) => (b.votes || 0) - (a.votes || 0)); }
   }
   pl.innerHTML = favs.map((st, i) => {
-    const actv = currentSrc && (currentSrc.id === st.id || norm(currentSrc.url) === norm(st.url)) && activeTab === 'favs';
+    const actv = currentSrc && (
+      (st.id && currentSrc.id === st.id) || 
+      (norm(currentSrc.url) === norm(st.url))
+    ) && activeTab === 'favs';
     const isManual = sortMode === 'custom';
     return `<div class="pl-item${actv ? ' active' : ''}" data-idx="${i}">
       <div class="pl-sidebar">
@@ -1040,6 +1046,7 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 
   updateDeploymentUI();
+  refreshFavBadge(); // Sync favorites count on boot
   searchStations('jazz');
 });
 
