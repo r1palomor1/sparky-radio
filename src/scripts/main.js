@@ -24,12 +24,12 @@
   console.log = function (...args) { originalLog(...args); logToVirtual(args.join(' '), 'log'); };
   console.error = function (...args) { originalErr(...args); logToVirtual(args.join(' '), 'error'); };
   console.warn = function (...args) { logToVirtual(args.join(' '), 'warn'); };
-  
+
   window.copyLogs = () => {
     navigator.clipboard.writeText(output.join('\n'));
     alert('LOGS COPIED TO CLIPBOARD');
   };
-  
+
   window.auditFavs = async () => {
     console.log('--- STARTING ACTIVE RESCUE AUDIT ---');
     const favs = JSON.parse(localStorage.getItem('sparky_favorites') || '[]');
@@ -104,7 +104,7 @@ let isSearching = false;
 const APP_CODENAME = "Smart-Tune Pro";
 
 let BUILD_COMMIT = "7dc47df";
-let BUILD_REF = "Stable Mission Control Restoration & Orphan Cleanup (v2.37)";
+let BUILD_REF = "Sparky Radio v2.39 | Smart-Tune & Duplicate Alerts";
 
 function updateDeploymentUI() {
   const idEl = document.getElementById('sigID');
@@ -157,26 +157,45 @@ function isFav(st) {
   const u = st.url_resolved || st.url;
   const uuid = st.stationuuid || st.id;
   const fv = loadFavs();
-  return fv.some(f => (uuid && (f.id === uuid || f.stationuuid === uuid)) || norm(f.url) === norm(u));
+  // GRANULAR IDENTITY: Only count as favorite if BOTH Name and URL match
+  return fv.some(f =>
+    (uuid && (f.id === uuid || f.stationuuid === uuid)) ||
+    (norm(f.url) === norm(u) && f.name === st.name)
+  );
 }
 
 function addFav(st) {
   const favs = loadFavs(), u = st.url_resolved || st.url;
   const uuid = st.stationuuid || st.id || '';
-  if (!favs.some(f => (uuid && (f.id === uuid || f.stationuuid === uuid)) || norm(f.url) === norm(u))) {
+
+  const existing = favs.filter(f => (uuid && (f.id === uuid || f.stationuuid === uuid)) || norm(f.url) === norm(u));
+
+  const proceed = () => {
     favs.push({
-      id: uuid,
-      name: st.name,
-      url: u,
-      bitrate: st.bitrate,
-      codec: st.codec,
-      countrycode: st.countrycode,
-      tags: st.tags || '',
-      votes: st.votes
+      id: uuid, name: st.name, url: u,
+      bitrate: st.bitrate, codec: st.codec,
+      countrycode: st.countrycode, tags: st.tags || '',
+      votes: st.votes || 0, clickcount: st.clickcount || 0, clicktrend: st.clicktrend || 0
     });
     saveFavs(favs);
+    refreshFavBadge();
+    if (activeTab === 'favs') renderFavs();
+  };
+
+  if (existing.length > 0) {
+    sparkyConfirm(`<span style="color:#ff0; font-weight:bold; font-size:13px">⚠ CAUTION: DUPLICATE URL</span><br><br>There is already a station in your Favorites with the same URL. Proceed anyway?`, proceed, "DUPLICATE DETECTED");
+  } else {
+    proceed();
   }
-  refreshFavBadge();
+}
+
+function removeFavByIndex(idx) {
+  let m = loadFavs();
+  if (idx >= 0 && idx < m.length) {
+    m.splice(idx, 1);
+    saveFavs(m);
+    refreshFavBadge();
+  }
 }
 
 function removeFavByUrl(u) {
@@ -363,7 +382,7 @@ function setEqPreset(p) {
 }
 
 // ══ EQ BINDINGS ═══════════════════════════
-document.getElementById('btnEq').onclick = function() {
+document.getElementById('btnEq').onclick = function () {
   const rack = document.getElementById('eqRack');
   const isOpen = rack.classList.toggle('open');
   this.classList.toggle('active', isOpen);
@@ -408,7 +427,7 @@ function resetEqDefaults() {
 // ══ MODALS ═════════════════════════════════
 function sparkyAlert(msg, header = "SYSTEM MESSAGE") {
   document.getElementById('sparkyModalHeader').textContent = header;
-  document.getElementById('sparkyModalText').textContent = msg;
+  document.getElementById('sparkyModalText').innerHTML = msg;
   document.getElementById('sparkyModalCancel').style.display = 'none';
   document.getElementById('sparkyModal').style.display = 'flex';
   document.getElementById('sparkyModalOk').onclick = () => { document.getElementById('sparkyModal').style.display = 'none'; };
@@ -416,7 +435,7 @@ function sparkyAlert(msg, header = "SYSTEM MESSAGE") {
 
 function sparkyConfirm(msg, onOk, header = "SYSTEM CONFIRM") {
   document.getElementById('sparkyModalHeader').textContent = header;
-  document.getElementById('sparkyModalText').textContent = msg;
+  document.getElementById('sparkyModalText').innerHTML = msg;
   document.getElementById('sparkyModalCancel').style.display = 'inline-block';
   document.getElementById('sparkyModal').style.display = 'flex';
   document.getElementById('sparkyModalOk').onclick = () => { document.getElementById('sparkyModal').style.display = 'none'; onOk(); };
@@ -466,13 +485,6 @@ function openEditModal(name, url, onSave) {
     if (e.key === 'Escape') { closeModal(); onSave(null, null); }
     if (e.key === 'Enter' && document.activeElement !== cancelBtn) { saveBtn.click(); }
   };
-}
-
-function openAddModal() {
-  const url = prompt('Enter stream URL:'); if (!url) return;
-  const name = prompt('Station name:', 'Custom Station');
-  stations.push({ name: name || 'Custom Station', url_resolved: url, url, bitrate: '', codec: '', countrycode: '', tags: '' });
-  switchTab('stations');
 }
 
 function removeFav(st) {
@@ -634,18 +646,31 @@ function renderStations() {
       });
     } else { stations.sort((a, b) => (b.votes || 0) - (a.votes || 0)); }
   }
+
+  // Calculate list-wide baseline for normalization
+  const mC = Math.max(...stations.map(s => s.clickcount || 0), 1);
+  const mV = Math.max(...stations.map(s => s.votes || 0), 1);
+  const mT = Math.max(...stations.map(s => s.clicktrend || 0), 1);
+
   pl.innerHTML = stations.map((st, i) => {
     const url = st.url_resolved || st.url;
-    const actv = currentSrc && (
-      (st.stationuuid && currentSrc.stationuuid === st.stationuuid) || 
-      (norm(currentSrc.url) === norm(url))
-    ) && activeTab === 'stations';
+    const actv = currentSrc && (norm(currentSrc.url) === norm(url)) && activeTab === 'stations';
     const favd = isFav(st);
+
+    // 1:1 FIDELITY RESTORATION: Negative trends correctly penalize the score
+    const rank = (((st.clickcount || 0) / mC) * 0.6) +
+      (((st.votes || 0) / mV) * 0.3) +
+      (((st.clicktrend || 0) / mT) * 0.1);
+    const pwr = Math.min(100, Math.round(rank * 100));
     return `<div class="pl-item${actv ? ' active' : ''}" data-idx="${i}">
       <div class="pl-sidebar"><div class="pl-num">${actv ? '▶' : (i + 1).toString().padStart(2, '0')}</div></div>
       <div class="pl-main">
         <div class="pl-item-name-row">
-          <div class="pl-item-name">${esc(st.name)}</div>
+          <div class="pl-item-name">
+            ${esc(st.name)}
+            ${(st.clickcount || 0) > 1500 ? '<span class="pl-status-badge hot">HOT</span>' : ''}
+            ${(st.clicktrend || 0) > 50 ? '<span class="pl-status-badge trending">TRENDING</span>' : ''}
+          </div>
           <div class="pl-item-actions">
             <button class="pl-fav${favd ? ' is-fav' : ''}" data-fav="${i}">${favd ? '− FAV' : '+ FAV'}</button>
             <button class="pl-remove" data-rmst="${i}">✕</button>
@@ -654,6 +679,7 @@ function renderStations() {
         <div class="pl-item-sub-row">
           <div class="pl-item-sub">${esc(st.countrycode || '--')} · ${esc((st.tags || '').split(',').slice(0, 2).join(', ') || 'radio')}</div>
           <div class="pl-badge-group">
+            <div class="pl-badge-mini pwr-badge">${pwr}%</div>
             <div class="pl-badge-mini"><i>🔥</i> ${fmtK(st.clickcount)}</div>
             <div class="pl-badge-mini"><i>👍</i> ${fmtK(st.votes)}</div>
             <div class="pl-badge-mini"><i>📈</i> ${(st.clicktrend || 0) > 0 ? '+' + st.clicktrend : (st.clicktrend || 0)}</div>
@@ -690,13 +716,25 @@ function renderFavs() {
       favs.sort((a, b) => (b.clickcount || 0) / maxC - (a.clickcount || 0) / maxC);
     } else { favs.sort((a, b) => (b.votes || 0) - (a.votes || 0)); }
   }
+
+  const mC = Math.max(...favs.map(s => s.clickcount || 0), 1);
+  const mV = Math.max(...favs.map(s => s.votes || 0), 1);
+  const mT = Math.max(...favs.map(s => s.clicktrend || 0), 1);
+
   pl.innerHTML = favs.map((st, i) => {
-    const actv = currentSrc && (
-      (st.id && currentSrc.id === st.id) || 
-      (norm(currentSrc.url) === norm(st.url))
-    ) && activeTab === 'favs';
+    const actv = currentSrc && (norm(currentSrc.url) === norm(st.url)) && activeTab === 'favs';
+
+    // VAULT-ONLY DUPLICATE OUTLINE (Visual Feedback for pruning)
+    const isDup = favs.filter(s => norm(s.url) === norm(st.url)).length > 1;
+
+    // 1:1 FIDELITY RESTORATION: Negative trends correctly penalize the score
+    const rank = (((st.clickcount || 0) / mC) * 0.6) +
+      (((st.votes || 0) / mV) * 0.3) +
+      (((st.clicktrend || 0) / mT) * 0.1);
+    const pwr = Math.min(100, Math.round(rank * 100));
+
     const isManual = sortMode === 'custom';
-    return `<div class="pl-item${actv ? ' active' : ''}" data-idx="${i}">
+    return `<div class="pl-item${actv ? ' active' : ''}${isDup ? ' is-dup-fav' : ''}" data-idx="${i}">
       <div class="pl-sidebar">
         ${isManual ? `<button class="btn-stack" data-up="${i}">▲</button>` : ''}
         <div class="pl-num">${actv ? '▶' : (i + 1).toString().padStart(2, '0')}</div>
@@ -704,7 +742,11 @@ function renderFavs() {
       </div>
       <div class="pl-main">
         <div class="pl-item-name-row">
-          <div class="pl-item-name">${esc(st.name)}</div>
+          <div class="pl-item-name">
+            ${esc(st.name)}
+            ${(st.clickcount || 0) > 1500 ? '<span class="pl-status-badge hot">HOT</span>' : ''}
+            ${(st.clicktrend || 0) > 50 ? '<span class="pl-status-badge trending">TRENDING</span>' : ''}
+          </div>
           <div class="pl-item-actions">
             <button class="pl-edit" data-edit="${i}">✎</button>
             <button class="pl-remove" data-rmfav="${i}">✕</button>
@@ -713,6 +755,7 @@ function renderFavs() {
         <div class="pl-item-sub-row">
           <div class="pl-item-sub">${esc(st.countrycode || '--')} · ${esc((st.tags || '').split(',').slice(0, 2).join(', ') || 'radio')}</div>
           <div class="pl-badge-group">
+            <div class="pl-badge-mini pwr-badge">${pwr}%</div>
             <div class="pl-badge-mini"><i>🔥</i> ${fmtK(st.clickcount)}</div>
             <div class="pl-badge-mini"><i>👍</i> ${fmtK(st.votes)}</div>
             <div class="pl-badge-mini"><i>📈</i> ${(st.clicktrend || 0) > 0 ? '+' + st.clicktrend : (st.clicktrend || 0)}</div>
@@ -726,8 +769,8 @@ function renderFavs() {
     currentIdx = parseInt(el.dataset.idx); playAtIndex(currentIdx);
   });
   pl.querySelectorAll('[data-rmfav]').forEach(btn => btn.onclick = (e) => {
-    e.stopPropagation(); const f = favs[btn.dataset.rmfav];
-    sparkyConfirm(`Remove [${f.name}]?`, () => { removeFavByUrl(f.url); renderFavs(); });
+    e.stopPropagation(); const idx = parseInt(btn.dataset.rmfav); const f = favs[idx];
+    sparkyConfirm(`Remove [${f.name}]?`, () => { removeFavByIndex(idx); renderFavs(); });
   });
   pl.querySelectorAll('[data-edit]').forEach(btn => btn.onclick = (e) => {
     e.stopPropagation(); const idx = btn.dataset.edit; const st = favs[idx];
@@ -754,23 +797,36 @@ document.getElementById('btnPlay').onclick = () => {
   } else { audioEl.pause(); isPlaying = false; setStatus('', 'PAUSED'); syncPlayBtns(); idleViz(); }
 };
 document.getElementById('btnStop').onclick = stopPlayback;
-document.getElementById('btnNext').onclick = () => { 
-  const l = activeTab === 'favs' ? favs : stations; 
-  if (l.length) playAtIndex((currentIdx + 1) % l.length); 
+document.getElementById('btnNext').onclick = () => {
+  const l = activeTab === 'favs' ? favs : stations;
+  if (l.length) playAtIndex((currentIdx + 1) % l.length);
 };
-document.getElementById('btnPrev').onclick = () => { 
-  const l = activeTab === 'favs' ? favs : stations; 
-  if (l.length) playAtIndex((currentIdx - 1 + l.length) % l.length); 
+document.getElementById('btnPrev').onclick = () => {
+  const l = activeTab === 'favs' ? favs : stations;
+  if (l.length) playAtIndex((currentIdx - 1 + l.length) % l.length);
 };
 
 // ══ FOOTER ACTIONS ════════════════════════
 document.getElementById('btnAdd').onclick = () => {
   sparkyPrompt("Enter stream URL:", "ADD CUSTOM STATION", (url) => {
     if (!url) return;
-    sparkyPrompt("Enter station name:", "STATION IDENTITY", (name) => {
-      stations.push({ name: name || 'Custom Station', url_resolved: url, url, bitrate: '', codec: '', countrycode: '', tags: '' });
-      switchTab('stations');
-    });
+    const nUrl = norm(url);
+    const favs = loadFavs();
+    const exists = favs.some(f => norm(f.url) === nUrl);
+
+    const proceedToName = () => {
+      sparkyPrompt("Enter station name:", "STATION IDENTITY", (name) => {
+        const st = { name: name || 'Custom Station', url_resolved: url, url, bitrate: '', codec: '', countrycode: '', tags: '' };
+        stations.push(st);
+        switchTab('stations');
+      });
+    };
+
+    if (exists) {
+      sparkyConfirm(`<span style="color:#ff0; font-weight:bold; font-size:13px">⚠ CAUTION: DUPLICATE URL</span><br><br>This URL already exists in your Favorites. Proceed anyway?`, proceedToName, "DUPLICATE DETECTED");
+    } else {
+      proceedToName();
+    }
   });
 };
 
@@ -782,7 +838,7 @@ document.getElementById('btnRemove').onclick = () => {
   if (activeTab === 'favs') {
     const f = loadFavs()[currentIdx];
     sparkyConfirm(`Remove [${f.name}] from favorites?`, () => {
-      removeFavByUrl(f.url); stopPlayback(); renderFavs();
+      removeFavByIndex(currentIdx); stopPlayback(); renderFavs();
     });
   } else {
     const st = stations[currentIdx];
@@ -793,19 +849,13 @@ document.getElementById('btnRemove').onclick = () => {
 };
 
 // FOOTER MINI-PLAYER BINDINGS
-const playBtn = document.getElementById('btnPlay');
-const playBtnFooter = document.getElementById('btnPlayFooter');
-
 const syncPlayBtns = () => {
+  const playBtn = document.getElementById('btnPlay');
+  const playBtnFooter = document.getElementById('btnPlayFooter');
   const html = isPlaying ? '&#9646;&#9646; PAUSE' : '&#9654; PLAY';
   if (playBtn) playBtn.innerHTML = html;
   if (playBtnFooter) playBtnFooter.innerHTML = html;
 };
-
-document.getElementById('btnPlayFooter').onclick = () => document.getElementById('btnPlay').click();
-document.getElementById('btnStopFooter').onclick = () => stopPlayback();
-document.getElementById('btnNextFooter').onclick = () => document.getElementById('btnNext').click();
-document.getElementById('btnPrevFooter').onclick = () => document.getElementById('btnPrev').click();
 
 // ══ SEARCH ════════════════════════════════
 async function searchStations(q) {
@@ -815,7 +865,7 @@ async function searchStations(q) {
   isSearching = true;
   const pl = document.getElementById('playlist');
   if (pl) pl.innerHTML = '<div class="pl-loading"><div class="spinner"></div>SMART SCANNING...</div>';
-  
+
   const parts = q.split(/\s+/);
   const required = [], excluded = [];
   let baseQuery = "";
@@ -826,6 +876,12 @@ async function searchStations(q) {
   });
   let apiQ = baseQuery || (required.length > 0 ? required[0] : q);
   const mirrors = ['de1.api.radio-browser.info', 'at1.api.radio-browser.info', 'fr1.api.radio-browser.info'];
+  // Mirror Shuffle (1:1 Fidelity)
+  for (let i = mirrors.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [mirrors[i], mirrors[j]] = [mirrors[j], mirrors[i]];
+  }
+
   let success = false;
   for (const srv of mirrors) {
     try {
@@ -835,6 +891,11 @@ async function searchStations(q) {
       if (filterLang !== 'ALL') params.language = filterLang.toLowerCase();
       const res = await fetch(`https://${srv}/json/stations/search?` + new URLSearchParams(params));
       if (!res.ok) continue;
+
+      // Mirror Telemetry (Logic preserved per request)
+      const mirrorIndicator = document.getElementById('mirrorIndicator');
+      if (mirrorIndicator) mirrorIndicator.textContent = srv.split('.')[0].toUpperCase();
+
       const raw = await res.json();
       let filtered = raw.filter(st => {
         const blob = (st.name + " " + (st.tags || '')).toLowerCase();
@@ -843,21 +904,27 @@ async function searchStations(q) {
         return true;
       });
       if (filterHiFi) filtered = filtered.filter(s => Number(s.bitrate || 0) >= 128);
-      stations = filtered;
+
+      // ══ SMART-TUNE RE-SORT (1:1 FIDELITY) ════
+      const maxClicks = Math.max(...filtered.map(s => Number(s.clickcount || 0)), 1);
+      const maxVotes = Math.max(...filtered.map(s => Number(s.votes || 0)), 1);
+      const maxTrend = Math.max(...filtered.map(s => Number(s.clicktrend || 0)), 1);
+
+      const getScore = s => (
+        ((Number(s.clickcount || 0) / maxClicks) * 0.6) +
+        ((Number(s.votes || 0) / maxVotes) * 0.3) +
+        ((Number(s.clicktrend || 0) / maxTrend) * 0.1)
+      );
+
+      stations = filtered.sort((a, b) => getScore(b) - getScore(a));
       success = true; break;
-    } catch (e) {}
+    } catch (e) { }
   }
   if (success) renderStations();
   else if (pl) pl.innerHTML = '<div class="pl-empty">⚠ ALL MIRRORS UNREACHABLE</div>';
   isSearching = false;
 }
 
-document.getElementById('btnSearch').onclick = () => {
-  const q = document.getElementById('searchInput').value.trim();
-  expandFilters(); if (q) { switchTab('stations'); searchStations(q); }
-};
-
-// ══ FILTERS & PRESETS ══════════════════════
 function toggleFilters() {
   const rack = document.getElementById('filterRack'), btn = document.getElementById('btnFilterToggle');
   const isCollapsed = rack.classList.toggle('collapsed');
@@ -868,27 +935,10 @@ function expandFilters() {
   const rack = document.getElementById('filterRack'), btn = document.getElementById('btnFilterToggle');
   if (rack?.classList.contains('collapsed')) { rack.classList.remove('collapsed'); btn.classList.remove('active'); }
 }
-document.getElementById('btnFilterToggle').onclick = toggleFilters;
 
 // ══ SETTINGS & UI ══════════════════════════
-document.getElementById('statusCluster').onclick = () => {
-  document.getElementById('settingsModal').style.display = 'flex';
-  updateDeploymentUI();
-};
-document.getElementById('btnSettingsClose').onclick = () => {
-  document.getElementById('settingsModal').style.display = 'none';
-};
-document.getElementById('btnOpenDebug').onclick = () => {
-  document.getElementById('settingsModal').style.display = 'none';
-  document.getElementById('debugModal').style.display = 'flex';
-};
-document.getElementById('btnDebugClose').onclick = () => {
-  document.getElementById('debugModal').style.display = 'none';
-};
-document.getElementById('btnCopyLogs').onclick = () => window.copyLogs();
-document.getElementById('btnAuditFavs').onclick = () => window.auditFavs();
-
-document.getElementById('btnExportFavs').onclick = () => {
+// ══ SETTINGS & UI (Logic defined here, bound in INIT) ══
+function handleExport() {
   const data = JSON.stringify(loadFavs(), null, 2);
   const blob = new Blob([data], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
@@ -900,13 +950,9 @@ document.getElementById('btnExportFavs').onclick = () => {
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
   sparkyAlert("Favorites Vault exported as JSON file.", "EXPORT SUCCESSFUL");
-};
+}
 
-document.getElementById('btnImportFavs').onclick = () => {
-  document.getElementById('importFile').click();
-};
-
-document.getElementById('importFile').onchange = (e) => {
+function handleImport(e) {
   const file = e.target.files[0];
   if (!file) return;
   const reader = new FileReader();
@@ -926,8 +972,8 @@ document.getElementById('importFile').onchange = (e) => {
     }
   };
   reader.readAsText(file);
-  e.target.value = ''; // Reset for next time
-};
+  e.target.value = '';
+}
 
 function applyTextScale(val) {
   textScale = val;
@@ -938,8 +984,6 @@ function applyTextScale(val) {
   if (label) label.textContent = `${Math.round(val * 100)}% ${val === 1.0 ? '(DEFAULT)' : ''}`;
   if (slider) slider.value = val;
 }
-document.getElementById('textScaleSlider').oninput = (e) => applyTextScale(parseFloat(e.target.value));
-document.getElementById('btnResetScale').onclick = () => applyTextScale(1.0);
 
 const CTRY_LIST = ['ALL', 'AE', 'AR', 'AT', 'AU', 'BA', 'BE', 'BG', 'BR', 'CA', 'CH', 'CL', 'CN', 'CO', 'CZ', 'DE', 'DK', 'EC', 'ES', 'FI', 'FR', 'GB', 'GR', 'HR', 'HU', 'ID', 'IE', 'IL', 'IN', 'IT', 'JP', 'MX', 'NL', 'NZ', 'PE', 'PH', 'PL', 'PT', 'RO', 'RS', 'RU', 'SE', 'SK', 'TR', 'TW', 'UA', 'UG', 'US', 'UY', 'VE', 'ZA'];
 const LANG_LIST = ['ALL', 'arabic', 'brazilian portuguese', 'chinese', 'croatian', 'czech', 'dutch', 'english', 'french', 'german', 'greek', 'hindi', 'hungarian', 'indonesian', 'italian', 'japanese', 'polish', 'portuguese', 'romanian', 'russian', 'serbian', 'spanish', 'swedish', 'turkish', 'ukrainian'];
@@ -984,7 +1028,7 @@ function loadFilterOptions() {
   }).join('');
 
   cCont.querySelectorAll('.preset-opt').forEach(o => o.onclick = () => { filterCountry = o.dataset.val; document.getElementById('filterCountryTrigger').textContent = filterCountry; cCont.classList.remove('show'); searchStations(document.getElementById('searchInput').value); });
-  lCont.querySelectorAll('.preset-opt').forEach(o => o.onclick = () => { filterLang = o.dataset.val; document.getElementById('filterLangTrigger').textContent = filterLang === 'ALL' ? 'ALL' : filterLang.substring(0,3).toUpperCase(); lCont.classList.remove('show'); searchStations(document.getElementById('searchInput').value); });
+  lCont.querySelectorAll('.preset-opt').forEach(o => o.onclick = () => { filterLang = o.dataset.val; document.getElementById('filterLangTrigger').textContent = filterLang === 'ALL' ? 'ALL' : filterLang.substring(0, 3).toUpperCase(); lCont.classList.remove('show'); searchStations(document.getElementById('searchInput').value); });
 }
 
 document.getElementById('filterCountryTrigger').onclick = (e) => { e.stopPropagation(); document.getElementById('filterCountryOptions').classList.toggle('show'); };
@@ -1046,7 +1090,7 @@ function loadSettingsOptions() {
   const defL = localStorage.getItem('sparky_default_lang') || 'ALL';
 
   document.getElementById('defaultCountryTrigger').textContent = defC;
-  document.getElementById('defaultLangTrigger').textContent = defL === 'ALL' ? 'ALL' : defL.substring(0,3).toUpperCase();
+  document.getElementById('defaultLangTrigger').textContent = defL === 'ALL' ? 'ALL' : defL.substring(0, 3).toUpperCase();
 
   dcCont.innerHTML = CTRY_LIST.map(c => {
     const name = CTRY_NAMES[c] || c;
@@ -1073,7 +1117,7 @@ function loadSettingsOptions() {
   dlCont.querySelectorAll('.preset-opt').forEach(o => o.onclick = () => {
     const val = o.dataset.val;
     localStorage.setItem('sparky_default_lang', val);
-    document.getElementById('defaultLangTrigger').textContent = val === 'ALL' ? 'ALL' : val.substring(0,3).toUpperCase();
+    document.getElementById('defaultLangTrigger').textContent = val === 'ALL' ? 'ALL' : val.substring(0, 3).toUpperCase();
     dlCont.classList.remove('show');
     loadSettingsOptions();
     loadFilterOptions(); // Sync filter list order
@@ -1091,10 +1135,10 @@ window.addEventListener('DOMContentLoaded', () => {
   const sv = localStorage.getItem('sparky_volume'); if (sv !== null) { document.getElementById('volSlider').value = sv; audioEl.volume = sv / 100; }
   filterHiFi = localStorage.getItem('sparky_default_hifi') !== 'false';
   document.getElementById('btnHifi').classList.toggle('active', filterHiFi);
-  
+
   loadFilterOptions();
   loadSettingsOptions();
-  
+
   const hifiToggle = document.getElementById('defaultHifiToggle');
   const hifiTrack = document.getElementById('defaultHifiTrack');
   if (hifiToggle && hifiTrack) {
@@ -1112,7 +1156,7 @@ window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btnStop').onclick = stopPlayback;
   document.getElementById('btnNext').onclick = () => playAtIndex(currentIdx + 1);
   document.getElementById('btnPrev').onclick = () => playAtIndex(currentIdx - 1);
-  document.getElementById('btnAdd').onclick = () => openAddModal();
+  // btnAdd logic consolidated at L816
   document.getElementById('btnRemove').onclick = () => { if (currentSrc) removeFav(currentSrc); };
   document.getElementById('btnSearchClear').onclick = () => {
     const inp = document.getElementById('searchInput');
@@ -1142,13 +1186,41 @@ window.addEventListener('DOMContentLoaded', () => {
     localStorage.setItem('sparky_volume', v);
   };
 
-  const statusCluster = document.getElementById('statusText')?.parentElement;
-  if (statusCluster) {
-    statusCluster.onclick = () => {
-      document.getElementById('settingsModal').style.display = 'flex';
-      updateDeploymentUI();
-    };
-  }
+  // ══ CONSOLIDATED DOM BINDINGS (ELIMINATE TYPEERROR) ══
+  document.getElementById('btnSearch').onclick = () => {
+    const q = document.getElementById('searchInput').value.trim();
+    expandFilters(); if (q) { switchTab('stations'); searchStations(q); }
+  };
+  document.getElementById('btnFilterToggle').onclick = toggleFilters;
+  document.getElementById('btnPlayFooter').onclick = () => document.getElementById('btnPlay').click();
+  document.getElementById('btnStopFooter').onclick = () => stopPlayback();
+  document.getElementById('btnNextFooter').onclick = () => document.getElementById('btnNext').click();
+  document.getElementById('btnPrevFooter').onclick = () => document.getElementById('btnPrev').click();
+
+  // ══ SETTINGS & SYSTEM BINDINGS ══
+  document.getElementById('statusCluster').onclick = () => {
+    document.getElementById('settingsModal').style.display = 'flex';
+    updateDeploymentUI();
+  };
+  document.getElementById('btnSettingsClose').onclick = () => {
+    document.getElementById('settingsModal').style.display = 'none';
+  };
+  document.getElementById('btnOpenDebug').onclick = () => {
+    document.getElementById('settingsModal').style.display = 'none';
+    document.getElementById('debugModal').style.display = 'flex';
+  };
+  document.getElementById('btnDebugClose').onclick = () => {
+    document.getElementById('debugModal').style.display = 'none';
+  };
+  document.getElementById('btnCopyLogs').onclick = () => window.copyLogs();
+  document.getElementById('btnAuditFavs').onclick = () => window.auditFavs();
+  document.getElementById('btnExportFavs').onclick = handleExport;
+  document.getElementById('btnImportFavs').onclick = () => document.getElementById('importFile').click();
+  document.getElementById('importFile').onchange = handleImport;
+
+  // ══ INTERFACE SCALE BINDINGS ══
+  document.getElementById('textScaleSlider').oninput = (e) => applyTextScale(parseFloat(e.target.value));
+  document.getElementById('btnResetScale').onclick = () => applyTextScale(1.0);
 
   updateDeploymentUI();
   refreshFavBadge(); // Sync favorites count on boot
@@ -1179,7 +1251,7 @@ document.getElementById('btnSortMode').onclick = () => {
   const modes = activeTab === 'stations' ? ['power', 'vote'] : ['power', 'vote', 'custom'];
   let idx = (modes.indexOf(sortMode) + 1) % modes.length;
   sortMode = modes[idx];
-  
+
   if (activeTab === 'favs') {
     favSortMode = sortMode;
     localStorage.setItem('sparky_fav_sort_mode', favSortMode);
@@ -1197,7 +1269,7 @@ document.getElementById('btnSortMode').onclick = () => {
 };
 
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+  window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => { }));
 }
 
 function updateMediaSession(st) {

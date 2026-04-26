@@ -435,6 +435,29 @@ body.light .pl-status-badge.trending {
   align-items: center;
 }
 
+.pwr-badge {
+  background: #000;
+  color: var(--accent);
+  border: 1.5px solid var(--accent);
+  font-weight: 900;
+  border-radius: 50% !important;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 !important;
+  font-size: calc(9px * var(--text-scale)) !important;
+  box-shadow: 0 0 5px color-mix(in srgb, var(--accent) 30%, transparent);
+  flex-shrink: 0;
+  font-family: 'Share Tech Mono', monospace;
+}
+body.light .pwr-badge {
+  background: #fff;
+  color: var(--accent);
+  border: 1.5px solid var(--accent);
+}
+
 .pl-badge-mini i {
   font-style: normal;
   font-size: calc(10px * var(--text-scale));
@@ -1310,6 +1333,22 @@ body.light .pl-item-sub {
 .pl-item.active .pl-sidebar .btn-stack,
 .pl-item.active .pl-num {
   color: var(--bg);
+}
+
+.pl-item.is-dup-fav {
+  border: 1px solid var(--accent2) !important;
+  box-shadow: inset 0 0 10px rgba(232, 96, 48, 0.25), 0 0 5px rgba(232, 96, 48, 0.1);
+  position: relative;
+}
+.pl-item.is-dup-fav::after {
+  content: 'DUPLICATE URL';
+  position: absolute;
+  top: 2px;
+  right: 5px;
+  font-size: 8px;
+  color: var(--accent2);
+  font-weight: 700;
+  opacity: 0.7;
 }
 
 
