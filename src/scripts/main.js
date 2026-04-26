@@ -468,6 +468,20 @@ function openEditModal(name, url, onSave) {
   };
 }
 
+function openAddModal() {
+  const url = prompt('Enter stream URL:'); if (!url) return;
+  const name = prompt('Station name:', 'Custom Station');
+  stations.push({ name: name || 'Custom Station', url_resolved: url, url, bitrate: '', codec: '', countrycode: '', tags: '' });
+  switchTab('stations');
+}
+
+function removeFav(st) {
+  const u = st.url_resolved || st.url;
+  removeFavByUrl(u);
+  if (activeTab === 'favs') renderFavs();
+  else renderStations();
+}
+
 // ══ AUDIO INIT ════════════════════════════
 function initAudio() {
   if (audioCtx) return;
@@ -581,6 +595,13 @@ function stopPlayback() {
   setStatus('', 'IDLE');
   syncPlayBtns();
   idleViz(); renderCurrent();
+}
+
+function togglePlay() {
+  if (isPlaying) stopPlayback();
+  else if (currentSrc) playStationObj(currentSrc);
+  else if (activeTab === 'stations' && stations.length) playAtIndex(0);
+  else if (activeTab === 'favs' && favs.length) playAtIndex(0);
 }
 
 function renderCurrent() { activeTab === 'stations' ? renderStations() : renderFavs(); }
@@ -1083,6 +1104,49 @@ window.addEventListener('DOMContentLoaded', () => {
       hifiTrack.classList.toggle('on', filterHiFi);
       localStorage.setItem('sparky_default_hifi', filterHiFi);
       document.getElementById('btnHifi').classList.toggle('active', filterHiFi);
+    };
+  }
+
+  // MISSION CONTROL BINDINGS
+  document.getElementById('btnPlay').onclick = togglePlay;
+  document.getElementById('btnStop').onclick = stopPlayback;
+  document.getElementById('btnNext').onclick = () => playAtIndex(currentIdx + 1);
+  document.getElementById('btnPrev').onclick = () => playAtIndex(currentIdx - 1);
+  document.getElementById('btnAdd').onclick = () => openAddModal();
+  document.getElementById('btnRemove').onclick = () => { if (currentSrc) removeFav(currentSrc); };
+  document.getElementById('btnSearchClear').onclick = () => {
+    const inp = document.getElementById('searchInput');
+    inp.value = ''; inp.focus();
+    document.getElementById('btnSearchClear').style.display = 'none';
+    document.getElementById('presetTrigger').textContent = 'QUICK-TUNE';
+  };
+  document.getElementById('btnEq').onclick = () => {
+    const r = document.getElementById('eqRack');
+    r.classList.toggle('open');
+    document.getElementById('btnEq').classList.toggle('active', r.classList.contains('open'));
+    if (r.classList.contains('open')) {
+      wasCollapsedBeforeEQ = document.getElementById('lowerRack').classList.contains('collapsed');
+      document.getElementById('lowerRack').classList.add('collapsed');
+      document.getElementById('btnPlaylistToggle').classList.add('active');
+    } else {
+      if (!wasCollapsedBeforeEQ) {
+        document.getElementById('lowerRack').classList.remove('collapsed');
+        document.getElementById('btnPlaylistToggle').classList.remove('active');
+      }
+    }
+  };
+
+  document.getElementById('volSlider').oninput = (e) => {
+    const v = e.target.value;
+    audioEl.volume = v / 100;
+    localStorage.setItem('sparky_volume', v);
+  };
+
+  const statusCluster = document.getElementById('statusText')?.parentElement;
+  if (statusCluster) {
+    statusCluster.onclick = () => {
+      document.getElementById('settingsModal').style.display = 'flex';
+      updateDeploymentUI();
     };
   }
 
