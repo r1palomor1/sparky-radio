@@ -440,32 +440,63 @@ body.light .pl-status-badge.trending {
   align-items: center;
 }
 
-.pwr-badge {
-  background: #000;
-  color: var(--accent);
-  border: 1.5px solid var(--accent);
-  font-weight: 900;
-  border-radius: 50% !important;
-  width: 26px;
-  height: 26px;
+/* Dashboard Telemetry & Vault Heart */
+.pl-heart-btn {
+  background: none;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0 !important;
-  font-size: calc(9px * var(--text-scale)) !important;
-  box-shadow: 0 0 5px color-mix(in srgb, var(--accent) 30%, transparent);
-  flex-shrink: 0;
-  font-family: 'Share Tech Mono', monospace;
+  z-index: 5;
+  position: relative;
+  margin-left: 8px;
+  transition: transform 0.2s ease;
 }
-body.light .pwr-badge {
-  background: #fff;
-  color: var(--accent);
-  border: 1.5px solid var(--accent);
+.pl-heart-btn:hover { transform: scale(1.15); }
+
+.pl-heart {
+  font-size: 18px !important;
+  color: rgba(255,255,255,0.4);
+  transition: all 0.2s ease;
+  user-select: none;
+  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24 !important;
+}
+.pl-heart-btn:hover .pl-heart { color: #fff; }
+.pl-heart.is-fav {
+  color: var(--fav) !important;
 }
 
-.pl-badge-mini i {
+.pl-telemetry-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Outfit', sans-serif;
+  letter-spacing: 0.2px;
+}
+.pl-stat-primary {
+  font-weight: 700;
+  font-size: 10px;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+.pl-stat-sep {
+  opacity: 0.2;
+  font-size: 10px;
+  margin: 0 2px;
+}
+.pl-stat-secondary {
+  font-size: 9px;
+  color: rgba(255,255,255,0.5);
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+.pl-stat-primary i, .pl-stat-secondary i {
   font-style: normal;
-  font-size: calc(10px * var(--text-scale));
+  font-size: 10px;
 }
 
 .np-ticker {

@@ -102,7 +102,7 @@ let filterHiFi = true;
 let wasCollapsedBeforeEQ = false; // State persistence for EQ engaged mode
 let isSearching = false;
 const APP_CODENAME = "Smart-Tune Pro";
-let statsMode = localStorage.getItem('sparky_stats_mode') || 'compact';
+let statsMode = localStorage.getItem('sparky_stats_mode') || 'FULL';
 
 let BUILD_COMMIT = "7dc47df";
 let BUILD_REF = "Sparky Radio v2.39 | Smart-Tune & Duplicate Alerts";
@@ -648,7 +648,6 @@ function renderStations() {
     } else { stations.sort((a, b) => (b.votes || 0) - (a.votes || 0)); }
   }
 
-  // Calculate list-wide baseline for normalization
   const mC = Math.max(...stations.map(s => s.clickcount || 0), 1);
   const mV = Math.max(...stations.map(s => s.votes || 0), 1);
   const mT = Math.max(...stations.map(s => s.clicktrend || 0), 1);
@@ -658,33 +657,48 @@ function renderStations() {
     const actv = currentSrc && (norm(currentSrc.url) === norm(url)) && activeTab === 'stations';
     const favd = isFav(st);
 
-    // 1:1 FIDELITY RESTORATION: Negative trends correctly penalize the score
-    const rank = (((st.clickcount || 0) / mC) * 0.6) +
-      (((st.votes || 0) / mV) * 0.3) +
-      (((st.clicktrend || 0) / mT) * 0.1);
+    const rank = (((st.clickcount || 0) / mC) * 0.6) + (((st.votes || 0) / mV) * 0.3) + (((st.clicktrend || 0) / mT) * 0.1);
     const pwr = Math.min(100, Math.round(rank * 100));
+
+    // DASHBOARD TELEMETRY
+    const trending = (st.clicktrend || 0) > 50 ? '<span class="pl-status-badge trending">TRENDING</span>' : '';
+    let primary = { id: 'pwr', icon: '⚡', val: `${pwr}%`, color: 'var(--accent)' };
+    let secondaries = [
+      { id: 'clk', icon: '🔥', val: fmtK(st.clickcount) },
+      { id: 'vot', icon: '👍', val: fmtK(st.votes) }
+    ];
+
+    if (sortMode === 'vote') {
+      primary = { id: 'vot', icon: '👍', val: fmtK(st.votes), color: 'var(--fav)' };
+      secondaries = [
+        { id: 'pwr', icon: '⚡', val: `${pwr}%` },
+        { id: 'clk', icon: '🔥', val: fmtK(st.clickcount) }
+      ];
+    }
+
+    const isCompact = statsMode === 'COMPACT';
+    const telemetryHtml = `
+      <div class="pl-telemetry-bar">
+        <div class="pl-stat-primary" style="color:${primary.color}"><i>${primary.icon}</i> ${primary.val}</div>
+        ${!isCompact ? `<div class="pl-stat-sep">|</div>` : ''}
+        ${!isCompact ? secondaries.map(s => `<div class="pl-stat-secondary"><i>${s.icon}</i> ${s.val}</div>`).join('') : ''}
+      </div>
+    `;
+
     return `<div class="pl-item${actv ? ' active' : ''}" data-idx="${i}">
       <div class="pl-sidebar"><div class="pl-num">${actv ? '▶' : (i + 1).toString().padStart(2, '0')}</div></div>
       <div class="pl-main">
         <div class="pl-item-name-row">
-          <div class="pl-item-name">
-            ${esc(st.name)}
-            ${(st.clickcount || 0) > 1500 ? '<span class="pl-status-badge hot">HOT</span>' : ''}
-            ${(st.clicktrend || 0) > 50 ? '<span class="pl-status-badge trending">TRENDING</span>' : ''}
-          </div>
+          <div class="pl-item-name">${esc(st.name)}</div>
           <div class="pl-item-actions">
-            <button class="pl-fav${favd ? ' is-fav' : ''}" data-fav="${i}">${favd ? '− FAV' : '+ FAV'}</button>
+            ${trending}
+            <button class="pl-heart-btn" data-fav="${i}"><span class="material-symbols-outlined pl-heart${favd ? ' is-fav' : ''}">favorite</span></button>
             <button class="pl-remove" data-rmst="${i}">✕</button>
           </div>
         </div>
         <div class="pl-item-sub-row">
           <div class="pl-item-sub">${esc(st.countrycode || '--')} · ${esc((st.tags || '').split(',').slice(0, 2).join(', ') || 'radio')}</div>
-          <div class="pl-badge-group">
-            <div class="pl-badge-mini pwr-badge">${pwr}%</div>
-            <div class="pl-badge-mini badge-clicks"><i>🔥</i> ${fmtK(st.clickcount)}</div>
-            <div class="pl-badge-mini badge-votes"><i>👍</i> ${fmtK(st.votes)}</div>
-            <div class="pl-badge-mini badge-trend"><i>📈</i> ${(st.clicktrend || 0) > 0 ? '+' + st.clicktrend : (st.clicktrend || 0)}</div>
-          </div>
+          ${telemetryHtml}
         </div>
       </div>
     </div>`;
@@ -693,7 +707,7 @@ function renderStations() {
     if (e.target.closest('button')) return;
     currentIdx = parseInt(el.dataset.idx); playAtIndex(currentIdx);
   });
-  pl.querySelectorAll('.pl-fav').forEach(btn => btn.onclick = (e) => {
+  pl.querySelectorAll('.pl-heart-btn').forEach(btn => btn.onclick = (e) => {
     e.stopPropagation(); const st = stations[btn.dataset.fav];
     isFav(st) ? removeFavByUrl(st.url_resolved || st.url) : addFav(st); renderStations();
   });
@@ -724,43 +738,60 @@ function renderFavs() {
 
   pl.innerHTML = favs.map((st, i) => {
     const actv = currentSrc && (norm(currentSrc.url) === norm(st.url)) && activeTab === 'favs';
-
-    // VAULT-ONLY DUPLICATE OUTLINE (Visual Feedback for pruning)
     const isDup = favs.filter(s => norm(s.url) === norm(st.url)).length > 1;
 
-    // 1:1 FIDELITY RESTORATION: Negative trends correctly penalize the score
-    const rank = (((st.clickcount || 0) / mC) * 0.6) +
-      (((st.votes || 0) / mV) * 0.3) +
-      (((st.clicktrend || 0) / mT) * 0.1);
+    const rank = (((st.clickcount || 0) / mC) * 0.6) + (((st.votes || 0) / mV) * 0.3) + (((st.clicktrend || 0) / mT) * 0.1);
     const pwr = Math.min(100, Math.round(rank * 100));
 
     const isManual = sortMode === 'custom';
-    return `<div class="pl-item${actv ? ' active' : ''}${isDup ? ' is-dup-fav' : ''}" data-idx="${i}">
-      <div class="pl-sidebar">
-        ${isManual ? `<button class="btn-stack" data-up="${i}">▲</button>` : ''}
-        <div class="pl-num">${actv ? '▶' : (i + 1).toString().padStart(2, '0')}</div>
-        ${isManual ? `<button class="btn-stack" data-down="${i}">▼</button>` : ''}
+    // DASHBOARD TELEMETRY
+    const trending = (st.clicktrend || 0) > 50 ? '<span class="pl-status-badge trending">TRENDING</span>' : '';
+    let primary = { id: 'pwr', icon: '⚡', val: `${pwr}%`, color: 'var(--accent)' };
+    let secondaries = [
+      { id: 'clk', icon: '🔥', val: fmtK(st.clickcount) },
+      { id: 'vot', icon: '👍', val: fmtK(st.votes) }
+    ];
+
+    if (sortMode === 'vote') {
+      primary = { id: 'vot', icon: '👍', val: fmtK(st.votes), color: 'var(--fav)' };
+      secondaries = [
+        { id: 'pwr', icon: '⚡', val: `${pwr}%` },
+        { id: 'clk', icon: '🔥', val: fmtK(st.clickcount) }
+      ];
+    }
+
+    const isCompact = statsMode === 'COMPACT';
+    const telemetryHtml = `
+      <div class="pl-telemetry-bar">
+        <div class="pl-stat-primary" style="color:${primary.color}"><i>${primary.icon}</i> ${primary.val}</div>
+        ${!isCompact ? `<div class="pl-stat-sep">|</div>` : ''}
+        ${!isCompact ? secondaries.map(s => `<div class="pl-stat-secondary"><i>${s.icon}</i> ${s.val}</div>`).join('') : ''}
       </div>
+    `;
+
+    let sidebarHtml = actv ? '▶' : (i + 1).toString().padStart(2, '0');
+    if (isManual) {
+      sidebarHtml = `
+        <button class="btn-stack" data-up="${i}">▲</button>
+        <div class="pl-num">${actv ? '▶' : (i + 1).toString().padStart(2, '0')}</div>
+        <button class="btn-stack" data-down="${i}">▼</button>
+      `;
+    }
+
+    return `<div class="pl-item${actv ? ' active' : ''}${isDup ? ' is-dup-fav' : ''}" data-idx="${i}">
+      <div class="pl-sidebar">${sidebarHtml}</div>
       <div class="pl-main">
         <div class="pl-item-name-row">
-          <div class="pl-item-name">
-            ${esc(st.name)}
-            ${(st.clickcount || 0) > 1500 ? '<span class="pl-status-badge hot">HOT</span>' : ''}
-            ${(st.clicktrend || 0) > 50 ? '<span class="pl-status-badge trending">TRENDING</span>' : ''}
-          </div>
+          <div class="pl-item-name">${esc(st.name)}</div>
           <div class="pl-item-actions">
-            <button class="pl-edit" data-edit="${i}">✎</button>
+            ${trending}
+            <button class="pl-edit" data-edit="${i}" style="margin-left:8px">✎</button>
             <button class="pl-remove" data-rmfav="${i}">✕</button>
           </div>
         </div>
         <div class="pl-item-sub-row">
           <div class="pl-item-sub">${esc(st.countrycode || '--')} · ${esc((st.tags || '').split(',').slice(0, 2).join(', ') || 'radio')}</div>
-          <div class="pl-badge-group">
-            <div class="pl-badge-mini pwr-badge">${pwr}%</div>
-            <div class="pl-badge-mini badge-clicks"><i>🔥</i> ${fmtK(st.clickcount)}</div>
-            <div class="pl-badge-mini badge-votes"><i>👍</i> ${fmtK(st.votes)}</div>
-            <div class="pl-badge-mini badge-trend"><i>📈</i> ${(st.clicktrend || 0) > 0 ? '+' + st.clicktrend : (st.clicktrend || 0)}</div>
-          </div>
+          ${telemetryHtml}
         </div>
       </div>
     </div>`;
@@ -986,17 +1017,6 @@ function applyTextScale(val) {
   if (slider) slider.value = val;
 }
 
-function applyStatsMode(mode) {
-  statsMode = mode;
-  localStorage.setItem('sparky_stats_mode', mode);
-  const app = document.querySelector('.app');
-  if (app) {
-    app.classList.toggle('stats-compact', mode === 'compact');
-  }
-  const trigger = document.getElementById('statsModeTrigger');
-  if (trigger) trigger.textContent = mode.toUpperCase();
-}
-
 const CTRY_LIST = ['ALL', 'AE', 'AR', 'AT', 'AU', 'BA', 'BE', 'BG', 'BR', 'CA', 'CH', 'CL', 'CN', 'CO', 'CZ', 'DE', 'DK', 'EC', 'ES', 'FI', 'FR', 'GB', 'GR', 'HR', 'HU', 'ID', 'IE', 'IL', 'IN', 'IT', 'JP', 'MX', 'NL', 'NZ', 'PE', 'PH', 'PL', 'PT', 'RO', 'RS', 'RU', 'SE', 'SK', 'TR', 'TW', 'UA', 'UG', 'US', 'UY', 'VE', 'ZA'];
 const LANG_LIST = ['ALL', 'arabic', 'brazilian portuguese', 'chinese', 'croatian', 'czech', 'dutch', 'english', 'french', 'german', 'greek', 'hindi', 'hungarian', 'indonesian', 'italian', 'japanese', 'polish', 'portuguese', 'romanian', 'russian', 'serbian', 'spanish', 'swedish', 'turkish', 'ukrainian'];
 
@@ -1137,22 +1157,18 @@ function loadSettingsOptions() {
 
   const smCont = document.getElementById('statsModeOptions');
   if (smCont) {
-    const modes = ['compact', 'full'];
-    smCont.innerHTML = modes.map(m => `
-      <div class="preset-opt${m === statsMode ? ' active' : ''}" data-val="${m}">${m.toUpperCase()}</div>
-    `).join('');
+    document.getElementById('statsModeTrigger').textContent = statsMode;
+    smCont.innerHTML = ['FULL', 'COMPACT'].map(m => `<div class="preset-opt${m === statsMode ? ' active' : ''}" data-val="${m}">${m}</div>`).join('');
     smCont.querySelectorAll('.preset-opt').forEach(o => o.onclick = () => {
-      applyStatsMode(o.dataset.val);
+      statsMode = o.dataset.val;
+      localStorage.setItem('sparky_stats_mode', statsMode);
+      document.getElementById('statsModeTrigger').textContent = statsMode;
       smCont.classList.remove('show');
-      loadSettingsOptions();
+      renderCurrent();
     });
   }
 }
-
-document.getElementById('defaultCountryTrigger').onclick = (e) => { e.stopPropagation(); document.getElementById('defaultCountryOptions').classList.toggle('show'); };
-document.getElementById('defaultLangTrigger').onclick = (e) => { e.stopPropagation(); document.getElementById('defaultLangOptions').classList.toggle('show'); };
-
-// ══ INIT ══════════════════════════════════
+// ══ APP INITIALIZATION ══════════════════════════════════
 window.addEventListener('DOMContentLoaded', () => {
   initEq();
   loadPresets();
@@ -1163,6 +1179,12 @@ window.addEventListener('DOMContentLoaded', () => {
 
   loadFilterOptions();
   loadSettingsOptions();
+
+  // ══ DEFAULTS TRIGGERS ══
+  document.getElementById('defaultCountryTrigger').onclick = (e) => { e.stopPropagation(); document.getElementById('defaultCountryOptions').classList.toggle('show'); };
+  document.getElementById('defaultLangTrigger').onclick = (e) => { e.stopPropagation(); document.getElementById('defaultLangOptions').classList.toggle('show'); };
+  document.getElementById('statsModeTrigger').onclick = (e) => { e.stopPropagation(); document.getElementById('statsModeOptions').classList.toggle('show'); };
+
 
   const hifiToggle = document.getElementById('defaultHifiToggle');
   const hifiTrack = document.getElementById('defaultHifiTrack');
@@ -1247,14 +1269,31 @@ window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('textScaleSlider').oninput = (e) => applyTextScale(parseFloat(e.target.value));
   document.getElementById('btnResetScale').onclick = () => applyTextScale(1.0);
 
-  document.getElementById('statsModeTrigger').onclick = (e) => {
-    e.stopPropagation();
-    document.getElementById('statsModeOptions').classList.toggle('show');
+  // ══ SORT MODE BINDING ══
+  document.getElementById('btnSortMode').onclick = () => {
+    const modes = activeTab === 'stations' ? ['power', 'vote'] : ['power', 'vote', 'custom'];
+    let idx = (modes.indexOf(sortMode) + 1) % modes.length;
+    sortMode = modes[idx];
+
+    if (activeTab === 'favs') {
+      favSortMode = sortMode;
+      localStorage.setItem('sparky_fav_sort_mode', favSortMode);
+    }
+
+    updateSortUI();
+    renderCurrent();
+
+    const tip = document.getElementById('plSortTooltip');
+    if (tip) {
+      tip.classList.add('show');
+      clearTimeout(sortTooltipTimeout);
+      sortTooltipTimeout = setTimeout(() => tip.classList.remove('show'), 1500);
+    }
   };
-  applyStatsMode(statsMode);
 
   updateDeploymentUI();
-  refreshFavBadge(); // Sync favorites count on boot
+  refreshFavBadge();
+  updateSortUI(); // Ensure sort UI is ready
   searchStations('jazz');
 });
 
@@ -1263,8 +1302,7 @@ function updateSortUI() {
   const tip = document.getElementById('plSortTooltip');
   if (!btn || !tip) return;
 
-  const icon = sortMode === 'power' ? 'bolt' : (sortMode === 'vote' ? 'how_to_vote' : 'star');
-  btn.innerHTML = `<span class="material-symbols-outlined">${icon}</span>`;
+  btn.innerHTML = `<span class="material-symbols-outlined">sort</span>`;
 
   const modes = activeTab === 'stations' ? ['power', 'vote'] : ['power', 'vote', 'custom'];
   const labels = { power: 'Power Ranking', vote: 'Vote Ranking', custom: 'Custom Order' };
@@ -1278,26 +1316,6 @@ function updateSortUI() {
   `).join('');
 }
 
-document.getElementById('btnSortMode').onclick = () => {
-  const modes = activeTab === 'stations' ? ['power', 'vote'] : ['power', 'vote', 'custom'];
-  let idx = (modes.indexOf(sortMode) + 1) % modes.length;
-  sortMode = modes[idx];
-
-  if (activeTab === 'favs') {
-    favSortMode = sortMode;
-    localStorage.setItem('sparky_fav_sort_mode', favSortMode);
-  }
-
-  updateSortUI();
-  renderCurrent();
-
-  const tip = document.getElementById('plSortTooltip');
-  if (tip) {
-    tip.classList.add('show');
-    clearTimeout(sortTooltipTimeout);
-    sortTooltipTimeout = setTimeout(() => tip.classList.remove('show'), 1500);
-  }
-};
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => { }));
