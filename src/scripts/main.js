@@ -103,8 +103,8 @@ let wasCollapsedBeforeEQ = false; // State persistence for EQ engaged mode
 let isSearching = false;
 const APP_CODENAME = "Smart-Tune Pro";
 
-let BUILD_COMMIT = "__COMMIT_HASH__";
-let BUILD_REF = "__COMMIT_MSG__";
+let BUILD_COMMIT = "7dc47df";
+let BUILD_REF = "Stable Mission Control Restoration & Orphan Cleanup (v2.37)";
 
 function updateDeploymentUI() {
   const idEl = document.getElementById('sigID');
