@@ -154,6 +154,11 @@ body {
     letter-spacing: 2px;
     white-space: nowrap;
   }
+
+  .app.stats-compact .badge-clicks,
+  .app.stats-compact .badge-trend {
+    display: none !important;
+  }
 }
 
 /* ── HEADER ─────────────────────────────── */

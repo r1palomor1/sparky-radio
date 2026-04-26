@@ -102,6 +102,7 @@ let filterHiFi = true;
 let wasCollapsedBeforeEQ = false; // State persistence for EQ engaged mode
 let isSearching = false;
 const APP_CODENAME = "Smart-Tune Pro";
+let statsMode = localStorage.getItem('sparky_stats_mode') || 'compact';
 
 let BUILD_COMMIT = "7dc47df";
 let BUILD_REF = "Sparky Radio v2.39 | Smart-Tune & Duplicate Alerts";
@@ -680,9 +681,9 @@ function renderStations() {
           <div class="pl-item-sub">${esc(st.countrycode || '--')} · ${esc((st.tags || '').split(',').slice(0, 2).join(', ') || 'radio')}</div>
           <div class="pl-badge-group">
             <div class="pl-badge-mini pwr-badge">${pwr}%</div>
-            <div class="pl-badge-mini"><i>🔥</i> ${fmtK(st.clickcount)}</div>
-            <div class="pl-badge-mini"><i>👍</i> ${fmtK(st.votes)}</div>
-            <div class="pl-badge-mini"><i>📈</i> ${(st.clicktrend || 0) > 0 ? '+' + st.clicktrend : (st.clicktrend || 0)}</div>
+            <div class="pl-badge-mini badge-clicks"><i>🔥</i> ${fmtK(st.clickcount)}</div>
+            <div class="pl-badge-mini badge-votes"><i>👍</i> ${fmtK(st.votes)}</div>
+            <div class="pl-badge-mini badge-trend"><i>📈</i> ${(st.clicktrend || 0) > 0 ? '+' + st.clicktrend : (st.clicktrend || 0)}</div>
           </div>
         </div>
       </div>
@@ -756,9 +757,9 @@ function renderFavs() {
           <div class="pl-item-sub">${esc(st.countrycode || '--')} · ${esc((st.tags || '').split(',').slice(0, 2).join(', ') || 'radio')}</div>
           <div class="pl-badge-group">
             <div class="pl-badge-mini pwr-badge">${pwr}%</div>
-            <div class="pl-badge-mini"><i>🔥</i> ${fmtK(st.clickcount)}</div>
-            <div class="pl-badge-mini"><i>👍</i> ${fmtK(st.votes)}</div>
-            <div class="pl-badge-mini"><i>📈</i> ${(st.clicktrend || 0) > 0 ? '+' + st.clicktrend : (st.clicktrend || 0)}</div>
+            <div class="pl-badge-mini badge-clicks"><i>🔥</i> ${fmtK(st.clickcount)}</div>
+            <div class="pl-badge-mini badge-votes"><i>👍</i> ${fmtK(st.votes)}</div>
+            <div class="pl-badge-mini badge-trend"><i>📈</i> ${(st.clicktrend || 0) > 0 ? '+' + st.clicktrend : (st.clicktrend || 0)}</div>
           </div>
         </div>
       </div>
@@ -985,6 +986,17 @@ function applyTextScale(val) {
   if (slider) slider.value = val;
 }
 
+function applyStatsMode(mode) {
+  statsMode = mode;
+  localStorage.setItem('sparky_stats_mode', mode);
+  const app = document.querySelector('.app');
+  if (app) {
+    app.classList.toggle('stats-compact', mode === 'compact');
+  }
+  const trigger = document.getElementById('statsModeTrigger');
+  if (trigger) trigger.textContent = mode.toUpperCase();
+}
+
 const CTRY_LIST = ['ALL', 'AE', 'AR', 'AT', 'AU', 'BA', 'BE', 'BG', 'BR', 'CA', 'CH', 'CL', 'CN', 'CO', 'CZ', 'DE', 'DK', 'EC', 'ES', 'FI', 'FR', 'GB', 'GR', 'HR', 'HU', 'ID', 'IE', 'IL', 'IN', 'IT', 'JP', 'MX', 'NL', 'NZ', 'PE', 'PH', 'PL', 'PT', 'RO', 'RS', 'RU', 'SE', 'SK', 'TR', 'TW', 'UA', 'UG', 'US', 'UY', 'VE', 'ZA'];
 const LANG_LIST = ['ALL', 'arabic', 'brazilian portuguese', 'chinese', 'croatian', 'czech', 'dutch', 'english', 'french', 'german', 'greek', 'hindi', 'hungarian', 'indonesian', 'italian', 'japanese', 'polish', 'portuguese', 'romanian', 'russian', 'serbian', 'spanish', 'swedish', 'turkish', 'ukrainian'];
 
@@ -1122,6 +1134,19 @@ function loadSettingsOptions() {
     loadSettingsOptions();
     loadFilterOptions(); // Sync filter list order
   });
+
+  const smCont = document.getElementById('statsModeOptions');
+  if (smCont) {
+    const modes = ['compact', 'full'];
+    smCont.innerHTML = modes.map(m => `
+      <div class="preset-opt${m === statsMode ? ' active' : ''}" data-val="${m}">${m.toUpperCase()}</div>
+    `).join('');
+    smCont.querySelectorAll('.preset-opt').forEach(o => o.onclick = () => {
+      applyStatsMode(o.dataset.val);
+      smCont.classList.remove('show');
+      loadSettingsOptions();
+    });
+  }
 }
 
 document.getElementById('defaultCountryTrigger').onclick = (e) => { e.stopPropagation(); document.getElementById('defaultCountryOptions').classList.toggle('show'); };
@@ -1221,6 +1246,12 @@ window.addEventListener('DOMContentLoaded', () => {
   // ══ INTERFACE SCALE BINDINGS ══
   document.getElementById('textScaleSlider').oninput = (e) => applyTextScale(parseFloat(e.target.value));
   document.getElementById('btnResetScale').onclick = () => applyTextScale(1.0);
+
+  document.getElementById('statsModeTrigger').onclick = (e) => {
+    e.stopPropagation();
+    document.getElementById('statsModeOptions').classList.toggle('show');
+  };
+  applyStatsMode(statsMode);
 
   updateDeploymentUI();
   refreshFavBadge(); // Sync favorites count on boot
