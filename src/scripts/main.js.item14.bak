@@ -690,6 +690,7 @@ function renderStations() {
         { id: 'clk', icon: '🔥', val: fmtK(st.clickcount) }
       ];
     }
+
     const isCompact = statsMode === 'COMPACT';
     const telemetryHtml = `
       <div class="pl-telemetry-bar">
@@ -702,29 +703,18 @@ function renderStations() {
     return `<div class="pl-item${actv ? ' active' : ''}" data-idx="${i}">
       <div class="pl-sidebar"><div class="pl-num">${actv ? '▶' : (i + 1).toString().padStart(2, '0')}</div></div>
       <div class="pl-main">
-        <div class="pl-item-row pl-item-top">
-          <div class="pl-item-info-group">
-            ${renderFavicon(st)}
-            <div class="pl-item-name">${esc(st.name)}</div>
-            ${trending}
-          </div>
+        <div class="pl-item-name-row">
+          ${renderFavicon(st)}
+          <div class="pl-item-name">${esc(st.name)}</div>
           <div class="pl-item-actions">
-            <button class="pl-action-btn pl-heart-btn" data-fav="${i}" title="Toggle Favorite">
-              <span class="material-symbols-outlined pl-heart${favd ? ' is-fav' : ''}">favorite</span>
-            </button>
-            <button class="pl-action-btn pl-remove" data-rmst="${i}" title="Remove Station">
-              <span class="material-symbols-outlined">close</span>
-            </button>
+            ${trending}
+            <button class="pl-heart-btn" data-fav="${i}"><span class="material-symbols-outlined pl-heart${favd ? ' is-fav' : ''}">favorite</span></button>
+            <button class="pl-remove" data-rmst="${i}">✕</button>
           </div>
         </div>
-        
-        <div class="pl-item-row pl-item-bottom">
-          <div class="pl-item-meta-group">
-            <span class="pl-item-meta-text">${esc(st.countrycode || '--')} · ${esc((st.tags || '').split(',').slice(0, 2).join(', ').toUpperCase() || 'RADIO')}</span>
-          </div>
-          <div class="pl-item-stat-group">
-             <span class="pl-power-val" style="color:${primary.color}">⚡ ${primary.val}</span>
-          </div>
+        <div class="pl-item-sub-row">
+          <div class="pl-item-sub">${esc(st.countrycode || '--')} · ${esc((st.tags || '').split(',').slice(0, 2).join(', ') || 'radio')}</div>
+          ${telemetryHtml}
         </div>
       </div>
     </div>`;
@@ -807,29 +797,18 @@ function renderFavs() {
     return `<div class="pl-item${actv ? ' active' : ''}${isDup ? ' is-dup-fav' : ''}" data-idx="${i}">
       <div class="pl-sidebar">${sidebarHtml}</div>
       <div class="pl-main">
-        <div class="pl-item-row pl-item-top">
-          <div class="pl-item-info-group">
-            ${renderFavicon(st)}
-            <div class="pl-item-name">${esc(st.name)}</div>
-            ${trending}
-          </div>
+        <div class="pl-item-name-row">
+          ${renderFavicon(st)}
+          <div class="pl-item-name">${esc(st.name)}</div>
           <div class="pl-item-actions">
-            <button class="pl-action-btn pl-edit" data-edit="${st.sparkyId}" title="Edit Favorite">
-              <span class="material-symbols-outlined">edit</span>
-            </button>
-            <button class="pl-action-btn pl-remove" data-rmfav="${st.sparkyId}" title="Remove Favorite">
-              <span class="material-symbols-outlined">close</span>
-            </button>
+            ${trending}
+            <button class="pl-edit" data-edit="${st.sparkyId}" style="margin-left:8px">✎</button>
+            <button class="pl-remove" data-rmfav="${st.sparkyId}">✕</button>
           </div>
         </div>
-
-        <div class="pl-item-row pl-item-bottom">
-          <div class="pl-item-meta-group">
-            <span class="pl-item-meta-text">${esc(st.countrycode || '--')} · ${esc((st.tags || '').split(',').slice(0, 2).join(', ').toUpperCase() || 'RADIO')}</span>
-          </div>
-          <div class="pl-item-stat-group">
-             <span class="pl-power-val" style="color:${primary.color}">⚡ ${primary.val}</span>
-          </div>
+        <div class="pl-item-sub-row">
+          <div class="pl-item-sub">${esc(st.countrycode || '--')} · ${esc((st.tags || '').split(',').slice(0, 2).join(', ') || 'radio')}</div>
+          ${telemetryHtml}
         </div>
       </div>
     </div>`;

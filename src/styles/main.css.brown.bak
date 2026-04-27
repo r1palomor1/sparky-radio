@@ -14,34 +14,34 @@
 
 :root {
   --text-scale: 1.0;
-  --bg: #0a0a0a;
-  --panel: #161616;
-  --panel2: #1c1c1c;
-  --border: #2a2a2a;
+  --bg: #181614;
+  --panel: #222020;
+  --panel2: #282624;
+  --border: #343030;
   --accent: #5cb870;
   --accent2: #e86030;
   --green: #80d090;
   --fav: #e8c840;
-  --text: #f5f5f5;
-  --dim: #a0a0a0;
-  --subdim: #222222;
-  --viz-bg: #050505;
-  --np-bg: #111111;
-  --ctrl-bg: #0d0d0d;
-  --pl-bg: #0a0a0a;
-  --pl-hover: #1c1c1c;
-  --pl-active: #0c1a12;
-  --pl-footer: #0d0d0d;
-  --seek-bg: #222222;
-  --tab-bg: #0d0d0d;
-  --tab-active: #161616;
-  --grid-line: #181818;
-  --glow: 0 0 10px rgba(92, 184, 112, 0.4);
-  --glow2: 0 0 10px rgba(128, 208, 144, 0.4);
-  --glowfav: 0 0 10px rgba(232, 200, 64, 0.4);
-  --app-border: #333333;
-  --app-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
-  --pl-stripe: rgba(255, 255, 255, 0.02);
+  --text: #ece8e0;
+  --dim: #ece8e0;
+  --subdim: #2e2a26;
+  --viz-bg: #131210;
+  --np-bg: #1e1c1a;
+  --ctrl-bg: #1a1816;
+  --pl-bg: #1c1a18;
+  --pl-hover: #262220;
+  --pl-active: #1e2a1e;
+  --pl-footer: #1a1816;
+  --seek-bg: #302c28;
+  --tab-bg: #1a1816;
+  --tab-active: #1e1c1a;
+  --grid-line: #201e1c;
+  --glow: 0 0 8px #5cb87088, 0 0 20px #5cb87033;
+  --glow2: 0 0 8px #80d09088, 0 0 20px #80d09033;
+  --glowfav: 0 0 8px #e8c84088, 0 0 20px #e8c84033;
+  --app-border: #5e5248;
+  --app-shadow: 0 8px 40px #00000080;
+  --pl-stripe: rgba(255, 255, 255, 0.05);
 }
 
 body.light {
@@ -79,9 +79,9 @@ body.light {
 body {
   background: var(--bg);
   background-image: radial-gradient(
-    ellipse at 50% 35%,
-    color-mix(in srgb, var(--accent) 12%, transparent) 0%,
-    transparent 70%
+    ellipse at 50% 40%,
+    color-mix(in srgb, var(--accent) 9%, transparent) 0%,
+    transparent 65%
   );
   background-attachment: fixed;
   min-height: 100vh;
@@ -442,15 +442,15 @@ body.light .pl-badge-mini {
 
 /* ── ITEM 6: TRENDING BADGE — PILL STYLE ── */
 .pl-status-badge.trending {
-  background: transparent;
-  color: var(--accent);
-  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: #fff;
+  border: none;
   border-radius: 12px;
-  padding: 0px 8px;
+  padding: 1px 8px;
   font-size: calc(8px * var(--text-scale));
-  letter-spacing: 0.8px;
+  letter-spacing: 0.5px;
   font-weight: 700;
-  box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 20%, transparent);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 30%, transparent);
 }
 
 body.light .pl-status-badge.trending {
@@ -1395,7 +1395,7 @@ body.light .preset-label {
 
 .pl-item-name {
   font-size: calc(14px * var(--text-scale));
-  font-weight: 500;
+  font-weight: 700;
   color: var(--text);
   white-space: nowrap;
   overflow: hidden;
