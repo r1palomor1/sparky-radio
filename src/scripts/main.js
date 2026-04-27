@@ -898,8 +898,9 @@ function renderFavs() {
 // ══ TRANSPORT ══════════════════════════════
 // Logic moved to footer bindings and togglePlay function
 
-// ══ FOOTER ACTIONS ════════════════════════
-document.getElementById('btnAdd').onclick = () => {
+
+// ══ FOOTER ACTIONS (Logic defined here, bound in INIT) ════
+function handleAddStation() {
   sparkyPrompt("Enter stream URL:", "ADD CUSTOM STATION", (url) => {
     if (!url) return;
     const nUrl = norm(url);
@@ -920,9 +921,9 @@ document.getElementById('btnAdd').onclick = () => {
       proceedToName();
     }
   });
-};
+}
 
-document.getElementById('btnRemove').onclick = () => {
+function handleRemoveStation() {
   if (currentIdx < 0) {
     sparkyAlert("SELECT A STATION FROM THE LIST TO REMOVE", "SELECTION REQUIRED");
     return;
@@ -940,7 +941,8 @@ document.getElementById('btnRemove').onclick = () => {
       stations.splice(currentIdx, 1); stopPlayback(); renderStations();
     });
   }
-};
+}
+
 
 // FOOTER MINI-PLAYER BINDINGS
 const syncPlayBtns = () => {
@@ -1146,14 +1148,6 @@ function loadFilterOptions() {
   lCont.querySelectorAll('.preset-opt').forEach(o => o.onclick = () => { filterLang = o.dataset.val; document.getElementById('filterLangTrigger').textContent = filterLang === 'ALL' ? 'ALL' : filterLang.substring(0, 3).toUpperCase(); lCont.classList.remove('show'); searchStations(document.getElementById('searchInput').value); });
 }
 
-document.getElementById('filterCountryTrigger').onclick = (e) => { e.stopPropagation(); document.getElementById('filterCountryOptions').classList.toggle('show'); };
-document.getElementById('filterLangTrigger').onclick = (e) => { e.stopPropagation(); document.getElementById('filterLangOptions').classList.toggle('show'); };
-
-document.getElementById('btnHifi').onclick = () => {
-  filterHiFi = !filterHiFi;
-  document.getElementById('btnHifi').classList.toggle('active', filterHiFi);
-  searchStations(document.getElementById('searchInput').value);
-};
 
 const defaultPresets = ["Jazz", "Blues", "Rock", "Pop", "Classical", "News", "Country", "80s", "90s", "Charts"];
 function loadPresets() {
@@ -1187,15 +1181,6 @@ function handlePresetSelect(val) {
   }
 }
 
-document.getElementById('presetTrigger').onclick = (e) => { e.stopPropagation(); document.getElementById('presetOptions').classList.toggle('show'); };
-
-window.addEventListener('click', () => {
-  document.getElementById('presetOptions')?.classList.remove('show');
-  document.getElementById('filterCountryOptions')?.classList.remove('show');
-  document.getElementById('filterLangOptions')?.classList.remove('show');
-  document.getElementById('defaultCountryOptions')?.classList.remove('show');
-  document.getElementById('defaultLangOptions')?.classList.remove('show');
-});
 
 function loadSettingsOptions() {
   const dcCont = document.getElementById('defaultCountryOptions'), dlCont = document.getElementById('defaultLangOptions');
@@ -1336,6 +1321,26 @@ window.addEventListener('DOMContentLoaded', () => {
     const l = activeTab === 'favs' ? favs : stations;
     if (l.length) playAtIndex((currentIdx - 1 + l.length) % l.length);
   };
+
+  // ══ CONSOLIDATED TOP-LEVEL BINDINGS (PROTECT AGAINST NULL) ══
+  const bind = (id, fn, ev = 'onclick') => { const el = document.getElementById(id); if (el) el[ev] = fn; };
+
+  bind('btnAdd', handleAddStation);
+  bind('btnRemove', handleRemoveStation);
+  bind('filterCountryTrigger', (e) => { e.stopPropagation(); document.getElementById('filterCountryOptions')?.classList.toggle('show'); });
+  bind('filterLangTrigger', (e) => { e.stopPropagation(); document.getElementById('filterLangOptions')?.classList.toggle('show'); });
+  bind('btnHifi', () => {
+    filterHiFi = !filterHiFi;
+    document.getElementById('btnHifi')?.classList.toggle('active', filterHiFi);
+    searchStations(document.getElementById('searchInput').value);
+  });
+  bind('presetTrigger', (e) => { e.stopPropagation(); document.getElementById('presetOptions')?.classList.toggle('show'); });
+
+  window.addEventListener('click', () => {
+    ['presetOptions', 'filterCountryOptions', 'filterLangOptions', 'defaultCountryOptions', 'defaultLangOptions', 'statsModeOptions'].forEach(id => {
+      document.getElementById(id)?.classList.remove('show');
+    });
+  });
 
   // ══ SETTINGS & SYSTEM BINDINGS ══
   document.getElementById('statusCluster').onclick = () => {

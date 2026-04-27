@@ -975,9 +975,15 @@ body.light input[type=text] {
   opacity: 1;
 }
 
-.playlist {
+.playlist-container {
   flex: 1;
   min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.playlist {
+  flex: 1;
   overflow-y: auto;
   background: var(--pl-bg);
 }
@@ -1158,8 +1164,6 @@ body.light input[type=text] {
 }
 
 .lower-rack {
-  flex: 1;
-  min-height: 0;
   transition: none;
   overflow: hidden;
   max-height: 1200px;
