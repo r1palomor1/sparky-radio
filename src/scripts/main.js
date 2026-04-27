@@ -104,26 +104,16 @@ let isSearching = false;
 const APP_CODENAME = "Smart-Tune Pro";
 let statsMode = localStorage.getItem('sparky_stats_mode') || 'FULL';
 
-let BUILD_COMMIT = "7dc47df";
-let BUILD_REF = "Sparky Radio v2.39 | Smart-Tune & Duplicate Alerts";
+
 
 function updateDeploymentUI() {
-  const idEl = document.getElementById('sigID');
-  const refEl = document.getElementById('sigREF');
   const tsEl = document.getElementById('sigTS');
-  if (!idEl) return;
-
-  if (BUILD_COMMIT.startsWith('__')) BUILD_COMMIT = 'LOCAL_DEV';
-  if (BUILD_REF.startsWith('__')) BUILD_REF = 'Smart-Tune Pro (Dev Mode)';
-
+  if (!tsEl) return;
   const modDate = new Date(document.lastModified);
   const ts = (modDate.getMonth() + 1).toString().padStart(2, '0') + '/' +
     modDate.getDate().toString().padStart(2, '0') + ' ' +
     modDate.getHours().toString().padStart(2, '0') + ':' +
     modDate.getMinutes().toString().padStart(2, '0');
-
-  idEl.textContent = BUILD_COMMIT.substring(0, 7);
-  refEl.textContent = BUILD_REF.length > 30 ? BUILD_REF.substring(0, 27) + '...' : BUILD_REF;
   tsEl.textContent = ts;
 }
 
@@ -142,7 +132,15 @@ document.getElementById('themeToggle').addEventListener('click', () => { isDark 
 
 // ══ FAVORITES ══════════════════════════════
 const FAV_KEY = 'sparky_favorites';
-function loadFavs() { try { return JSON.parse(localStorage.getItem(FAV_KEY)) || []; } catch { return []; } }
+function loadFavs() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(FAV_KEY)) || [];
+    let changed = false;
+    raw.forEach(f => { if (!f.sparkyId) { f.sparkyId = crypto.randomUUID(); changed = true; } });
+    if (changed) localStorage.setItem(FAV_KEY, JSON.stringify(raw));
+    return raw;
+  } catch { return []; }
+}
 function saveFavs(f) { localStorage.setItem(FAV_KEY, JSON.stringify(f)); }
 
 function norm(u) {
@@ -173,6 +171,7 @@ function addFav(st) {
 
   const proceed = () => {
     favs.push({
+      sparkyId: crypto.randomUUID(), // permanent unique key for this favorites entry
       id: uuid, name: st.name, url: u,
       bitrate: st.bitrate, codec: st.codec,
       countrycode: st.countrycode, tags: st.tags || '',
@@ -201,6 +200,11 @@ function removeFavByIndex(idx) {
 
 function removeFavByUrl(u) {
   saveFavs(loadFavs().filter(f => norm(f.url) !== norm(u)));
+  refreshFavBadge();
+}
+
+function removeFavBySparkyId(sparkyId) {
+  saveFavs(loadFavs().filter(f => f.sparkyId !== sparkyId));
   refreshFavBadge();
 }
 
@@ -772,9 +776,9 @@ function renderFavs() {
     let sidebarHtml = actv ? '▶' : (i + 1).toString().padStart(2, '0');
     if (isManual) {
       sidebarHtml = `
-        <button class="btn-stack" data-up="${i}">▲</button>
+        <button class="btn-stack" data-up="${st.sparkyId}">▲</button>
         <div class="pl-num">${actv ? '▶' : (i + 1).toString().padStart(2, '0')}</div>
-        <button class="btn-stack" data-down="${i}">▼</button>
+        <button class="btn-stack" data-down="${st.sparkyId}">▼</button>
       `;
     }
 
@@ -785,8 +789,8 @@ function renderFavs() {
           <div class="pl-item-name">${esc(st.name)}</div>
           <div class="pl-item-actions">
             ${trending}
-            <button class="pl-edit" data-edit="${i}" style="margin-left:8px">✎</button>
-            <button class="pl-remove" data-rmfav="${i}">✕</button>
+            <button class="pl-edit" data-edit="${st.sparkyId}" style="margin-left:8px">✎</button>
+            <button class="pl-remove" data-rmfav="${st.sparkyId}">✕</button>
           </div>
         </div>
         <div class="pl-item-sub-row">
@@ -801,22 +805,59 @@ function renderFavs() {
     currentIdx = parseInt(el.dataset.idx); playAtIndex(currentIdx);
   });
   pl.querySelectorAll('[data-rmfav]').forEach(btn => btn.onclick = (e) => {
-    e.stopPropagation(); const idx = parseInt(btn.dataset.rmfav); const f = favs[idx];
-    sparkyConfirm(`Remove [${f.name}]?`, () => { removeFavByIndex(idx); renderFavs(); });
+    e.stopPropagation();
+    const sid = btn.dataset.rmfav; // sparkyId — permanent identity, sort-order independent
+    const m = loadFavs();
+    const f = m.find(x => x.sparkyId === sid);
+    if (!f) return;
+    sparkyConfirm(`Remove [${f.name}]?`, () => { removeFavBySparkyId(sid); renderFavs(); });
   });
   pl.querySelectorAll('[data-edit]').forEach(btn => btn.onclick = (e) => {
-    e.stopPropagation(); const idx = btn.dataset.edit; const st = favs[idx];
+    e.stopPropagation();
+    const sid = btn.dataset.edit; // sparkyId — permanent identity, sort-order independent
+    const m = loadFavs();
+    const storageIdx = m.findIndex(f => f.sparkyId === sid);
+    if (storageIdx === -1) return; // entry no longer exists — bail out
+    const st = m[storageIdx]; // always the exact correct entry
+    const originalUrl = st.url;
     openEditModal(st.name, st.url, (n, u) => {
-      if (n) { let m = loadFavs(); m[idx].name = n; m[idx].url = u; saveFavs(m); renderFavs(); }
+      if (n === null) return; // user cancelled — do nothing
+      const newName = n.trim() || st.name;
+      const newUrl = (u || '').trim() || originalUrl;
+      let fresh = loadFavs(); // reload in case anything changed while modal was open
+      const freshIdx = fresh.findIndex(f => f.sparkyId === sid);
+      if (freshIdx === -1) return;
+      const urlChanged = norm(newUrl) !== norm(originalUrl);
+      const doSave = () => {
+        fresh[freshIdx].name = newName;
+        fresh[freshIdx].url = newUrl;
+        saveFavs(fresh);
+        renderFavs();
+      };
+      if (urlChanged) {
+        // Only warn if new URL conflicts with a DIFFERENT existing favorite (not self)
+        const conflict = fresh.some((f, i) => i !== freshIdx && norm(f.url) === norm(newUrl));
+        if (conflict) {
+          sparkyConfirm(`<span style="color:#ff0; font-weight:bold; font-size:13px">⚠ CAUTION: DUPLICATE URL</span><br><br>This URL already exists in another Favorite. Proceed anyway?`, doSave, "DUPLICATE DETECTED");
+          return;
+        }
+      }
+      doSave();
     });
   });
   pl.querySelectorAll('[data-up]').forEach(btn => btn.onclick = (e) => {
-    e.stopPropagation(); const idx = parseInt(btn.dataset.up);
-    let m = loadFavs(); if (idx > 0) { [m[idx - 1], m[idx]] = [m[idx], m[idx - 1]]; saveFavs(m); renderFavs(); }
+    e.stopPropagation();
+    const sid = btn.dataset.up; // sparkyId
+    let m = loadFavs();
+    const idx = m.findIndex(f => f.sparkyId === sid);
+    if (idx > 0) { [m[idx - 1], m[idx]] = [m[idx], m[idx - 1]]; saveFavs(m); renderFavs(); }
   });
   pl.querySelectorAll('[data-down]').forEach(btn => btn.onclick = (e) => {
-    e.stopPropagation(); const idx = parseInt(btn.dataset.down);
-    let m = loadFavs(); if (idx < m.length - 1) { [m[idx + 1], m[idx]] = [m[idx], m[idx + 1]]; saveFavs(m); renderFavs(); }
+    e.stopPropagation();
+    const sid = btn.dataset.down; // sparkyId
+    let m = loadFavs();
+    const idx = m.findIndex(f => f.sparkyId === sid);
+    if (idx < m.length - 1) { [m[idx + 1], m[idx]] = [m[idx], m[idx + 1]]; saveFavs(m); renderFavs(); }
   });
 }
 
@@ -868,9 +909,11 @@ document.getElementById('btnRemove').onclick = () => {
     return;
   }
   if (activeTab === 'favs') {
-    const f = loadFavs()[currentIdx];
+    const f = favs[currentIdx]; // sorted global — matches what user sees
+    if (!f) { sparkyAlert("SELECTION INVALID — PLEASE RESELECT", "SELECTION REQUIRED"); return; }
+    const sid = f.sparkyId; // sparkyId — permanent identity anchor
     sparkyConfirm(`Remove [${f.name}] from favorites?`, () => {
-      removeFavByIndex(currentIdx); stopPlayback(); renderFavs();
+      removeFavBySparkyId(sid); stopPlayback(); renderFavs();
     });
   } else {
     const st = stations[currentIdx];
