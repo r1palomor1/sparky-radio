@@ -110,10 +110,14 @@ function updateDeploymentUI() {
   const tsEl = document.getElementById('sigTS');
   if (!tsEl) return;
   const modDate = new Date(document.lastModified);
-  const ts = (modDate.getMonth() + 1).toString().padStart(2, '0') + '/' +
-    modDate.getDate().toString().padStart(2, '0') + ' ' +
-    modDate.getHours().toString().padStart(2, '0') + ':' +
-    modDate.getMinutes().toString().padStart(2, '0');
+  const ts = new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: 'numeric',
+    hour12: true
+  }).format(modDate).replace(',', ' ·');
   tsEl.textContent = ts;
 }
 
