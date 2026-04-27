@@ -1,16 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SPARKY · Internet Radio</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="/material-symbols.css">
   <link rel="stylesheet" href="/src/styles/main.css">
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
   <link rel="manifest" href="/manifest.json">
 </head>
+
 <body>
   <div class="app">
     <!-- HEADER -->
@@ -35,7 +39,36 @@
     <div class="pro-header-row">
       <div class="pro-header-label">NOW PLAYING</div>
       <div class="visualizer">
-        <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
       </div>
       <button class="btn btn-sm btn-eq-toggle" id="btnEq" style="margin:0; padding: 2px 8px;">EQ</button>
     </div>
@@ -43,9 +76,17 @@
     <!-- EQ PRO CONSOLE -->
     <div class="eq-rack" id="eqRack">
       <div class="eq-row">
-        <div class="eq-scale-side"><div>+15</div><div>0</div><div>-15</div></div>
+        <div class="eq-scale-side">
+          <div>+15</div>
+          <div>0</div>
+          <div>-15</div>
+        </div>
         <div id="eqRow" style="display:flex; flex:1; justify-content:space-between; gap:8px;"></div>
-        <div class="eq-scale-side"><div>+15</div><div>0</div><div>-15</div></div>
+        <div class="eq-scale-side">
+          <div>+15</div>
+          <div>0</div>
+          <div>-15</div>
+        </div>
       </div>
       <div class="eq-console">
         <div class="eq-presets">
@@ -97,7 +138,8 @@
     <!-- TAB + SEARCH COMBINED ROW -->
     <div class="tab-search-row">
       <div class="tab-bar">
-        <button class="tab active" id="tabStations">📡 STATIONS <span class="tab-badge" id="stationsBadge">0</span></button>
+        <button class="tab active" id="tabStations">📡 STATIONS <span class="tab-badge"
+            id="stationsBadge">0</span></button>
         <button class="tab fav-tab" id="tabFavs">★ FAVORITES <span class="tab-badge" id="favsBadge">0</span></button>
       </div>
       <div class="search-area" id="searchArea">
@@ -192,7 +234,8 @@
   <div class="modal-overlay" id="sparkyModal" style="display:none">
     <div class="modal-content">
       <div class="modal-header" id="sparkyModalHeader">SYSTEM ALERT</div>
-      <div id="sparkyModalText" style="font-size:calc(12px * var(--text-scale)); line-height:1.4; color:var(--text)"></div>
+      <div id="sparkyModalText" style="font-size:calc(12px * var(--text-scale)); line-height:1.4; color:var(--text)">
+      </div>
       <div class="modal-footer">
         <button class="btn btn-sm" id="sparkyModalCancel">CANCEL</button>
         <button class="btn btn-sm" id="sparkyModalOk">PROCEED</button>
@@ -203,7 +246,8 @@
   <div class="modal-overlay" id="debugModal" style="display:none">
     <div class="modal-content" style="max-width:380px">
       <div class="modal-header">Diagnostic Hub v1.0</div>
-      <div style="font-size: calc(10px * var(--text-scale)); color:var(--dim); margin-bottom:10px">Mobile Log Trace (Real-time)</div>
+      <div style="font-size: calc(10px * var(--text-scale)); color:var(--dim); margin-bottom:10px">Mobile Log Trace
+        (Real-time)</div>
       <div id="debugOutput" class="debug-log"></div>
       <div class="modal-footer" style="flex-wrap:wrap; gap:5px">
         <button class="btn btn-sm" style="background:#040; border-color:#0f0" id="btnAuditFavs">AUDIT VAULT</button>
@@ -219,23 +263,33 @@
     <div class="modal-content" style="max-width:320px; padding: 15px;">
       <div class="modal-header" style="margin-bottom: 20px;">COMMAND CENTER</div>
       <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 25px;">
-        <button class="btn" style="justify-content: flex-start; padding: 12px; width: 100%; border-color: var(--accent);" id="btnOpenDebug">
+        <button class="btn"
+          style="justify-content: flex-start; padding: 12px; width: 100%; border-color: var(--accent);"
+          id="btnOpenDebug">
           <span class="material-symbols-outlined" style="font-size: calc(18px * var(--text-scale));">terminal</span>
           VIEW SYSTEM DIAGNOSTICS
         </button>
       </div>
       <div style="border-top: 1px solid var(--border); padding-top: 15px; margin-bottom: 20px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-          <div style="font-size: calc(9px * var(--text-scale)); color: var(--accent); letter-spacing: 1.5px; font-weight: 700;">INTERFACE SCALE</div>
-          <div id="textScaleLabel" style="font-size: calc(10px * var(--text-scale)); color: var(--text); font-weight: 500;">100% (DEFAULT)</div>
+          <div
+            style="font-size: calc(9px * var(--text-scale)); color: var(--accent); letter-spacing: 1.5px; font-weight: 700;">
+            INTERFACE SCALE</div>
+          <div id="textScaleLabel"
+            style="font-size: calc(10px * var(--text-scale)); color: var(--text); font-weight: 500;">100% (DEFAULT)
+          </div>
         </div>
-        <input type="range" id="textScaleSlider" min="0.5" max="1.5" step="0.05" value="1.0" style="width: 100%; margin-bottom: 8px;">
+        <input type="range" id="textScaleSlider" min="0.5" max="1.5" step="0.05" value="1.0"
+          style="width: 100%; margin-bottom: 8px;">
         <div style="display: flex; justify-content: flex-end;">
-          <button class="btn btn-sm" style="font-size: calc(8px * var(--text-scale)); padding: 2px 6px;" id="btnResetScale">RESET TO 1x</button>
+          <button class="btn btn-sm" style="font-size: calc(8px * var(--text-scale)); padding: 2px 6px;"
+            id="btnResetScale">RESET TO 1x</button>
         </div>
       </div>
       <div style="border-top: 1px solid var(--border); padding-top: 15px; margin-bottom: 20px;">
-        <div style="font-size: calc(9px * var(--text-scale)); color: var(--accent); letter-spacing: 1.5px; font-weight: 700; margin-bottom: 12px;">GLOBAL DEFAULTS</div>
+        <div
+          style="font-size: calc(9px * var(--text-scale)); color: var(--accent); letter-spacing: 1.5px; font-weight: 700; margin-bottom: 12px;">
+          GLOBAL DEFAULTS</div>
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
           <div style="font-size: calc(10px * var(--text-scale)); color: var(--text);">DEFAULT COUNTRY</div>
           <div class="preset-dropdown-wrap" style="width: 140px;">
@@ -253,7 +307,9 @@
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
           <div style="font-size: calc(10px * var(--text-scale)); color: var(--text);">START WITH HI-FI</div>
           <div class="theme-toggle" id="defaultHifiToggle" style="margin:0">
-            <div class="toggle-track" id="defaultHifiTrack"><div class="toggle-thumb"></div></div>
+            <div class="toggle-track" id="defaultHifiTrack">
+              <div class="toggle-thumb"></div>
+            </div>
           </div>
         </div>
         <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -265,8 +321,11 @@
         </div>
       </div>
       <div style="border-top: 1px solid var(--border); padding-top: 12px;">
-        <div style="font-size: calc(9px * var(--text-scale)); color: var(--accent); letter-spacing: 1.5px; margin-bottom: 6px; font-weight: 700;">LAST UPDATED</div>
-        <div style="font-size: calc(10px * var(--text-scale)); color: var(--dim); line-height: 1.6; font-family: 'Share Tech Mono', monospace;">
+        <div
+          style="font-size: calc(9px * var(--text-scale)); color: var(--accent); letter-spacing: 1.5px; margin-bottom: 6px; font-weight: 700;">
+          LAST UPDATED</div>
+        <div
+          style="font-size: calc(10px * var(--text-scale)); color: var(--dim); line-height: 1.6; font-family: 'Share Tech Mono', monospace;">
           As of: <span id="sigTS" style="color:var(--text)">---</span>
         </div>
       </div>
@@ -281,9 +340,11 @@
       <div class="modal-header">EDIT STATION</div>
       <div style="display:flex; flex-direction:column; gap:8px;">
         <label style="font-size:calc(9px * var(--text-scale)); color:var(--accent)">STATION NAME</label>
-        <input type="text" id="editStationName" maxlength="80" style="width:100%; background:var(--bg); border:1px solid var(--border); color:var(--text); padding:5px;">
+        <input type="text" id="editStationName" maxlength="80"
+          style="width:100%; background:var(--bg); border:1px solid var(--border); color:var(--text); padding:5px;">
         <label style="font-size:calc(9px * var(--text-scale)); color:var(--accent); margin-top:8px;">STREAM URL</label>
-        <input type="text" id="editStationUrl" maxlength="300" style="width:100%; background:var(--bg); border:1px solid var(--border); color:var(--text); padding:5px;">
+        <input type="text" id="editStationUrl" maxlength="300"
+          style="width:100%; background:var(--bg); border:1px solid var(--border); color:var(--text); padding:5px;">
       </div>
       <div class="modal-footer" style="margin-top:20px;">
         <button class="btn btn-sm" style="background:var(--bg)" id="editModalCancel">CANCEL</button>
@@ -295,7 +356,8 @@
   <div class="modal-overlay system-alert" id="sparkyModal" style="display:none">
     <div class="modal-content" style="max-width:300px; border-color:var(--fav)">
       <div class="modal-header" id="sparkyModalHeader">SYSTEM ALERT</div>
-      <div id="sparkyModalText" style="font-size:calc(11px * var(--text-scale)); line-height:1.4; margin-bottom:20px;"></div>
+      <div id="sparkyModalText" style="font-size:calc(11px * var(--text-scale)); line-height:1.4; margin-bottom:20px;">
+      </div>
       <div class="modal-footer">
         <button class="btn btn-sm" style="background:var(--bg)" id="sparkyModalCancel">CANCEL</button>
         <button class="btn btn-sm" id="sparkyModalOk">OK</button>
@@ -307,4 +369,5 @@
   <audio id="audioEl" crossorigin="anonymous"></audio>
   <script src="/src/scripts/main.js" type="module"></script>
 </body>
+
 </html>

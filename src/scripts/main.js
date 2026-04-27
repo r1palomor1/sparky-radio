@@ -121,6 +121,11 @@ function updateDeploymentUI() {
   tsEl.textContent = ts;
 }
 
+function syncStatsUI() {
+  const isCompact = statsMode === 'COMPACT';
+  document.querySelector('.app')?.classList.toggle('stats-compact', isCompact);
+}
+
 let audioCtx, analyser, srcNode;
 let sortTooltipTimeout;
 
@@ -1232,6 +1237,7 @@ function loadSettingsOptions() {
       localStorage.setItem('sparky_stats_mode', statsMode);
       document.getElementById('statsModeTrigger').textContent = statsMode;
       smCont.classList.remove('show');
+      syncStatsUI();
       renderCurrent();
     });
   }
@@ -1253,6 +1259,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
   loadFilterOptions();
   loadSettingsOptions();
+  syncStatsUI();
 
   // ══ DEFAULTS TRIGGERS ══
   document.getElementById('defaultCountryTrigger').onclick = (e) => { e.stopPropagation(); document.getElementById('defaultCountryOptions').classList.toggle('show'); };

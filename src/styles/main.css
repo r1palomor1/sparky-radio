@@ -336,9 +336,12 @@ body.light {
 
 /* ── NOW PLAYING ────────────────────────── */
 .now-playing {
-  padding: 6px 14px 4px;
+  padding: 12px 14px 8px; /* Taller zone for breathing room */
   background: var(--np-bg);
   border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .np-header {
@@ -364,32 +367,21 @@ body.light .np-label {
 .np-ticker {
   overflow: hidden;
   white-space: nowrap;
-  margin-bottom: 2px;
+  display: flex;
+  align-items: center;
 }
 
 .np-name {
-  font-family: 'Orbitron', monospace;
-  font-size: calc(19px * var(--text-scale));
-  font-weight: 700;
+  font-family: 'Orbitron', sans-serif;
+  font-size: calc(24px * var(--text-scale)); /* Larger, dominant element */
+  font-weight: 900; /* Bolder */
   color: var(--text);
   display: inline-block;
   animation: ticker 15s linear infinite;
   animation-play-state: paused;
-  letter-spacing: .5px;
-}
-
-.np-name.running {
-  animation-play-state: running;
-}
-
-@keyframes ticker {
-  0% {
-    transform: translateX(100%)
-  }
-
-  100% {
-    transform: translateX(-100%)
-  }
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding-right: 60px;
 }
 
 .np-meta {
@@ -408,25 +400,25 @@ body.light .np-label {
 
 .np-meta-badge {
   background: var(--ctrl-bg);
-  padding: 4px 6px;
-  border-radius: 2px;
+  padding: 5px 8px;
+  border-radius: 4px;
   border: 1px solid var(--border);
-  font-size: calc(10px * var(--text-scale));
+  font-size: calc(11px * var(--text-scale));
   color: var(--text);
-  font-weight: 500;
+  font-weight: 600;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
+  transition: all 0.2s ease;
 }
 
-body.light .np-meta-badge,
-body.light .pl-badge-mini {
-  text-shadow: 0.3px 0.3px 0.5px rgba(0,0,0,0.15);
+/* ── ITEM 15: COMPACT MODE VISIBILITY ───── */
+.app.stats-compact .np-meta-secondary {
+  display: none !important;
 }
 
 .np-meta-badge i {
   font-style: normal;
-  filter: grayscale(0.5);
 }
 
 .pl-status-badge {
@@ -550,7 +542,6 @@ body.light .pl-status-badge.trending {
   align-items: center;
   width: 100%;
   overflow: hidden;
-  margin-top: 5px;
 }
 
 .np-name-wrap {
@@ -558,16 +549,6 @@ body.light .pl-status-badge.trending {
   overflow: hidden;
   white-space: nowrap;
   position: relative;
-}
-
-.np-name {
-  display: inline-block;
-  font-size: calc(20px * var(--text-scale));
-  font-weight: 900;
-  color: var(--text);
-  padding-right: 50px;
-  text-transform: uppercase;
-  font-family: 'Orbitron', sans-serif;
 }
 
 /* ── ITEM 10: PREMIUM VOLUME SLIDER ────── */
