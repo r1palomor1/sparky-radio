@@ -168,19 +168,40 @@
 
     <!-- FOOTER -->
     <div class="footer">
-      <div class="footer-actions">
-        <div class="footer-group">
-          <button class="btn btn-sm" id="btnAdd">+ ADD</button>
-          <button class="btn btn-sm" id="btnRemove">&#9003;</button>
+      <div class="footer-accent-glow"></div>
+      <div class="footer-layout">
+        <!-- ADMIN GROUP -->
+        <div class="footer-admin">
+          <button class="btn btn-footer-admin" id="btnAdd" title="Add custom station">
+            <span class="material-symbols-outlined">add_circle</span>
+            <span class="btn-label">ADD</span>
+          </button>
+          <button class="btn btn-footer-admin" id="btnRemove" title="Remove selected station">
+            <span class="material-symbols-outlined">backspace</span>
+            <span class="btn-label">REMOVE</span>
+          </button>
         </div>
-        <div class="footer-player-mini">
-          <button class="btn btn-sm" id="btnPrevFooter">&#9664;&#9664;</button>
-          <button class="btn btn-sm btn-play" id="btnPlayFooter">&#9654; PLAY</button>
-          <button class="btn btn-sm" id="btnStopFooter">&#9632;</button>
-          <button class="btn btn-sm" id="btnNextFooter">&#9654;&#9654;</button>
+
+        <!-- TRANSPORT GROUP -->
+        <div class="footer-transport">
+          <button class="btn btn-footer-nav" id="btnPrevFooter" title="Previous station">
+            <span class="material-symbols-outlined">skip_previous</span>
+            <span class="btn-label">PREV</span>
+          </button>
+          <button class="btn btn-footer-play" id="btnPlayFooter" title="Toggle Play/Pause">
+            <span class="material-symbols-outlined">play_arrow</span>
+            <span class="btn-label">PLAY</span>
+          </button>
+          <button class="btn btn-footer-nav" id="btnStopFooter" title="Stop playback">
+            <span class="material-symbols-outlined">stop</span>
+            <span class="btn-label">STOP</span>
+          </button>
+          <button class="btn btn-footer-nav" id="btnNextFooter" title="Next station">
+            <span class="material-symbols-outlined">skip_next</span>
+            <span class="btn-label">NEXT</span>
+          </button>
         </div>
       </div>
-      <!-- Signature and Settings button removed from footer as requested -->
     </div>
   </div>
 

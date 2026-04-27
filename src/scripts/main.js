@@ -925,11 +925,26 @@ document.getElementById('btnRemove').onclick = () => {
 
 // FOOTER MINI-PLAYER BINDINGS
 const syncPlayBtns = () => {
+  const isP = isPlaying;
+  // Global playing state for CSS effects
+  document.querySelector('.app')?.classList.toggle('is-playing', isP);
+
+  // Main button (legacy/top)
   const playBtn = document.getElementById('btnPlay');
+  if (playBtn) playBtn.innerHTML = isP ? '&#9646;&#9646; PAUSE' : '&#9654; PLAY';
+
+  // Footer button (new premium structure)
   const playBtnFooter = document.getElementById('btnPlayFooter');
-  const html = isPlaying ? '&#9646;&#9646; PAUSE' : '&#9654; PLAY';
-  if (playBtn) playBtn.innerHTML = html;
-  if (playBtnFooter) playBtnFooter.innerHTML = html;
+  if (playBtnFooter) {
+    const icon = playBtnFooter.querySelector('.material-symbols-outlined');
+    const label = playBtnFooter.querySelector('.btn-label');
+    if (icon && label) {
+      icon.textContent = isP ? 'pause' : 'play_arrow';
+      label.textContent = isP ? 'PAUSE' : 'PLAY';
+    } else {
+      playBtnFooter.innerHTML = isP ? '&#9646;&#9646; PAUSE' : '&#9654; PLAY';
+    }
+  }
 };
 
 // ══ SEARCH ════════════════════════════════

@@ -1818,39 +1818,94 @@ body.light .btn-preset.active {
   margin-top: 15px;
 }
 
-/* ── FOOTER ─────────────────────────────── */
+/* ── ITEM 8: FOOTER REDESIGN ────────────── */
 .footer {
-  padding: 8px 14px;
+  height: 80px; /* Taller footer */
+  padding: 0 14px;
   background: var(--pl-footer);
   border-top: 1px solid var(--border);
+  position: relative;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 8px;
+  justify-content: center;
+  overflow: hidden;
+  width: 100%;
 }
 
-.footer-actions {
+.footer-accent-glow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--accent);
+  opacity: 0;
+  box-shadow: 0 0 15px var(--accent);
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+
+.app.is-playing .footer-accent-glow {
+  opacity: 0.8;
+}
+
+.footer-layout {
+  width: 100%;
   display: flex;
-  gap: 5px;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
 }
 
-.footer-meta {
-  font-size: calc(11px * var(--text-scale));
-  color: var(--text);
-  letter-spacing: 2px;
-  white-space: nowrap;
-  font-weight: 500;
+.footer-admin, .footer-transport {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 4px 8px;
+  background: rgba(255, 255, 255, 0.03);
 }
 
-.footer-meta span {
-  color: #ece8e0;
-  margin: 0 2px;
-  font-weight: 500;
+.btn-footer-admin, .btn-footer-nav, .btn-footer-play {
+  height: 52px; /* Generous touch target */
+  min-width: 50px;
+  flex-direction: column !important;
+  gap: 2px !important;
+  border-radius: 6px !important;
+  background: transparent !important;
+  border: none !important;
+  transition: all 0.2s;
 }
 
-body.light .footer-meta span {
-  color: #000;
+.btn-footer-admin {
+  opacity: 0.6;
 }
+
+.btn-footer-admin:hover {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.05) !important;
+}
+
+.btn-footer-play {
+  min-width: 76px;
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid var(--border) !important;
+  color: var(--accent);
+}
+
+.btn-footer-play:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-color: var(--accent) !important;
+}
+
+.btn-label {
+  font-size: 8px;
+  letter-spacing: 0.5px;
+  font-weight: 700;
+  opacity: 0.7;
+}
+
 
 /* ── STATION CARD ───────────────────────── */
 .station-card {
@@ -2036,44 +2091,7 @@ body.light .footer-meta span {
   transform: rotate(45deg);
 }
 
-.footer {
-  width: 100%;
-}
-
-.footer-actions {
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 6px 14px;
-  background: var(--pl-footer);
-}
-
-.footer-group, .footer-player-mini {
-  display: flex;
-  gap: 4px;
-  align-items: center;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 3px 6px;
-  background: rgba(255, 255, 255, 0.03);
-}
-
-.footer-group .btn, .footer-player-mini .btn {
-  border: none;
-  background: transparent;
-  padding: 4px 8px;
-}
-
-.footer-group .btn:hover, .footer-player-mini .btn:hover {
-  background: rgba(255, 255, 255, 0.05);
-  color: var(--accent);
-}
-
-.footer-player-mini .btn-play {
-  min-width: 80px;
-}
-
+/* Removed duplicate footer block */
 /* ── MOBILE RESPONSIVENESS ──────────────── */
 @media (max-width: 380px) {
   .eq-rack.open {
