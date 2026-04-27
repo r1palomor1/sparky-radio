@@ -773,7 +773,7 @@ function renderFavs() {
       </div>
     `;
 
-    let sidebarHtml = actv ? '▶' : (i + 1).toString().padStart(2, '0');
+    let sidebarHtml = `<div class="pl-num">${actv ? '▶' : (i + 1).toString().padStart(2, '0')}</div>`;
     if (isManual) {
       sidebarHtml = `
         <button class="btn-stack" data-up="${st.sparkyId}">▲</button>
