@@ -158,10 +158,10 @@ function isFav(st) {
   const u = st.url_resolved || st.url;
   const uuid = st.stationuuid || st.id;
   const fv = loadFavs();
-  // GRANULAR IDENTITY: Only count as favorite if BOTH Name and URL match
+  // URL-CENTRIC IDENTITY: Ignore name to prevent accidental duplicates with diff names
   return fv.some(f =>
     (uuid && (f.id === uuid || f.stationuuid === uuid)) ||
-    (norm(f.url) === norm(u) && f.name === st.name)
+    (norm(f.url) === norm(u))
   );
 }
 
@@ -1204,7 +1204,7 @@ window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btnNext').onclick = () => playAtIndex(currentIdx + 1);
   document.getElementById('btnPrev').onclick = () => playAtIndex(currentIdx - 1);
   // btnAdd logic consolidated at L816
-  document.getElementById('btnRemove').onclick = () => { if (currentSrc) removeFav(currentSrc); };
+  // btnRemove logic consolidated at L865
   document.getElementById('btnSearchClear').onclick = () => {
     const inp = document.getElementById('searchInput');
     inp.value = ''; inp.focus();

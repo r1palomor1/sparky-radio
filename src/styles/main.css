@@ -2038,3 +2038,15 @@ body.light .footer-meta span {
     gap: 4px;
   }
 }
+
+/* ── PRIORITIZED MOBILE OVERRIDES ────────── */
+@media (max-width: 599px) {
+  .pl-main {
+    padding-top: 12px !important;
+    padding-bottom: 12px !important;
+  }
+  .footer-actions {
+    padding-top: 12px !important;
+    padding-bottom: 12px !important;
+  }
+}
