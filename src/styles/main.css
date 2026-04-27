@@ -75,8 +75,15 @@ body.light {
   --pl-stripe: rgba(0, 0, 0, 0.12);
 }
 
+/* ── ITEM 1: AMBIENT GRADIENT ───────────── */
 body {
   background: var(--bg);
+  background-image: radial-gradient(
+    ellipse at 50% 40%,
+    color-mix(in srgb, var(--accent) 9%, transparent) 0%,
+    transparent 65%
+  );
+  background-attachment: fixed;
   min-height: 100vh;
   display: flex;
   align-items: center;
@@ -85,6 +92,14 @@ body {
   color: var(--text);
   padding: 20px;
   transition: background-color 0.3s, color 0.3s;
+}
+
+body.light {
+  background-image: radial-gradient(
+    ellipse at 50% 40%,
+    color-mix(in srgb, #c8a86b 18%, transparent) 0%,
+    transparent 65%
+  );
 }
 
 .app {
@@ -243,6 +258,7 @@ body {
   color: var(--accent);
 }
 
+/* ── ITEM 2: STATUS DOT — PULSE RING ────── */
 .dot {
   width: 7px;
   height: 7px;
@@ -250,12 +266,34 @@ body {
   background: var(--text);
   transition: all .3s;
   flex-shrink: 0;
+  position: relative;
 }
 
 .dot.active {
   background: var(--accent);
   box-shadow: var(--glow);
-  animation: pulse 1.5s infinite;
+  animation: dot-glow 2s ease-in-out infinite;
+}
+
+.dot.active::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 1.5px solid var(--accent);
+  opacity: 0;
+  animation: dot-ring 2s ease-out infinite;
+}
+
+@keyframes dot-ring {
+  0%   { transform: scale(0.6); opacity: 0.8; }
+  80%  { transform: scale(2.2); opacity: 0; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+
+@keyframes dot-glow {
+  0%, 100% { box-shadow: var(--glow); }
+  50%       { box-shadow: 0 0 14px var(--accent), 0 0 30px color-mix(in srgb, var(--accent) 40%, transparent); }
 }
 
 .dot.buffering {
@@ -270,15 +308,8 @@ body {
 }
 
 @keyframes pulse {
-
-  0%,
-  100% {
-    opacity: 1
-  }
-
-  50% {
-    opacity: .4
-  }
+  0%, 100% { opacity: 1 }
+  50%       { opacity: .4 }
 }
 
 #statusText {
@@ -409,14 +440,25 @@ body.light .pl-badge-mini {
   color: #fff;
 }
 
+/* ── ITEM 6: TRENDING BADGE — PILL STYLE ── */
 .pl-status-badge.trending {
-  background: #00ced1;
-  color: #080808;
+  background: transparent;
+  color: #00d4d8;
+  border: 1.5px solid #00bfc3;
+  border-radius: 10px;
+  padding: 1px 7px;
+  letter-spacing: 0.8px;
+  font-weight: 800;
+  text-shadow: 0 0 6px rgba(0, 210, 215, 0.5);
+  box-shadow: 0 0 6px rgba(0, 196, 200, 0.2);
 }
 
 body.light .pl-status-badge.trending {
-  background: #00838F;
-  color: #FFF;
+  background: transparent;
+  color: #00838F;
+  border-color: #00838F;
+  text-shadow: none;
+  box-shadow: none;
 }
 
 .pl-badge-group {
@@ -987,8 +1029,9 @@ body.light input[type=text] {
   background: var(--pl-stripe);
 }
 
+/* ── ITEM 5: SIDEBAR WIDTH 28→32px ──────── */
 .pl-sidebar {
-  width: 28px;
+  width: 32px;
   background: rgba(255, 255, 255, 0.03);
   display: flex;
   flex-direction: column;
@@ -1356,8 +1399,11 @@ body.light .pl-item-sub {
   text-shadow: 0.3px 0.3px 0.5px rgba(0,0,0,0.15);
 }
 
+/* ── ITEM 3: ACTIVE CARD — GLOW + ELEVATED BG ── */
 .pl-item.active {
-  background: var(--pl-active);
+  background: color-mix(in srgb, var(--accent) 12%, var(--pl-bg));
+  border-left: 3px solid var(--accent) !important;
+  box-shadow: inset 3px 0 12px color-mix(in srgb, var(--accent) 18%, transparent);
 }
 
 .pl-item.active .pl-sidebar {
@@ -1371,20 +1417,29 @@ body.light .pl-item-sub {
   color: var(--bg);
 }
 
+/* ── ITEM 4: TAP PRESS STATE — :active flash ─── */
+.pl-item:active {
+  transform: scale(0.985);
+  background: color-mix(in srgb, var(--accent) 14%, var(--pl-bg)) !important;
+  border-left: 2px solid var(--accent) !important;
+  transition: transform 0.08s ease, background 0.08s ease;
+}
+
+/* ── ITEM 7: DUPLICATE URL — SOFTER AMBER ─────── */
 .pl-item.is-dup-fav {
-  border: 1px solid var(--accent2) !important;
-  box-shadow: inset 0 0 10px rgba(232, 96, 48, 0.25), 0 0 5px rgba(232, 96, 48, 0.1);
+  border-left: 3px solid #d4843a !important;
+  box-shadow: none;
   position: relative;
 }
-.pl-item.is-dup-fav::after {
-  content: 'DUPLICATE URL';
+.pl-item.is-dup-fav::before {
+  content: '⚠';
   position: absolute;
-  top: 2px;
-  right: 5px;
-  font-size: 8px;
-  color: var(--accent2);
-  font-weight: 700;
-  opacity: 0.7;
+  top: 4px;
+  right: 6px;
+  font-size: 10px;
+  color: #d4843a;
+  opacity: 0.75;
+  pointer-events: none;
 }
 
 
