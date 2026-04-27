@@ -1319,6 +1319,32 @@ body.light .preset-label {
   color: #fff;
 }
 
+.pl-favicon {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  object-fit: cover;
+  background: var(--subdim);
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+  transition: transform 0.2s;
+}
+
+.pl-favicon-fallback {
+  font-size: 16px !important;
+  color: var(--dim);
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--subdim);
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+  opacity: 0.6;
+}
+
 .pl-main {
   flex: 1;
   display: flex;

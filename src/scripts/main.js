@@ -628,6 +628,13 @@ function togglePlay() {
 function renderCurrent() { activeTab === 'stations' ? renderStations() : renderFavs(); }
 
 // ══ RENDERERS ══════════════════════════════
+function renderFavicon(st) {
+  if (st.favicon && st.favicon.trim() !== '') {
+    return `<img class="pl-favicon" src="${esc(st.favicon)}" onerror="this.onerror=null; const s=document.createElement('span'); s.className='material-symbols-outlined pl-favicon-fallback'; s.textContent='radio'; this.replaceWith(s);">`;
+  }
+  return `<span class="material-symbols-outlined pl-favicon-fallback">radio</span>`;
+}
+
 function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
 function fmtK(n) {
   const v = Number(n || 0);
@@ -697,6 +704,7 @@ function renderStations() {
       <div class="pl-sidebar"><div class="pl-num">${actv ? '▶' : (i + 1).toString().padStart(2, '0')}</div></div>
       <div class="pl-main">
         <div class="pl-item-name-row">
+          ${renderFavicon(st)}
           <div class="pl-item-name">${esc(st.name)}</div>
           <div class="pl-item-actions">
             ${trending}
@@ -790,6 +798,7 @@ function renderFavs() {
       <div class="pl-sidebar">${sidebarHtml}</div>
       <div class="pl-main">
         <div class="pl-item-name-row">
+          ${renderFavicon(st)}
           <div class="pl-item-name">${esc(st.name)}</div>
           <div class="pl-item-actions">
             ${trending}
