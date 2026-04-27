@@ -932,6 +932,12 @@ const syncPlayBtns = () => {
   }
 };
 
+const updateVolFill = (el) => {
+  if (!el) return;
+  const v = el.value;
+  el.style.background = `linear-gradient(to right, var(--accent) ${v}%, var(--seek-bg) ${v}%)`;
+};
+
 // ══ SEARCH ════════════════════════════════
 async function searchStations(q) {
   if (isSearching) return;
@@ -1216,7 +1222,13 @@ window.addEventListener('DOMContentLoaded', () => {
   initEq();
   loadPresets();
   applyTextScale(textScale);
-  const sv = localStorage.getItem('sparky_volume'); if (sv !== null) { document.getElementById('volSlider').value = sv; audioEl.volume = sv / 100; }
+  const sv = localStorage.getItem('sparky_volume');
+  if (sv !== null) {
+    const vs = document.getElementById('volSlider');
+    vs.value = sv;
+    audioEl.volume = sv / 100;
+    updateVolFill(vs);
+  }
   filterHiFi = localStorage.getItem('sparky_default_hifi') !== 'false';
   document.getElementById('btnHifi').classList.toggle('active', filterHiFi);
 
@@ -1271,6 +1283,7 @@ window.addEventListener('DOMContentLoaded', () => {
     const v = e.target.value;
     audioEl.volume = v / 100;
     localStorage.setItem('sparky_volume', v);
+    updateVolFill(e.target);
   };
 
   // ══ CONSOLIDATED DOM BINDINGS (ELIMINATE TYPEERROR) ══
