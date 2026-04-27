@@ -608,37 +608,6 @@ input[type=range]::-webkit-slider-thumb {
   box-shadow: 0 0 5px var(--accent);
 }
 
-/* ── CONTROLS ───────────────────────────── */
-.controls {
-  padding: 10px 14px;
-  background: var(--ctrl-bg);
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.controls-capsule {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 4px 10px;
-  background: rgba(255, 255, 255, 0.03);
-}
-
-.controls-capsule .btn {
-  border: none !important;
-  background: transparent !important;
-  box-shadow: none !important;
-}
-
-.controls-capsule .btn:hover {
-  color: var(--accent);
-  background: rgba(255, 255, 255, 0.05) !important;
-}
-
 .btn {
   background: var(--panel2);
   border: 1px solid var(--border);
@@ -665,25 +634,6 @@ input[type=range]::-webkit-slider-thumb {
 
 .btn:active {
   transform: scale(.96);
-}
-
-.btn-play {
-  background: var(--panel2);
-  border-color: var(--border);
-  color: var(--text);
-  padding: 8px 22px;
-  font-size: calc(13px * var(--text-scale));
-  letter-spacing: 1px;
-}
-
-.btn-play:hover {
-  border-color: var(--accent);
-  color: var(--accent);
-}
-
-.btn-icon {
-  font-size: calc(14px * var(--text-scale));
-  padding: 7px 10px;
 }
 
 .btn.active {

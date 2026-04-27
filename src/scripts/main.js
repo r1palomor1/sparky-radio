@@ -862,22 +862,7 @@ function renderFavs() {
 }
 
 // ══ TRANSPORT ══════════════════════════════
-document.getElementById('btnPlay').onclick = () => {
-  if (audioCtx?.state === 'suspended') audioCtx.resume();
-  if (!isPlaying) {
-    if (currentSrc) audioEl.play().then(() => { isPlaying = true; setStatus('playing', 'CONNECTED'); syncPlayBtns(); drawViz(); });
-    else { const l = activeTab === 'favs' ? loadFavs() : stations; if (l.length) playAtIndex(0); }
-  } else { audioEl.pause(); isPlaying = false; setStatus('', 'PAUSED'); syncPlayBtns(); idleViz(); }
-};
-document.getElementById('btnStop').onclick = stopPlayback;
-document.getElementById('btnNext').onclick = () => {
-  const l = activeTab === 'favs' ? favs : stations;
-  if (l.length) playAtIndex((currentIdx + 1) % l.length);
-};
-document.getElementById('btnPrev').onclick = () => {
-  const l = activeTab === 'favs' ? favs : stations;
-  if (l.length) playAtIndex((currentIdx - 1 + l.length) % l.length);
-};
+// Logic moved to footer bindings and togglePlay function
 
 // ══ FOOTER ACTIONS ════════════════════════
 document.getElementById('btnAdd').onclick = () => {
@@ -1257,10 +1242,7 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 
   // MISSION CONTROL BINDINGS
-  document.getElementById('btnPlay').onclick = togglePlay;
-  document.getElementById('btnStop').onclick = stopPlayback;
-  document.getElementById('btnNext').onclick = () => playAtIndex(currentIdx + 1);
-  document.getElementById('btnPrev').onclick = () => playAtIndex(currentIdx - 1);
+  // Top controls removed from UI
   // btnAdd logic consolidated at L816
   // btnRemove logic consolidated at L865
   document.getElementById('btnSearchClear').onclick = () => {
@@ -1297,10 +1279,16 @@ window.addEventListener('DOMContentLoaded', () => {
     expandFilters(); if (q) { switchTab('stations'); searchStations(q); }
   };
   document.getElementById('btnFilterToggle').onclick = toggleFilters;
-  document.getElementById('btnPlayFooter').onclick = () => document.getElementById('btnPlay').click();
+  document.getElementById('btnPlayFooter').onclick = () => togglePlay();
   document.getElementById('btnStopFooter').onclick = () => stopPlayback();
-  document.getElementById('btnNextFooter').onclick = () => document.getElementById('btnNext').click();
-  document.getElementById('btnPrevFooter').onclick = () => document.getElementById('btnPrev').click();
+  document.getElementById('btnNextFooter').onclick = () => {
+    const l = activeTab === 'favs' ? favs : stations;
+    if (l.length) playAtIndex((currentIdx + 1) % l.length);
+  };
+  document.getElementById('btnPrevFooter').onclick = () => {
+    const l = activeTab === 'favs' ? favs : stations;
+    if (l.length) playAtIndex((currentIdx - 1 + l.length) % l.length);
+  };
 
   // ══ SETTINGS & SYSTEM BINDINGS ══
   document.getElementById('statusCluster').onclick = () => {
