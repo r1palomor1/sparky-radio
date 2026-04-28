@@ -1,11 +1,11 @@
-/**
- * SPARKY RADIO · CORE LOGIC
+﻿/**
+ * SPARKY RADIO ┬╖ CORE LOGIC
  * 1:1 FIDELITY RESTORATION FROM index.html.bak
  * Modularized for production but preserving all legacy behaviors, 
  * bug fixes, and structural improvements.
  */
 
-// ══ PRO-DEBUGGER INTERCEPTOR ══════════════
+// ΓòÉΓòÉ PRO-DEBUGGER INTERCEPTOR ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 (function () {
   const output = [];
   const originalLog = console.log, originalErr = console.error;
@@ -68,7 +68,7 @@
   }
 })();
 
-// ══ STORAGE MIGRATION ══════════════════════
+// ΓòÉΓòÉ STORAGE MIGRATION ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 (function migrate() {
   const map = { 'sparky_favorites_v2': 'sparky_favorites', 'sparky_eq_v5': 'sparky_eq_presets', 'sparky_volume_v2': 'sparky_volume' };
   Object.entries(map).forEach(([oldK, newK]) => {
@@ -82,7 +82,7 @@
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
-// ══ STATE ══════════════════════════════════
+// ΓòÉΓòÉ STATE ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 const audioEl = document.getElementById('audioEl');
 let stations = [];
 let currentIdx = -1;
@@ -110,28 +110,17 @@ function updateDeploymentUI() {
   const tsEl = document.getElementById('sigTS');
   if (!tsEl) return;
   const modDate = new Date(document.lastModified);
-  const ts = new Intl.DateTimeFormat('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-    hour: 'numeric',
-    minute: 'numeric',
-    hour12: true
-  }).format(modDate).replace(',', ' ·');
+  const ts = (modDate.getMonth() + 1).toString().padStart(2, '0') + '/' +
+    modDate.getDate().toString().padStart(2, '0') + ' ' +
+    modDate.getHours().toString().padStart(2, '0') + ':' +
+    modDate.getMinutes().toString().padStart(2, '0');
   tsEl.textContent = ts;
 }
 
-function syncStatsUI() {
-  const isCompact = statsMode === 'COMPACT';
-  document.querySelector('.app')?.classList.toggle('stats-compact', isCompact);
-}
-
 let audioCtx, analyser, srcNode;
-let freqData;
-let smoothedBands = new Float32Array(30); // Pre-init for 30 bars
 let sortTooltipTimeout;
 
-// ══ THEME ══════════════════════════════════
+// ΓòÉΓòÉ THEME ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 let isDark = localStorage.getItem('sparky_theme') !== 'light';
 function applyTheme() {
   document.body.classList.toggle('light', !isDark);
@@ -141,7 +130,7 @@ function applyTheme() {
 applyTheme();
 document.getElementById('themeToggle').addEventListener('click', () => { isDark = !isDark; applyTheme(); });
 
-// ══ FAVORITES ══════════════════════════════
+// ΓòÉΓòÉ FAVORITES ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 const FAV_KEY = 'sparky_favorites';
 function loadFavs() {
   try {
@@ -194,7 +183,7 @@ function addFav(st) {
   };
 
   if (existing.length > 0) {
-    sparkyConfirm(`<span style="color:#ff0; font-weight:bold; font-size:13px">⚠ CAUTION: DUPLICATE URL</span><br><br>There is already a station in your Favorites with the same URL. Proceed anyway?`, proceed, "DUPLICATE DETECTED");
+    sparkyConfirm(`<span style="color:#ff0; font-weight:bold; font-size:13px">ΓÜá CAUTION: DUPLICATE URL</span><br><br>There is already a station in your Favorites with the same URL. Proceed anyway?`, proceed, "DUPLICATE DETECTED");
   } else {
     proceed();
   }
@@ -247,7 +236,7 @@ function syncFavMetadata(st) {
   }
 }
 
-// ══ TABS ═══════════════════════════════════
+// ΓòÉΓòÉ TABS ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 function switchTab(tab) {
   activeTab = tab;
   document.getElementById('tabStations').classList.toggle('active', tab === 'stations');
@@ -299,26 +288,26 @@ async function backgroundSyncFavs() {
   }
 }
 
-// ══ EQ ════════════════════════════════════
+// ΓòÉΓòÉ EQ ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 const EQ_FREQS = [60, 170, 310, 600, 1000, 3000, 6000, 12000];
 const EQ_LABELS = ['60Hz', '170Hz', '310Hz', '600Hz', '1kHz', '3kHz', '6kHz', '12kHz'];
 const eqNodes = [], eqVals = new Array(8).fill(0);
 
 const FACTORY_PRESETS = {
   flat: [0, 0, 0, 0, 0, 0, 0, 0],
-  bass: [6, 5, 3, 0, 0, 0, 0, 0],
-  vocal: [-2, -1, 0, 3, 5, 4, 1, 0],
-  jazz: [4, 3, 0, 2, 2, 0, 3, 4],
-  pop: [-1, 2, 5, 5, 2, -1, -2, -2],
-  rock: [5, 3, -1, -2, 0, 2, 4, 5],
-  hiphop: [6, 4, 0, -2, -2, 0, 3, 5],
-  classic: [5, 4, 0, 0, 0, 0, 4, 5],
-  electron: [6, 4, 2, 0, -2, 2, 4, 6],
+  bass: [5, 4, 2, 0, -1, -1, 1, 2],
+  vocal: [-2, -1, 0, 2, 4, 5, 3, 2],
+  jazz: [2, 2, 1, 0, 2, 3, 2, 2],
+  pop: [2, 1, 0, 1, 2, 3, 3, 4],
+  rock: [4, 3, 1, -1, 0, 2, 3, 3],
+  hiphop: [5, 4, 2, 0, 1, 2, 2, 3],
+  classic: [0, 0, 0, 1, 2, 3, 2, 2],
+  electron: [4, 3, 1, 0, 0, 2, 3, 4],
   custom: [3, 2, 1, 0, 1, 2, 2, 3]
 };
 
 let currentPresets = JSON.parse(localStorage.getItem('sparky_eq_presets') || JSON.stringify(FACTORY_PRESETS));
-let activePreset = localStorage.getItem('sparky_active_preset') || 'flat';
+let activePreset = 'flat';
 let lastSavedVals = [...(FACTORY_PRESETS.flat)];
 
 function updateSaveButtonState() {
@@ -379,7 +368,6 @@ function initEq() {
 
 function setEqPreset(p) {
   activePreset = p;
-  localStorage.setItem('sparky_active_preset', p);
   const vals = currentPresets[p] || FACTORY_PRESETS.flat;
   document.querySelectorAll('.btn-preset').forEach(b => b.classList.remove('active'));
   const btn = document.getElementById('pre-' + p);
@@ -398,7 +386,19 @@ function setEqPreset(p) {
   updateSaveButtonState();
 }
 
-// ══ EQ BINDINGS CONSOLIDATED IN DOMContentLoaded ══
+// ΓòÉΓòÉ EQ BINDINGS ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+document.getElementById('btnEq').onclick = function () {
+  const rack = document.getElementById('eqRack');
+  const isOpen = rack.classList.toggle('open');
+  this.classList.toggle('active', isOpen);
+
+  if (isOpen) {
+    wasCollapsedBeforeEQ = document.getElementById('filterRack').classList.contains('collapsed');
+    if (!wasCollapsedBeforeEQ) toggleFilters();
+  } else {
+    if (!wasCollapsedBeforeEQ) expandFilters();
+  }
+};
 
 document.querySelectorAll('.btn-preset').forEach(btn => {
   btn.onclick = () => {
@@ -411,45 +411,25 @@ document.querySelector('.btn-save').onclick = saveCustomEq;
 document.querySelector('.btn-reset').onclick = resetEqDefaults;
 
 function saveCustomEq() {
-  if (!activePreset) {
-    sparkyAlert("Please select a preset slot (e.g., CUSTOM or FLAT) to save your current levels.", "SAVE BLOCKED");
-    return;
-  }
   const p = activePreset.toUpperCase();
-  sparkyConfirm(`Commit current slider levels to the <strong>[${p}]</strong> memory bank?`, () => {
+  sparkyConfirm(`Commit current levels to the [${p}] memory bank?`, () => {
     currentPresets[activePreset] = [...eqVals];
     lastSavedVals = [...eqVals];
     localStorage.setItem('sparky_eq_presets', JSON.stringify(currentPresets));
     updateSaveButtonState();
+    sparkyAlert(`Preset [${p}] updated.`, "SAVE SUCCESSFUL");
   }, "CONFIRM MEMORY WRITE");
 }
 
 function resetEqDefaults() {
-  if (activePreset) {
-    const p = activePreset.toUpperCase();
-    sparkyConfirm(`Reset the <strong>[${p}]</strong> preset to its original factory levels? (This will only affect the current preset).`, () => {
-      currentPresets[activePreset] = [...FACTORY_PRESETS[activePreset]];
-      localStorage.setItem('sparky_eq_presets', JSON.stringify(currentPresets));
-      setEqPreset(activePreset);
-    }, "RESTORE PRESET");
-  } else {
-    sparkyConfirm(`<strong>GLOBAL FACTORY RESET:</strong> No preset is currently selected. Do you want to restore <strong>ALL</strong> presets to their original factory levels?`, () => {
-      currentPresets = JSON.parse(JSON.stringify(FACTORY_PRESETS));
-      localStorage.setItem('sparky_eq_presets', JSON.stringify(currentPresets));
-      // Re-apply flat defaults visually
-      FACTORY_PRESETS.flat.forEach((v, i) => {
-         eqVals[i] = v;
-         if (eqNodes[i]) eqNodes[i].gain.value = v;
-         const f = document.getElementById('eqF' + i);
-         if (f) { f.style.bottom = '50%'; f.setAttribute('data-db', '0.0dB'); }
-      });
-      lastSavedVals = [...FACTORY_PRESETS.flat];
-      updateSaveButtonState();
-    }, "GLOBAL FACTORY RESET");
-  }
+  sparkyConfirm(`RESTORE FACTORY SPECS: Reset [${activePreset.toUpperCase()}] to original levels?`, () => {
+    currentPresets[activePreset] = [...FACTORY_PRESETS[activePreset]];
+    localStorage.setItem('sparky_eq_presets', JSON.stringify(currentPresets));
+    setEqPreset(activePreset);
+  }, "PRESET RECOVERY");
 }
 
-// ══ MODALS ═════════════════════════════════
+// ΓòÉΓòÉ MODALS ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 function sparkyAlert(msg, header = "SYSTEM MESSAGE") {
   document.getElementById('sparkyModalHeader').textContent = header;
   document.getElementById('sparkyModalText').innerHTML = msg;
@@ -474,23 +454,13 @@ function sparkyPrompt(msg, header, onOk) {
   const ok = document.getElementById('sparkyModalOk');
   const cancel = document.getElementById('sparkyModalCancel');
   hdr.textContent = header || "SYSTEM PROMPT";
-  text.innerHTML = `
-    <div style="margin-bottom:12px">${msg}</div>
-    <input type="text" id="sparkyPromptInput" 
-           style="width:100%; background:var(--bg); border:1px solid var(--border); color:var(--accent); 
-                  padding:12px; outline:none; border-radius:2px; font-family:'Share Tech Mono', monospace; 
-                  font-size:18px; font-weight:700; -webkit-font-smoothing:antialiased;">
-  `;
+  text.innerHTML = `<div style="margin-bottom:10px">${msg}</div><input type="text" id="sparkyPromptInput" style="width:100%; background:var(--bg); border:1px solid var(--border); color:var(--text); padding:8px; outline:none; border-radius:2px;">`;
   cancel.style.display = 'inline-block';
-  modal.querySelector('.modal-content').style.maxWidth = '400px';
   modal.style.display = 'flex';
   const input = document.getElementById('sparkyPromptInput');
   if (input) {
     input.focus();
-    input.onkeydown = (e) => { 
-      if (e.key === 'Enter') ok.click(); 
-      if (e.key === 'Escape') cancel.click(); 
-    };
+    input.onkeydown = (e) => { if (e.key === 'Enter') ok.click(); if (e.key === 'Escape') cancel.click(); };
   }
   ok.onclick = () => { const val = input.value.trim(); modal.style.display = 'none'; if (onOk) onOk(val); };
   cancel.onclick = () => { modal.style.display = 'none'; if (onOk) onOk(null); };
@@ -529,17 +499,11 @@ function removeFav(st) {
   else renderStations();
 }
 
-// ══ AUDIO INIT ════════════════════════════
+// ΓòÉΓòÉ AUDIO INIT ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 function initAudio() {
   if (audioCtx) return;
   audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  
-  analyser = audioCtx.createAnalyser(); 
-  analyser.fftSize = 256; // 128 usable frequency bins
-  analyser.minDecibels = -90;
-  analyser.maxDecibels = -10;
-  analyser.smoothingTimeConstant = 0.35; // Allow visual code to handle smoothing
-
+  analyser = audioCtx.createAnalyser(); analyser.fftSize = 64;
   srcNode = audioCtx.createMediaElementSource(audioEl);
   let chain = srcNode;
   EQ_FREQS.forEach((freq, i) => {
@@ -549,70 +513,17 @@ function initAudio() {
     eqNodes.push(f); chain.connect(f); chain = f;
   });
   chain.connect(analyser); analyser.connect(audioCtx.destination);
-  
-  freqData = new Uint8Array(analyser.frequencyBinCount);
 }
 
-// ══ VISUALIZER ════════════════════════════
+// ΓòÉΓòÉ VISUALIZER ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 const vizBars = document.querySelectorAll('.visualizer .bar');
-
-function lerp(a, b, t) {
-  return a + (b - a) * t;
-}
-
-function getBandEnergy(data, start, end) {
-  let sum = 0, count = 0;
-  for (let i = start; i <= end; i++) {
-    sum += data[i] || 0;
-    count++;
-  }
-  return count ? sum / count : 0;
-}
+const vizData = new Uint8Array(28);
 
 function drawViz() {
   rafId = requestAnimationFrame(drawViz);
-  if (!analyser || !freqData) return;
-
-  analyser.getByteFrequencyData(freqData);
-
-  const totalBins = analyser.frequencyBinCount;
-  const barCount = vizBars.length;
-  const minBin = 1;
-  const maxBin = Math.min(totalBins - 1, 100); // Focus on musical range
-
-  vizBars.forEach((bar, i) => {
-    // Non-linear band mapping: More detail in bass/mids, grouping in treble
-    const t0 = i / barCount;
-    const t1 = (i + 1) / barCount;
-
-    const startBin = Math.floor(minBin + Math.pow(t0, 1.8) * (maxBin - minBin));
-    const endBin = Math.floor(minBin + Math.pow(t1, 1.8) * (maxBin - minBin));
-
-    let val = getBandEnergy(freqData, startBin, Math.max(startBin, endBin));
-
-    // Subtle progressive compensation (tilt)
-    const tilt = 1 + (i / barCount) * 0.4;
-    val *= tilt;
-
-    // Expand quiet details (visual compressor)
-    let normVal = val / 255;
-    normVal = Math.pow(normVal, 0.65);
-
-    // Visual smoothing: Fast rise (attack), slower fall (decay)
-    const prev = smoothedBands[i] || 0;
-    const attack = 0.55;
-    const decay = 0.18;
-    smoothedBands[i] = normVal > prev
-      ? lerp(prev, normVal, attack)
-      : lerp(prev, normVal, decay);
-
-    // Height mapping
-    const minH = 4;
-    const maxH = 28;
-    const h = minH + smoothedBands[i] * (maxH - minH);
-
-    bar.style.height = h.toFixed(1) + 'px';
-  });
+  if (!analyser) return;
+  analyser.getByteFrequencyData(vizData);
+  vizBars.forEach((b, i) => { b.style.height = (4 + (vizData[i] || 0) / 255 * 22) + 'px'; });
 }
 
 function idleViz() {
@@ -624,7 +535,7 @@ function idleViz() {
 }
 idleViz();
 
-// ══ STATUS ════════════════════════════════
+// ΓòÉΓòÉ STATUS ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 function setStatus(state, txt) {
   const dot = document.getElementById('statusDot');
   const text = document.getElementById('statusText');
@@ -632,22 +543,17 @@ function setStatus(state, txt) {
   if (text) text.textContent = txt.toUpperCase();
 }
 
-// ══ NOW PLAYING ═══════════════════════════
+// ΓòÉΓòÉ NOW PLAYING ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 function updateNowPlaying(st) {
   const nm = document.getElementById('npName');
   if (!nm) return;
-  nm.textContent = st ? st.name : '— SELECT A STATION —';
+  nm.textContent = st ? st.name : 'ΓÇö SELECT A STATION ΓÇö';
   nm.className = 'np-name' + (st ? ' running' : '');
   if (st) {
     const textWidth = nm.scrollWidth;
     const containerWidth = nm.parentElement.offsetWidth;
-    const totalDist = textWidth + containerWidth;
-    const speed = 35; // Pixels per second (Slower, relaxed pace)
-    const duration = totalDist / speed;
-    
-    nm.style.setProperty('--ticker-duration', duration + 's');
-    nm.style.setProperty('--ticker-start', containerWidth + 'px');
-    nm.style.setProperty('--ticker-end', '-' + textWidth + 'px');
+    const duration = (textWidth + containerWidth) / 50;
+    nm.style.animationDuration = duration + 's';
   }
   const votes = document.getElementById('npVotes');
   const clicks = document.getElementById('npClicks');
@@ -656,11 +562,12 @@ function updateNowPlaying(st) {
   const codec = document.getElementById('npCodec');
   if (votes) votes.textContent = fmtK(st?.votes || 0);
   if (clicks) clicks.textContent = fmtK(st?.clickcount || 0);
-  if (trend) trend.textContent = (st?.clicktrend !== undefined) ? (st.clicktrend > 0 ? '+' + st.clicktrend : st.clicktrend) : '—';
-  if (codec) codec.textContent = st?.codec || '—';
+  if (trend) trend.textContent = (st?.clicktrend !== undefined) ? (st.clicktrend > 0 ? '+' + st.clicktrend : st.clicktrend) : 'ΓÇö';
+  if (country) country.textContent = st?.countrycode || 'ΓÇö';
+  if (codec) codec.textContent = st?.codec || 'ΓÇö';
 }
 
-// ══ PLAYBACK ══════════════════════════════
+// ΓòÉΓòÉ PLAYBACK ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 function playStationObj(st) {
   if (!st) return;
   syncFavMetadata(st);
@@ -679,10 +586,8 @@ function playStationObj(st) {
     hls.on(Hls.Events.MANIFEST_PARSED, () => audioEl.play().then(onPlaySuccess).catch(onPlayError));
     hls.on(Hls.Events.ERROR, (ev, data) => { if (data.fatal) onPlayError(); });
   } else {
-  audioEl.src = url; 
-  audioEl.play().then(onPlaySuccess).catch(onPlayError);
-  localStorage.setItem('sparky_last_station', JSON.stringify(st));
-}
+    audioEl.src = url; audioEl.play().then(onPlaySuccess).catch(onPlayError);
+  }
   function onPlaySuccess() {
     isPlaying = true; setStatus('playing', 'CONNECTED');
     syncPlayBtns();
@@ -703,7 +608,7 @@ function playAtIndex(idx) {
 
 function stopPlayback() {
   audioEl.pause(); audioEl.src = '';
-  isPlaying = false; 
+  isPlaying = false; currentSrc = null;
   setStatus('', 'IDLE');
   syncPlayBtns();
   idleViz(); renderCurrent();
@@ -718,14 +623,7 @@ function togglePlay() {
 
 function renderCurrent() { activeTab === 'stations' ? renderStations() : renderFavs(); }
 
-// ══ RENDERERS ══════════════════════════════
-function renderFavicon(st) {
-  if (st.favicon && st.favicon.trim() !== '') {
-    return `<img class="pl-favicon" src="${esc(st.favicon)}" onerror="this.onerror=null; const s=document.createElement('span'); s.className='material-symbols-outlined pl-favicon-fallback'; s.textContent='radio'; this.replaceWith(s);">`;
-  }
-  return `<span class="material-symbols-outlined pl-favicon-fallback">radio</span>`;
-}
-
+// ΓòÉΓòÉ RENDERERS ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
 function fmtK(n) {
   const v = Number(n || 0);
@@ -739,7 +637,7 @@ function renderStations() {
   if (!pl) return;
   document.getElementById('stationsBadge').textContent = stations.length;
   if (!stations.length) {
-    pl.innerHTML = '<div class="pl-empty"><div class="pl-empty-icon">📡</div><div>SEARCH TO DISCOVER STATIONS</div></div>'; return;
+    pl.innerHTML = '<div class="pl-empty"><div class="pl-empty-icon">≡ƒôí</div><div>SEARCH TO DISCOVER STATIONS</div></div>'; return;
   }
   if (stations.length > 1) {
     if (sortMode === 'power') {
@@ -768,19 +666,20 @@ function renderStations() {
 
     // DASHBOARD TELEMETRY
     const trending = (st.clicktrend || 0) > 50 ? '<span class="pl-status-badge trending">TRENDING</span>' : '';
-    let primary = { id: 'pwr', icon: '⚡', val: `${pwr}%`, color: 'var(--accent)' };
+    let primary = { id: 'pwr', icon: 'ΓÜí', val: `${pwr}%`, color: 'var(--accent)' };
     let secondaries = [
-      { id: 'clk', icon: '🔥', val: fmtK(st.clickcount) },
-      { id: 'vot', icon: '👍', val: fmtK(st.votes) }
+      { id: 'clk', icon: '≡ƒöÑ', val: fmtK(st.clickcount) },
+      { id: 'vot', icon: '≡ƒæì', val: fmtK(st.votes) }
     ];
 
     if (sortMode === 'vote') {
-      primary = { id: 'vot', icon: '👍', val: fmtK(st.votes), color: 'var(--fav)' };
+      primary = { id: 'vot', icon: '≡ƒæì', val: fmtK(st.votes), color: 'var(--fav)' };
       secondaries = [
-        { id: 'pwr', icon: '⚡', val: `${pwr}%` },
-        { id: 'clk', icon: '🔥', val: fmtK(st.clickcount) }
+        { id: 'pwr', icon: 'ΓÜí', val: `${pwr}%` },
+        { id: 'clk', icon: '≡ƒöÑ', val: fmtK(st.clickcount) }
       ];
     }
+
     const isCompact = statsMode === 'COMPACT';
     const telemetryHtml = `
       <div class="pl-telemetry-bar">
@@ -791,31 +690,19 @@ function renderStations() {
     `;
 
     return `<div class="pl-item${actv ? ' active' : ''}" data-idx="${i}">
-      <div class="pl-sidebar"><div class="pl-num">${actv ? '▶' : (i + 1).toString().padStart(2, '0')}</div></div>
+      <div class="pl-sidebar"><div class="pl-num">${actv ? 'Γû╢' : (i + 1).toString().padStart(2, '0')}</div></div>
       <div class="pl-main">
-        <div class="pl-item-row pl-item-top">
-          <div class="pl-item-info-group">
-            ${renderFavicon(st)}
-            <div class="pl-item-name">${esc(st.name)}</div>
-            ${trending}
-          </div>
+        <div class="pl-item-name-row">
+          <div class="pl-item-name">${esc(st.name)}</div>
           <div class="pl-item-actions">
-            <button class="pl-action-btn pl-heart-btn" data-fav="${i}" title="Toggle Favorite">
-              <span class="material-symbols-outlined pl-heart${favd ? ' is-fav' : ''}">favorite</span>
-            </button>
-            <button class="pl-action-btn pl-remove" data-rmst="${i}" title="Remove Station">
-              <span class="material-symbols-outlined">close</span>
-            </button>
+            ${trending}
+            <button class="pl-heart-btn" data-fav="${i}"><span class="material-symbols-outlined pl-heart${favd ? ' is-fav' : ''}">favorite</span></button>
+            <button class="pl-remove" data-rmst="${i}">Γ£ò</button>
           </div>
         </div>
-        
-        <div class="pl-item-row pl-item-bottom">
-          <div class="pl-item-meta-group">
-            <span class="pl-item-meta-text">${esc(st.countrycode || '--')} · ${esc((st.tags || '').split(',').slice(0, 2).join(', ').toUpperCase() || 'RADIO')}</span>
-          </div>
-          <div class="pl-item-stat-group">
-             <span class="pl-power-val" style="color:${primary.color}">⚡ ${primary.val}</span>
-          </div>
+        <div class="pl-item-sub-row">
+          <div class="pl-item-sub">${esc(st.countrycode || '--')} ┬╖ ${esc((st.tags || '').split(',').slice(0, 2).join(', ') || 'radio')}</div>
+          ${telemetryHtml}
         </div>
       </div>
     </div>`;
@@ -840,7 +727,7 @@ function renderFavs() {
   if (!pl) return;
   refreshFavBadge();
   if (!favs.length) {
-    pl.innerHTML = '<div class="pl-empty"><div class="pl-empty-icon">★</div><div>NO FAVORITES YET</div></div>'; return;
+    pl.innerHTML = '<div class="pl-empty"><div class="pl-empty-icon">Γÿà</div><div>NO FAVORITES YET</div></div>'; return;
   }
   if (favs.length > 1 && sortMode !== 'custom') {
     if (sortMode === 'power') {
@@ -863,17 +750,17 @@ function renderFavs() {
     const isManual = sortMode === 'custom';
     // DASHBOARD TELEMETRY
     const trending = (st.clicktrend || 0) > 50 ? '<span class="pl-status-badge trending">TRENDING</span>' : '';
-    let primary = { id: 'pwr', icon: '⚡', val: `${pwr}%`, color: 'var(--accent)' };
+    let primary = { id: 'pwr', icon: 'ΓÜí', val: `${pwr}%`, color: 'var(--accent)' };
     let secondaries = [
-      { id: 'clk', icon: '🔥', val: fmtK(st.clickcount) },
-      { id: 'vot', icon: '👍', val: fmtK(st.votes) }
+      { id: 'clk', icon: '≡ƒöÑ', val: fmtK(st.clickcount) },
+      { id: 'vot', icon: '≡ƒæì', val: fmtK(st.votes) }
     ];
 
     if (sortMode === 'vote') {
-      primary = { id: 'vot', icon: '👍', val: fmtK(st.votes), color: 'var(--fav)' };
+      primary = { id: 'vot', icon: '≡ƒæì', val: fmtK(st.votes), color: 'var(--fav)' };
       secondaries = [
-        { id: 'pwr', icon: '⚡', val: `${pwr}%` },
-        { id: 'clk', icon: '🔥', val: fmtK(st.clickcount) }
+        { id: 'pwr', icon: 'ΓÜí', val: `${pwr}%` },
+        { id: 'clk', icon: '≡ƒöÑ', val: fmtK(st.clickcount) }
       ];
     }
 
@@ -886,41 +773,29 @@ function renderFavs() {
       </div>
     `;
 
-    let sidebarHtml = `<div class="pl-num">${actv ? '▶' : (i + 1).toString().padStart(2, '0')}</div>`;
+    let sidebarHtml = `<div class="pl-num">${actv ? 'Γû╢' : (i + 1).toString().padStart(2, '0')}</div>`;
     if (isManual) {
       sidebarHtml = `
-        <button class="btn-stack" data-up="${st.sparkyId}">▲</button>
-        <div class="pl-num">${actv ? '▶' : (i + 1).toString().padStart(2, '0')}</div>
-        <button class="btn-stack" data-down="${st.sparkyId}">▼</button>
+        <button class="btn-stack" data-up="${st.sparkyId}">Γû▓</button>
+        <div class="pl-num">${actv ? 'Γû╢' : (i + 1).toString().padStart(2, '0')}</div>
+        <button class="btn-stack" data-down="${st.sparkyId}">Γû╝</button>
       `;
     }
 
     return `<div class="pl-item${actv ? ' active' : ''}${isDup ? ' is-dup-fav' : ''}" data-idx="${i}">
       <div class="pl-sidebar">${sidebarHtml}</div>
       <div class="pl-main">
-        <div class="pl-item-row pl-item-top">
-          <div class="pl-item-info-group">
-            ${renderFavicon(st)}
-            <div class="pl-item-name">${esc(st.name)}</div>
-            ${trending}
-          </div>
+        <div class="pl-item-name-row">
+          <div class="pl-item-name">${esc(st.name)}</div>
           <div class="pl-item-actions">
-            <button class="pl-action-btn pl-edit" data-edit="${st.sparkyId}" title="Edit Favorite">
-              <span class="material-symbols-outlined">edit</span>
-            </button>
-            <button class="pl-action-btn pl-remove" data-rmfav="${st.sparkyId}" title="Remove Favorite">
-              <span class="material-symbols-outlined">close</span>
-            </button>
+            ${trending}
+            <button class="pl-edit" data-edit="${st.sparkyId}" style="margin-left:8px">Γ£Ä</button>
+            <button class="pl-remove" data-rmfav="${st.sparkyId}">Γ£ò</button>
           </div>
         </div>
-
-        <div class="pl-item-row pl-item-bottom">
-          <div class="pl-item-meta-group">
-            <span class="pl-item-meta-text">${esc(st.countrycode || '--')} · ${esc((st.tags || '').split(',').slice(0, 2).join(', ').toUpperCase() || 'RADIO')}</span>
-          </div>
-          <div class="pl-item-stat-group">
-             <span class="pl-power-val" style="color:${primary.color}">⚡ ${primary.val}</span>
-          </div>
+        <div class="pl-item-sub-row">
+          <div class="pl-item-sub">${esc(st.countrycode || '--')} ┬╖ ${esc((st.tags || '').split(',').slice(0, 2).join(', ') || 'radio')}</div>
+          ${telemetryHtml}
         </div>
       </div>
     </div>`;
@@ -931,7 +806,7 @@ function renderFavs() {
   });
   pl.querySelectorAll('[data-rmfav]').forEach(btn => btn.onclick = (e) => {
     e.stopPropagation();
-    const sid = btn.dataset.rmfav; // sparkyId — permanent identity, sort-order independent
+    const sid = btn.dataset.rmfav; // sparkyId ΓÇö permanent identity, sort-order independent
     const m = loadFavs();
     const f = m.find(x => x.sparkyId === sid);
     if (!f) return;
@@ -939,14 +814,14 @@ function renderFavs() {
   });
   pl.querySelectorAll('[data-edit]').forEach(btn => btn.onclick = (e) => {
     e.stopPropagation();
-    const sid = btn.dataset.edit; // sparkyId — permanent identity, sort-order independent
+    const sid = btn.dataset.edit; // sparkyId ΓÇö permanent identity, sort-order independent
     const m = loadFavs();
     const storageIdx = m.findIndex(f => f.sparkyId === sid);
-    if (storageIdx === -1) return; // entry no longer exists — bail out
+    if (storageIdx === -1) return; // entry no longer exists ΓÇö bail out
     const st = m[storageIdx]; // always the exact correct entry
     const originalUrl = st.url;
     openEditModal(st.name, st.url, (n, u) => {
-      if (n === null) return; // user cancelled — do nothing
+      if (n === null) return; // user cancelled ΓÇö do nothing
       const newName = n.trim() || st.name;
       const newUrl = (u || '').trim() || originalUrl;
       let fresh = loadFavs(); // reload in case anything changed while modal was open
@@ -963,7 +838,7 @@ function renderFavs() {
         // Only warn if new URL conflicts with a DIFFERENT existing favorite (not self)
         const conflict = fresh.some((f, i) => i !== freshIdx && norm(f.url) === norm(newUrl));
         if (conflict) {
-          sparkyConfirm(`<span style="color:#ff0; font-weight:bold; font-size:13px">⚠ CAUTION: DUPLICATE URL</span><br><br>This URL already exists in another Favorite. Proceed anyway?`, doSave, "DUPLICATE DETECTED");
+          sparkyConfirm(`<span style="color:#ff0; font-weight:bold; font-size:13px">ΓÜá CAUTION: DUPLICATE URL</span><br><br>This URL already exists in another Favorite. Proceed anyway?`, doSave, "DUPLICATE DETECTED");
           return;
         }
       }
@@ -986,12 +861,26 @@ function renderFavs() {
   });
 }
 
-// ══ TRANSPORT ══════════════════════════════
-// Logic moved to footer bindings and togglePlay function
+// ΓòÉΓòÉ TRANSPORT ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+document.getElementById('btnPlay').onclick = () => {
+  if (audioCtx?.state === 'suspended') audioCtx.resume();
+  if (!isPlaying) {
+    if (currentSrc) audioEl.play().then(() => { isPlaying = true; setStatus('playing', 'CONNECTED'); syncPlayBtns(); drawViz(); });
+    else { const l = activeTab === 'favs' ? loadFavs() : stations; if (l.length) playAtIndex(0); }
+  } else { audioEl.pause(); isPlaying = false; setStatus('', 'PAUSED'); syncPlayBtns(); idleViz(); }
+};
+document.getElementById('btnStop').onclick = stopPlayback;
+document.getElementById('btnNext').onclick = () => {
+  const l = activeTab === 'favs' ? favs : stations;
+  if (l.length) playAtIndex((currentIdx + 1) % l.length);
+};
+document.getElementById('btnPrev').onclick = () => {
+  const l = activeTab === 'favs' ? favs : stations;
+  if (l.length) playAtIndex((currentIdx - 1 + l.length) % l.length);
+};
 
-
-// ══ FOOTER ACTIONS (Logic defined here, bound in INIT) ════
-function handleAddStation() {
+// ΓòÉΓòÉ FOOTER ACTIONS ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+document.getElementById('btnAdd').onclick = () => {
   sparkyPrompt("Enter stream URL:", "ADD CUSTOM STATION", (url) => {
     if (!url) return;
     const nUrl = norm(url);
@@ -1007,22 +896,22 @@ function handleAddStation() {
     };
 
     if (exists) {
-      sparkyConfirm(`<span style="color:#ff0; font-weight:bold; font-size:13px">⚠ CAUTION: DUPLICATE URL</span><br><br>This URL already exists in your Favorites. Proceed anyway?`, proceedToName, "DUPLICATE DETECTED");
+      sparkyConfirm(`<span style="color:#ff0; font-weight:bold; font-size:13px">ΓÜá CAUTION: DUPLICATE URL</span><br><br>This URL already exists in your Favorites. Proceed anyway?`, proceedToName, "DUPLICATE DETECTED");
     } else {
       proceedToName();
     }
   });
-}
+};
 
-function handleRemoveStation() {
+document.getElementById('btnRemove').onclick = () => {
   if (currentIdx < 0) {
     sparkyAlert("SELECT A STATION FROM THE LIST TO REMOVE", "SELECTION REQUIRED");
     return;
   }
   if (activeTab === 'favs') {
-    const f = favs[currentIdx]; // sorted global — matches what user sees
-    if (!f) { sparkyAlert("SELECTION INVALID — PLEASE RESELECT", "SELECTION REQUIRED"); return; }
-    const sid = f.sparkyId; // sparkyId — permanent identity anchor
+    const f = favs[currentIdx]; // sorted global ΓÇö matches what user sees
+    if (!f) { sparkyAlert("SELECTION INVALID ΓÇö PLEASE RESELECT", "SELECTION REQUIRED"); return; }
+    const sid = f.sparkyId; // sparkyId ΓÇö permanent identity anchor
     sparkyConfirm(`Remove [${f.name}] from favorites?`, () => {
       removeFavBySparkyId(sid); stopPlayback(); renderFavs();
     });
@@ -1032,40 +921,18 @@ function handleRemoveStation() {
       stations.splice(currentIdx, 1); stopPlayback(); renderStations();
     });
   }
-}
-
+};
 
 // FOOTER MINI-PLAYER BINDINGS
 const syncPlayBtns = () => {
-  const isP = isPlaying;
-  // Global playing state for CSS effects
-  document.querySelector('.app')?.classList.toggle('is-playing', isP);
-
-  // Main button (legacy/top)
   const playBtn = document.getElementById('btnPlay');
-  if (playBtn) playBtn.innerHTML = isP ? '&#9646;&#9646; PAUSE' : '&#9654; PLAY';
-
-  // Footer button (new premium structure)
   const playBtnFooter = document.getElementById('btnPlayFooter');
-  if (playBtnFooter) {
-    const icon = playBtnFooter.querySelector('.material-symbols-outlined');
-    const label = playBtnFooter.querySelector('.btn-label');
-    if (icon && label) {
-      icon.textContent = isP ? 'stop' : 'play_arrow'; // Changed to STOP icon for live streams
-      label.textContent = isP ? 'STOP' : 'PLAY';      // Changed to STOP label
-    } else {
-      playBtnFooter.innerHTML = isP ? '&#9632; STOP' : '&#9654; PLAY';
-    }
-  }
+  const html = isPlaying ? '&#9646;&#9646; PAUSE' : '&#9654; PLAY';
+  if (playBtn) playBtn.innerHTML = html;
+  if (playBtnFooter) playBtnFooter.innerHTML = html;
 };
 
-const updateVolFill = (el) => {
-  if (!el) return;
-  const v = el.value;
-  el.style.background = `linear-gradient(to right, var(--accent) ${v}%, var(--seek-bg) ${v}%)`;
-};
-
-// ══ SEARCH ════════════════════════════════
+// ΓòÉΓòÉ SEARCH ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 async function searchStations(q) {
   if (isSearching) return;
   const hasFilters = filterCountry !== 'ALL' || filterLang !== 'ALL' || filterHiFi;
@@ -1113,7 +980,7 @@ async function searchStations(q) {
       });
       if (filterHiFi) filtered = filtered.filter(s => Number(s.bitrate || 0) >= 128);
 
-      // ══ SMART-TUNE RE-SORT (1:1 FIDELITY) ════
+      // ΓòÉΓòÉ SMART-TUNE RE-SORT (1:1 FIDELITY) ΓòÉΓòÉΓòÉΓòÉ
       const maxClicks = Math.max(...filtered.map(s => Number(s.clickcount || 0)), 1);
       const maxVotes = Math.max(...filtered.map(s => Number(s.votes || 0)), 1);
       const maxTrend = Math.max(...filtered.map(s => Number(s.clicktrend || 0)), 1);
@@ -1129,7 +996,7 @@ async function searchStations(q) {
     } catch (e) { }
   }
   if (success) renderStations();
-  else if (pl) pl.innerHTML = '<div class="pl-empty">⚠ ALL MIRRORS UNREACHABLE</div>';
+  else if (pl) pl.innerHTML = '<div class="pl-empty">ΓÜá ALL MIRRORS UNREACHABLE</div>';
   isSearching = false;
 }
 
@@ -1144,8 +1011,8 @@ function expandFilters() {
   if (rack?.classList.contains('collapsed')) { rack.classList.remove('collapsed'); btn.classList.remove('active'); }
 }
 
-// ══ SETTINGS & UI ══════════════════════════
-// ══ SETTINGS & UI (Logic defined here, bound in INIT) ══
+// ΓòÉΓòÉ SETTINGS & UI ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+// ΓòÉΓòÉ SETTINGS & UI (Logic defined here, bound in INIT) ΓòÉΓòÉ
 function handleExport() {
   const data = JSON.stringify(loadFavs(), null, 2);
   const blob = new Blob([data], { type: 'application/json' });
@@ -1203,7 +1070,7 @@ const CTRY_NAMES = {
   "FR": "France", "GB": "United Kingdom", "GR": "Greece", "HR": "Croatia", "HU": "Hungary", "ID": "Indonesia",
   "IE": "Ireland", "IL": "Israel", "IN": "India", "IT": "Italy", "JP": "Japan", "MX": "Mexico", "NL": "The Netherlands",
   "NZ": "New Zealand", "PE": "Peru", "PH": "Philippines", "PL": "Poland", "PT": "Portugal", "RO": "Romania",
-  "RS": "Serbia", "RU": "Russian Federation", "SE": "Sweden", "SK": "Slovakia", "TR": "Türkiye", "TW": "Taiwan",
+  "RS": "Serbia", "RU": "Russian Federation", "SE": "Sweden", "SK": "Slovakia", "TR": "T├╝rkiye", "TW": "Taiwan",
   "UA": "Ukraine", "UG": "Uganda", "US": "United States", "UY": "Uruguay", "VE": "Venezuela", "ZA": "South Africa"
 };
 
@@ -1224,14 +1091,14 @@ function loadFilterOptions() {
 
   cCont.innerHTML = finalC.map(c => {
     const name = CTRY_NAMES[c] || c;
-    const display = c === 'ALL' ? 'ALL COUNTRIES' : `${name} · ${c}`;
+    const display = c === 'ALL' ? 'ALL COUNTRIES' : `${name} ┬╖ ${c}`;
     return `<div class="preset-opt" data-val="${c}">${display}</div>`;
   }).join('');
 
   lCont.innerHTML = finalL.map(l => {
     const name = l.charAt(0).toUpperCase() + l.slice(1);
     const code = l === 'ALL' ? 'ALL' : l.substring(0, 3).toUpperCase();
-    const display = l === 'ALL' ? 'ALL LANGUAGES' : `${name} · ${code}`;
+    const display = l === 'ALL' ? 'ALL LANGUAGES' : `${name} ┬╖ ${code}`;
     return `<div class="preset-opt" data-val="${l}">${display}</div>`;
   }).join('');
 
@@ -1239,6 +1106,14 @@ function loadFilterOptions() {
   lCont.querySelectorAll('.preset-opt').forEach(o => o.onclick = () => { filterLang = o.dataset.val; document.getElementById('filterLangTrigger').textContent = filterLang === 'ALL' ? 'ALL' : filterLang.substring(0, 3).toUpperCase(); lCont.classList.remove('show'); searchStations(document.getElementById('searchInput').value); });
 }
 
+document.getElementById('filterCountryTrigger').onclick = (e) => { e.stopPropagation(); document.getElementById('filterCountryOptions').classList.toggle('show'); };
+document.getElementById('filterLangTrigger').onclick = (e) => { e.stopPropagation(); document.getElementById('filterLangOptions').classList.toggle('show'); };
+
+document.getElementById('btnHifi').onclick = () => {
+  filterHiFi = !filterHiFi;
+  document.getElementById('btnHifi').classList.toggle('active', filterHiFi);
+  searchStations(document.getElementById('searchInput').value);
+};
 
 const defaultPresets = ["Jazz", "Blues", "Rock", "Pop", "Classical", "News", "Country", "80s", "90s", "Charts"];
 function loadPresets() {
@@ -1246,54 +1121,41 @@ function loadPresets() {
   const all = [...new Set([...defaultPresets, ...custom])].sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
   const container = document.getElementById('presetOptions');
   if (!container) return;
-  let html = `<div class="preset-opt add-opt" data-val="ADD">+ ADD NEW TUNE</div>`;
+  let html = `<div class="preset-opt add-opt" data-val="ADD">+ ADD NEW PRESET</div>`;
   all.forEach(p => {
     const isDefault = defaultPresets.includes(p);
-    html += `<div class="preset-opt" data-val="${p}"><span>${p.toUpperCase()}</span>${!isDefault ? `<span class="preset-del" data-del="${p}">✕</span>` : ''}</div>`;
+    html += `<div class="preset-opt" data-val="${p}"><span>${p}</span>${!isDefault ? `<span class="preset-del" data-del="${p}">Γ£ò</span>` : ''}</div>`;
   });
   container.innerHTML = html;
   container.querySelectorAll('.preset-opt').forEach(opt => opt.onclick = (e) => { if (e.target.classList.contains('preset-del')) return; handlePresetSelect(opt.dataset.val); });
-  container.querySelectorAll('.preset-del').forEach(btn => btn.onclick = (e) => { 
-    e.stopPropagation(); 
-    const val = btn.dataset.del; 
-    sparkyConfirm(`Remove [${val}] from Quick-Tunes?`, () => { 
-      const up = JSON.parse(localStorage.getItem('sparky_search_presets') || '[]').filter(x => x !== val); 
-      localStorage.setItem('sparky_search_presets', JSON.stringify(up)); 
-      
-      const trigger = document.getElementById('presetTrigger');
-      if (trigger && trigger.textContent === val.toUpperCase()) {
-        trigger.textContent = 'QUICK-TUNE';
-      }
-      
-      loadPresets(); 
-    }); 
-  });
+  container.querySelectorAll('.preset-del').forEach(btn => btn.onclick = (e) => { e.stopPropagation(); const val = btn.dataset.del; sparkyConfirm(`Remove [${val}]?`, () => { const up = JSON.parse(localStorage.getItem('sparky_search_presets') || '[]').filter(x => x !== val); localStorage.setItem('sparky_search_presets', JSON.stringify(up)); loadPresets(); }); });
 }
 
 function handlePresetSelect(val) {
   document.getElementById('presetOptions').classList.remove('show');
   if (val === 'ADD') {
-    sparkyPrompt("Enter new discovery label:", "ADD QUICK-TUNE", (term) => {
+    sparkyPrompt("Enter search term:", "NEW PRESET", (term) => {
       if (term?.trim()) {
         const c = JSON.parse(localStorage.getItem('sparky_search_presets') || '[]');
-        if (!c.includes(term.trim())) { 
-          c.push(term.trim()); 
-          localStorage.setItem('sparky_search_presets', JSON.stringify(c)); 
-          loadPresets(); 
-          handlePresetSelect(term.trim()); 
-        }
+        if (!c.includes(term.trim())) { c.push(term.trim()); localStorage.setItem('sparky_search_presets', JSON.stringify(c)); loadPresets(); handlePresetSelect(term.trim()); }
       }
     });
   } else {
-    document.getElementById('presetTrigger').textContent = val.toUpperCase();
-    const inp = document.getElementById('searchInput'); 
-    inp.value = val;
-    if (window.syncSearchUI) window.syncSearchUI(); // Ensure 'X' appears
-    switchTab('stations'); 
-    searchStations(val);
+    document.getElementById('presetTrigger').textContent = val;
+    const inp = document.getElementById('searchInput'); inp.value = val;
+    switchTab('stations'); searchStations(val);
   }
 }
 
+document.getElementById('presetTrigger').onclick = (e) => { e.stopPropagation(); document.getElementById('presetOptions').classList.toggle('show'); };
+
+window.addEventListener('click', () => {
+  document.getElementById('presetOptions')?.classList.remove('show');
+  document.getElementById('filterCountryOptions')?.classList.remove('show');
+  document.getElementById('filterLangOptions')?.classList.remove('show');
+  document.getElementById('defaultCountryOptions')?.classList.remove('show');
+  document.getElementById('defaultLangOptions')?.classList.remove('show');
+});
 
 function loadSettingsOptions() {
   const dcCont = document.getElementById('defaultCountryOptions'), dlCont = document.getElementById('defaultLangOptions');
@@ -1302,21 +1164,19 @@ function loadSettingsOptions() {
   const defC = localStorage.getItem('sparky_default_country') || 'ALL';
   const defL = localStorage.getItem('sparky_default_lang') || 'ALL';
 
-  const dct = document.getElementById('defaultCountryTrigger');
-  if (dct) dct.textContent = defC;
-  const dlt = document.getElementById('defaultLangTrigger');
-  if (dlt) dlt.textContent = defL === 'ALL' ? 'ALL' : defL.substring(0, 3).toUpperCase();
+  document.getElementById('defaultCountryTrigger').textContent = defC;
+  document.getElementById('defaultLangTrigger').textContent = defL === 'ALL' ? 'ALL' : defL.substring(0, 3).toUpperCase();
 
   dcCont.innerHTML = CTRY_LIST.map(c => {
     const name = CTRY_NAMES[c] || c;
-    const display = c === 'ALL' ? 'ALL COUNTRIES' : `${name} · ${c}`;
+    const display = c === 'ALL' ? 'ALL COUNTRIES' : `${name} ┬╖ ${c}`;
     return `<div class="preset-opt${c === defC ? ' active' : ''}" data-val="${c}">${display}</div>`;
   }).join('');
 
   dlCont.innerHTML = LANG_LIST.map(l => {
     const name = l.charAt(0).toUpperCase() + l.slice(1);
     const code = l === 'ALL' ? 'ALL' : l.substring(0, 3).toUpperCase();
-    const display = l === 'ALL' ? 'ALL LANGUAGES' : `${name} · ${code}`;
+    const display = l === 'ALL' ? 'ALL LANGUAGES' : `${name} ┬╖ ${code}`;
     return `<div class="preset-opt${l === defL ? ' active' : ''}" data-val="${l}">${display}</div>`;
   }).join('');
 
@@ -1347,36 +1207,26 @@ function loadSettingsOptions() {
       localStorage.setItem('sparky_stats_mode', statsMode);
       document.getElementById('statsModeTrigger').textContent = statsMode;
       smCont.classList.remove('show');
-      syncStatsUI();
       renderCurrent();
     });
   }
 }
-// ══ APP INITIALIZATION ══════════════════════════════════
+// ΓòÉΓòÉ APP INITIALIZATION ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 window.addEventListener('DOMContentLoaded', () => {
   initEq();
-  setEqPreset(activePreset);
   loadPresets();
   applyTextScale(textScale);
-  const sv = localStorage.getItem('sparky_volume');
-  if (sv !== null) {
-    const vs = document.getElementById('volSlider');
-    vs.value = sv;
-    audioEl.volume = sv / 100;
-    updateVolFill(vs);
-  }
+  const sv = localStorage.getItem('sparky_volume'); if (sv !== null) { document.getElementById('volSlider').value = sv; audioEl.volume = sv / 100; }
   filterHiFi = localStorage.getItem('sparky_default_hifi') !== 'false';
   document.getElementById('btnHifi').classList.toggle('active', filterHiFi);
 
   loadFilterOptions();
   loadSettingsOptions();
-  syncStatsUI();
 
-  // ══ DEFAULTS TRIGGERS ══
-  // ══ DEFAULTS TRIGGERS (Safe Bindings) ══
-  bind('defaultCountryTrigger', (e) => { e.stopPropagation(); document.getElementById('defaultCountryOptions')?.classList.toggle('show'); });
-  bind('defaultLangTrigger', (e) => { e.stopPropagation(); document.getElementById('defaultLangOptions')?.classList.toggle('show'); });
-  bind('statsModeTrigger', (e) => { e.stopPropagation(); document.getElementById('statsModeOptions')?.classList.toggle('show'); });
+  // ΓòÉΓòÉ DEFAULTS TRIGGERS ΓòÉΓòÉ
+  document.getElementById('defaultCountryTrigger').onclick = (e) => { e.stopPropagation(); document.getElementById('defaultCountryOptions').classList.toggle('show'); };
+  document.getElementById('defaultLangTrigger').onclick = (e) => { e.stopPropagation(); document.getElementById('defaultLangOptions').classList.toggle('show'); };
+  document.getElementById('statsModeTrigger').onclick = (e) => { e.stopPropagation(); document.getElementById('statsModeOptions').classList.toggle('show'); };
 
 
   const hifiToggle = document.getElementById('defaultHifiToggle');
@@ -1392,43 +1242,30 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 
   // MISSION CONTROL BINDINGS
-  // Top controls removed from UI
+  document.getElementById('btnPlay').onclick = togglePlay;
+  document.getElementById('btnStop').onclick = stopPlayback;
+  document.getElementById('btnNext').onclick = () => playAtIndex(currentIdx + 1);
+  document.getElementById('btnPrev').onclick = () => playAtIndex(currentIdx - 1);
   // btnAdd logic consolidated at L816
   // btnRemove logic consolidated at L865
-  const searchInput = document.getElementById('searchInput');
-  const btnSearchClear = document.getElementById('btnSearchClear');
-
-  const toggleSearchClear = () => {
-    btnSearchClear.style.display = searchInput.value ? 'flex' : 'none';
-  };
-
-  searchInput.oninput = toggleSearchClear;
-
-  btnSearchClear.onclick = () => {
-    searchInput.value = '';
-    searchInput.focus();
-    toggleSearchClear();
+  document.getElementById('btnSearchClear').onclick = () => {
+    const inp = document.getElementById('searchInput');
+    inp.value = ''; inp.focus();
+    document.getElementById('btnSearchClear').style.display = 'none';
     document.getElementById('presetTrigger').textContent = 'QUICK-TUNE';
-    searchStations('');
   };
-  
-  // Expose toggle for programmatic use
-  window.syncSearchUI = toggleSearchClear;
   document.getElementById('btnEq').onclick = () => {
     const r = document.getElementById('eqRack');
-    const np = document.querySelector('.now-playing');
-    const isOpen = r.classList.toggle('open');
-    np?.classList.toggle('eq-open', isOpen);
-    document.getElementById('btnEq').classList.toggle('active', isOpen);
-    
-    if (isOpen) {
-      wasCollapsedBeforeEQ = document.getElementById('filterRack').classList.contains('collapsed');
-      document.getElementById('filterRack').classList.add('collapsed');
-      document.getElementById('btnFilterToggle').classList.add('active');
+    r.classList.toggle('open');
+    document.getElementById('btnEq').classList.toggle('active', r.classList.contains('open'));
+    if (r.classList.contains('open')) {
+      wasCollapsedBeforeEQ = document.getElementById('lowerRack').classList.contains('collapsed');
+      document.getElementById('lowerRack').classList.add('collapsed');
+      document.getElementById('btnPlaylistToggle').classList.add('active');
     } else {
       if (!wasCollapsedBeforeEQ) {
-        document.getElementById('filterRack').classList.remove('collapsed');
-        document.getElementById('btnFilterToggle').classList.remove('active');
+        document.getElementById('lowerRack').classList.remove('collapsed');
+        document.getElementById('btnPlaylistToggle').classList.remove('active');
       }
     }
   };
@@ -1437,115 +1274,70 @@ window.addEventListener('DOMContentLoaded', () => {
     const v = e.target.value;
     audioEl.volume = v / 100;
     localStorage.setItem('sparky_volume', v);
-    updateVolFill(e.target);
   };
 
-  // ══ CONSOLIDATED DOM BINDINGS (ELIMINATE TYPEERROR) ══
-  function bind(id, fn, ev = 'onclick') { const el = document.getElementById(id); if (el) el[ev] = fn; }
-
-  bind('btnSearch', () => {
+  // ΓòÉΓòÉ CONSOLIDATED DOM BINDINGS (ELIMINATE TYPEERROR) ΓòÉΓòÉ
+  document.getElementById('btnSearch').onclick = () => {
     const q = document.getElementById('searchInput').value.trim();
     expandFilters(); if (q) { switchTab('stations'); searchStations(q); }
-  });
-  bind('btnFilterToggle', toggleFilters);
-  bind('btnPlayFooter', () => togglePlay());
-  bind('btnNextFooter', () => {
-    const l = activeTab === 'favs' ? favs : stations;
-    if (l.length) playAtIndex((currentIdx + 1) % l.length);
-  });
-  bind('btnPrevFooter', () => {
-    const l = activeTab === 'favs' ? favs : stations;
-    if (l.length) playAtIndex((currentIdx - 1 + l.length) % l.length);
-  });
+  };
+  document.getElementById('btnFilterToggle').onclick = toggleFilters;
+  document.getElementById('btnPlayFooter').onclick = () => document.getElementById('btnPlay').click();
+  document.getElementById('btnStopFooter').onclick = () => stopPlayback();
+  document.getElementById('btnNextFooter').onclick = () => document.getElementById('btnNext').click();
+  document.getElementById('btnPrevFooter').onclick = () => document.getElementById('btnPrev').click();
 
-  bind('btnAdd', handleAddStation);
-  bind('btnRemove', handleRemoveStation);
-  bind('filterCountryTrigger', (e) => { e.stopPropagation(); document.getElementById('filterCountryOptions')?.classList.toggle('show'); });
-  bind('filterLangTrigger', (e) => { e.stopPropagation(); document.getElementById('filterLangOptions')?.classList.toggle('show'); });
-  bind('btnHifi', () => {
-    filterHiFi = !filterHiFi;
-    document.getElementById('btnHifi')?.classList.toggle('active', filterHiFi);
-    searchStations(document.getElementById('searchInput').value);
-  });
-  bind('presetTrigger', (e) => { e.stopPropagation(); document.getElementById('presetOptions')?.classList.toggle('show'); });
+  // ΓòÉΓòÉ SETTINGS & SYSTEM BINDINGS ΓòÉΓòÉ
+  document.getElementById('statusCluster').onclick = () => {
+    document.getElementById('settingsModal').style.display = 'flex';
+    updateDeploymentUI();
+  };
+  document.getElementById('btnSettingsClose').onclick = () => {
+    document.getElementById('settingsModal').style.display = 'none';
+  };
+  document.getElementById('btnOpenDebug').onclick = () => {
+    document.getElementById('settingsModal').style.display = 'none';
+    document.getElementById('debugModal').style.display = 'flex';
+  };
+  document.getElementById('btnDebugClose').onclick = () => {
+    document.getElementById('debugModal').style.display = 'none';
+  };
+  document.getElementById('btnCopyLogs').onclick = () => window.copyLogs();
+  document.getElementById('btnAuditFavs').onclick = () => window.auditFavs();
+  document.getElementById('btnExportFavs').onclick = handleExport;
+  document.getElementById('btnImportFavs').onclick = () => document.getElementById('importFile').click();
+  document.getElementById('importFile').onchange = handleImport;
 
-  // ══ BACKDROP CLICK LISTENER ══
-  window.addEventListener('click', () => {
-    ['presetOptions', 'filterCountryOptions', 'filterLangOptions', 'defaultCountryOptions', 'defaultLangOptions', 'statsModeOptions'].forEach(id => {
-      document.getElementById(id)?.classList.remove('show');
-    });
-  });
+  // ΓòÉΓòÉ INTERFACE SCALE BINDINGS ΓòÉΓòÉ
+  document.getElementById('textScaleSlider').oninput = (e) => applyTextScale(parseFloat(e.target.value));
+  document.getElementById('btnResetScale').onclick = () => applyTextScale(1.0);
 
-  // ══ SYSTEM & UTILITY BINDINGS (SAFE) ══
-  bind('btnCopyLogs', () => window.copyLogs());
-  bind('btnAuditFavs', () => window.auditFavs());
-  bind('btnExportFavs', handleExport);
-  bind('btnImportFavs', () => document.getElementById('importFile').click());
-  bind('importFile', handleImport, 'onchange');
-  bind('sparkyModalOk', () => closeSparkyModal(true));
-  bind('sparkyModalCancel', () => closeSparkyModal(false));
-
-  bind('statusCluster', () => {
-    const sm = document.getElementById('settingsModal');
-    if (sm) { sm.style.display = 'flex'; updateDeploymentUI(); }
-  });
-  bind('btnSettingsClose', () => {
-    const sm = document.getElementById('settingsModal');
-    if (sm) sm.style.display = 'none';
-  });
-  bind('btnOpenDebug', () => {
-    const sm = document.getElementById('settingsModal');
-    const dm = document.getElementById('debugModal');
-    if (sm) sm.style.display = 'none';
-    if (dm) dm.style.display = 'flex';
-  });
-  bind('btnDebugClose', () => {
-    const dm = document.getElementById('debugModal');
-    if (dm) dm.style.display = 'none';
-  });
-
-  // ══ INTERFACE SCALE BINDINGS ══
-  bind('textScaleSlider', (e) => applyTextScale(parseFloat(e.target.value)), 'oninput');
-  bind('btnResetScale', () => applyTextScale(1.0));
-
-  // ══ SORT MODE BINDING ══
-  bind('btnSortMode', () => {
+  // ΓòÉΓòÉ SORT MODE BINDING ΓòÉΓòÉ
+  document.getElementById('btnSortMode').onclick = () => {
     const modes = activeTab === 'stations' ? ['power', 'vote'] : ['power', 'vote', 'custom'];
     let idx = (modes.indexOf(sortMode) + 1) % modes.length;
     sortMode = modes[idx];
+
     if (activeTab === 'favs') {
       favSortMode = sortMode;
       localStorage.setItem('sparky_fav_sort_mode', favSortMode);
     }
+
     updateSortUI();
     renderCurrent();
+
     const tip = document.getElementById('plSortTooltip');
     if (tip) {
       tip.classList.add('show');
       clearTimeout(sortTooltipTimeout);
       sortTooltipTimeout = setTimeout(() => tip.classList.remove('show'), 1500);
     }
-  });
-
-  // ══ LAST STATION RESTORATION ══
-  const last = localStorage.getItem('sparky_last_station');
-  if (last) {
-    try {
-      currentSrc = JSON.parse(last);
-      updateNowPlaying(currentSrc);
-    } catch(e) { console.warn("Failed to restore last station", e); }
-  }
+  };
 
   updateDeploymentUI();
   refreshFavBadge();
-  updateSortUI(); 
-  bind('presetTrigger', () => { /* Logic already handled at L1470 */ }, 'textContent', 'QUICK-TUNE');
-  // Just set the text directly if safe
-  const pt = document.getElementById('presetTrigger');
-  if (pt) pt.textContent = 'QUICK-TUNE';
-  
+  updateSortUI(); // Ensure sort UI is ready
   searchStations('jazz');
-  if (window.syncSearchUI) window.syncSearchUI();
 });
 
 function updateSortUI() {
