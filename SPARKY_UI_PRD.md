@@ -321,6 +321,8 @@ Opening the EQ should transform the app into a dedicated audio console.
 | 20 | Visualizer Upgrade | 4 | ✅ |
 | 21 | State Persistence Engine | 4 | ✅ |
 | 22 | EQ Focus Mode | 4 | ✅ |
+| 23 | UI Rhythm & Control Spacing | 4 | ✅ |
+| 24 | Signal Fidelity Intelligence (HD Badges) | 4 | ✅ |
 
 ---
 

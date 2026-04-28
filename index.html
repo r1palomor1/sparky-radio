@@ -87,6 +87,7 @@
         <div class="np-meta-badge np-meta-primary" title="Global community votes"><i>👍</i> <span id="npVotes">—</span></div>
         <div class="np-meta-badge np-meta-secondary" title="Current popularity momentum"><i>📈</i> <span id="npTrend">—</span></div>
         <div class="np-meta-badge np-meta-secondary" title="Audio compression format">CODE <span id="npCodec">—</span></div>
+        <div class="np-meta-badge np-hd-badge" id="npHD" style="display:none">HD</div>
       </div>
 
       <div class="np-volume-row">
@@ -130,7 +131,9 @@
           <div class="preset-trigger" id="filterLangTrigger">ALL</div>
           <div class="preset-options" id="filterLangOptions"></div>
         </div>
-        <button class="btn-hifi active" id="btnHifi" title="Show only 128kbps+">HI-FI</button>
+        <button class="btn-hifi" id="btnHifi" title="Force 128kbps+ Streams">
+          <span class="material-symbols-outlined" style="font-size: 18px;">high_quality</span>
+        </button>
         <button class="btn-filter-toggle" id="btnFilterToggle" title="Toggle Discovery Rack">
           <span class="material-symbols-outlined" style="font-size:16px;">list</span>
         </button>

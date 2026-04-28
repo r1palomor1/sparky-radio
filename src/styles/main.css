@@ -1209,6 +1209,8 @@ body.light input[type=text] {
 .playlist {
   flex: 1;
   min-height: 0;
+  display: flex;
+  flex-direction: column;
   overflow-y: auto;
   background: var(--pl-bg);
 }
@@ -1346,15 +1348,16 @@ body.light input[type=text] {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 6px; 
-  padding: 8px 12px;
+  gap: 12px; /* Increased for industrial spacing */
+  padding: 10px 14px; /* More vertical breathing room */
   background: rgba(0, 0, 0, 0.1);
   border-bottom: 1px solid var(--border);
   position: relative;
   z-index: 1100;
   transition: margin-top 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   flex-wrap: nowrap !important;
-  overflow: visible; /* Reverted from overflow-x: auto to prevent clipping dropdowns */
+  overflow: visible; 
+  margin-top: 4px; /* Separation from search rack */
 }
 
 .filters-area.fav-mode-gap {
@@ -1820,6 +1823,30 @@ body.light .pl-item-sub {
   color: var(--text);
 }
 
+/* HD BADGES */
+.hd-badge-inline {
+  font-size: 8px;
+  font-weight: 800;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  padding: 0px 3px;
+  border-radius: 2px;
+  letter-spacing: 0.5px;
+  margin-left: 4px;
+  opacity: 0.8;
+  height: 12px;
+  display: flex;
+  align-items: center;
+}
+
+.np-hd-badge {
+  color: var(--accent) !important;
+  border: 1px solid var(--accent) !important;
+  background: transparent !important;
+  font-weight: 800 !important;
+  letter-spacing: 1px;
+}
+
 /* + FAV button */
 .pl-fav {
   font-size: calc(10px * var(--text-scale));
@@ -2243,6 +2270,28 @@ body.light .footer {
 
 .btn-footer-admin {
   opacity: 0.6;
+}
+
+.btn-footer-hifi {
+  opacity: 0.6;
+  transition: all 0.2s ease;
+}
+
+.btn-footer-hifi.active {
+  opacity: 1;
+  background: rgba(92, 184, 112, 0.1) !important;
+  border-color: var(--accent) !important;
+  color: var(--accent) !important;
+  box-shadow: 0 0 15px rgba(92, 184, 112, 0.2);
+}
+
+.btn-footer-hifi.active .material-symbols-outlined {
+  color: var(--accent) !important;
+}
+
+.btn-footer-hifi.active .btn-label {
+  color: var(--accent) !important;
+  opacity: 1 !important;
 }
 
 .btn-footer-admin:hover {

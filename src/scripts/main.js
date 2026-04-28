@@ -652,12 +652,14 @@ function updateNowPlaying(st) {
   const votes = document.getElementById('npVotes');
   const clicks = document.getElementById('npClicks');
   const trend = document.getElementById('npTrend');
-  const country = document.getElementById('npCountry');
   const codec = document.getElementById('npCodec');
+  if (trend) trend.textContent = (st?.clicktrend !== undefined) ? (st.clicktrend > 0 ? '+' + st.clicktrend : st.clicktrend) : '—';
+  if (codec) codec.textContent = (st?.codec || 'MP3').toUpperCase();
+  
+  const npHD = document.getElementById('npHD');
+  if (npHD) npHD.style.display = (Number(st?.bitrate || 0) >= 128) ? 'flex' : 'none';
   if (votes) votes.textContent = fmtK(st?.votes || 0);
   if (clicks) clicks.textContent = fmtK(st?.clickcount || 0);
-  if (trend) trend.textContent = (st?.clicktrend !== undefined) ? (st.clicktrend > 0 ? '+' + st.clicktrend : st.clicktrend) : '—';
-  if (codec) codec.textContent = st?.codec || '—';
 }
 
 // ══ PLAYBACK ══════════════════════════════
@@ -797,6 +799,7 @@ function renderStations() {
           <div class="pl-item-info-group">
             ${renderFavicon(st)}
             <div class="pl-item-name">${esc(st.name)}</div>
+            ${(Number(st.bitrate || 0) >= 128) ? '<span class="hd-badge-inline">HD</span>' : ''}
             ${trending}
           </div>
           <div class="pl-item-actions">
@@ -902,6 +905,7 @@ function renderFavs() {
           <div class="pl-item-info-group">
             ${renderFavicon(st)}
             <div class="pl-item-name">${esc(st.name)}</div>
+            ${(Number(st.bitrate || 0) >= 128) ? '<span class="hd-badge-inline">HD</span>' : ''}
             ${trending}
           </div>
           <div class="pl-item-actions">
@@ -1066,11 +1070,12 @@ const updateVolFill = (el) => {
 };
 
 // ══ SEARCH ════════════════════════════════
-async function searchStations(q) {
+async function searchStations(q, isManual = false) {
   if (isSearching) return;
-  localStorage.setItem('sparky_last_query', q || ''); // Persist the query
+  localStorage.setItem('sparky_last_query', q || ''); 
   const hasFilters = filterCountry !== 'ALL' || filterLang !== 'ALL' || filterHiFi;
-  if (!q && !hasFilters) { stations = []; renderStations(); return; }
+  if (!q && !hasFilters && !isManual) { stations = []; renderStations(); return; }
+  if (q === '' && !isManual) { stations = []; renderStations(); return; } // Explicit empty = clear
   isSearching = true;
   const pl = document.getElementById('playlist');
   if (pl) pl.innerHTML = '<div class="pl-loading"><div class="spinner"></div>SMART SCANNING...</div>';
@@ -1367,7 +1372,8 @@ window.addEventListener('DOMContentLoaded', () => {
     updateVolFill(vs);
   }
   filterHiFi = localStorage.getItem('sparky_default_hifi') !== 'false';
-  document.getElementById('btnHifi').classList.toggle('active', filterHiFi);
+  const bhf = document.getElementById('btnHifi');
+  if (bhf) bhf.classList.toggle('active', filterHiFi);
 
   loadFilterOptions();
   loadSettingsOptions();
@@ -1388,7 +1394,8 @@ window.addEventListener('DOMContentLoaded', () => {
       filterHiFi = !filterHiFi;
       hifiTrack.classList.toggle('on', filterHiFi);
       localStorage.setItem('sparky_default_hifi', filterHiFi);
-      document.getElementById('btnHifi').classList.toggle('active', filterHiFi);
+      const bhf = document.getElementById('btnHifi');
+      if (bhf) bhf.classList.toggle('active', filterHiFi);
     };
   }
 
@@ -1410,7 +1417,7 @@ window.addEventListener('DOMContentLoaded', () => {
     searchInput.focus();
     toggleSearchClear();
     document.getElementById('presetTrigger').textContent = 'QUICK-TUNE';
-    searchStations('');
+    searchStations('', false); // Explicit clear
   };
   
   // Expose toggle for programmatic use
@@ -1466,8 +1473,14 @@ window.addEventListener('DOMContentLoaded', () => {
   bind('filterLangTrigger', (e) => { e.stopPropagation(); document.getElementById('filterLangOptions')?.classList.toggle('show'); });
   bind('btnHifi', () => {
     filterHiFi = !filterHiFi;
-    document.getElementById('btnHifi')?.classList.toggle('active', filterHiFi);
-    searchStations(document.getElementById('searchInput').value);
+    const btn = document.getElementById('btnHifi');
+    if (btn) btn.classList.toggle('active', filterHiFi);
+    updateNowPlaying(currentSrc); 
+    if (activeTab === 'favs') {
+      renderFavs();
+    } else {
+      searchStations(document.getElementById('searchInput').value, true); 
+    }
   });
   bind('presetTrigger', (e) => { e.stopPropagation(); document.getElementById('presetOptions')?.classList.toggle('show'); });
 
@@ -1545,6 +1558,7 @@ window.addEventListener('DOMContentLoaded', () => {
   // Just set the text directly if safe
   const pt = document.getElementById('presetTrigger');
   if (pt) pt.textContent = 'QUICK-TUNE';
+  bind('btnScan', () => searchStations(searchInput.value, true));
   const lastQ = localStorage.getItem('sparky_last_query');
   if (lastQ !== null) {
     if (searchInput) searchInput.value = lastQ;
