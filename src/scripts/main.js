@@ -127,6 +127,8 @@ function syncStatsUI() {
 }
 
 let audioCtx, analyser, srcNode;
+let freqData;
+let smoothedBands = new Float32Array(30); // Pre-init for 30 bars
 let sortTooltipTimeout;
 
 // ══ THEME ══════════════════════════════════
@@ -530,7 +532,13 @@ function removeFav(st) {
 function initAudio() {
   if (audioCtx) return;
   audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  analyser = audioCtx.createAnalyser(); analyser.fftSize = 64;
+  
+  analyser = audioCtx.createAnalyser(); 
+  analyser.fftSize = 256; // 128 usable frequency bins
+  analyser.minDecibels = -90;
+  analyser.maxDecibels = -10;
+  analyser.smoothingTimeConstant = 0.35; // Allow visual code to handle smoothing
+
   srcNode = audioCtx.createMediaElementSource(audioEl);
   let chain = srcNode;
   EQ_FREQS.forEach((freq, i) => {
@@ -540,17 +548,70 @@ function initAudio() {
     eqNodes.push(f); chain.connect(f); chain = f;
   });
   chain.connect(analyser); analyser.connect(audioCtx.destination);
+  
+  freqData = new Uint8Array(analyser.frequencyBinCount);
 }
 
 // ══ VISUALIZER ════════════════════════════
 const vizBars = document.querySelectorAll('.visualizer .bar');
-const vizData = new Uint8Array(28);
+
+function lerp(a, b, t) {
+  return a + (b - a) * t;
+}
+
+function getBandEnergy(data, start, end) {
+  let sum = 0, count = 0;
+  for (let i = start; i <= end; i++) {
+    sum += data[i] || 0;
+    count++;
+  }
+  return count ? sum / count : 0;
+}
 
 function drawViz() {
   rafId = requestAnimationFrame(drawViz);
-  if (!analyser) return;
-  analyser.getByteFrequencyData(vizData);
-  vizBars.forEach((b, i) => { b.style.height = (4 + (vizData[i] || 0) / 255 * 22) + 'px'; });
+  if (!analyser || !freqData) return;
+
+  analyser.getByteFrequencyData(freqData);
+
+  const totalBins = analyser.frequencyBinCount;
+  const barCount = vizBars.length;
+  const minBin = 1;
+  const maxBin = Math.min(totalBins - 1, 100); // Focus on musical range
+
+  vizBars.forEach((bar, i) => {
+    // Non-linear band mapping: More detail in bass/mids, grouping in treble
+    const t0 = i / barCount;
+    const t1 = (i + 1) / barCount;
+
+    const startBin = Math.floor(minBin + Math.pow(t0, 1.8) * (maxBin - minBin));
+    const endBin = Math.floor(minBin + Math.pow(t1, 1.8) * (maxBin - minBin));
+
+    let val = getBandEnergy(freqData, startBin, Math.max(startBin, endBin));
+
+    // Subtle progressive compensation (tilt)
+    const tilt = 1 + (i / barCount) * 0.4;
+    val *= tilt;
+
+    // Expand quiet details (visual compressor)
+    let normVal = val / 255;
+    normVal = Math.pow(normVal, 0.65);
+
+    // Visual smoothing: Fast rise (attack), slower fall (decay)
+    const prev = smoothedBands[i] || 0;
+    const attack = 0.55;
+    const decay = 0.18;
+    smoothedBands[i] = normVal > prev
+      ? lerp(prev, normVal, attack)
+      : lerp(prev, normVal, decay);
+
+    // Height mapping
+    const minH = 4;
+    const maxH = 28;
+    const h = minH + smoothedBands[i] * (maxH - minH);
+
+    bar.style.height = h.toFixed(1) + 'px';
+  });
 }
 
 function idleViz() {
