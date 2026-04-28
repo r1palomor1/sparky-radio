@@ -852,11 +852,16 @@ function renderFavs() {
     } else { favs.sort((a, b) => (b.votes || 0) - (a.votes || 0)); }
   }
 
-  const mC = Math.max(...favs.map(s => s.clickcount || 0), 1);
-  const mV = Math.max(...favs.map(s => s.votes || 0), 1);
-  const mT = Math.max(...favs.map(s => s.clicktrend || 0), 1);
+  let displayFavs = [...favs];
+  if (filterHiFi) {
+    displayFavs = displayFavs.filter(s => Number(s.bitrate || 0) >= 128);
+  }
 
-  pl.innerHTML = favs.map((st, i) => {
+  const mC = Math.max(...displayFavs.map(s => s.clickcount || 0), 1);
+  const mV = Math.max(...displayFavs.map(s => s.votes || 0), 1);
+  const mT = Math.max(...displayFavs.map(s => s.clicktrend || 0), 1);
+
+  pl.innerHTML = displayFavs.map((st, i) => {
     const actv = currentSrc && (norm(currentSrc.url) === norm(st.url)) && activeTab === 'favs';
     const isDup = favs.filter(s => norm(s.url) === norm(st.url)).length > 1;
 
@@ -1476,10 +1481,16 @@ window.addEventListener('DOMContentLoaded', () => {
     const btn = document.getElementById('btnHifi');
     if (btn) btn.classList.toggle('active', filterHiFi);
     updateNowPlaying(currentSrc); 
+    const q = document.getElementById('searchInput').value.trim();
     if (activeTab === 'favs') {
       renderFavs();
     } else {
-      searchStations(document.getElementById('searchInput').value, true); 
+      // Only fetch if there is a query or we have other active filters
+      if (q || filterCountry !== 'ALL' || filterLang !== 'ALL') {
+        searchStations(q, true); 
+      } else {
+        stations = []; renderStations();
+      }
     }
   });
   bind('presetTrigger', (e) => { e.stopPropagation(); document.getElementById('presetOptions')?.classList.toggle('show'); });
