@@ -334,34 +334,62 @@ body.light {
   opacity: .9;
 }
 
-/* ── NOW PLAYING ────────────────────────── */
+/* ── ITEM 15: CONSOLIDATED CONSOLE REDESIGN ── */
 .now-playing {
-  padding: 12px 14px 8px; /* Taller zone for breathing room */
-  background: var(--np-bg);
-  border-bottom: 1px solid var(--border);
+  margin: 10px 14px;
+  padding: 12px 18px; /* Tighter vertical padding */
+  background: rgba(20, 20, 20, 0.45);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 18px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px; /* Reduced gap */
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), 
+              inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+  position: relative;
 }
 
 .np-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 4px;
+  width: 100%;
 }
 
 .np-label {
-  font-size: calc(12px * var(--text-scale));
-  letter-spacing: 3px;
-  color: var(--text);
-  text-transform: uppercase;
-  font-weight: 500;
-  opacity: 0.9;
-  margin: 0;
+    font-size: calc(12px * var(--text-scale));
+    letter-spacing: 2.0px;
+    color: rgba(255, 255, 255, 0.4);
+    text-transform: uppercase;
+    font-weight: 600;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
-body.light .np-label {
-  text-shadow: 0.3px 0.3px 0.5px rgba(0,0,0,0.15);
+
+.btn-eq-toggle {
+  background: transparent;
+  border: none;
+  padding: 4px 0;
+  font-size: calc(12px * var(--text-scale));
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.8);
+  transition: all 0.2s ease;
+  -webkit-font-smoothing: antialiased;
+  letter-spacing: 1.2px;
+  cursor: pointer;
+}
+
+.btn-eq-toggle:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+.btn-eq-toggle.active {
+  background: var(--accent);
+  color: #000;
+  border-color: var(--accent);
 }
 
 .np-ticker {
@@ -369,47 +397,103 @@ body.light .np-label {
   white-space: nowrap;
   display: flex;
   align-items: center;
+  margin-top: 2px;
 }
 
 .np-name {
-  font-family: 'Orbitron', sans-serif;
-  font-size: calc(24px * var(--text-scale)); /* Larger, dominant element */
-  font-weight: 900; /* Bolder */
-  color: var(--text);
-  display: inline-block;
-  animation: ticker 15s linear infinite;
-  animation-play-state: paused;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  padding-right: 60px;
+    font-family: 'Archivo', sans-serif;
+    font-size: calc(21px * var(--text-scale));
+    font-weight: 700;
+    color: #fff;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    line-height: 0.95;
+    text-shadow: none;
+    display: inline-block;
+    white-space: nowrap;
+    will-change: transform;
+    transform: scaleY(1.15);
+    transform-origin: top;
+    animation: ticker var(--ticker-duration, 15s) linear infinite;
+}
+
+@keyframes ticker {
+  0% { 
+    transform: scaleY(1.15) translateX(var(--ticker-start, 100%)); 
+  }
+  100% { 
+    transform: scaleY(1.15) translateX(var(--ticker-end, -100%)); 
+  }
+}
+
+.np-viz-container {
+  height: 60px; /* Compact height */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 12px;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.02);
 }
 
 .np-meta {
   display: flex;
-  gap: 4px;
-  font-size: calc(11px * var(--text-scale));
-  color: var(--text);
-  letter-spacing: 0.5px;
-  align-items: center;
+  gap: 10px;
   justify-content: center;
-  flex-wrap: nowrap;
-  font-weight: 600;
-  margin-top: 4px;
-  overflow: hidden;
+  align-items: center;
 }
 
 .np-meta-badge {
-  background: var(--ctrl-bg);
-  padding: 5px 8px;
-  border-radius: 4px;
-  border: 1px solid var(--border);
-  font-size: calc(11px * var(--text-scale));
-  color: var(--text);
-  font-weight: 600;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 6px 16px;
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: calc(12px * var(--text-scale));
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 700;
   display: flex;
   align-items: center;
-  gap: 6px;
-  transition: all 0.2s ease;
+  gap: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.np-volume-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 2px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.vol-label {
+  font-size: 10px;
+  font-weight: 900;
+  color: rgba(255, 255, 255, 0.3);
+  letter-spacing: 1.5px;
+}
+
+/* EQ RACK INTEGRATION */
+.eq-rack {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: rgba(20, 20, 20, 0.95);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+  border-radius: 0 0 16px 16px;
+  z-index: 100;
+  padding: 18px;
+  display: none;
+  margin-top: -12px;
+  box-shadow: 0 15px 40px rgba(0,0,0,0.6);
+}
+
+.eq-rack.open {
+  display: block;
 }
 
 /* ── ITEM 15: COMPACT MODE VISIBILITY ───── */

@@ -561,8 +561,13 @@ function updateNowPlaying(st) {
   if (st) {
     const textWidth = nm.scrollWidth;
     const containerWidth = nm.parentElement.offsetWidth;
-    const duration = (textWidth + containerWidth) / 50;
-    nm.style.animationDuration = duration + 's';
+    const totalDist = textWidth + containerWidth;
+    const speed = 35; // Pixels per second (Slower, relaxed pace)
+    const duration = totalDist / speed;
+    
+    nm.style.setProperty('--ticker-duration', duration + 's');
+    nm.style.setProperty('--ticker-start', containerWidth + 'px');
+    nm.style.setProperty('--ticker-end', '-' + textWidth + 'px');
   }
   const votes = document.getElementById('npVotes');
   const clicks = document.getElementById('npClicks');
