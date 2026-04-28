@@ -471,13 +471,23 @@ function sparkyPrompt(msg, header, onOk) {
   const ok = document.getElementById('sparkyModalOk');
   const cancel = document.getElementById('sparkyModalCancel');
   hdr.textContent = header || "SYSTEM PROMPT";
-  text.innerHTML = `<div style="margin-bottom:10px">${msg}</div><input type="text" id="sparkyPromptInput" style="width:100%; background:var(--bg); border:1px solid var(--border); color:var(--text); padding:8px; outline:none; border-radius:2px;">`;
+  text.innerHTML = `
+    <div style="margin-bottom:12px">${msg}</div>
+    <input type="text" id="sparkyPromptInput" 
+           style="width:100%; background:var(--bg); border:1px solid var(--border); color:var(--accent); 
+                  padding:12px; outline:none; border-radius:2px; font-family:'Share Tech Mono', monospace; 
+                  font-size:18px; font-weight:700; -webkit-font-smoothing:antialiased;">
+  `;
   cancel.style.display = 'inline-block';
+  modal.querySelector('.modal-content').style.maxWidth = '400px';
   modal.style.display = 'flex';
   const input = document.getElementById('sparkyPromptInput');
   if (input) {
     input.focus();
-    input.onkeydown = (e) => { if (e.key === 'Enter') ok.click(); if (e.key === 'Escape') cancel.click(); };
+    input.onkeydown = (e) => { 
+      if (e.key === 'Enter') ok.click(); 
+      if (e.key === 'Escape') cancel.click(); 
+    };
   }
   ok.onclick = () => { const val = input.value.trim(); modal.style.display = 'none'; if (onOk) onOk(val); };
   cancel.onclick = () => { modal.style.display = 'none'; if (onOk) onOk(null); };
@@ -1173,29 +1183,51 @@ function loadPresets() {
   const all = [...new Set([...defaultPresets, ...custom])].sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
   const container = document.getElementById('presetOptions');
   if (!container) return;
-  let html = `<div class="preset-opt add-opt" data-val="ADD">+ ADD NEW PRESET</div>`;
+  let html = `<div class="preset-opt add-opt" data-val="ADD">+ ADD NEW TUNE</div>`;
   all.forEach(p => {
     const isDefault = defaultPresets.includes(p);
-    html += `<div class="preset-opt" data-val="${p}"><span>${p}</span>${!isDefault ? `<span class="preset-del" data-del="${p}">✕</span>` : ''}</div>`;
+    html += `<div class="preset-opt" data-val="${p}"><span>${p.toUpperCase()}</span>${!isDefault ? `<span class="preset-del" data-del="${p}">✕</span>` : ''}</div>`;
   });
   container.innerHTML = html;
   container.querySelectorAll('.preset-opt').forEach(opt => opt.onclick = (e) => { if (e.target.classList.contains('preset-del')) return; handlePresetSelect(opt.dataset.val); });
-  container.querySelectorAll('.preset-del').forEach(btn => btn.onclick = (e) => { e.stopPropagation(); const val = btn.dataset.del; sparkyConfirm(`Remove [${val}]?`, () => { const up = JSON.parse(localStorage.getItem('sparky_search_presets') || '[]').filter(x => x !== val); localStorage.setItem('sparky_search_presets', JSON.stringify(up)); loadPresets(); }); });
+  container.querySelectorAll('.preset-del').forEach(btn => btn.onclick = (e) => { 
+    e.stopPropagation(); 
+    const val = btn.dataset.del; 
+    sparkyConfirm(`Remove [${val}] from Quick-Tunes?`, () => { 
+      const up = JSON.parse(localStorage.getItem('sparky_search_presets') || '[]').filter(x => x !== val); 
+      localStorage.setItem('sparky_search_presets', JSON.stringify(up)); 
+      
+      const trigger = document.getElementById('presetTrigger');
+      if (trigger && trigger.textContent === val.toUpperCase()) {
+        trigger.textContent = 'QUICK-TUNE';
+      }
+      
+      loadPresets(); 
+    }); 
+  });
 }
 
 function handlePresetSelect(val) {
   document.getElementById('presetOptions').classList.remove('show');
   if (val === 'ADD') {
-    sparkyPrompt("Enter search term:", "NEW PRESET", (term) => {
+    sparkyPrompt("Enter new discovery label:", "ADD QUICK-TUNE", (term) => {
       if (term?.trim()) {
         const c = JSON.parse(localStorage.getItem('sparky_search_presets') || '[]');
-        if (!c.includes(term.trim())) { c.push(term.trim()); localStorage.setItem('sparky_search_presets', JSON.stringify(c)); loadPresets(); handlePresetSelect(term.trim()); }
+        if (!c.includes(term.trim())) { 
+          c.push(term.trim()); 
+          localStorage.setItem('sparky_search_presets', JSON.stringify(c)); 
+          loadPresets(); 
+          handlePresetSelect(term.trim()); 
+        }
       }
     });
   } else {
-    document.getElementById('presetTrigger').textContent = val;
-    const inp = document.getElementById('searchInput'); inp.value = val;
-    switchTab('stations'); searchStations(val);
+    document.getElementById('presetTrigger').textContent = val.toUpperCase();
+    const inp = document.getElementById('searchInput'); 
+    inp.value = val;
+    if (window.syncSearchUI) window.syncSearchUI(); // Ensure 'X' appears
+    switchTab('stations'); 
+    searchStations(val);
   }
 }
 
@@ -1296,12 +1328,25 @@ window.addEventListener('DOMContentLoaded', () => {
   // Top controls removed from UI
   // btnAdd logic consolidated at L816
   // btnRemove logic consolidated at L865
-  document.getElementById('btnSearchClear').onclick = () => {
-    const inp = document.getElementById('searchInput');
-    inp.value = ''; inp.focus();
-    document.getElementById('btnSearchClear').style.display = 'none';
-    document.getElementById('presetTrigger').textContent = 'QUICK-TUNE';
+  const searchInput = document.getElementById('searchInput');
+  const btnSearchClear = document.getElementById('btnSearchClear');
+
+  const toggleSearchClear = () => {
+    btnSearchClear.style.display = searchInput.value ? 'flex' : 'none';
   };
+
+  searchInput.oninput = toggleSearchClear;
+
+  btnSearchClear.onclick = () => {
+    searchInput.value = '';
+    searchInput.focus();
+    toggleSearchClear();
+    document.getElementById('presetTrigger').textContent = 'QUICK-TUNE';
+    searchStations('');
+  };
+  
+  // Expose toggle for programmatic use
+  window.syncSearchUI = toggleSearchClear;
   document.getElementById('btnEq').onclick = () => {
     const r = document.getElementById('eqRack');
     const np = document.querySelector('.now-playing');
@@ -1415,7 +1460,9 @@ window.addEventListener('DOMContentLoaded', () => {
   updateDeploymentUI();
   refreshFavBadge();
   updateSortUI(); // Ensure sort UI is ready
+  document.getElementById('presetTrigger').textContent = 'QUICK-TUNE';
   searchStations('jazz');
+  if (window.syncSearchUI) window.syncSearchUI();
 });
 
 function updateSortUI() {
