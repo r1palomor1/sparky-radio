@@ -234,8 +234,8 @@ body.light .header {
 
 @media (max-width: 480px) {
   .logo-title {
-    font-size: calc(16px * var(--text-scale));
-    letter-spacing: 2px;
+    font-size: calc(14.5px * var(--text-scale));
+    letter-spacing: 1px;
   }
   .header-right { gap: 6px !important; }
   .status-cluster { gap: 4px !important; }
@@ -369,11 +369,12 @@ body.light .header {
 
 .bar {
   flex: 1;
-  background: linear-gradient(to top, #2a5c34, var(--accent), var(--green));
-  border-radius: 1px 1px 0 0;
+  background: var(--accent);
+  border-radius: 20px; /* Pill shape */
   height: 4px;
-  transition: height .08s ease;
-  opacity: .9;
+  transition: height 0.1s cubic-bezier(0.4, 0, 0.2, 1); /* Fluid interpolation */
+  opacity: 0.9;
+  box-shadow: 0 0 10px var(--accent), 0 0 2px rgba(255, 255, 255, 0.2); /* Glow bloom */
 }
 
 /* ── ITEM 15: NOW PLAYING — PREMIUM GLASS (COMPACT) ── */
@@ -491,7 +492,7 @@ body.light .now-playing {
 }
 
 .np-viz-container {
-  height: 44px; /* Narrowed down from 52px */
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -500,6 +501,15 @@ body.light .now-playing {
   margin: 0;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.02);
+}
+
+.np-viz-container .visualizer {
+  display: flex;
+  align-items: center; /* Symmetrical waveform expansion */
+  justify-content: center;
+  gap: 2px;
+  width: 100%;
+  height: 100%;
 }
 
 .np-meta {

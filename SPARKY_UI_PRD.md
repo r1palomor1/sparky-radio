@@ -295,7 +295,7 @@ The current visualizer (30px header bar) is easy to miss. A full-width subtle wa
 | 17.5 | Visualizer Pro-Grade Optimization | 4 | ✅ |
 | 18 | Compact Mode Extension | 4 | ⬜ |
 | 19 | Mobile Layout Refinement | 4 | ✅ |
-| 20 | Visualizer Upgrade | 4 | ⬜ |
+| 20 | Visualizer Upgrade | 4 | ✅ |
 
 ---
 
