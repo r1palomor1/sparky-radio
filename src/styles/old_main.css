@@ -1,4 +1,4 @@
-/* 
+﻿/* 
   SPARKY RADIO MODULAR STYLESHEET
   1:1 FIDELITY RESTORATION FROM index.html.bak (L14-1877)
   AUTHENTIC INDUSTRIAL DESIGN SYSTEM
@@ -75,20 +75,14 @@ body.light {
   --pl-stripe: rgba(0, 0, 0, 0.03);
 }
 
-/* ── ITEM 1: AMBIENT GRADIENT ───────────── */
+/* ΓöÇΓöÇ ITEM 1: AMBIENT GRADIENT ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
 body {
   background: var(--bg);
-  background-image: 
-    radial-gradient(
-      ellipse at 50% 20%,
-      color-mix(in srgb, var(--accent) 25%, transparent) 0%,
-      transparent 70%
-    ),
-    radial-gradient(
-      ellipse at 50% 90%,
-      color-mix(in srgb, var(--accent) 15%, transparent) 0%,
-      transparent 60%
-    ); /* Bottom glow for footer glass vibrancy */
+  background-image: radial-gradient(
+    ellipse at 50% 35%,
+    color-mix(in srgb, var(--accent) 12%, transparent) 0%,
+    transparent 70%
+  );
   background-attachment: fixed;
   min-height: 100vh;
   display: flex;
@@ -113,7 +107,7 @@ body.light {
   max-width: 400px;
   height: 95vh;
   max-height: 850px;
-  background: rgba(22, 22, 22, 0.2); /* Very translucent base to allow glass blur to see body gradient */
+  background: var(--panel);
   border: 2px solid var(--app-border);
   box-shadow: var(--app-shadow);
   border-radius: 12px;
@@ -124,11 +118,7 @@ body.light {
   transition: background 0.3s, border-color 0.3s;
 }
 
-body.light .app {
-  background: rgba(245, 240, 232, 0.4); /* Translucent cream for light mode glass visibility */
-}
-
-/* ── RESPONSIVE ─────────────────────────── */
+/* ΓöÇΓöÇ RESPONSIVE ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
 /* Tablet: fill height, wider card */
 @media (min-width: 600px) and (max-width: 1023px) {
   body {
@@ -190,20 +180,14 @@ body.light .app {
   }
 }
 
+/* ΓöÇΓöÇ HEADER ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
 .header {
-  background: rgba(20, 20, 20, 0.45); /* Thinner glass */
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-  padding: 10px 14px;
+  background: var(--ctrl-bg);
+  padding: 11px 14px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-body.light .header {
-  background: rgba(255, 255, 255, 0.4);
-  border-bottom-color: rgba(0, 0, 0, 0.08);
+  border-bottom: 1px solid var(--border);
 }
 
 .logo-title {
@@ -278,7 +262,7 @@ body.light .header {
   color: var(--accent);
 }
 
-/* ── ITEM 2: STATUS DOT — PULSE RING ────── */
+/* ΓöÇΓöÇ ITEM 2: STATUS DOT ΓÇö PULSE RING ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
 .dot {
   width: 7px;
   height: 7px;
@@ -350,29 +334,23 @@ body.light .header {
   opacity: .9;
 }
 
-/* ── ITEM 15: NOW PLAYING — PREMIUM GLASS (COMPACT) ── */
+/* ΓöÇΓöÇ ITEM 15: CONSOLIDATED CONSOLE REDESIGN ΓöÇΓöÇ */
 .now-playing {
-  margin: 6px 14px;
-  padding: 6px 16px; /* Narrowed down vertically */
-  background: rgba(20, 20, 20, 0.35); /* Thinner for glass vibrancy */
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  margin: 8px 14px;
+  padding: 10px 16px; 
+  background: rgba(20, 20, 20, 0.45);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 18px;
   display: flex;
   flex-direction: column;
-  gap: 4px; /* Reduced gap for compression */
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), 
-              inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+  gap: 8px; 
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), 
+              inset 0 0 0 1px rgba(255, 255, 255, 0.03);
   position: relative;
   z-index: 10;
   transition: z-index 0.3s step-end;
-}
-
-body.light .now-playing {
-  background: rgba(255, 255, 255, 0.45);
-  border-color: rgba(0, 0, 0, 0.05);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
 }
 
 .now-playing.eq-open {
@@ -465,11 +443,11 @@ body.light .now-playing {
 }
 
 .np-viz-container {
-  height: 44px; /* Narrowed down from 52px */
+  height: 52px; 
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.12);
+  background: rgba(0, 0, 0, 0.15);
   border-radius: 12px;
   margin: 0;
   overflow: hidden;
@@ -514,7 +492,14 @@ body.light .now-playing {
 }
 
 /* EQ RACK INTEGRATION */
-  background: rgba(10, 10, 10, 0.85); /* Slightly more translucent for glass feel */
+.eq-rack {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: auto;
+  min-height: 100%;
+  background: rgba(10, 10, 10, 0.99);
   backdrop-filter: blur(30px);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 18px;
@@ -523,11 +508,6 @@ body.light .now-playing {
   display: none;
   box-shadow: 0 20px 60px rgba(0,0,0,0.8);
   flex-direction: column;
-}
-
-body.light .eq-rack {
-  background: rgba(255, 255, 255, 0.92);
-  border-color: rgba(0, 0, 0, 0.1);
 }
 
 .eq-rack.open {
@@ -556,7 +536,7 @@ body.light .eq-rack {
   margin-top: 10px;
 }
 
-/* ── ITEM 15: COMPACT MODE VISIBILITY ───── */
+/* ΓöÇΓöÇ ITEM 15: COMPACT MODE VISIBILITY ΓöÇΓöÇΓöÇΓöÇΓöÇ */
 .app.stats-compact .np-meta-secondary {
   display: none !important;
 }
@@ -580,7 +560,7 @@ body.light .eq-rack {
   color: #fff;
 }
 
-/* ── ITEM 6: TRENDING BADGE — PILL STYLE ── */
+/* ΓöÇΓöÇ ITEM 6: TRENDING BADGE ΓÇö PILL STYLE ΓöÇΓöÇ */
 .pl-status-badge.trending {
   background: transparent;
   color: var(--accent);
@@ -695,7 +675,7 @@ body.light .pl-status-badge.trending {
   position: relative;
 }
 
-/* ── ITEM 10: PREMIUM VOLUME SLIDER ────── */
+/* ΓöÇΓöÇ ITEM 10: PREMIUM VOLUME SLIDER ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
 .volume-bar {
   padding: 12px 14px;
   background: var(--np-bg);
@@ -810,12 +790,12 @@ input[type=range]::-moz-range-thumb {
   font-weight: 500;
 }
 
-/* Hidden JS-compat buttons (Shuffle, Repeat, EQ — logic preserved, UI removed) */
+/* Hidden JS-compat buttons (Shuffle, Repeat, EQ ΓÇö logic preserved, UI removed) */
 .toggle-group {
   display: none !important;
 }
 
-/* ── TAB + SEARCH COMBINED ROW ──────────── */
+/* ΓöÇΓöÇ TAB + SEARCH COMBINED ROW ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
 .tab-search-row {
   display: flex;
   flex-direction: column;
@@ -899,27 +879,7 @@ input[type=range]::-moz-range-thumb {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px 14px;
-  background: rgba(255, 255, 255, 0.02);
-  border-bottom: 1px solid var(--border);
-}
-
-.btn-search {
-  height: 32px;
-  padding: 0 16px;
-  background: var(--subdim);
-  border: 1px solid var(--border);
-  color: var(--text);
-  font-weight: 700;
-  letter-spacing: 1px;
-  border-radius: 2px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.btn-search:hover {
-  border-color: var(--accent);
-  color: var(--accent);
+  padding: 12px 12px 12px;
 }
 
 .search-actions {
@@ -937,27 +897,26 @@ input[type=range]::-moz-range-thumb {
 
 .search-icon {
   position: absolute;
-  left: 10px;
+  left: 8px;
   top: 50%;
   transform: translateY(-50%);
-  color: #4a9eff; /* Industrial blue icon from mockup */
-  font-size: calc(12px * var(--text-scale));
+  color: var(--text);
+  font-size: calc(11px * var(--text-scale));
   pointer-events: none;
 }
 
 input[type=text] {
   width: 100%;
-  height: 32px;
-  background: rgba(0, 0, 0, 0.2);
+  background: var(--subdim);
   border: 1px solid var(--border);
   color: var(--text);
   font-family: 'Share Tech Mono', monospace;
   font-size: calc(11px * var(--text-scale));
   font-weight: 500;
   letter-spacing: .5px;
-  padding: 0 30px 0 32px;
+  padding: 5px 30px 5px 26px;
   outline: none;
-  border-radius: 3px;
+  border-radius: 2px;
   transition: border-color .2s;
 }
 
@@ -989,14 +948,11 @@ body.light input[type=text] {
   align-items: center;
   justify-content: center;
   line-height: 1;
-  opacity: 0.6;
-  transition: opacity 0.2s;
-  z-index: 5;
+  transition: color .2s;
 }
 
 .search-clear:hover {
-  opacity: 1;
-  color: var(--accent);
+  color: var(--accent2);
 }
 
 .btn-search {
@@ -1008,7 +964,7 @@ body.light input[type=text] {
   font-weight: 500;
 }
 
-/* ── PLAYLIST HEADER ────────────────────── */
+/* ΓöÇΓöÇ PLAYLIST HEADER ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
 .playlist-header {
   background: var(--ctrl-bg);
   height: 26px;
@@ -1148,7 +1104,7 @@ body.light input[type=text] {
   background: var(--accent);
 }
 
-/* ── ITEM 14: PLAYLIST CARDS — PREMIUM REDESIGN ── */
+/* ΓöÇΓöÇ ITEM 14: PLAYLIST CARDS ΓÇö PREMIUM REDESIGN ΓöÇΓöÇ */
 .pl-item {
   display: flex;
   align-items: stretch;
@@ -1222,7 +1178,7 @@ body.light input[type=text] {
   letter-spacing: 2px;
 }
 
-/* ── HEADER CONSOLE ────────────────────── */
+/* ΓöÇΓöÇ HEADER CONSOLE ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
 .pro-header-row {
   display: grid;
   grid-template-columns: 80px 1fr 80px;
@@ -1264,9 +1220,9 @@ body.light input[type=text] {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  padding: 8px 14px;
-  background: rgba(0, 0, 0, 0.1);
+  gap: 0;
+  padding: 6px 10px;
+  background: var(--panel);
   border-bottom: 1px solid var(--border);
   position: relative;
   z-index: 1100;
@@ -1280,9 +1236,9 @@ body.light input[type=text] {
 .btn-filter-toggle {
   background: var(--subdim);
   border: 1px solid var(--border);
-  color: #fff !important;
-  width: 36px;
-  height: 32px;
+  color: #fff !important; /* White when expanded */
+  width: 32px;
+  height: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1297,7 +1253,7 @@ body.light input[type=text] {
 }
 
 .btn-filter-toggle.active {
-  color: var(--accent) !important;
+  color: var(--accent) !important; /* Green when collapsed */
   border-color: var(--accent);
   background: color-mix(in srgb, var(--accent) 15%, transparent);
 }
@@ -1341,12 +1297,11 @@ body.light input[type=text] {
 }
 
 .btn-hifi {
-  font-size: calc(9px * var(--text-scale));
+  font-size: calc(8px * var(--text-scale));
   background: var(--subdim);
   border: 1px solid var(--border);
   color: var(--dim);
-  height: 32px;
-  padding: 0 10px;
+  padding: 2px 8px;
   border-radius: 2px;
   cursor: pointer;
   transition: all 0.2s;
@@ -1382,7 +1337,7 @@ body.light .preset-label {
   .btn-hifi { padding: 2px 5px !important; font-size: calc(7px * var(--text-scale)) !important; }
 }
 
-/* ── CUSTOM SELECT ─────────────────────── */
+/* ΓöÇΓöÇ CUSTOM SELECT ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
 .preset-dropdown-wrap {
   position: relative;
   min-width: 50px;
@@ -1395,8 +1350,7 @@ body.light .preset-label {
   background: var(--subdim);
   border: 1px solid var(--border);
   color: var(--text);
-  height: 32px;
-  padding: 0 10px;
+  padding: 3px 8px;
   border-radius: 2px;
   cursor: pointer;
   display: flex;
@@ -1406,7 +1360,7 @@ body.light .preset-label {
 }
 
 .preset-trigger::after {
-  content: '▼';
+  content: 'Γû╝';
   font-size: 8px;
   color: var(--dim);
 }
@@ -1422,8 +1376,7 @@ body.light .preset-label {
   display: none;
   max-height: 250px;
   overflow-y: auto;
-  min-width: max-content;
-  white-space: nowrap;
+  min-width: 100%;
 }
 
 .preset-options::-webkit-scrollbar {
@@ -1449,47 +1402,50 @@ body.light .preset-label {
 
 .preset-opt {
   padding: 8px 12px;
+  font-size: calc(10px * var(--text-scale));
+  color: var(--dim);
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.preset-opt:hover {
+  background: var(--subdim);
+  color: var(--accent);
+}
+
+.preset-opt {
+  padding: 4px 8px;
   cursor: pointer;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 10px;
-  transition: all 0.2s;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
-  font-family: 'Share Tech Mono', monospace;
-  font-size: calc(11px * var(--text-scale));
-  color: var(--text);
-}
-
-.preset-opt:last-child {
-  border-bottom: none;
+  gap: 5px;
+  transition: background 0.1s;
 }
 
 .preset-opt:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--pl-hover);
   color: var(--accent);
 }
 
 .preset-opt.add-opt {
   color: var(--accent);
+  border-bottom: 1px solid var(--border);
   font-weight: 700;
-  background: rgba(255, 255, 255, 0.02);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .preset-del {
-  padding: 4px 8px;
-  color: var(--dim);
-  font-size: 10px;
+  opacity: 0.3;
+  padding: 2px 5px;
+  border-radius: 2px;
   transition: all 0.2s;
-  opacity: 0.5;
-  cursor: pointer;
 }
 
 .preset-del:hover {
   opacity: 1;
-  color: #f44;
-  transform: scale(1.2);
+  background: var(--accent2);
+  color: #fff;
 }
 
 .pl-favicon {
@@ -1663,7 +1619,7 @@ body.light .pl-item-sub {
   text-shadow: 0.3px 0.3px 0.5px rgba(0,0,0,0.15);
 }
 
-/* ── ITEM 3: ACTIVE CARD — GLOW + ELEVATED BG ── */
+/* ΓöÇΓöÇ ITEM 3: ACTIVE CARD ΓÇö GLOW + ELEVATED BG ΓöÇΓöÇ */
 .pl-item.active {
   background: color-mix(in srgb, var(--accent) 12%, var(--pl-bg));
   border-left: 3px solid var(--accent) !important;
@@ -1681,7 +1637,7 @@ body.light .pl-item-sub {
   color: var(--bg);
 }
 
-/* ── ITEM 4: TAP PRESS STATE — :active flash ─── */
+/* ΓöÇΓöÇ ITEM 4: TAP PRESS STATE ΓÇö :active flash ΓöÇΓöÇΓöÇ */
 .pl-item:active {
   transform: scale(0.985);
   background: color-mix(in srgb, var(--accent) 14%, var(--pl-bg)) !important;
@@ -1689,14 +1645,14 @@ body.light .pl-item-sub {
   transition: transform 0.08s ease, background 0.08s ease;
 }
 
-/* ── ITEM 7: DUPLICATE URL — SOFTER AMBER ─────── */
+/* ΓöÇΓöÇ ITEM 7: DUPLICATE URL ΓÇö SOFTER AMBER ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
 .pl-item.is-dup-fav {
   border-left: 3px solid #d4843a !important;
   box-shadow: none;
   position: relative;
 }
 .pl-item.is-dup-fav::before {
-  content: '⚠';
+  content: 'ΓÜá';
   position: absolute;
   top: 4px;
   right: 6px;
@@ -1809,7 +1765,7 @@ body.light .pl-item-sub {
   }
 }
 
-/* ── EQ RACK ────────────────────────────── */
+/* ΓöÇΓöÇ EQ RACK ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
 .eq-rack {
   max-height: 0;
   overflow: hidden;
@@ -1999,7 +1955,7 @@ body.light .btn-preset.active {
   background: color-mix(in srgb, var(--accent2) 15%, var(--bg));
 }
 
-/* ── MODALS ─────────────────────────────── */
+/* ΓöÇΓöÇ MODALS ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -2045,24 +2001,19 @@ body.light .btn-preset.active {
   margin-top: 15px;
 }
 
-/* ── ITEM 8: FOOTER — PREMIUM GLASS ────────────── */
+/* ΓöÇΓöÇ ITEM 8: FOOTER REDESIGN ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
 .footer {
-  height: 88px;
+  height: 92px;
   padding: 0 10px;
-  background: rgba(20, 20, 20, 0.35); /* Synced with Now Playing glass */
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(15, 15, 15, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
   width: 100%;
-}
-
-body.light .footer {
-  background: rgba(255, 255, 255, 0.5);
-  border-top-color: rgba(0, 0, 0, 0.05);
 }
 
 .footer-layout {
@@ -2124,13 +2075,9 @@ body.light .footer {
 .btn-footer-play {
   background: rgba(92, 184, 112, 0.1) !important;
   border: 1px solid rgba(92, 184, 112, 0.2) !important;
+  color: var(--accent) !important;
+  min-width: 64px;
 }
-
-.btn-footer-play:hover {
-  background: rgba(92, 184, 112, 0.2) !important;
-  border-color: var(--accent) !important;
-}
-
 
 .app.is-playing .btn-footer-play {
   background: var(--accent) !important;
@@ -2168,7 +2115,7 @@ body.light .footer {
 }
 
 
-/* ── STATION CARD ───────────────────────── */
+/* ΓöÇΓöÇ STATION CARD ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
 .station-card {
   min-height: 86px;
   background: var(--viz-bg);
@@ -2288,7 +2235,7 @@ body.light .footer {
   color: var(--accent);
 }
 
-/* ── DIAGNOSTIC HUB ─────────────────────── */
+/* ΓöÇΓöÇ DIAGNOSTIC HUB ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
 .mirror-indicator {
   position: absolute;
   right: 32px;
@@ -2353,7 +2300,7 @@ body.light .footer {
 }
 
 /* Removed duplicate footer block */
-/* ── MOBILE RESPONSIVENESS ──────────────── */
+/* ΓöÇΓöÇ MOBILE RESPONSIVENESS ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
 @media (max-width: 380px) {
   .eq-rack.open {
     max-height: 600px;
@@ -2373,7 +2320,7 @@ body.light .footer {
   }
 }
 
-/* ── PRIORITIZED MOBILE OVERRIDES ────────── */
+/* ΓöÇΓöÇ PRIORITIZED MOBILE OVERRIDES ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
 @media (max-width: 599px) {
   .pl-main {
     padding-top: 12px !important;

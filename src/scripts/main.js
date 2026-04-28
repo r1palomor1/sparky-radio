@@ -1239,8 +1239,10 @@ function loadSettingsOptions() {
   const defC = localStorage.getItem('sparky_default_country') || 'ALL';
   const defL = localStorage.getItem('sparky_default_lang') || 'ALL';
 
-  document.getElementById('defaultCountryTrigger').textContent = defC;
-  document.getElementById('defaultLangTrigger').textContent = defL === 'ALL' ? 'ALL' : defL.substring(0, 3).toUpperCase();
+  const dct = document.getElementById('defaultCountryTrigger');
+  if (dct) dct.textContent = defC;
+  const dlt = document.getElementById('defaultLangTrigger');
+  if (dlt) dlt.textContent = defL === 'ALL' ? 'ALL' : defL.substring(0, 3).toUpperCase();
 
   dcCont.innerHTML = CTRY_LIST.map(c => {
     const name = CTRY_NAMES[c] || c;
@@ -1307,9 +1309,10 @@ window.addEventListener('DOMContentLoaded', () => {
   syncStatsUI();
 
   // ══ DEFAULTS TRIGGERS ══
-  document.getElementById('defaultCountryTrigger').onclick = (e) => { e.stopPropagation(); document.getElementById('defaultCountryOptions').classList.toggle('show'); };
-  document.getElementById('defaultLangTrigger').onclick = (e) => { e.stopPropagation(); document.getElementById('defaultLangOptions').classList.toggle('show'); };
-  document.getElementById('statsModeTrigger').onclick = (e) => { e.stopPropagation(); document.getElementById('statsModeOptions').classList.toggle('show'); };
+  // ══ DEFAULTS TRIGGERS (Safe Bindings) ══
+  bind('defaultCountryTrigger', (e) => { e.stopPropagation(); document.getElementById('defaultCountryOptions')?.classList.toggle('show'); });
+  bind('defaultLangTrigger', (e) => { e.stopPropagation(); document.getElementById('defaultLangOptions')?.classList.toggle('show'); });
+  bind('statsModeTrigger', (e) => { e.stopPropagation(); document.getElementById('statsModeOptions')?.classList.toggle('show'); });
 
 
   const hifiToggle = document.getElementById('defaultHifiToggle');
@@ -1374,24 +1377,23 @@ window.addEventListener('DOMContentLoaded', () => {
   };
 
   // ══ CONSOLIDATED DOM BINDINGS (ELIMINATE TYPEERROR) ══
-  document.getElementById('btnSearch').onclick = () => {
+  function bind(id, fn, ev = 'onclick') { const el = document.getElementById(id); if (el) el[ev] = fn; }
+
+  bind('btnSearch', () => {
     const q = document.getElementById('searchInput').value.trim();
     expandFilters(); if (q) { switchTab('stations'); searchStations(q); }
-  };
-  document.getElementById('btnFilterToggle').onclick = toggleFilters;
-  document.getElementById('btnPlayFooter').onclick = () => togglePlay();
-  document.getElementById('btnStopFooter').onclick = () => stopPlayback();
-  document.getElementById('btnNextFooter').onclick = () => {
+  });
+  bind('btnFilterToggle', toggleFilters);
+  bind('btnPlayFooter', () => togglePlay());
+  bind('btnStopFooter', () => stopPlayback());
+  bind('btnNextFooter', () => {
     const l = activeTab === 'favs' ? favs : stations;
     if (l.length) playAtIndex((currentIdx + 1) % l.length);
-  };
-  document.getElementById('btnPrevFooter').onclick = () => {
+  });
+  bind('btnPrevFooter', () => {
     const l = activeTab === 'favs' ? favs : stations;
     if (l.length) playAtIndex((currentIdx - 1 + l.length) % l.length);
-  };
-
-  // ══ CONSOLIDATED TOP-LEVEL BINDINGS (PROTECT AGAINST NULL) ══
-  const bind = (id, fn, ev = 'onclick') => { const el = document.getElementById(id); if (el) el[ev] = fn; };
+  });
 
   bind('btnAdd', handleAddStation);
   bind('btnRemove', handleRemoveStation);

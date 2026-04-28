@@ -289,8 +289,9 @@ The current visualizer (30px header bar) is easy to miss. A full-width subtle wa
 | 14 | Card Full Redesign | 3 | ✅ |
 | 15 | Now Playing Upgrade | 3 | ✅ |
 | 15.1 | EQ Stacking & Logic | 3 | ✅ |
-| 16 | Search Bar Refinement | 3 | ⬜ |
-| 17 | Glassmorphism | 4 | ⬜ |
+| 16 | Search Bar Refinement | 3 | ✅ |
+| 16.1 | Quick-Tune Management | 3 | ✅ |
+| 17 | Glassmorphism | 4 | ✅ |
 | 18 | Compact Mode Extension | 4 | ⬜ |
 | 19 | Mobile Layout Refinement | 4 | ⬜ |
 | 20 | Visualizer Upgrade | 4 | ⬜ |
