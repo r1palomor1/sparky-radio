@@ -304,14 +304,14 @@ const eqNodes = [], eqVals = new Array(8).fill(0);
 
 const FACTORY_PRESETS = {
   flat: [0, 0, 0, 0, 0, 0, 0, 0],
-  bass: [5, 4, 2, 0, -1, -1, 1, 2],
-  vocal: [-2, -1, 0, 2, 4, 5, 3, 2],
-  jazz: [2, 2, 1, 0, 2, 3, 2, 2],
-  pop: [2, 1, 0, 1, 2, 3, 3, 4],
-  rock: [4, 3, 1, -1, 0, 2, 3, 3],
-  hiphop: [5, 4, 2, 0, 1, 2, 2, 3],
-  classic: [0, 0, 0, 1, 2, 3, 2, 2],
-  electron: [4, 3, 1, 0, 0, 2, 3, 4],
+  bass: [6, 5, 3, 0, 0, 0, 0, 0],
+  vocal: [-2, -1, 0, 3, 5, 4, 1, 0],
+  jazz: [4, 3, 0, 2, 2, 0, 3, 4],
+  pop: [-1, 2, 5, 5, 2, -1, -2, -2],
+  rock: [5, 3, -1, -2, 0, 2, 4, 5],
+  hiphop: [6, 4, 0, -2, -2, 0, 3, 5],
+  classic: [5, 4, 0, 0, 0, 0, 4, 5],
+  electron: [6, 4, 2, 0, -2, 2, 4, 6],
   custom: [3, 2, 1, 0, 1, 2, 2, 3]
 };
 
@@ -395,19 +395,7 @@ function setEqPreset(p) {
   updateSaveButtonState();
 }
 
-// ══ EQ BINDINGS ═══════════════════════════
-document.getElementById('btnEq').onclick = function () {
-  const rack = document.getElementById('eqRack');
-  const isOpen = rack.classList.toggle('open');
-  this.classList.toggle('active', isOpen);
-
-  if (isOpen) {
-    wasCollapsedBeforeEQ = document.getElementById('filterRack').classList.contains('collapsed');
-    if (!wasCollapsedBeforeEQ) toggleFilters();
-  } else {
-    if (!wasCollapsedBeforeEQ) expandFilters();
-  }
-};
+// ══ EQ BINDINGS CONSOLIDATED IN DOMContentLoaded ══
 
 document.querySelectorAll('.btn-preset').forEach(btn => {
   btn.onclick = () => {
@@ -420,22 +408,42 @@ document.querySelector('.btn-save').onclick = saveCustomEq;
 document.querySelector('.btn-reset').onclick = resetEqDefaults;
 
 function saveCustomEq() {
+  if (!activePreset) {
+    sparkyAlert("Please select a preset slot (e.g., CUSTOM or FLAT) to save your current levels.", "SAVE BLOCKED");
+    return;
+  }
   const p = activePreset.toUpperCase();
-  sparkyConfirm(`Commit current levels to the [${p}] memory bank?`, () => {
+  sparkyConfirm(`Commit current slider levels to the <strong>[${p}]</strong> memory bank?`, () => {
     currentPresets[activePreset] = [...eqVals];
     lastSavedVals = [...eqVals];
     localStorage.setItem('sparky_eq_presets', JSON.stringify(currentPresets));
     updateSaveButtonState();
-    sparkyAlert(`Preset [${p}] updated.`, "SAVE SUCCESSFUL");
   }, "CONFIRM MEMORY WRITE");
 }
 
 function resetEqDefaults() {
-  sparkyConfirm(`RESTORE FACTORY SPECS: Reset [${activePreset.toUpperCase()}] to original levels?`, () => {
-    currentPresets[activePreset] = [...FACTORY_PRESETS[activePreset]];
-    localStorage.setItem('sparky_eq_presets', JSON.stringify(currentPresets));
-    setEqPreset(activePreset);
-  }, "PRESET RECOVERY");
+  if (activePreset) {
+    const p = activePreset.toUpperCase();
+    sparkyConfirm(`Reset the <strong>[${p}]</strong> preset to its original factory levels? (This will only affect the current preset).`, () => {
+      currentPresets[activePreset] = [...FACTORY_PRESETS[activePreset]];
+      localStorage.setItem('sparky_eq_presets', JSON.stringify(currentPresets));
+      setEqPreset(activePreset);
+    }, "RESTORE PRESET");
+  } else {
+    sparkyConfirm(`<strong>GLOBAL FACTORY RESET:</strong> No preset is currently selected. Do you want to restore <strong>ALL</strong> presets to their original factory levels?`, () => {
+      currentPresets = JSON.parse(JSON.stringify(FACTORY_PRESETS));
+      localStorage.setItem('sparky_eq_presets', JSON.stringify(currentPresets));
+      // Re-apply flat defaults visually
+      FACTORY_PRESETS.flat.forEach((v, i) => {
+         eqVals[i] = v;
+         if (eqNodes[i]) eqNodes[i].gain.value = v;
+         const f = document.getElementById('eqF' + i);
+         if (f) { f.style.bottom = '50%'; f.setAttribute('data-db', '0.0dB'); }
+      });
+      lastSavedVals = [...FACTORY_PRESETS.flat];
+      updateSaveButtonState();
+    }, "GLOBAL FACTORY RESET");
+  }
 }
 
 // ══ MODALS ═════════════════════════════════
@@ -1296,16 +1304,19 @@ window.addEventListener('DOMContentLoaded', () => {
   };
   document.getElementById('btnEq').onclick = () => {
     const r = document.getElementById('eqRack');
-    r.classList.toggle('open');
-    document.getElementById('btnEq').classList.toggle('active', r.classList.contains('open'));
-    if (r.classList.contains('open')) {
-      wasCollapsedBeforeEQ = document.getElementById('lowerRack').classList.contains('collapsed');
-      document.getElementById('lowerRack').classList.add('collapsed');
-      document.getElementById('btnPlaylistToggle').classList.add('active');
+    const np = document.querySelector('.now-playing');
+    const isOpen = r.classList.toggle('open');
+    np?.classList.toggle('eq-open', isOpen);
+    document.getElementById('btnEq').classList.toggle('active', isOpen);
+    
+    if (isOpen) {
+      wasCollapsedBeforeEQ = document.getElementById('filterRack').classList.contains('collapsed');
+      document.getElementById('filterRack').classList.add('collapsed');
+      document.getElementById('btnFilterToggle').classList.add('active');
     } else {
       if (!wasCollapsedBeforeEQ) {
-        document.getElementById('lowerRack').classList.remove('collapsed');
-        document.getElementById('btnPlaylistToggle').classList.remove('active');
+        document.getElementById('filterRack').classList.remove('collapsed');
+        document.getElementById('btnFilterToggle').classList.remove('active');
       }
     }
   };

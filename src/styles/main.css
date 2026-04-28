@@ -336,8 +336,8 @@ body.light {
 
 /* ── ITEM 15: CONSOLIDATED CONSOLE REDESIGN ── */
 .now-playing {
-  margin: 10px 14px;
-  padding: 12px 18px; /* Tighter vertical padding */
+  margin: 8px 14px;
+  padding: 10px 16px; 
   background: rgba(20, 20, 20, 0.45);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
@@ -345,10 +345,21 @@ body.light {
   border-radius: 18px;
   display: flex;
   flex-direction: column;
-  gap: 10px; /* Reduced gap */
+  gap: 8px; 
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), 
               inset 0 0 0 1px rgba(255, 255, 255, 0.03);
   position: relative;
+  z-index: 10;
+  transition: z-index 0.3s step-end;
+}
+
+.now-playing.eq-open {
+  z-index: 1000;
+  transition: z-index 0s step-start;
+}
+
+.now-playing.eq-open .np-label {
+  visibility: hidden;
 }
 
 .np-header {
@@ -356,6 +367,9 @@ body.light {
   justify-content: space-between;
   align-items: center;
   width: 100%;
+  position: relative;
+  z-index: 2100;
+  pointer-events: none;
 }
 
 .np-label {
@@ -379,6 +393,8 @@ body.light {
   -webkit-font-smoothing: antialiased;
   letter-spacing: 1.2px;
   cursor: pointer;
+  margin-right: -4px;
+  pointer-events: auto;
 }
 
 .btn-eq-toggle:hover {
@@ -427,7 +443,7 @@ body.light {
 }
 
 .np-viz-container {
-  height: 60px; /* Compact height */
+  height: 52px; 
   display: flex;
   align-items: center;
   justify-content: center;
@@ -447,7 +463,7 @@ body.light {
 
 .np-meta-badge {
   background: rgba(255, 255, 255, 0.03);
-  padding: 6px 16px;
+  padding: 5px 12px;
   border-radius: 24px;
   border: 1px solid rgba(255, 255, 255, 0.06);
   font-size: calc(12px * var(--text-scale));
@@ -478,22 +494,46 @@ body.light {
 /* EQ RACK INTEGRATION */
 .eq-rack {
   position: absolute;
-  top: 100%;
+  top: 0;
   left: 0;
   right: 0;
-  background: rgba(20, 20, 20, 0.95);
-  backdrop-filter: blur(20px);
-  border: 1px solid var(--border);
-  border-radius: 0 0 16px 16px;
-  z-index: 100;
-  padding: 18px;
+  height: auto;
+  min-height: 100%;
+  background: rgba(10, 10, 10, 0.99);
+  backdrop-filter: blur(30px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 18px;
+  z-index: 2000;
+  padding: 12px 18px 25px;
   display: none;
-  margin-top: -12px;
-  box-shadow: 0 15px 40px rgba(0,0,0,0.6);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+  flex-direction: column;
 }
 
 .eq-rack.open {
-  display: block;
+  display: flex;
+}
+
+.eq-row {
+  display: flex;
+  padding-right: 35px; /* Clear space for EQ button */
+  margin-top: 2px;
+  gap: 6px;
+}
+
+.eq-presets {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.eq-actions {
+  display: flex;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  margin-top: 10px;
 }
 
 /* ── ITEM 15: COMPACT MODE VISIBILITY ───── */
