@@ -1068,6 +1068,7 @@ const updateVolFill = (el) => {
 // ══ SEARCH ════════════════════════════════
 async function searchStations(q) {
   if (isSearching) return;
+  localStorage.setItem('sparky_last_query', q || ''); // Persist the query
   const hasFilters = filterCountry !== 'ALL' || filterLang !== 'ALL' || filterHiFi;
   if (!q && !hasFilters) { stations = []; renderStations(); return; }
   isSearching = true;
@@ -1419,6 +1420,7 @@ window.addEventListener('DOMContentLoaded', () => {
     const np = document.querySelector('.now-playing');
     const isOpen = r.classList.toggle('open');
     np?.classList.toggle('eq-open', isOpen);
+    document.querySelector('.app')?.classList.toggle('eq-mode', isOpen);
     document.getElementById('btnEq').classList.toggle('active', isOpen);
     
     if (isOpen) {
@@ -1543,8 +1545,12 @@ window.addEventListener('DOMContentLoaded', () => {
   // Just set the text directly if safe
   const pt = document.getElementById('presetTrigger');
   if (pt) pt.textContent = 'QUICK-TUNE';
+  const lastQ = localStorage.getItem('sparky_last_query');
+  if (lastQ !== null) {
+    if (searchInput) searchInput.value = lastQ;
+    searchStations(lastQ);
+  }
   
-  searchStations('jazz');
   if (window.syncSearchUI) window.syncSearchUI();
 });
 

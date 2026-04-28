@@ -392,8 +392,8 @@ body.light .header {
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), 
               inset 0 0 0 1px rgba(255, 255, 255, 0.02);
   position: relative;
-  z-index: 10;
-  transition: z-index 0.3s step-end;
+  z-index: 100; /* Elevated to float above playlist */
+  overflow: visible; /* Ensure dropdowns aren't clipped */
 }
 
 body.light .now-playing {
@@ -583,6 +583,37 @@ body.light .eq-rack {
 
 .eq-rack.open {
   display: flex;
+  margin-bottom: 20px;
+}
+
+/* ── EQ FOCUS MODE (Zero Distractions) ── */
+.app.eq-mode .np-ticker,
+.app.eq-mode .np-viz-container,
+.app.eq-mode .np-meta,
+.app.eq-mode .np-volume-row,
+.app.eq-mode .tabs,
+.app.eq-mode .discovery-rack,
+.app.eq-mode .playlist,
+.app.eq-mode .filters-area {
+  display: none !important;
+}
+
+.app.eq-mode .now-playing {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 400px;
+}
+
+.app.eq-mode .eq-rack {
+  display: flex;
+  flex: 1;
+  margin: 0;
+  border-radius: 0;
+  border: none;
+  background: transparent;
+  backdrop-filter: none;
 }
 
 .eq-row {
@@ -1314,19 +1345,17 @@ body.light input[type=text] {
 .filters-area {
   display: flex;
   align-items: center;
-  justify-content: space-between; /* Space out on Tablet/Desktop */
+  justify-content: space-between;
   gap: 6px; 
-  padding: 8px 12px; /* Balanced padding */
+  padding: 8px 12px;
   background: rgba(0, 0, 0, 0.1);
   border-bottom: 1px solid var(--border);
   position: relative;
   z-index: 1100;
   transition: margin-top 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   flex-wrap: nowrap !important;
-  overflow-x: auto;
-  scrollbar-width: none;
+  overflow: visible; /* Reverted from overflow-x: auto to prevent clipping dropdowns */
 }
-.filters-area::-webkit-scrollbar { display: none; }
 
 .filters-area.fav-mode-gap {
   margin-top: 10px;
@@ -1484,8 +1513,8 @@ body.light .preset-label {
   left: 0;
   background: var(--panel);
   border: 1px solid var(--border);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-  z-index: 2000;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+  z-index: 3000; /* Highest priority for dropdowns */
   display: none;
   max-height: 250px;
   overflow-y: auto;

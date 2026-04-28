@@ -256,6 +256,30 @@ The current visualizer (30px header bar) is easy to miss. A full-width subtle wa
 
 ---
 
+### 21. State Persistence Engine ⭐
+**Goal:** Premium Experience / Continuity  
+The app should feel like a dedicated device. On reload, it must restore the exact state the user left:
+- **Last Station Recovery:** Automatically restores the "Now Playing" metadata and audio identity.
+- **Search Query Persistence:** Remembers the last search term (e.g., "Jazz" or "Rock") so the user doesn't have to re-type.
+- **Zero-Default Logic:** If the search was cleared, it stays cleared (removes the hardcoded 'jazz' fetch).
+
+**Effort:** 1 hr · JS (localStorage)  
+**Dependency:** None — implemented during Phase 4 polish
+
+---
+
+### 22. EQ Focus Mode (Zero Distractions) ⭐
+**Goal:** Declutter / Focused UX  
+Opening the EQ should transform the app into a dedicated audio console.
+- **Background Concealment:** Automatically hides the visualizer, ticker, and playlist when EQ is open.
+- **Console Expansion:** The EQ rack expands to fill the primary viewport.
+- **Visual Stability:** Eliminates vertical "push" jitter by temporarily removing other UI elements.
+
+**Effort:** 1.5 hr · CSS + JS Toggle  
+**Dependency:** Item 15.1 (EQ Stacking)
+
+---
+
 ## Deferred / Out of Scope
 
 | Item | Reason |
@@ -263,7 +287,6 @@ The current visualizer (30px header bar) is easy to miss. A full-width subtle wa
 | Two-column desktop layout | Deprioritized — desktop rarely used, effort vs. benefit poor |
 | Hover action tray on cards | Removed — not applicable on mobile/tablet |
 | Keyboard shortcuts | Not relevant for mobile |
-| EQ redesign | Already solid and well-tested |
 | Debug/Diagnostics modal | Developer tool — no redesign needed |
 | PWA / offline | Infrastructure, not UI |
 
@@ -296,10 +319,10 @@ The current visualizer (30px header bar) is easy to miss. A full-width subtle wa
 | 18 | Compact Mode Extension | 4 | ⬜ |
 | 19 | Mobile Layout Refinement | 4 | ✅ |
 | 20 | Visualizer Upgrade | 4 | ✅ |
+| 21 | State Persistence Engine | 4 | ✅ |
+| 22 | EQ Focus Mode | 4 | ✅ |
 
 ---
-
-## Session Management Protocol
 
 > [!IMPORTANT]
 > Follow this working agreement for every implementation session to avoid losing work mid-stream.
@@ -326,3 +349,4 @@ The agent will:
 - **Repo:** `c:\Users\palom\Vibe Coding Apps\Radio Internet Claude\sparky-radio`
 
 ---
+
