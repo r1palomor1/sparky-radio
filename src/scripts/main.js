@@ -157,28 +157,48 @@ function saveFavs(f) { localStorage.setItem(FAV_KEY, JSON.stringify(f)); }
 function norm(u) {
   if (!u) return '';
   try {
-    let n = u.split('?')[0].split('#')[0].toLowerCase().trim();
+    if (!u) return '';
+    let n = u.toLowerCase().trim();
+    // Strip protocol and trailing slash but KEEP the path/query to distinguish mirrors
     n = n.replace(/^https?:\/\//, '').replace(/\/$/, '');
     return n;
-  } catch (e) { return u.toLowerCase().trim(); }
+  } catch (e) { return u ? u.toLowerCase().trim() : ''; }
 }
 
-function isFav(st) {
-  const u = st.url_resolved || st.url;
-  const uuid = st.stationuuid || st.id;
-  const fv = loadFavs();
-  // URL-CENTRIC IDENTITY: Ignore name to prevent accidental duplicates with diff names
-  return fv.some(f =>
-    (uuid && (f.id === uuid || f.stationuuid === uuid)) ||
-    (norm(f.url) === norm(u))
-  );
+function isFav(st, currentFavs) {
+  if (!st) return false;
+  const fv = currentFavs || loadFavs();
+  const stUuid = st.stationuuid || st.id;
+  const stName = (st.name || '').trim().toLowerCase();
+  const stUrl = (st.url_resolved || st.url || '').trim().toLowerCase();
+
+  return fv.some(f => {
+    const fUuid = f.stationuuid || f.id;
+    const fName = (f.name || '').trim().toLowerCase();
+    const fUrl = (f.url_resolved || f.url || '').trim().toLowerCase();
+    // 1. UUID Match (Primary)
+    if (stUuid && fUuid && stUuid === fUuid) return true;
+    // 2. Name + URL Match (Secondary for custom/independent stations)
+    if (stName === fName && stUrl === fUrl) return true;
+    return false;
+  });
 }
 
 function addFav(st) {
   const favs = loadFavs(), u = st.url_resolved || st.url;
   const uuid = st.stationuuid || st.id || '';
 
-  const existing = favs.filter(f => (uuid && (f.id === uuid || f.stationuuid === uuid)) || norm(f.url) === norm(u));
+  const existing = favs.filter(f => {
+    const fUuid = f.stationuuid || f.id;
+    const fName = (f.name || '').trim().toLowerCase();
+    const fUrl = (f.url_resolved || f.url || '').trim().toLowerCase();
+    const stName = (st.name || '').trim().toLowerCase();
+    const stUrl = (u || '').trim().toLowerCase();
+    
+    if (uuid && fUuid && uuid === fUuid) return true;
+    if (stName === fName && stUrl === fUrl) return true;
+    return false;
+  });
 
   const proceed = () => {
     favs.push({
@@ -231,9 +251,15 @@ function syncFavMetadata(st) {
   const u = st.url_resolved || st.url;
   const uuid = st.stationuuid || st.id;
   const favIdx = favs.findIndex(f => {
-    const idMatch = uuid && (f.id === uuid || f.stationuuid === uuid);
-    const urlMatch = norm(f.url) === norm(u);
-    return idMatch || urlMatch;
+    const fUuid = f.stationuuid || f.id;
+    const fName = (f.name || '').trim().toLowerCase();
+    const fUrl = (f.url_resolved || f.url || '').trim().toLowerCase();
+    const stName = (st.name || '').trim().toLowerCase();
+    const stUrl = (u || '').trim().toLowerCase();
+
+    if (uuid && fUuid && uuid === fUuid) return true;
+    if (stName === fName && stUrl === fUrl) return true;
+    return false;
   });
 
   if (favIdx !== -1) {
@@ -667,6 +693,7 @@ function playStationObj(st) {
   if (!st) return;
   syncFavMetadata(st);
   currentSrc = st;
+  renderCurrent(); // Instant highlighting
   if (audioCtx?.state === 'suspended') audioCtx.resume();
   initAudio();
   if (hls) { hls.destroy(); hls = null; }
@@ -760,10 +787,11 @@ function renderStations() {
   const mV = Math.max(...stations.map(s => s.votes || 0), 1);
   const mT = Math.max(...stations.map(s => s.clicktrend || 0), 1);
 
+  const currentFavs = loadFavs();
   pl.innerHTML = stations.map((st, i) => {
     const url = st.url_resolved || st.url;
     const actv = currentSrc && (norm(currentSrc.url) === norm(url)) && activeTab === 'stations';
-    const favd = isFav(st);
+    const favd = isFav(st, currentFavs);
 
     const rank = (((st.clickcount || 0) / mC) * 0.6) + (((st.votes || 0) / mV) * 0.3) + (((st.clicktrend || 0) / mT) * 0.1);
     const pwr = Math.min(100, Math.round(rank * 100));
@@ -823,9 +851,11 @@ function renderStations() {
       </div>
     </div>`;
   }).join('');
-  pl.querySelectorAll('.pl-item').forEach(el => el.onclick = (e) => {
-    if (e.target.closest('button')) return;
-    currentIdx = parseInt(el.dataset.idx); playAtIndex(currentIdx);
+  pl.querySelectorAll('.pl-item').forEach((el, idx) => {
+    el.onclick = (e) => {
+      if (e.target.closest('button')) return;
+      playStationObj(stations[idx]);
+    };
   });
   pl.querySelectorAll('.pl-heart-btn').forEach(btn => btn.onclick = (e) => {
     e.stopPropagation(); const st = stations[btn.dataset.fav];
@@ -903,7 +933,7 @@ function renderFavs() {
       `;
     }
 
-    return `<div class="pl-item${actv ? ' active' : ''}${isDup ? ' is-dup-fav' : ''}" data-idx="${i}">
+    return `<div class="pl-item${actv ? ' active' : ''}${isDup ? ' is-dup-fav' : ''}" data-sid="${st.sparkyId}">
       <div class="pl-sidebar">${sidebarHtml}</div>
       <div class="pl-main">
         <div class="pl-item-row pl-item-top">
@@ -934,9 +964,14 @@ function renderFavs() {
       </div>
     </div>`;
   }).join('');
-  pl.querySelectorAll('.pl-item').forEach(el => el.onclick = (e) => {
-    if (e.target.closest('button')) return;
-    currentIdx = parseInt(el.dataset.idx); playAtIndex(currentIdx);
+
+  pl.querySelectorAll('.pl-item').forEach(el => {
+    el.onclick = (e) => {
+      if (e.target.closest('button')) return;
+      const sId = el.dataset.sid;
+      const target = favs.find(f => f.sparkyId === sId);
+      if (target) playStationObj(target);
+    };
   });
   pl.querySelectorAll('[data-rmfav]').forEach(btn => btn.onclick = (e) => {
     e.stopPropagation();

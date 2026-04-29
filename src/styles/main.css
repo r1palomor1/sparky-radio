@@ -1209,7 +1209,9 @@ body.light input[type=text] {
 .playlist {
   flex: 1;
   min-height: 0;
-  overflow-y: auto;
+  display: block !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch;
   background: var(--pl-bg);
   position: relative;
 }
@@ -1263,20 +1265,8 @@ body.light input[type=text] {
 .pl-item.active {
   background: var(--pl-active);
 }
+/* Removed legacy green bar for active card to ensure industrial subtlety */
 
-/* Green bar for active card */
-.pl-item.active::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 10%;
-  height: 80%;
-  width: 4px;
-  background: var(--accent);
-  box-shadow: 0 0 15px var(--accent);
-  border-radius: 0 4px 4px 0;
-  z-index: 5;
-}
 
 .pl-sidebar {
   width: 32px;
@@ -1781,14 +1771,13 @@ body.light .pl-item-sub {
 }
 
 .pl-item.active .pl-sidebar {
-  background: var(--accent);
-  color: var(--bg);
-  border: none;
+  background: rgba(92, 184, 112, 0.15);
+  border-right: 1px solid var(--accent);
 }
 
 .pl-item.active .pl-sidebar .btn-stack,
 .pl-item.active .pl-num {
-  color: var(--bg);
+  color: var(--accent);
 }
 
 /* ── ITEM 4: TAP PRESS STATE — :active flash ─── */
@@ -2269,13 +2258,14 @@ body.light .footer {
 
 
 .app.is-playing .btn-footer-play {
-  background: var(--accent) !important;
-  color: #000 !important;
-  box-shadow: 0 0 20px rgba(92, 184, 112, 0.3);
+  background: rgba(92, 184, 112, 0.15) !important;
+  border: 1px solid var(--accent) !important;
+  color: var(--accent) !important;
+  box-shadow: 0 0 15px rgba(92, 184, 112, 0.2);
 }
 
 .app.is-playing .btn-footer-play .btn-label {
-  color: #000 !important;
+  color: var(--accent) !important;
   opacity: 1 !important;
 }
 
