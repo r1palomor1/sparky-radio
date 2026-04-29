@@ -765,7 +765,7 @@ function fmtK(n) {
 
 function renderStations() {
   const pl = document.getElementById('playlist');
-  if (!pl) return;
+  if (!pl || activeTab !== 'stations') return;
 
   const displayStations = filterHiFi ? stations.filter(s => Number(s.bitrate || 0) >= 128) : stations;
   document.getElementById('stationsBadge').textContent = displayStations.length;
@@ -879,8 +879,8 @@ function renderStations() {
 
 function renderFavs() {
   const pl = document.getElementById('playlist');
+  if (!pl || activeTab !== 'favs') return;
   favs = loadFavs(); // Sync global
-  if (!pl) return;
   refreshFavBadge();
   if (!favs.length) {
     pl.innerHTML = '<div class="pl-empty"><div class="pl-empty-icon">★</div><div>NO FAVORITES YET</div></div>'; return;
@@ -895,6 +895,11 @@ function renderFavs() {
   let displayFavs = [...favs];
   if (filterHiFi) {
     displayFavs = displayFavs.filter(s => Number(s.bitrate || 0) >= 128);
+  }
+
+  if (favs.length > 0 && !displayFavs.length) {
+    pl.innerHTML = '<div class="pl-empty"><div class="pl-empty-icon">★</div><div>NO MATCHING FAVORITES</div></div>';
+    return;
   }
 
   const mC = Math.max(...displayFavs.map(s => s.clickcount || 0), 1);
@@ -925,12 +930,11 @@ function renderFavs() {
       ];
     }
 
-    const isCompact = statsMode === 'COMPACT';
     const telemetryHtml = `
       <div class="pl-telemetry-bar">
         <div class="pl-stat-primary" style="color:${primary.color}"><i>${primary.icon}</i> ${primary.val}</div>
-        ${!isCompact ? `<div class="pl-stat-sep">|</div>` : ''}
-        ${!isCompact ? secondaries.map(s => `<div class="pl-stat-secondary"><i>${s.icon}</i> ${s.val}</div>`).join('') : ''}
+        <div class="pl-stat-sep">|</div>
+        ${secondaries.map(s => `<div class="pl-stat-secondary"><i>${s.icon}</i> ${s.val}</div>`).join('')}
       </div>
     `;
 
@@ -1451,6 +1455,7 @@ window.addEventListener('DOMContentLoaded', () => {
       filterHiFi = false;
       const btn = document.getElementById('btnHifi');
       if (btn) btn.classList.remove('active');
+      switchTab('stations');
       searchStations(searchInput.value, true);
     }
   };
