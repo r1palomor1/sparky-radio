@@ -240,7 +240,8 @@ function removeFavBySparkyId(sparkyId) {
 }
 
 function refreshFavBadge() {
-  const n = loadFavs().length;
+  const fv = loadFavs();
+  const n = filterHiFi ? fv.filter(s => Number(s.bitrate || 0) >= 128).length : fv.length;
   const el = document.getElementById('favsBadge');
   if (el) el.textContent = n;
 }
@@ -661,7 +662,9 @@ function setStatus(state, txt) {
 // ══ NOW PLAYING ═══════════════════════════
 function updateNowPlaying(st) {
   const nm = document.getElementById('npName');
+  const favEl = document.getElementById('npFavicon');
   if (!nm) return;
+  if (favEl) favEl.innerHTML = st ? renderFavicon(st) : '';
   nm.textContent = st ? st.name : '— SELECT A STATION —';
   nm.className = 'np-name' + (st ? ' running' : '');
   if (st) {
@@ -766,29 +769,36 @@ function fmtK(n) {
 function renderStations() {
   const pl = document.getElementById('playlist');
   if (!pl) return;
-  document.getElementById('stationsBadge').textContent = stations.length;
+
+  const displayStations = filterHiFi ? stations.filter(s => Number(s.bitrate || 0) >= 128) : stations;
+  document.getElementById('stationsBadge').textContent = displayStations.length;
+
   if (!stations.length) {
     pl.innerHTML = '<div class="pl-empty"><div class="pl-empty-icon">📡</div><div>SEARCH TO DISCOVER STATIONS</div></div>'; return;
   }
-  if (stations.length > 1) {
+  if (!displayStations.length) {
+    pl.innerHTML = '<div class="pl-empty"><div class="pl-empty-icon">📡</div><div>NO MATCHING STATIONS</div></div>'; return;
+  }
+
+  if (displayStations.length > 1) {
     if (sortMode === 'power') {
-      const maxC = Math.max(...stations.map(s => s.clickcount || 0), 1);
-      const maxV = Math.max(...stations.map(s => s.votes || 0), 1);
-      const maxT = Math.max(...stations.map(s => s.clicktrend || 0), 1);
-      stations.sort((a, b) => {
+      const maxC = Math.max(...displayStations.map(s => s.clickcount || 0), 1);
+      const maxV = Math.max(...displayStations.map(s => s.votes || 0), 1);
+      const maxT = Math.max(...displayStations.map(s => s.clicktrend || 0), 1);
+      displayStations.sort((a, b) => {
         const sA = ((a.clickcount || 0) / maxC * 0.6) + ((a.votes || 0) / maxV * 0.3) + ((a.clicktrend || 0) / maxT * 0.1);
         const sB = ((b.clickcount || 0) / maxC * 0.6) + ((b.votes || 0) / maxV * 0.3) + ((b.clicktrend || 0) / maxT * 0.1);
         return sB - sA;
       });
-    } else { stations.sort((a, b) => (b.votes || 0) - (a.votes || 0)); }
+    } else { displayStations.sort((a, b) => (b.votes || 0) - (a.votes || 0)); }
   }
 
-  const mC = Math.max(...stations.map(s => s.clickcount || 0), 1);
-  const mV = Math.max(...stations.map(s => s.votes || 0), 1);
-  const mT = Math.max(...stations.map(s => s.clicktrend || 0), 1);
+  const mC = Math.max(...displayStations.map(s => s.clickcount || 0), 1);
+  const mV = Math.max(...displayStations.map(s => s.votes || 0), 1);
+  const mT = Math.max(...displayStations.map(s => s.clicktrend || 0), 1);
 
   const currentFavs = loadFavs();
-  pl.innerHTML = stations.map((st, i) => {
+  pl.innerHTML = displayStations.map((st, i) => {
     const url = st.url_resolved || st.url;
     const actv = currentSrc && (norm(currentSrc.url) === norm(url)) && activeTab === 'stations';
     const favd = isFav(st, currentFavs);
@@ -854,16 +864,20 @@ function renderStations() {
   pl.querySelectorAll('.pl-item').forEach((el, idx) => {
     el.onclick = (e) => {
       if (e.target.closest('button')) return;
-      playStationObj(stations[idx]);
+      playStationObj(displayStations[idx]);
     };
   });
   pl.querySelectorAll('.pl-heart-btn').forEach(btn => btn.onclick = (e) => {
-    e.stopPropagation(); const st = stations[btn.dataset.fav];
+    e.stopPropagation(); const st = displayStations[btn.dataset.fav];
     isFav(st) ? removeFavByUrl(st.url_resolved || st.url) : addFav(st); renderStations();
   });
   pl.querySelectorAll('.pl-remove').forEach(btn => btn.onclick = (e) => {
     e.stopPropagation(); const idx = parseInt(btn.dataset.rmst);
-    sparkyConfirm(`Remove [${stations[idx].name}]?`, () => { stations.splice(idx, 1); renderStations(); });
+    sparkyConfirm(`Remove [${displayStations[idx].name}]?`, () => { 
+      const targetUrl = displayStations[idx].url;
+      stations = stations.filter(s => s.url !== targetUrl);
+      renderStations(); 
+    });
   });
 }
 
@@ -1112,6 +1126,7 @@ const updateVolFill = (el) => {
 // ══ SEARCH ════════════════════════════════
 async function searchStations(q, isManual = false) {
   if (isSearching) return;
+
   localStorage.setItem('sparky_last_query', q || ''); 
   const hasFilters = filterCountry !== 'ALL' || filterLang !== 'ALL' || filterHiFi;
   if (!q && !hasFilters && !isManual) { stations = []; renderStations(); return; }
@@ -1298,7 +1313,16 @@ function loadPresets() {
     html += `<div class="preset-opt" data-val="${p}"><span>${p.toUpperCase()}</span>${!isDefault ? `<span class="preset-del" data-del="${p}">✕</span>` : ''}</div>`;
   });
   container.innerHTML = html;
-  container.querySelectorAll('.preset-opt').forEach(opt => opt.onclick = (e) => { if (e.target.classList.contains('preset-del')) return; handlePresetSelect(opt.dataset.val); });
+  container.querySelectorAll('.preset-opt').forEach(opt => opt.onclick = (e) => { 
+    if (e.target.classList.contains('preset-del')) return;
+    
+    // New Search Intent: Clear HD filter
+    filterHiFi = false;
+    const btn = document.getElementById('btnHifi');
+    if (btn) btn.classList.remove('active');
+
+    handlePresetSelect(opt.dataset.val); 
+  });
   container.querySelectorAll('.preset-del').forEach(btn => btn.onclick = (e) => { 
     e.stopPropagation(); 
     const val = btn.dataset.del; 
@@ -1451,6 +1475,15 @@ window.addEventListener('DOMContentLoaded', () => {
   };
 
   searchInput.oninput = toggleSearchClear;
+  searchInput.onkeypress = (e) => {
+    if (e.key === 'Enter') {
+      // New Search Intent: Clear HD filter
+      filterHiFi = false;
+      const btn = document.getElementById('btnHifi');
+      if (btn) btn.classList.remove('active');
+      searchStations(searchInput.value, true);
+    }
+  };
 
   btnSearchClear.onclick = () => {
     searchInput.value = '';
@@ -1494,6 +1527,10 @@ window.addEventListener('DOMContentLoaded', () => {
 
   bind('btnSearch', () => {
     const q = document.getElementById('searchInput').value.trim();
+    // New Search Intent: Clear HD filter
+    filterHiFi = false;
+    const btn = document.getElementById('btnHifi');
+    if (btn) btn.classList.remove('active');
     expandFilters(); if (q) { switchTab('stations'); searchStations(q); }
   });
   bind('btnFilterToggle', toggleFilters);
@@ -1515,12 +1552,22 @@ window.addEventListener('DOMContentLoaded', () => {
     filterHiFi = !filterHiFi;
     const btn = document.getElementById('btnHifi');
     if (btn) btn.classList.toggle('active', filterHiFi);
+    
+    // Reactive Badge Sync
+    refreshFavBadge();
+    if (activeTab !== 'stations') {
+      const sb = document.getElementById('stationsBadge');
+      if (sb) {
+        const count = filterHiFi ? stations.filter(s => Number(s.bitrate || 0) >= 128).length : stations.length;
+        sb.textContent = count;
+      }
+    }
+
     updateNowPlaying(currentSrc); 
     const q = document.getElementById('searchInput').value.trim();
     if (activeTab === 'favs') {
       renderFavs();
     } else {
-      // Only fetch if there is a query or we have other active filters
       if (q || filterCountry !== 'ALL' || filterLang !== 'ALL') {
         searchStations(q, true); 
       } else {
@@ -1600,7 +1647,7 @@ window.addEventListener('DOMContentLoaded', () => {
   updateDeploymentUI();
   refreshFavBadge();
   updateSortUI(); 
-  bind('presetTrigger', () => { /* Logic already handled at L1470 */ }, 'textContent', 'QUICK-TUNE');
+  
   // Just set the text directly if safe
   const pt = document.getElementById('presetTrigger');
   if (pt) pt.textContent = 'QUICK-TUNE';

@@ -773,8 +773,8 @@ body.light .pl-status-badge.trending {
 .np-name-wrap {
   flex: 1;
   overflow: hidden;
-  white-space: nowrap;
   position: relative;
+  padding-left: 8px; /* Technical buffer to prevent favicon collision */
 }
 
 /* ── ITEM 10: PREMIUM VOLUME SLIDER ────── */
