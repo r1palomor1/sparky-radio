@@ -961,6 +961,7 @@ function renderFavs() {
             <button class="pl-action-btn pl-edit" data-edit="${st.sparkyId}" title="Edit Favorite">
               <span class="material-symbols-outlined">edit</span>
             </button>
+
             <button class="pl-action-btn pl-remove" data-rmfav="${st.sparkyId}" title="Remove Favorite">
               <span class="material-symbols-outlined">close</span>
             </button>
@@ -1194,16 +1195,13 @@ async function searchStations(q, isManual = false) {
   isSearching = false;
 }
 
-function toggleFilters() {
-  const rack = document.getElementById('filterRack'), btn = document.getElementById('btnFilterToggle');
-  const isCollapsed = rack.classList.toggle('collapsed');
-  btn.classList.toggle('active', isCollapsed);
-  localStorage.setItem('sparky_filters_collapsed', isCollapsed);
-}
+/* toggleFilters removed as Discovery Rack is now persistent */
+
 function expandFilters() {
-  const rack = document.getElementById('filterRack'), btn = document.getElementById('btnFilterToggle');
-  if (rack?.classList.contains('collapsed')) { rack.classList.remove('collapsed'); btn.classList.remove('active'); }
+  const rack = document.getElementById('filterRack');
+  if (rack?.classList.contains('collapsed')) rack.classList.remove('collapsed');
 }
+
 
 // ══ SETTINGS & UI ══════════════════════════
 // ══ SETTINGS & UI (Logic defined here, bound in INIT) ══
@@ -1275,7 +1273,16 @@ function loadFilterOptions() {
   const defC = localStorage.getItem('sparky_default_country') || 'ALL';
   const defL = localStorage.getItem('sparky_default_lang') || 'ALL';
 
+  const fct = document.getElementById('filterCountryTrigger');
+  if (fct) fct.innerHTML = '<span class="material-symbols-outlined">public</span>';
+  const flt = document.getElementById('filterLangTrigger');
+  if (flt) flt.innerHTML = '<span class="material-symbols-outlined">language</span>';
+
+
+
+
   const finalC = ['ALL'];
+
   if (defC !== 'ALL' && CTRY_LIST.includes(defC)) finalC.push(defC);
   finalC.push(...CTRY_LIST.filter(c => c !== 'ALL' && c !== defC).sort());
 
@@ -1296,8 +1303,11 @@ function loadFilterOptions() {
     return `<div class="preset-opt" data-val="${l}">${display}</div>`;
   }).join('');
 
-  cCont.querySelectorAll('.preset-opt').forEach(o => o.onclick = () => { filterCountry = o.dataset.val; document.getElementById('filterCountryTrigger').textContent = filterCountry; cCont.classList.remove('show'); searchStations(document.getElementById('searchInput').value); });
-  lCont.querySelectorAll('.preset-opt').forEach(o => o.onclick = () => { filterLang = o.dataset.val; document.getElementById('filterLangTrigger').textContent = filterLang === 'ALL' ? 'ALL' : filterLang.substring(0, 3).toUpperCase(); lCont.classList.remove('show'); searchStations(document.getElementById('searchInput').value); });
+  cCont.querySelectorAll('.preset-opt').forEach(o => o.onclick = () => { filterCountry = o.dataset.val; document.getElementById('filterCountryTrigger').innerHTML = `<span class="material-symbols-outlined">public</span>${filterCountry === 'ALL' ? '' : ' ' + filterCountry}`; cCont.classList.remove('show'); searchStations(document.getElementById('searchInput').value); });
+  lCont.querySelectorAll('.preset-opt').forEach(o => o.onclick = () => { filterLang = o.dataset.val; const lVal = filterLang === 'ALL' ? '' : ' ' + filterLang.substring(0, 3).toUpperCase(); document.getElementById('filterLangTrigger').innerHTML = `<span class="material-symbols-outlined">language</span>${lVal}`; lCont.classList.remove('show'); searchStations(document.getElementById('searchInput').value); });
+
+
+
 }
 
 
@@ -1481,21 +1491,74 @@ window.addEventListener('DOMContentLoaded', () => {
     if (isOpen) {
       wasCollapsedBeforeEQ = document.getElementById('filterRack').classList.contains('collapsed');
       document.getElementById('filterRack').classList.add('collapsed');
-      document.getElementById('btnFilterToggle').classList.add('active');
     } else {
       if (!wasCollapsedBeforeEQ) {
         document.getElementById('filterRack').classList.remove('collapsed');
-        document.getElementById('btnFilterToggle').classList.remove('active');
       }
+    }
+
+  };
+
+  // ── VOLUME POPOVER LOGIC ──
+  let volTimer = null;
+  const volCtrl = document.getElementById('volCtrl');
+  const volPopover = document.getElementById('volPopover');
+  const btnVolToggle = document.getElementById('btnVolToggle');
+  const volSlider = document.getElementById('volSlider');
+
+  const updateVolIcon = (v) => {
+    const icon = btnVolToggle?.querySelector('.material-symbols-outlined');
+    if (icon) {
+      if (v == 0) icon.textContent = 'volume_off';
+      else if (v < 30) icon.textContent = 'volume_mute';
+      else if (v < 70) icon.textContent = 'volume_down';
+      else icon.textContent = 'volume_up';
     }
   };
 
-  document.getElementById('volSlider').oninput = (e) => {
-    const v = e.target.value;
-    audioEl.volume = v / 100;
-    localStorage.setItem('sparky_volume', v);
-    updateVolFill(e.target);
+  const showVol = () => {
+    volPopover?.classList.add('show');
+    resetVolTimer();
   };
+  const hideVol = () => {
+    volPopover?.classList.remove('show');
+    if (volTimer) clearTimeout(volTimer);
+  };
+  const resetVolTimer = () => {
+    if (volTimer) clearTimeout(volTimer);
+    volTimer = setTimeout(hideVol, 2000); 
+  };
+
+  if (btnVolToggle) {
+    btnVolToggle.onclick = (e) => {
+      e.stopPropagation();
+      volPopover?.classList.contains('show') ? hideVol() : showVol();
+    };
+  }
+
+  if (volSlider) {
+    // Initial sync
+    const savedVol = localStorage.getItem('sparky_volume') || 80;
+    volSlider.value = savedVol;
+    updateVolIcon(savedVol);
+
+    volSlider.oninput = (e) => {
+      const v = e.target.value;
+      audioEl.volume = v / 100;
+      localStorage.setItem('sparky_volume', v);
+      updateVolFill(e.target);
+      updateVolIcon(v);
+      resetVolTimer();
+    };
+    volSlider.onmousedown = volSlider.ontouchstart = () => { if (volTimer) clearTimeout(volTimer); };
+    volSlider.onmouseup = volSlider.ontouchend = () => { resetVolTimer(); };
+  }
+
+  // Click away to close (Integrated with existing window click)
+  window.addEventListener('click', (e) => {
+    if (volPopover && !volCtrl?.contains(e.target)) hideVol();
+  });
+
 
   // ══ CONSOLIDATED DOM BINDINGS (ELIMINATE TYPEERROR) ══
   function bind(id, fn, ev = 'onclick') { const el = document.getElementById(id); if (el) el[ev] = fn; }
@@ -1508,7 +1571,7 @@ window.addEventListener('DOMContentLoaded', () => {
     if (btn) btn.classList.remove('active');
     expandFilters(); if (q) { switchTab('stations'); searchStations(q); }
   });
-  bind('btnFilterToggle', toggleFilters);
+
   bind('btnPlayFooter', () => togglePlay());
   bind('btnNextFooter', () => {
     const l = activeTab === 'favs' ? favs : stations;

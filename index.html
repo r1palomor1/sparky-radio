@@ -91,13 +91,9 @@
         <div class="np-meta-badge np-hd-badge" id="npHD" style="display:none">HD</div>
       </div>
 
-      <div class="np-volume-row">
-        <span class="vol-label">VOL</span>
-        <input type="range" id="volSlider" min="0" max="100" value="80">
-      </div>
-      
       <span id="npBitrate" style="display:none">—</span>
     </div>
+
 
 
 
@@ -122,22 +118,24 @@
           <div class="preset-trigger" id="presetTrigger">QUICK-TUNE</div>
           <div class="preset-options" id="presetOptions"></div>
         </div>
-        <div class="filter-label">CTRY</div>
         <div class="preset-dropdown-wrap preset-cl-wrap">
-          <div class="preset-trigger" id="filterCountryTrigger">ALL</div>
+          <div class="preset-trigger" id="filterCountryTrigger">
+            <span class="material-symbols-outlined">public</span>
+          </div>
           <div class="preset-options" id="filterCountryOptions"></div>
         </div>
-        <div class="filter-label">LANG</div>
         <div class="preset-dropdown-wrap preset-cl-wrap">
-          <div class="preset-trigger" id="filterLangTrigger">ALL</div>
+          <div class="preset-trigger" id="filterLangTrigger">
+            <span class="material-symbols-outlined">language</span>
+          </div>
           <div class="preset-options" id="filterLangOptions"></div>
         </div>
+
+
         <button class="btn-hifi" id="btnHifi" title="Force 128kbps+ Streams">
           <span class="material-symbols-outlined" style="font-size: 18px;">high_quality</span>
         </button>
-        <button class="btn-filter-toggle" id="btnFilterToggle" title="Toggle Discovery Rack">
-          <span class="material-symbols-outlined" style="font-size:16px;">list</span>
-        </button>
+
       </div>
     </div>
 
@@ -184,7 +182,22 @@
           <span class="material-symbols-outlined">skip_next</span>
           <span class="btn-label">NEXT</span>
         </button>
+
+        <!-- VOLUME CONTROLLER (Right Aligned) -->
+        <div class="footer-volume-ctrl" id="volCtrl">
+          <button class="btn btn-footer-nav" id="btnVolToggle" title="Toggle Volume">
+            <span class="material-symbols-outlined">volume_up</span>
+            <span class="btn-label">VOL</span>
+          </button>
+          <div class="vol-popover" id="volPopover">
+             <div class="vol-popover-inner">
+               <span class="vol-pop-label">VOLUME</span>
+               <input type="range" id="volSlider" min="0" max="100" value="80">
+             </div>
+          </div>
+        </div>
       </div>
+
     </div>
   </div>
 

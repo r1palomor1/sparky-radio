@@ -27,12 +27,14 @@ self.addEventListener('activate', (e) => {
 });
 
 self.addEventListener('fetch', (e) => {
-  // Allow network for API calls, cache for static assets
-  if (e.request.url.includes('/api/')) {
-    e.respondWith(fetch(e.request));
-  } else {
+  const url = new URL(e.request.url);
+  
+  // Only intercept same-origin requests for potential caching
+  // This avoids CORS issues and network errors with external APIs like Radio Browser
+  if (url.origin === self.location.origin) {
     e.respondWith(
       caches.match(e.request).then((res) => res || fetch(e.request))
     );
   }
 });
+
