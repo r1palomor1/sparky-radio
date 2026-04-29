@@ -102,7 +102,7 @@ let filterHiFi = false;
 let wasCollapsedBeforeEQ = false; // State persistence for EQ engaged mode
 let isSearching = false;
 const APP_CODENAME = "Smart-Tune Pro";
-// statsMode removed - standardizing to FULL
+
 
 
 
@@ -121,7 +121,7 @@ function updateDeploymentUI() {
   tsEl.textContent = ts;
 }
 
-// syncStatsUI removed - standardizing to FULL
+
 
 let audioCtx, analyser, srcNode;
 let freqData;

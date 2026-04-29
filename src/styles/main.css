@@ -424,7 +424,7 @@ body.light .now-playing {
 .np-label {
     font-size: calc(12px * var(--text-scale));
     letter-spacing: 2.0px;
-    color: rgba(255, 255, 255, 0.6);
+    color: rgba(255, 255, 255, 0.4);
     text-transform: uppercase;
     font-weight: 600;
     -webkit-font-smoothing: antialiased;
@@ -526,7 +526,7 @@ body.light .now-playing {
   border-radius: 24px;
   border: 1px solid rgba(255, 255, 255, 0.06);
   font-size: calc(9px * var(--text-scale)); /* Reduced from 10px */
-  color: rgba(255, 255, 255, 0.65); /* Standardized High-Clarity secondary */
+  color: rgba(255, 255, 255, 0.5); /* Dimmed for less visual competition */
   font-weight: 500; /* Reduced from 700 */
   display: flex;
   align-items: center;
@@ -557,7 +557,7 @@ body.light .now-playing {
 .vol-label {
   font-size: 10px;
   font-weight: 900;
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(255, 255, 255, 0.3);
   letter-spacing: 1.5px;
 }
 
