@@ -98,11 +98,11 @@ let repeat = false;
 let rafId, hls;
 let filterCountry = 'ALL';
 let filterLang = 'ALL';
-let filterHiFi = true;
+let filterHiFi = false;
 let wasCollapsedBeforeEQ = false; // State persistence for EQ engaged mode
 let isSearching = false;
 const APP_CODENAME = "Smart-Tune Pro";
-let statsMode = localStorage.getItem('sparky_stats_mode') || 'FULL';
+// statsMode removed - standardizing to FULL
 
 
 
@@ -121,10 +121,7 @@ function updateDeploymentUI() {
   tsEl.textContent = ts;
 }
 
-function syncStatsUI() {
-  const isCompact = statsMode === 'COMPACT';
-  document.querySelector('.app')?.classList.toggle('stats-compact', isCompact);
-}
+// syncStatsUI removed - standardizing to FULL
 
 let audioCtx, analyser, srcNode;
 let freqData;
@@ -821,12 +818,11 @@ function renderStations() {
         { id: 'clk', icon: '🔥', val: fmtK(st.clickcount) }
       ];
     }
-    const isCompact = statsMode === 'COMPACT';
     const telemetryHtml = `
       <div class="pl-telemetry-bar">
         <div class="pl-stat-primary" style="color:${primary.color}"><i>${primary.icon}</i> ${primary.val}</div>
-        ${!isCompact ? `<div class="pl-stat-sep">|</div>` : ''}
-        ${!isCompact ? secondaries.map(s => `<div class="pl-stat-secondary"><i>${s.icon}</i> ${s.val}</div>`).join('') : ''}
+        <div class="pl-stat-sep">|</div>
+        ${secondaries.map(s => `<div class="pl-stat-secondary"><i>${s.icon}</i> ${s.val}</div>`).join('')}
       </div>
     `;
 
@@ -1408,19 +1404,6 @@ function loadSettingsOptions() {
     loadFilterOptions(); // Sync filter list order
   });
 
-  const smCont = document.getElementById('statsModeOptions');
-  if (smCont) {
-    document.getElementById('statsModeTrigger').textContent = statsMode;
-    smCont.innerHTML = ['FULL', 'COMPACT'].map(m => `<div class="preset-opt${m === statsMode ? ' active' : ''}" data-val="${m}">${m}</div>`).join('');
-    smCont.querySelectorAll('.preset-opt').forEach(o => o.onclick = () => {
-      statsMode = o.dataset.val;
-      localStorage.setItem('sparky_stats_mode', statsMode);
-      document.getElementById('statsModeTrigger').textContent = statsMode;
-      smCont.classList.remove('show');
-      syncStatsUI();
-      renderCurrent();
-    });
-  }
 }
 // ══ APP INITIALIZATION ══════════════════════════════════
 window.addEventListener('DOMContentLoaded', () => {
@@ -1435,33 +1418,20 @@ window.addEventListener('DOMContentLoaded', () => {
     audioEl.volume = sv / 100;
     updateVolFill(vs);
   }
-  filterHiFi = localStorage.getItem('sparky_default_hifi') !== 'false';
+  filterHiFi = false; // Standardizing to Discovery-First startup
   const bhf = document.getElementById('btnHifi');
   if (bhf) bhf.classList.toggle('active', filterHiFi);
 
   loadFilterOptions();
   loadSettingsOptions();
-  syncStatsUI();
 
   // ══ DEFAULTS TRIGGERS ══
   // ══ DEFAULTS TRIGGERS (Safe Bindings) ══
   bind('defaultCountryTrigger', (e) => { e.stopPropagation(); document.getElementById('defaultCountryOptions')?.classList.toggle('show'); });
   bind('defaultLangTrigger', (e) => { e.stopPropagation(); document.getElementById('defaultLangOptions')?.classList.toggle('show'); });
-  bind('statsModeTrigger', (e) => { e.stopPropagation(); document.getElementById('statsModeOptions')?.classList.toggle('show'); });
 
 
-  const hifiToggle = document.getElementById('defaultHifiToggle');
-  const hifiTrack = document.getElementById('defaultHifiTrack');
-  if (hifiToggle && hifiTrack) {
-    hifiTrack.classList.toggle('on', filterHiFi);
-    hifiToggle.onclick = () => {
-      filterHiFi = !filterHiFi;
-      hifiTrack.classList.toggle('on', filterHiFi);
-      localStorage.setItem('sparky_default_hifi', filterHiFi);
-      const bhf = document.getElementById('btnHifi');
-      if (bhf) bhf.classList.toggle('active', filterHiFi);
-    };
-  }
+  // HiFi Default Toggle removed
 
   // MISSION CONTROL BINDINGS
   // Top controls removed from UI
