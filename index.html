@@ -19,80 +19,86 @@
   <div class="app">
     <!-- HEADER -->
     <div class="header">
-      <div class="logo-title">SPARKY RADIO</div>
+      <div class="logo-title">
+        <span class="logo-accent">Sparky</span>
+        <span class="logo-main">Radio</span>
+      </div>
+
       <div class="header-right">
-        <div class="theme-toggle" id="themeToggle" title="Toggle light / dark mode">
-          <span class="toggle-icon">🌙</span>
-          <div class="toggle-track" id="toggleTrack">
-            <div class="toggle-thumb"></div>
-          </div>
-          <span class="toggle-icon">☀️</span>
-        </div>
-        <div class="status-cluster" id="statusCluster">
+        <div class="status-cluster" id="statusCluster" title="System Settings & Status">
           <div class="dot" id="statusDot"></div>
           <span id="statusText">IDLE</span>
         </div>
       </div>
+
     </div>
 
     <!-- PRO CONSOLE / NOW PLAYING PANEL -->
     <div class="now-playing">
-      <div class="np-header">
-        <div class="np-label">NOW PLAYING</div>
-        <button class="btn btn-sm btn-eq-toggle" id="btnEq">EQ</button>
-      </div>
+      <!-- SIDE FAVICON CONTAINER -->
+      <div class="np-side-favicon-wrap" id="npFavicon"></div>
 
-      <!-- EQ PRO CONSOLE (Integrated) -->
-      <div class="eq-rack" id="eqRack">
-        <div class="eq-row">
-          <div class="eq-scale-side"><div>+15</div><div>0</div><div>-15</div></div>
-          <div id="eqRow" style="display:flex; flex:1; justify-content:space-between; gap:8px;"></div>
-          <div class="eq-scale-side"><div>+15</div><div>0</div><div>-15</div></div>
+
+      <div class="np-main-content">
+        <div class="np-header">
+          <div class="np-label">NOW PLAYING</div>
+          <button class="btn btn-sm btn-eq-toggle" id="btnEq">EQ</button>
         </div>
-        <div class="eq-console">
-          <div class="eq-presets">
-            <button class="btn btn-sm btn-preset" id="pre-flat">FLAT</button>
-            <button class="btn btn-sm btn-preset" id="pre-bass">BASS+</button>
-            <button class="btn btn-sm btn-preset" id="pre-vocal">VOCAL</button>
-            <button class="btn btn-sm btn-preset" id="pre-jazz">JAZZ</button>
-            <button class="btn btn-sm btn-preset" id="pre-pop">POP</button>
-            <button class="btn btn-sm btn-preset" id="pre-rock">ROCK</button>
-            <button class="btn btn-sm btn-preset" id="pre-hiphop">HIP-HOP</button>
-            <button class="btn btn-sm btn-preset" id="pre-classic">CLASSIC</button>
-            <button class="btn btn-sm btn-preset" id="pre-electron">ELECTRON</button>
-            <button class="btn btn-sm btn-preset" id="pre-custom">CUSTOM</button>
+
+        <!-- EQ PRO CONSOLE (Integrated) -->
+        <div class="eq-rack" id="eqRack">
+          <div class="eq-row">
+            <div class="eq-scale-side"><div>+15</div><div>0</div><div>-15</div></div>
+            <div id="eqRow" style="display:flex; flex:1; justify-content:space-between; gap:8px;"></div>
+            <div class="eq-scale-side"><div>+15</div><div>0</div><div>-15</div></div>
           </div>
-          <div class="eq-actions">
-            <button class="btn btn-sm btn-action btn-save" title="Commit current to active memory">SAVE TO MEMORY</button>
-            <button class="btn btn-sm btn-action btn-reset" title="Restore factory specs">RESTORE DEFAULTS</button>
+          <div class="eq-console">
+            <div class="eq-presets">
+              <button class="btn btn-sm btn-preset" id="pre-flat">FLAT</button>
+              <button class="btn btn-sm btn-preset" id="pre-bass">BASS+</button>
+              <button class="btn btn-sm btn-preset" id="pre-vocal">VOCAL</button>
+              <button class="btn btn-sm btn-preset" id="pre-jazz">JAZZ</button>
+              <button class="btn btn-sm btn-preset" id="pre-pop">POP</button>
+              <button class="btn btn-sm btn-preset" id="pre-rock">ROCK</button>
+              <button class="btn btn-sm btn-preset" id="pre-hiphop">HIP-HOP</button>
+              <button class="btn btn-sm btn-preset" id="pre-classic">CLASSIC</button>
+              <button class="btn btn-sm btn-preset" id="pre-electron">ELECTRON</button>
+              <button class="btn btn-sm btn-preset" id="pre-custom">CUSTOM</button>
+            </div>
+            <div class="eq-actions">
+              <button class="btn btn-sm btn-action btn-save" title="Commit current to active memory">SAVE TO MEMORY</button>
+              <button class="btn btn-sm btn-action btn-reset" title="Restore factory specs">RESTORE DEFAULTS</button>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div class="np-ticker">
-        <div id="npFavicon" class="np-favicon-badge"></div>
-        <div class="np-name-wrap">
-          <div id="npName" class="np-name">SELECT A STATION</div>
+        <div class="np-ticker">
+          <div class="np-name-wrap">
+            <div id="npName" class="np-name">SELECT A STATION</div>
+          </div>
         </div>
-      </div>
 
-      <!-- INTEGRATED VISUALIZER (Large Waveform Container) -->
-      <div class="np-viz-container">
-        <div class="visualizer" id="mainViz">
-          <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
+        <!-- INTEGRATED VISUALIZER -->
+        <div class="np-viz-container">
+
+          <div class="visualizer" id="mainViz">
+            <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
+          </div>
         </div>
-      </div>
 
-      <div class="np-meta">
-        <div class="np-meta-badge np-meta-primary" title="Live audience (Clicks last 24h)"><i>🔥</i> <span id="npClicks">—</span></div>
-        <div class="np-meta-badge np-meta-primary" title="Global community votes"><i>👍</i> <span id="npVotes">—</span></div>
-        <div class="np-meta-badge np-meta-secondary" title="Current popularity momentum"><i>📈</i> <span id="npTrend">—</span></div>
-        <div class="np-meta-badge np-meta-secondary" title="Audio compression format">CODE <span id="npCodec">—</span></div>
-        <div class="np-meta-badge np-hd-badge" id="npHD" style="display:none">HD</div>
-      </div>
 
-      <span id="npBitrate" style="display:none">—</span>
+        <div class="np-meta">
+          <div class="np-meta-badge np-meta-primary" title="Live audience (Clicks last 24h)"><i>🔥</i> <span id="npClicks">—</span></div>
+          <div class="np-meta-badge np-meta-primary" title="Global community votes"><i>👍</i> <span id="npVotes">—</span></div>
+          <div class="np-meta-badge np-meta-secondary" title="Current popularity momentum"><i>📈</i> <span id="npTrend">—</span></div>
+          <div class="np-meta-badge np-meta-secondary" title="Audio compression format">CODE <span id="npCodec">—</span></div>
+          <div class="np-meta-badge np-hd-badge" id="npHD" style="display:none">HD</div>
+        </div>
+
+        <span id="npBitrate" style="display:none">—</span>
+      </div>
     </div>
+
 
 
 
@@ -252,10 +258,18 @@
         </div>
         <input type="range" id="textScaleSlider" min="0.5" max="1.5" step="0.05" value="1.0"
           style="width: 100%; margin-bottom: 8px;">
-        <div style="display: flex; justify-content: flex-end;">
+        <div style="display: flex; justify-content: flex-end; align-items: center; gap: 15px;">
+          <div class="theme-toggle" id="themeToggle" title="Toggle light / dark mode">
+            <span class="toggle-icon">🌙</span>
+            <div class="toggle-track" id="toggleTrack">
+              <div class="toggle-thumb"></div>
+            </div>
+            <span class="toggle-icon">☀️</span>
+          </div>
           <button class="btn btn-sm" style="font-size: calc(8px * var(--text-scale)); padding: 2px 6px;"
             id="btnResetScale">RESET TO 1x</button>
         </div>
+
       </div>
       <div style="border-top: 1px solid var(--border); padding-top: 15px; margin-bottom: 20px;">
         <div

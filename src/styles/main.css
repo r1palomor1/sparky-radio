@@ -379,37 +379,40 @@ body.light .header {
 
 /* ── ITEM 15: NOW PLAYING — PREMIUM GLASS (COMPACT) ── */
 .now-playing {
-  margin: 6px 14px 12px 14px;
-  padding: 6px 16px;
-  background: rgba(20, 20, 20, 0.35);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 18px;
+  margin: 12px 14px;
+  padding: 16px;
+  background: var(--panel); /* Industrial card background */
+  border: 1px solid var(--border);
+  border-radius: 8px; /* Squared but professional */
+  display: flex;
+  align-items: center;
+  gap: 16px; 
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  position: relative;
+  z-index: 100;
+  overflow: hidden;
+}
+
+.np-side-favicon-wrap {
+  width: 80px;
+  height: 80px;
+  flex-shrink: 0;
+  border-radius: 6px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.np-main-content {
+  flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 4px; 
-
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), 
-              inset 0 0 0 1px rgba(255, 255, 255, 0.02);
-  position: relative;
-  z-index: 100; /* Elevated to float above playlist */
-  overflow: visible; /* Ensure dropdowns aren't clipped */
-}
-
-body.light .now-playing {
-  background: rgba(255, 255, 255, 0.45);
-  border-color: rgba(0, 0, 0, 0.05);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-}
-
-.now-playing.eq-open {
-  /* In-flow push model; no overlay z-index required */
-  z-index: 10;
-}
-
-.now-playing.eq-open .np-label {
-  visibility: hidden;
+  gap: 4px;
 }
 
 .np-header {
@@ -417,20 +420,18 @@ body.light .now-playing {
   justify-content: space-between;
   align-items: center;
   width: 100%;
-  position: relative;
-  z-index: 2100;
-  pointer-events: none;
 }
 
 .np-label {
-    font-size: calc(12px * var(--text-scale));
-    letter-spacing: 2.0px;
-    color: rgba(255, 255, 255, 0.4);
-    text-transform: uppercase;
-    font-weight: 600;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: calc(9px * var(--text-scale));
+  letter-spacing: 2px;
+  color: rgba(255, 255, 255, 0.4);
+  text-transform: uppercase;
+  font-weight: 700;
 }
+
+
 
 .btn-eq-toggle {
   background: transparent;
@@ -1591,145 +1592,132 @@ body.light .preset-label {
   opacity: 0.6;
 }
 
-.pl-main {
-  flex: 1;
+.pl-item {
+  display: grid;
+  grid-template-columns: 60px 1fr auto;
+  gap: 14px;
+  padding: 12px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  align-items: center;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  margin-bottom: 8px;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.pl-item:hover {
+  background: var(--subdim);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.pl-item.active {
+  background: rgba(0, 255, 255, 0.05);
+  border-color: var(--accent);
+  box-shadow: inset 0 0 15px rgba(0, 255, 255, 0.05);
+}
+
+.pl-favicon-col {
+  width: 60px;
+  height: 60px;
+  background: var(--bg);
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.pl-favicon-col img, .pl-favicon-col .pl-favicon-fallback {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.pl-main-col {
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  padding: 8px 14px 8px 10px;
+  gap: 2px;
   min-width: 0;
-  gap: 4px;
-}
-
-.pl-item-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-  gap: 12px;
-}
-
-.pl-item-top {
-  margin-bottom: 2px;
-}
-
-.pl-item-info-group {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-width: 0;
-  flex: 1;
 }
 
 .pl-item-name {
+  font-family: 'Archivo', sans-serif;
   font-size: calc(14px * var(--text-scale));
-  font-weight: 500;
-  color: var(--text);
+  font-weight: 700;
+  color: #fff;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  letter-spacing: 0.2px;
-  font-family: 'Orbitron', sans-serif;
-}
-
-.pl-item.active .pl-item-name {
-  color: #fff;
-  text-shadow: 0 0 10px rgba(255,255,255,0.2);
-}
-
-.pl-item-meta-text {
-  font-family: 'Share Tech Mono', monospace;
-  font-size: calc(8.5px * var(--text-scale));
-  color: #fff; /* Removed var(--dim) for high contrast */
   text-transform: uppercase;
-  letter-spacing: 0.8px;
-  opacity: 0.9; /* Subtle softening for industrial look */
+  letter-spacing: 0.4px;
 }
 
-.pl-item-stat-group {
-  flex-shrink: 0;
-  text-align: right;
-}
-
-.pl-power-val {
+.pl-item-meta {
   font-family: 'Share Tech Mono', monospace;
   font-size: calc(10px * var(--text-scale));
-  font-weight: 700;
+  color: rgba(255, 255, 255, 0.35);
+  text-transform: uppercase;
   letter-spacing: 0.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.pl-item-actions {
+.pl-item-stats {
   display: flex;
-  gap: 2px;
   align-items: center;
-  margin-right: -10px;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.pl-stat-power {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: calc(9px * var(--text-scale));
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.pl-actions-col {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .pl-action-btn {
-  width: 42px;
-  height: 42px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   background: none;
   border: none;
   cursor: pointer;
   color: var(--dim);
   transition: all 0.2s;
-  border-radius: 50%;
-  opacity: 0.5;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.6;
 }
 
 .pl-action-btn:hover {
-  background: var(--subdim);
-  color: var(--text);
+  color: #fff;
   opacity: 1;
 }
 
 .pl-action-btn span {
-  font-size: 18px !important;
-}
-
-.pl-heart-btn:hover .pl-heart {
-  color: var(--accent); /* Matches mockup green heart when active */
+  font-size: 20px !important;
 }
 
 .pl-heart.is-fav {
   color: var(--accent);
   font-variation-settings: 'FILL' 1;
-  opacity: 1;
 }
 
 .pl-remove:hover {
   color: var(--accent2);
 }
 
-.pl-telemetry-bar {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-family: 'Share Tech Mono', monospace;
-  font-size: calc(9px * var(--text-scale));
-}
-
-.pl-stat-primary {
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  gap: 3px;
-}
-
-.pl-stat-primary i { font-style: normal; font-size: 10px; }
-
-.pl-stat-secondary {
-  opacity: 0.6;
-  display: flex;
-  align-items: center;
-  gap: 3px;
-}
-.pl-stat-secondary i { font-style: normal; font-size: 10px; }
-
-.pl-stat-sep {
   opacity: 0.2;
 }
 body.light .pl-item-sub {

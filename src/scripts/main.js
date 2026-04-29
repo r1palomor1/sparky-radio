@@ -98,7 +98,9 @@ let repeat = false;
 let rafId, hls;
 let filterCountry = 'ALL';
 let filterLang = 'ALL';
+let searchQuery = '';
 let filterHiFi = false;
+
 let wasCollapsedBeforeEQ = false; // State persistence for EQ engaged mode
 let isSearching = false;
 const APP_CODENAME = "Smart-Tune Pro";
@@ -766,28 +768,27 @@ function fmtK(n) {
 function renderStations() {
   const pl = document.getElementById('playlist');
   if (!pl || activeTab !== 'stations') return;
-
-  const displayStations = filterHiFi ? stations.filter(s => Number(s.bitrate || 0) >= 128) : stations;
-  document.getElementById('stationsBadge').textContent = displayStations.length;
-
   if (!stations.length) {
-    pl.innerHTML = '<div class="pl-empty"><div class="pl-empty-icon">📡</div><div>SEARCH TO DISCOVER STATIONS</div></div>'; return;
+    pl.innerHTML = '<div class="pl-empty"><div class="pl-empty-icon">📻</div><div>NO STATIONS LOADED</div></div>'; return;
   }
-  if (!displayStations.length) {
-    pl.innerHTML = '<div class="pl-empty"><div class="pl-empty-icon">📡</div><div>NO MATCHING STATIONS</div></div>'; return;
+  let displayStations = [...stations];
+  if (searchQuery) {
+    const q = searchQuery.toLowerCase();
+    displayStations = displayStations.filter(s => s.name.toLowerCase().includes(q) || (s.tags || '').toLowerCase().includes(q));
+  }
+  if (filterHiFi) {
+    displayStations = displayStations.filter(s => Number(s.bitrate || 0) >= 128);
+  }
+  if (filterCountry && filterCountry !== 'ALL') {
+    displayStations = displayStations.filter(s => (s.countrycode || '').toUpperCase() === filterCountry.toUpperCase());
+  }
+  if (filterLang && filterLang !== 'ALL') {
+    displayStations = displayStations.filter(s => (s.language || '').toLowerCase() === filterLang.toLowerCase());
   }
 
-  if (displayStations.length > 1) {
-    if (sortMode === 'power') {
-      const maxC = Math.max(...displayStations.map(s => s.clickcount || 0), 1);
-      const maxV = Math.max(...displayStations.map(s => s.votes || 0), 1);
-      const maxT = Math.max(...displayStations.map(s => s.clicktrend || 0), 1);
-      displayStations.sort((a, b) => {
-        const sA = ((a.clickcount || 0) / maxC * 0.6) + ((a.votes || 0) / maxV * 0.3) + ((a.clicktrend || 0) / maxT * 0.1);
-        const sB = ((b.clickcount || 0) / maxC * 0.6) + ((b.votes || 0) / maxV * 0.3) + ((b.clicktrend || 0) / maxT * 0.1);
-        return sB - sA;
-      });
-    } else { displayStations.sort((a, b) => (b.votes || 0) - (a.votes || 0)); }
+  if (stations.length > 0 && !displayStations.length) {
+    pl.innerHTML = '<div class="pl-empty"><div class="pl-empty-icon">🔍</div><div>NO MATCHING STATIONS</div></div>';
+    return;
   }
 
   const mC = Math.max(...displayStations.map(s => s.clickcount || 0), 1);
@@ -796,66 +797,40 @@ function renderStations() {
 
   const currentFavs = loadFavs();
   pl.innerHTML = displayStations.map((st, i) => {
-    const url = st.url_resolved || st.url;
-    const actv = currentSrc && (norm(currentSrc.url) === norm(url)) && activeTab === 'stations';
+    const actv = currentSrc && (norm(currentSrc.url) === norm(st.url_resolved || st.url)) && activeTab === 'stations';
     const favd = isFav(st, currentFavs);
 
     const rank = (((st.clickcount || 0) / mC) * 0.6) + (((st.votes || 0) / mV) * 0.3) + (((st.clicktrend || 0) / mT) * 0.1);
     const pwr = Math.min(100, Math.round(rank * 100));
 
-    // DASHBOARD TELEMETRY
     const trending = (st.clicktrend || 0) > 50 ? '<span class="pl-status-badge trending">TRENDING</span>' : '';
     let primary = { id: 'pwr', icon: '⚡', val: `${pwr}%`, color: 'var(--accent)' };
-    let secondaries = [
-      { id: 'clk', icon: '🔥', val: fmtK(st.clickcount) },
-      { id: 'vot', icon: '👍', val: fmtK(st.votes) }
-    ];
-
-    if (sortMode === 'vote') {
-      primary = { id: 'vot', icon: '👍', val: fmtK(st.votes), color: 'var(--fav)' };
-      secondaries = [
-        { id: 'pwr', icon: '⚡', val: `${pwr}%` },
-        { id: 'clk', icon: '🔥', val: fmtK(st.clickcount) }
-      ];
-    }
-    const telemetryHtml = `
-      <div class="pl-telemetry-bar">
-        <div class="pl-stat-primary" style="color:${primary.color}"><i>${primary.icon}</i> ${primary.val}</div>
-        <div class="pl-stat-sep">|</div>
-        ${secondaries.map(s => `<div class="pl-stat-secondary"><i>${s.icon}</i> ${s.val}</div>`).join('')}
-      </div>
-    `;
+    if (sortMode === 'vote') { primary = { id: 'vot', icon: '👍', val: fmtK(st.votes), color: 'var(--fav)' }; }
 
     return `<div class="pl-item${actv ? ' active' : ''}" data-idx="${i}">
-      <div class="pl-sidebar"><div class="pl-num">${actv ? '▶' : (i + 1).toString().padStart(2, '0')}</div></div>
-      <div class="pl-main">
-        <div class="pl-item-row pl-item-top">
-          <div class="pl-item-info-group">
-            ${renderFavicon(st)}
-            <div class="pl-item-name">${esc(st.name)}</div>
-            ${(Number(st.bitrate || 0) >= 128) ? '<span class="hd-badge-inline">HD</span>' : ''}
-            ${trending}
-          </div>
-          <div class="pl-item-actions">
-            <button class="pl-action-btn pl-heart-btn" data-fav="${i}" title="Toggle Favorite">
-              <span class="material-symbols-outlined pl-heart${favd ? ' is-fav' : ''}">favorite</span>
-            </button>
-            <button class="pl-action-btn pl-remove" data-rmst="${i}" title="Remove Station">
-              <span class="material-symbols-outlined">close</span>
-            </button>
-          </div>
-        </div>
-        
-        <div class="pl-item-row pl-item-bottom">
-          <div class="pl-item-meta-group">
-            <span class="pl-item-meta-text">${esc(st.countrycode || '--')} · ${esc((st.tags || '').split(',').slice(0, 2).join(', ').toUpperCase() || 'RADIO')}</span>
-          </div>
-          <div class="pl-item-stat-group">
-             <span class="pl-power-val" style="color:${primary.color}">⚡ ${primary.val}</span>
-          </div>
+      <div class="pl-favicon-col">
+        ${renderFavicon(st)}
+      </div>
+      <div class="pl-main-col">
+        <div class="pl-item-name">${esc(st.name)}</div>
+        <div class="pl-item-meta">${esc(st.countrycode || '--')} · ${esc((st.tags || '').split(',').slice(0, 2).join(', ').toUpperCase() || 'RADIO')}</div>
+        <div class="pl-item-stats">
+          <span class="pl-stat-power" style="color:${primary.color}">⚡ ${primary.val}</span>
+          ${(Number(st.bitrate || 0) >= 128) ? '<span class="hd-badge-inline">HD</span>' : ''}
+          ${trending}
         </div>
       </div>
+      <div class="pl-actions-col">
+        <button class="pl-action-btn pl-heart-btn" data-fav="${i}" title="Toggle Favorite">
+          <span class="material-symbols-outlined pl-heart${favd ? ' is-fav' : ''}">favorite</span>
+        </button>
+        <button class="pl-action-btn pl-remove" data-rmst="${i}" title="Remove Station" style="color:var(--accent2)">
+          <span class="material-symbols-outlined">delete</span>
+        </button>
+      </div>
     </div>`;
+
+
   }).join('');
   pl.querySelectorAll('.pl-item').forEach((el, idx) => {
     el.onclick = (e) => {
@@ -880,7 +855,7 @@ function renderStations() {
 function renderFavs() {
   const pl = document.getElementById('playlist');
   if (!pl || activeTab !== 'favs') return;
-  favs = loadFavs(); // Sync global
+  favs = loadFavs();
   refreshFavBadge();
   if (!favs.length) {
     pl.innerHTML = '<div class="pl-empty"><div class="pl-empty-icon">★</div><div>NO FAVORITES YET</div></div>'; return;
@@ -908,77 +883,47 @@ function renderFavs() {
 
   pl.innerHTML = displayFavs.map((st, i) => {
     const actv = currentSrc && (norm(currentSrc.url) === norm(st.url)) && activeTab === 'favs';
-    const isDup = favs.filter(s => norm(s.url) === norm(st.url)).length > 1;
-
     const rank = (((st.clickcount || 0) / mC) * 0.6) + (((st.votes || 0) / mV) * 0.3) + (((st.clicktrend || 0) / mT) * 0.1);
     const pwr = Math.min(100, Math.round(rank * 100));
-
     const isManual = sortMode === 'custom';
-    // DASHBOARD TELEMETRY
+
     const trending = (st.clicktrend || 0) > 50 ? '<span class="pl-status-badge trending">TRENDING</span>' : '';
     let primary = { id: 'pwr', icon: '⚡', val: `${pwr}%`, color: 'var(--accent)' };
-    let secondaries = [
-      { id: 'clk', icon: '🔥', val: fmtK(st.clickcount) },
-      { id: 'vot', icon: '👍', val: fmtK(st.votes) }
-    ];
+    if (sortMode === 'vote') { primary = { id: 'vot', icon: '👍', val: fmtK(st.votes), color: 'var(--fav)' }; }
 
-    if (sortMode === 'vote') {
-      primary = { id: 'vot', icon: '👍', val: fmtK(st.votes), color: 'var(--fav)' };
-      secondaries = [
-        { id: 'pwr', icon: '⚡', val: `${pwr}%` },
-        { id: 'clk', icon: '🔥', val: fmtK(st.clickcount) }
-      ];
-    }
-
-    const telemetryHtml = `
-      <div class="pl-telemetry-bar">
-        <div class="pl-stat-primary" style="color:${primary.color}"><i>${primary.icon}</i> ${primary.val}</div>
-        <div class="pl-stat-sep">|</div>
-        ${secondaries.map(s => `<div class="pl-stat-secondary"><i>${s.icon}</i> ${s.val}</div>`).join('')}
-      </div>
-    `;
-
-    let sidebarHtml = `<div class="pl-num">${actv ? '▶' : (i + 1).toString().padStart(2, '0')}</div>`;
-    if (isManual) {
-      sidebarHtml = `
+    const sidebarHtml = isManual ? `
+      <div class="fav-sort-btns">
         <button class="btn-stack" data-up="${st.sparkyId}">▲</button>
-        <div class="pl-num">${actv ? '▶' : (i + 1).toString().padStart(2, '0')}</div>
         <button class="btn-stack" data-down="${st.sparkyId}">▼</button>
-      `;
-    }
+      </div>
+    ` : `<div class="pl-num">${actv ? '▶' : (i + 1).toString().padStart(2, '0')}</div>`;
 
-    return `<div class="pl-item${actv ? ' active' : ''}${isDup ? ' is-dup-fav' : ''}" data-sid="${st.sparkyId}">
-      <div class="pl-sidebar">${sidebarHtml}</div>
-      <div class="pl-main">
-        <div class="pl-item-row pl-item-top">
-          <div class="pl-item-info-group">
-            ${renderFavicon(st)}
-            <div class="pl-item-name">${esc(st.name)}</div>
-            ${(Number(st.bitrate || 0) >= 128) ? '<span class="hd-badge-inline">HD</span>' : ''}
-            ${trending}
-          </div>
-          <div class="pl-item-actions">
-            <button class="pl-action-btn pl-edit" data-edit="${st.sparkyId}" title="Edit Favorite">
-              <span class="material-symbols-outlined">edit</span>
-            </button>
-
-            <button class="pl-action-btn pl-remove" data-rmfav="${st.sparkyId}" title="Remove Favorite">
-              <span class="material-symbols-outlined">close</span>
-            </button>
-          </div>
+    return `<div class="pl-item${actv ? ' active' : ''}" data-sid="${st.sparkyId}">
+      <div class="pl-favicon-col">
+        ${renderFavicon(st)}
+      </div>
+      <div class="pl-main-col">
+        <div class="pl-item-name">${esc(st.name)}</div>
+        <div class="pl-item-meta">${esc(st.countrycode || '--')} · ${esc((st.tags || '').split(',').slice(0, 2).join(', ').toUpperCase() || 'RADIO')}</div>
+        <div class="pl-item-stats">
+          <span class="pl-stat-power" style="color:${primary.color}">⚡ ${primary.val}</span>
+          ${(Number(st.bitrate || 0) >= 128) ? '<span class="hd-badge-inline">HD</span>' : ''}
+          ${trending}
         </div>
-
-        <div class="pl-item-row pl-item-bottom">
-          <div class="pl-item-meta-group">
-            <span class="pl-item-meta-text">${esc(st.countrycode || '--')} · ${esc((st.tags || '').split(',').slice(0, 2).join(', ').toUpperCase() || 'RADIO')}</span>
-          </div>
-          <div class="pl-item-stat-group">
-             <span class="pl-power-val" style="color:${primary.color}">⚡ ${primary.val}</span>
-          </div>
-        </div>
+      </div>
+      <div class="pl-actions-col">
+        ${isManual ? sidebarHtml : ''}
+        <button class="pl-action-btn pl-edit" data-edit="${st.sparkyId}" title="Edit Favorite">
+          <span class="material-symbols-outlined">edit</span>
+        </button>
+        <button class="pl-action-btn pl-remove" data-rmfav="${st.sparkyId}" title="Remove Favorite" style="color:var(--accent2)">
+          <span class="material-symbols-outlined">delete</span>
+        </button>
       </div>
     </div>`;
+
   }).join('');
+
 
   pl.querySelectorAll('.pl-item').forEach(el => {
     el.onclick = (e) => {
