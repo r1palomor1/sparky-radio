@@ -33,7 +33,16 @@ self.addEventListener('fetch', (e) => {
   // This avoids CORS issues and network errors with external APIs like Radio Browser
   if (url.origin === self.location.origin) {
     e.respondWith(
-      caches.match(e.request).then((res) => res || fetch(e.request))
+      fetch(e.request)
+        .then(res => {
+          // If network is OK, update cache and return
+          if (res.ok) {
+            const copy = res.clone();
+            caches.open(CACHE_NAME).then(cache => cache.put(e.request, copy));
+          }
+          return res;
+        })
+        .catch(() => caches.match(e.request))
     );
   }
 });

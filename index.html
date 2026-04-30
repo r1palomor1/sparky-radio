@@ -10,7 +10,8 @@
     href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Outfit:wght@400;700;900&family=Inter:wght@400;700;900&family=Archivo:wght@400;700;800;900&display=swap"
     rel="stylesheet">
   <link rel="stylesheet" href="/material-symbols.css">
-  <link rel="stylesheet" href="/src/styles/main.css">
+  <link rel="stylesheet" href="./src/styles/main.css">
+  <link rel="stylesheet" href="./src/styles/theme-engine.css">
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
   <link rel="manifest" href="/manifest.json">
 </head>
@@ -25,6 +26,9 @@
       </div>
 
       <div class="header-right">
+        <button id="themeBtn" title="Change Theme" style="background:transparent; border:none; color:var(--accent); cursor:pointer; display:flex; align-items:center; padding:4px;">
+          <span class="material-symbols-outlined" style="font-size: 20px;">palette</span>
+        </button>
         <div class="status-cluster" id="statusCluster" title="System Settings & Status">
           <div class="dot" id="statusDot"></div>
           <span id="statusText">IDLE</span>
@@ -335,9 +339,42 @@
     </div>
   </div>
 
+  <!-- THEME ENGINE DIALOG -->
+  <div id="themeDialogOverlay" class="custom-prompt-overlay" style="display:none">
+    <div class="custom-prompt-dialog">
+        <div class="custom-prompt-title-wrapper">
+            <p id="themeDialogTitle" class="custom-prompt-title">Change Theme</p>
+            <div id="themeLabToggle" class="lab-toggle-wrapper" style="display: none;" title="Apply a modifier">
+                <label for="lab-checkbox">Lab</label>
+                <input type="checkbox" id="lab-checkbox" class="lab-checkbox">
+            </div>
+        </div>
+        <p id="themeDialogError" class="custom-prompt-error"></p>
+        <ul id="themeColorList" class="theme-color-list scrollable-list-dialog" tabindex="-1"></ul>
+        <div class="dialog-input-wrapper">
+            <input type="text" id="themeDialogInput" placeholder="e.g., 'SteelBlue' or #3498db" inputmode="text">
+            <button id="clearThemeInputBtn" title="Clear color" style="display: none;"><span class="material-symbols-outlined">close</span></button>
+        </div>
+        <div class="custom-prompt-actions">
+            <div class="custom-prompt-actions-left">
+                <button id="themeModeToggleBtn" class="dialog-icon-btn" title="Switch Mode">
+                  <span class="material-symbols-outlined">contrast</span>
+                </button>
+                <button id="themeDialogReset" class="rabbit-default" title="Toggle default themes">Sparky Me!</button>
+            </div>
+            <div class="custom-prompt-actions-right">
+                <button id="themeDialogCancel" class="secondary">Cancel</button>
+                <button id="themeDialogOk">OK</button>
+            </div>
+        </div>
+    </div>
+  </div>
+
   <input type="file" id="importFile" style="display:none" accept=".json">
   <audio id="audioEl" crossorigin="anonymous"></audio>
-  <script src="/src/scripts/main.js" type="module"></script>
+  <script src="./src/scripts/theme-engine.js" type="module"></script>
+  <script src="./src/scripts/theme-ui.js" type="module"></script>
+  <script src="./src/scripts/main.js" type="module"></script>
 </body>
 
 </html>

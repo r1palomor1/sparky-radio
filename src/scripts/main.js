@@ -131,15 +131,18 @@ let freqData;
 let smoothedBands = new Float32Array(30); // Pre-init for 30 bars
 let sortTooltipTimeout;
 
-// ══ THEME ══════════════════════════════════
-let isDark = localStorage.getItem('sparky_theme') !== 'light';
-function applyTheme() {
-  document.body.classList.toggle('light', !isDark);
-  document.getElementById('toggleTrack').classList.toggle('on', !isDark);
-  localStorage.setItem('sparky_theme', isDark ? 'dark' : 'light');
+// ══ THEME INITIALIZATION ══════════════════
+if (window.initThemeEngine) {
+  // If we're on localhost, clear any stale service worker caches to prevent the "broken UI" bug
+  if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+    if ('caches' in window) {
+      caches.keys().then(names => {
+        for (let name of names) caches.delete(name);
+      });
+    }
+  }
+  window.initThemeEngine();
 }
-applyTheme();
-document.getElementById('themeToggle').addEventListener('click', () => { isDark = !isDark; applyTheme(); });
 
 // ══ FAVORITES ══════════════════════════════
 const FAV_KEY = 'sparky_favorites';
