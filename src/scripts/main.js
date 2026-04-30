@@ -688,8 +688,7 @@ function updateNowPlaying(st) {
   if (trend) trend.textContent = (st?.clicktrend !== undefined) ? (st.clicktrend > 0 ? '+' + st.clicktrend : st.clicktrend) : '—';
   if (codec) codec.textContent = (st?.codec || 'MP3').toUpperCase();
   
-  const npHD = document.getElementById('npHD');
-  if (npHD) npHD.style.display = (Number(st?.bitrate || 0) >= 128) ? 'flex' : 'none';
+  if (npHD) npHD.classList.toggle('active', (Number(st?.bitrate || 0) >= 128));
   if (votes) votes.textContent = fmtK(st?.votes || 0);
   if (clicks) clicks.textContent = fmtK(st?.clickcount || 0);
 }

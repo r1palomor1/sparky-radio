@@ -453,6 +453,7 @@ body.light .header {
   border: 1px solid var(--panel-border);
   border-radius: 12px;
   display: flex;
+  flex-wrap: wrap; /* Added to allow metadata row to wrap below content */
   align-items: center;
   gap: 16px;
   box-shadow: 0 15px 45px rgba(0, 0, 0, 0.3);
@@ -472,15 +473,14 @@ body.light .header {
 }
 
 .np-meta {
-  /* FIXME: Outstanding alignment issue on mobile/tablet. 
-     Badges are not proportionally centering or fitting as expected. 
-     Pending refinement to match commit 6918279 density. */
   display: flex;
-  justify-content: center;
+  justify-content: center; /* Center badges across the full card width */
   align-items: center;
   gap: 10px;
-  margin-top: 8px;
-  width: 100%;
+  margin-top: 12px;
+  width: 100%; /* Force new line when wrapping */
+  border-top: 1px solid var(--panel-border);
+  padding-top: 12px;
 }
 
 /* ── EQ MASKING LOGIC ── */
@@ -616,15 +616,7 @@ body.light .header {
   transition: filter 0.3s ease;
 }
 
-.np-meta {
-  display: flex;
-  gap: 8px;
-  justify-content: flex-start;
-  align-items: center;
-  border-top: 1px solid var(--panel-border);
-  padding-top: 8px;
-  margin-top: 4px;
-}
+/* np-meta consolidated at L474 */
 
 .np-meta-badge {
   display: flex;

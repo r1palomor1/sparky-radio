@@ -4,6 +4,13 @@
 */
 
 :root {
+    /* SEMANTIC ANCHORS (Fixed Meanings - Not Themed) */
+    --semantic-danger: #f85149;      /* Danger/Delete */
+    --semantic-fav: #ffcc00;         /* Favorites Gold */
+    --semantic-trending: #4fd1c5;    /* Momentum Green */
+    --semantic-status: #f0f6fc;      /* Technical Status */
+    
+    /* ATMOSPHERIC SURFACES (Theme Reactive) */
     --bg-color: var(--bg);
     --font-color: var(--text);
     --header-bg-color: var(--bg);
@@ -17,6 +24,94 @@
     --favorite-color: var(--fav);
     --selection-bg-color: rgba(0, 242, 255, 0.15);
     --selection-border-color: var(--accent);
+}
+
+/* ── SEMANTIC PROTECTIONS ── */
+.pl-remove, .btn-danger, .preset-del:hover {
+    color: var(--semantic-danger) !important;
+}
+
+.pl-heart.is-fav {
+    color: var(--semantic-fav) !important;
+}
+
+.pl-status-badge.trending {
+    border-color: var(--semantic-trending) !important;
+    color: var(--semantic-trending) !important;
+    background: rgba(0, 0, 0, 0.2) !important;
+    font-weight: 900 !important;
+    letter-spacing: 0.8px !important;
+    opacity: 1 !important;
+}
+
+.hd-badge-inline {
+    border-color: var(--semantic-status) !important;
+    color: var(--semantic-status) !important;
+    background: var(--bg-color) !important;
+    font-weight: 500 !important;
+    font-size: 9px !important;
+    padding: 1px 5px !important;
+    letter-spacing: 1px !important;
+    opacity: 1 !important;
+    border-radius: 3px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.np-hd-badge {
+    /* INACTIVE: Match other np-meta-badges (Pill style) */
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: var(--panel-border) !important;
+    padding: 3px 7px !important;
+    border-radius: 24px !important;
+    font-family: 'Share Tech Mono', monospace !important;
+    font-size: calc(9px * var(--text-scale)) !important;
+    color: var(--panel-text) !important;
+    border: 1px solid var(--panel-border) !important;
+    opacity: 0.8 !important;
+    flex: 0 0 auto !important;
+    transition: all 0.3s ease !important;
+}
+
+.np-hd-badge.active {
+    /* ACTIVE: Match the PL item HD badge style (Rect style) */
+    border-color: var(--semantic-status) !important;
+    color: var(--semantic-status) !important;
+    background: var(--bg-color) !important;
+    font-weight: 500 !important;
+    font-size: 9px !important;
+    padding: 1px 5px !important;
+    border-radius: 3px !important;
+    opacity: 1 !important;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.1) !important;
+    letter-spacing: 1px !important;
+}
+
+/* ── ADAPTIVE CONTRAST ── */
+.pl-item-meta, .np-meta-badge {
+    color: var(--dim) !important;
+    border-color: var(--border) !important;
+    opacity: 1 !important;
+}
+
+.btn-label {
+    opacity: 1 !important;
+    font-weight: 800 !important;
+}
+
+.pl-action-btn, .btn-footer-nav, .btn-footer-play {
+    opacity: 1 !important;
+}
+
+.playlist::-webkit-scrollbar-thumb {
+    background: var(--border) !important;
+}
+
+.playlist::-webkit-scrollbar-thumb:hover {
+    background: var(--accent) !important;
 }
 
 /* === Theme Dialog Overlay === */
@@ -54,17 +149,17 @@
     --selection-bg-color: rgba(0, 242, 255, 0.15);
     --selection-border-color: var(--accent);
 
-    background-color: var(--item-bg); 
+    background-color: var(--item-bg);
     padding: 12px;
     border-radius: 12px;
     border: 1px solid var(--border-color);
     width: 100%;
     max-width: 320px;
     display: flex;
-    flex-direction: column; 
+    flex-direction: column;
     gap: 8px;
     max-height: 85vh;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
 }
 
 .custom-prompt-title-wrapper {
@@ -219,7 +314,8 @@
     gap: 8px;
 }
 
-.custom-prompt-actions-left, .custom-prompt-actions-right {
+.custom-prompt-actions-left,
+.custom-prompt-actions-right {
     display: flex;
     gap: 8px;
 }
@@ -262,4 +358,22 @@
     width: 20px;
     height: 20px;
     fill: var(--primary-color);
+}
+
+/* ── PLAYLIST ACTIVE STATE ── */
+.pl-item.active {
+    background: var(--pl-active) !important;
+    border-color: var(--accent) !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 0 15px var(--accent);
+    transform: translateY(-1px);
+    z-index: 2;
+}
+
+.pl-item.active .pl-item-name {
+    color: var(--accent) !important;
+}
+
+.pl-item.active .pl-item-meta {
+    color: var(--text) !important;
+    opacity: 1 !important;
 }
