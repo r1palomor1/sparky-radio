@@ -250,10 +250,10 @@
       <div style="border-top: 1px solid var(--border); padding-top: 15px; margin-bottom: 20px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
           <div
-            style="font-size: calc(9px * var(--text-scale)); color: var(--accent); letter-spacing: 1.5px; font-weight: 700;">
+            style="font-size: calc(10px * var(--text-scale)); color: var(--accent); letter-spacing: 1.5px; font-weight: 500;">
             INTERFACE SCALE</div>
           <div id="textScaleLabel"
-            style="font-size: calc(10px * var(--text-scale)); color: var(--text); font-weight: 500;">100% (DEFAULT)
+            style="font-size: calc(11px * var(--text-scale)); color: var(--text); font-weight: 400;">100% (DEFAULT)
           </div>
         </div>
         <input type="range" id="textScaleSlider" min="0.5" max="1.5" step="0.05" value="1.0"
@@ -272,11 +272,22 @@
 
       </div>
       <div style="border-top: 1px solid var(--border); padding-top: 15px; margin-bottom: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <div style="font-size: calc(10px * var(--text-scale)); color: var(--accent); letter-spacing: 1.5px; font-weight: 500;">PANEL THEME</div>
+          <button class="btn btn-sm" id="btnResetPanel" style="font-size: calc(8px * var(--text-scale)); padding: 2px 6px;">RESET</button>
+        </div>
+        <div style="position: relative; display: flex; align-items: center; width: 100%;">
+          <input type="color" id="panelColorPicker" style="width: 100%; height: 44px; border: 1px solid var(--border); background: var(--bg); cursor: pointer; padding: 2px; border-radius: 6px;">
+          <div style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); pointer-events: none; font-size: calc(11px * var(--text-scale)); color: var(--text); font-weight: 500; letter-spacing: 1.5px; opacity: 0.9;">CHOOSE CUSTOM COLOR</div>
+        </div>
+      </div>
+
+      <div style="border-top: 1px solid var(--border); padding-top: 15px; margin-bottom: 20px;">
         <div
-          style="font-size: calc(9px * var(--text-scale)); color: var(--accent); letter-spacing: 1.5px; font-weight: 700; margin-bottom: 12px;">
+          style="font-size: calc(10px * var(--text-scale)); color: var(--accent); letter-spacing: 1.5px; font-weight: 500; margin-bottom: 12px;">
           GLOBAL DEFAULTS</div>
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-          <div style="font-size: calc(10px * var(--text-scale)); color: var(--text);">DEFAULT COUNTRY</div>
+          <div style="font-size: calc(11px * var(--text-scale)); color: var(--text); font-weight: 400;">DEFAULT COUNTRY</div>
           <div class="preset-dropdown-wrap" style="width: 140px;">
             <div class="preset-trigger" id="defaultCountryTrigger">ALL</div>
             <div class="preset-options" id="defaultCountryOptions"></div>

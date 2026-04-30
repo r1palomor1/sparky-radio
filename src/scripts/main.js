@@ -98,6 +98,7 @@ let repeat = false;
 let rafId, hls;
 let filterCountry = 'ALL';
 let filterLang = 'ALL';
+let panelColor = localStorage.getItem('sparky_panel_color') || '#061021';
 let searchQuery = '';
 let filterHiFi = false;
 
@@ -797,7 +798,7 @@ function renderStations() {
 
   const currentFavs = loadFavs();
   pl.innerHTML = displayStations.map((st, i) => {
-    const actv = currentSrc && (norm(currentSrc.url) === norm(st.url_resolved || st.url)) && activeTab === 'stations';
+    const actv = currentSrc && (norm(currentSrc.url) === norm(st.url_resolved || st.url));
     const favd = isFav(st, currentFavs);
 
     const rank = (((st.clickcount || 0) / mC) * 0.6) + (((st.votes || 0) / mV) * 0.3) + (((st.clicktrend || 0) / mT) * 0.1);
@@ -882,7 +883,7 @@ function renderFavs() {
   const mT = Math.max(...displayFavs.map(s => s.clicktrend || 0), 1);
 
   pl.innerHTML = displayFavs.map((st, i) => {
-    const actv = currentSrc && (norm(currentSrc.url) === norm(st.url)) && activeTab === 'favs';
+    const actv = currentSrc && (norm(currentSrc.url) === norm(st.url_resolved || st.url));
     const rank = (((st.clickcount || 0) / mC) * 0.6) + (((st.votes || 0) / mV) * 0.3) + (((st.clicktrend || 0) / mT) * 0.1);
     const pwr = Math.min(100, Math.round(rank * 100));
     const isManual = sortMode === 'custom';
@@ -1185,6 +1186,61 @@ function handleImport(e) {
   };
   reader.readAsText(file);
   e.target.value = '';
+}
+
+function shiftColor(hex, percent) {
+  const num = parseInt(hex.slice(1), 16),
+    amt = Math.round(2.55 * percent),
+    R = (num >> 16) + amt,
+    G = (num >> 8 & 0x00FF) + amt,
+    B = (num & 0x0000FF) + amt;
+  return "#" + (0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 + (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 + (B < 255 ? B < 1 ? 0 : B : 255)).toString(16).slice(1);
+}
+
+function getColorDistance(hex1, hex2) {
+  const r1 = parseInt(hex1.slice(1, 3), 16), g1 = parseInt(hex1.slice(3, 5), 16), b1 = parseInt(hex1.slice(5, 7), 16);
+  const r2 = parseInt(hex2.slice(1, 3), 16), g2 = parseInt(hex2.slice(3, 5), 16), b2 = parseInt(hex2.slice(5, 7), 16);
+  return Math.sqrt(Math.pow(r1 - r2, 2) + Math.pow(g1 - g2, 2) + Math.pow(b1 - b2, 2));
+}
+
+function getContrastColor(hex) {
+  if (!hex || hex.length < 7) return '#ffffff';
+  // Standard sRGB luminance formula
+  const r = parseInt(hex.slice(1, 3), 16) / 255;
+  const g = parseInt(hex.slice(3, 5), 16) / 255;
+  const b = parseInt(hex.slice(5, 7), 16) / 255;
+  const l = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  return l > 0.5 ? '#000000' : '#ffffff';
+}
+
+function applyPanelColor(color) {
+  panelColor = color;
+  const root = document.documentElement;
+  root.style.setProperty('--panel', color);
+  localStorage.setItem('sparky_panel_color', color);
+  
+  const contrast = getContrastColor(color);
+  root.style.setProperty('--panel-text', contrast);
+  root.style.setProperty('--panel-dim', contrast === '#000000' ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.6)');
+  root.style.setProperty('--panel-border', contrast === '#000000' ? 'rgba(0,0,0,0.15)' : 'rgba(255,255,255,0.1)');
+  
+  // LAYER 2: Surface Integration
+  const isLight = contrast === '#000000';
+  const hoverTint = shiftColor(color, isLight ? -8 : 12);
+  const activeTint = shiftColor(color, isLight ? -15 : 25); // Stronger shift for active
+  const glowTint = shiftColor(color, isLight ? -15 : 25);
+  root.style.setProperty('--panel-hover', hoverTint);
+  root.style.setProperty('--panel-active', activeTint);
+  root.style.setProperty('--panel-glow', glowTint);
+
+  // LAYER 3: Accent Collision Protection
+  const teal = '#00f2ff';
+  const dist = getColorDistance(color, teal);
+  const needsCorrection = dist < 85; // Slightly wider threshold for safety
+  root.style.setProperty('--accent-correction', needsCorrection ? (isLight ? 'drop-shadow(0 0 1px #000) brightness(0.7)' : 'drop-shadow(0 0 10px rgba(255,255,255,0.6)) brightness(1.2)') : 'none');
+  
+  const picker = document.getElementById('panelColorPicker');
+  if (picker) picker.value = color;
 }
 
 function applyTextScale(val) {
@@ -1599,6 +1655,10 @@ window.addEventListener('DOMContentLoaded', () => {
   bind('textScaleSlider', (e) => applyTextScale(parseFloat(e.target.value)), 'oninput');
   bind('btnResetScale', () => applyTextScale(1.0));
 
+  // ── PANEL THEME BINDINGS ──
+  bind('panelColorPicker', (e) => applyPanelColor(e.target.value), 'oninput');
+  bind('btnResetPanel', () => applyPanelColor('#061021'));
+
   // ══ SORT MODE BINDING ══
   bind('btnSortMode', () => {
     const modes = activeTab === 'stations' ? ['power', 'vote'] : ['power', 'vote', 'custom'];
@@ -1640,6 +1700,9 @@ window.addEventListener('DOMContentLoaded', () => {
     if (searchInput) searchInput.value = lastQ;
     searchStations(lastQ);
   }
+  
+  // Initial Theme Application
+  applyPanelColor(panelColor);
   
   if (window.syncSearchUI) window.syncSearchUI();
 });
