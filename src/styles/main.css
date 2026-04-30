@@ -21,12 +21,12 @@
   --panel-dim: rgba(255, 255, 255, 0.6);
   --panel-border: rgba(255, 255, 255, 0.1);
   --panel-hover: #161c26;
-  --panel-active: #1c2d30;
-  --panel-glow: rgba(0, 242, 255, 0.05);
+  --panel-active: transparent;
+  --panel-glow: transparent;
   --accent-correction: none;
   --panel2: #1e2633;
   --border: rgba(255, 255, 255, 0.05); /* Soft, low-contrast border */
-  --accent: #00f2ff;
+  --accent: transparent;
   --accent2: #f85149;
   --green: #4fd1c5;
   --fav: #e3b341;
@@ -455,10 +455,10 @@ body.light .header {
   display: flex;
   flex-wrap: wrap; /* Added to allow metadata row to wrap below content */
   align-items: center;
-  gap: 16px;
+  gap: 12px; /* Reduced gap */
   box-shadow: 0 15px 45px rgba(0, 0, 0, 0.3);
   transition: all 0.3s ease;
-  overflow: hidden;
+  overflow: visible; /* Changed from hidden to ensure no badges are clipped */
   position: relative;
   z-index: 100;
 }
@@ -476,11 +476,11 @@ body.light .header {
   display: flex;
   justify-content: center; /* Center badges across the full card width */
   align-items: center;
-  gap: 10px;
-  margin-top: 12px;
+  gap: 8px;
+  margin-top: 4px; /* Tightened space above badges */
   width: 100%; /* Force new line when wrapping */
-  border-top: 1px solid var(--panel-border);
-  padding-top: 12px;
+  padding-top: 0; /* Removed padding */
+  border-top: none; /* Removed the dimmed line as requested */
 }
 
 /* ── EQ MASKING LOGIC ── */
@@ -1033,21 +1033,18 @@ input[type=range]::-moz-range-thumb {
   display: flex;
   flex-direction: column;
   background: var(--tab-bg);
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08); /* Synced with Header border */
   margin-top: 10px;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid rgba(255, 255, 255, 0.08); /* Synced with Header border */
 }
 
 
 .tab-bar {
   display: flex;
   width: auto;
-  background: transparent; /* Using tab-level backgrounds for a segmented look */
   margin: 12px 0;
-  padding: 4px;
-  border-radius: 12px;
-  gap: 4px;
-  border: 1px solid var(--border);
+  gap: 8px; /* Increased gap for better touch separation without the container */
+  justify-content: center;
 }
 
 .tab {
@@ -1080,18 +1077,19 @@ input[type=range]::-moz-range-thumb {
 
 .tab.active {
   color: var(--accent);
-  background: rgba(0, 242, 255, 0.08);
-  border: 1px solid rgba(0, 242, 255, 0.2);
+  background: var(--tab-active);
+  border: 1px solid var(--accent);
   opacity: 1;
-  box-shadow: 0 0 15px rgba(0, 242, 255, 0.05);
+  box-shadow: 0 0 15px var(--panel-glow);
   filter: var(--accent-correction);
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
 }
 
 .tab.fav-tab.active {
   color: var(--fav);
-  border-bottom-color: var(--fav);
-  background: rgba(227, 179, 65, 0.08);
+  background: var(--tab-active);
+  border: 1px solid var(--fav);
+  box-shadow: 0 0 15px rgba(227, 179, 65, 0.1);
 }
 
 .tab-badge {
@@ -1264,7 +1262,7 @@ body.light input[type=text] {
 .playlist-header {
   background: var(--ctrl-bg);
   height: 26px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08); /* Synced with Header border */
   display: flex;
   align-items: stretch;
   justify-content: space-between;
@@ -1284,7 +1282,7 @@ body.light input[type=text] {
   width: 28px;
   background: none;
   border: none;
-  border-right: 1px solid var(--border);
+  border-right: 1px solid rgba(255, 255, 255, 0.03); /* Dimmed vertical separator */
   color: var(--text);
   cursor: pointer;
   display: flex;
@@ -1401,20 +1399,23 @@ body.light input[type=text] {
 }
 
 .playlist::-webkit-scrollbar {
-  width: 3px;
+  width: 8px; /* Touch-optimized for mobile/tablet */
 }
 
 .playlist::-webkit-scrollbar-track {
-  background: var(--viz-bg);
+  background: transparent; /* Clean invisible track */
 }
 
 .playlist::-webkit-scrollbar-thumb {
-  background: var(--border);
-  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.12); /* Glassmorphic indicator */
+  border-radius: 20px;
+  border: 2px solid transparent; /* Creates a clean 'floating' effect */
+  background-clip: padding-box;
 }
 
 .playlist::-webkit-scrollbar-thumb:hover {
   background: var(--accent);
+  background-clip: padding-box;
 }
 
 /* LEGACY BLOCKS REMOVED FOR STRUCTURAL INTEGRITY */
@@ -1430,7 +1431,7 @@ body.light input[type=text] {
   padding: 12px 0;
   margin: 4px 0;
   background: rgba(255, 255, 255, 0.015); /* Subtle floor for filters */
-  border-bottom: 1px solid var(--border);
+  border-bottom: none; /* Removed redundant border to fix double line issue */
 }
 
 
