@@ -1085,12 +1085,7 @@ input[type=range]::-moz-range-thumb {
   transition: all 0.2s ease;
 }
 
-.tab.fav-tab.active {
-  color: var(--fav);
-  background: var(--tab-active);
-  border: 1px solid var(--fav);
-  box-shadow: 0 0 15px rgba(227, 179, 65, 0.1);
-}
+
 
 .tab-badge {
   font-size: calc(10px * var(--text-scale));
@@ -1107,10 +1102,7 @@ input[type=range]::-moz-range-thumb {
   color: var(--accent);
 }
 
-.tab.fav-tab.active .tab-badge {
-  background: color-mix(in srgb, var(--fav) 20%, transparent);
-  color: var(--fav);
-}
+
 
 
 .pl-badge-group {
