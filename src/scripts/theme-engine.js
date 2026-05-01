@@ -1,6 +1,8 @@
 /**
- * The default 'Rabbit' theme definition for light and dark modes.
+ * SPARKY RADIO · THEME ENGINE v2.8
+ * Dynamic Palette Generation with "Chassis Flood" Logic
  */
+
 const rabbitTheme = {
     name: 'Rabbit',
     dark: {
@@ -21,7 +23,7 @@ const rabbitTheme = {
         '--ctrl-bg': '#05070a',
         '--pl-bg': '#0a0c12',
         '--pl-hover': '#1b232e',
-        '--pl-active': '#132d30',
+        '--pl-active': 'rgba(255, 112, 67, 0.25)',
         '--pl-footer': '#05070a',
         '--seek-bg': '#2d333b',
         '--tab-bg': '#05070a',
@@ -47,7 +49,7 @@ const rabbitTheme = {
         '--ctrl-bg': '#f5f0e8',
         '--pl-bg': '#fdfbf7',
         '--pl-hover': '#f0eae0',
-        '--pl-active': '#e8f4f0',
+        '--pl-active': 'rgba(26, 92, 77, 0.25)',
         '--pl-footer': '#f5f0e8',
         '--seek-bg': '#dcd4c6',
         '--tab-bg': '#ece5d8',
@@ -77,7 +79,7 @@ const sparkyTheme = {
         '--ctrl-bg': '#05070a',
         '--pl-bg': '#0a0c12',
         '--pl-hover': '#1b232e',
-        '--pl-active': '#132d30',
+        '--pl-active': 'rgba(0, 242, 255, 0.25)',
         '--pl-footer': '#05070a',
         '--seek-bg': '#2d333b',
         '--tab-bg': '#05070a',
@@ -103,7 +105,7 @@ const sparkyTheme = {
         '--ctrl-bg': '#e6f3ff',
         '--pl-bg': '#f0faff',
         '--pl-hover': '#d9edff',
-        '--pl-active': '#e8f4f0',
+        '--pl-active': 'rgba(0, 112, 122, 0.25)',
         '--pl-footer': '#e6f3ff',
         '--seek-bg': '#b8d9f5',
         '--tab-bg': '#d9edff',
@@ -113,30 +115,25 @@ const sparkyTheme = {
     }
 };
 
-window.rabbitTheme = rabbitTheme;
-window.sparkyTheme = sparkyTheme;
-window.defaultTheme = rabbitTheme; // Legacy compatibility
-
 function colorNameToRgb(name) {
+    if (!name) return [0, 242, 255];
     const s = name.trim();
     const hexMatch = s.match(/^#?([a-f\d]{6}|[a-f\d]{3})$/i);
     if (hexMatch) {
         let hex = hexMatch[1];
-        if (hex.length === 3) {
-            hex = hex.split('').map(char => char + char).join('');
-        }
+        if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
         const bigint = parseInt(hex, 16);
         return [(bigint >> 16) & 255, (bigint >> 8) & 255, bigint & 255];
     }
     const el = document.createElement('div');
-    const magicColor = 'rgb(1, 2, 3)';
-    el.style.color = magicColor;
+    el.style.color = 'rgb(1, 2, 3)';
     try {
         document.body.appendChild(el);
         el.style.color = s;
-        const computedColor = window.getComputedStyle(el).color;
-        if (computedColor === magicColor || computedColor === 'rgba(0, 0, 0, 0)' || computedColor === 'transparent') return null;
-        return computedColor.match(/\d+/g).map(Number);
+        const comp = window.getComputedStyle(el).color;
+        if (comp === 'rgb(1, 2, 3)' || comp === 'transparent' || !comp) return [0, 242, 255];
+        const parts = comp.match(/\d+/g);
+        return parts ? parts.slice(0, 3).map(Number) : [0, 242, 255];
     } finally {
         if (el.parentNode) el.parentNode.removeChild(el);
     }
@@ -160,19 +157,22 @@ function rgbToHsl(r, g, b) {
 }
 
 function hslToRgb(h, s, l) {
-    let r, g, b;
-    if (s === 0) { r = g = b = l; } else {
-        const hue2rgb = (p, q, t) => {
-            if (t < 0) t += 1; if (t > 1) t -= 1;
-            if (t < 1 / 6) return p + (q - p) * 6 * t;
-            if (t < 1 / 2) return q;
-            if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
-            return p;
-        };
-        const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-        const p = 2 * l - q;
-        r = hue2rgb(p, q, h + 1 / 3); g = hue2rgb(p, q, h); b = hue2rgb(p, q, h - 1 / 3);
+    const hue2rgb = (p, q, t) => {
+        if (t < 0) t += 1; if (t > 1) t -= 1;
+        if (t < 1 / 6) return p + (q - p) * 6 * t;
+        if (t < 1 / 2) return q;
+        if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+        return p;
+    };
+    if (s === 0) {
+        const v = Math.round(l * 255);
+        return `rgb(${v}, ${v}, ${v})`;
     }
+    const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+    const p = 2 * l - q;
+    const r = hue2rgb(p, q, h + 1 / 3);
+    const g = hue2rgb(p, q, h);
+    const b = hue2rgb(p, q, h - 1 / 3);
     return `rgb(${Math.round(r * 255)}, ${Math.round(g * 255)}, ${Math.round(b * 255)})`;
 }
 
@@ -193,7 +193,7 @@ function applyModifierToHsl([h, s, l], modifier) {
         cool:       [-30,  1.2,  1.0],
         monochrome: [0,    0,    1.0],
     };
-    const mod = modifiers[modifier];
+    const mod = modifiers[modifier ? modifier.toLowerCase() : 'none'];
     if (!mod) return [h, s, l];
     let [hDelta, sMult, lMult] = mod;
     let newH = (h * 360 + hDelta) / 360;
@@ -201,148 +201,110 @@ function applyModifierToHsl([h, s, l], modifier) {
     let newS = Math.max(0, Math.min(1, s * sMult));
     let newL = Math.max(0.05, Math.min(0.95, l * lMult));
 
-    // Special override for bold to ensure it's always high-contrast
-    if (modifier === 'bold') {
+    if (modifier && modifier.toLowerCase() === 'bold') {
         newL = Math.max(0.45, Math.min(0.6, newL));
     }
     return [newH, newS, newL];
 }
 
-function generatePaletteFromRgb(rgb, mode = 'dark', modifier = null) {
-    const [r, g, b] = rgb;
+function generatePaletteFromRgb(rgb, mode = 'dark', modifier = null, manualHsl = null) {
+    const [r, g, b] = rgb || [0, 242, 255];
     let [h, s, l] = rgbToHsl(r, g, b);
 
     if (modifier) {
         [h, s, l] = applyModifierToHsl([h, s, l], modifier);
     }
 
-    const MIN_CONTRAST_RATIO = 4.5;
-    const primaryColor = hslToRgb(h, s, l);
-    const primaryRgb = colorNameToRgb(primaryColor);
+    let tunedH = h, tunedS = s, tunedL = l;
+    if (manualHsl) {
+        if (manualHsl.h !== undefined) tunedH = manualHsl.h / 360;
+        if (manualHsl.s !== undefined) tunedS = manualHsl.s / 100;
+        if (manualHsl.l !== undefined) tunedL = manualHsl.l / 100;
+    }
 
-    if (mode === 'light') {
-        let fontHsl = [h, s * 0.8, 0.1]; // Dark, saturated font
-        let bgHsl = [h, s * 0.1, 0.98];   // Very light, desaturated background
+    // --- CHASSIS FLOOD LOGIC ---
+    // Background takes significantly more hue/saturation from the chosen color
+    const chassisSat = Math.min(0.5, tunedS * 0.6); // Flood up to 50% saturation
+    const chassisLight = mode === 'dark' 
+        ? Math.max(0.02, tunedL * 0.15) // In dark mode, background is very dark tuned color
+        : Math.min(0.98, 0.8 + (tunedL * 0.18)); // In light mode, background is very light tuned color
 
-        // Special overrides for certain modifiers to create a more cohesive feel
-        if (modifier === 'glow' || modifier === 'neon') {
-            bgHsl = [h, 0, 1]; // Pure white background for max pop
-            fontHsl = [h, 1, 0.05];
-        } else if (modifier === 'pastel') {
-            bgHsl = [h, 0.2, 0.97];
-        } else if (modifier === 'metallic') {
-            bgHsl = [h, 0.05, 0.95];
-            fontHsl = [h, 0.1, 0.2];
-        }
+    let bgHsl = [tunedH, chassisSat, chassisLight];
+    let bgRgb = colorNameToRgb(hslToRgb(...bgHsl));
 
-        let bgRgb = colorNameToRgb(hslToRgb(...bgHsl));
-        let fontRgb = colorNameToRgb(hslToRgb(...fontHsl));
-        
-        while (getContrast(fontRgb, bgRgb) < MIN_CONTRAST_RATIO && bgHsl[2] > 0.8) {
-            bgHsl[2] -= 0.02; // Make background slightly darker if contrast fails
+    // Ensure Background is actually Dark or Light enough for text
+    if (mode === 'dark') {
+        while (getContrast([255, 255, 255], bgRgb) < 7 && bgHsl[2] > 0.02) {
+            bgHsl[2] -= 0.01;
             bgRgb = colorNameToRgb(hslToRgb(...bgHsl));
         }
-
-        const buttonTextColor = getContrast(primaryRgb, [255, 255, 255]) > getContrast(primaryRgb, [0, 0, 0]) ? '#FFFFFF' : '#000000';
-        // Generate a distinct but harmonious favorite color (gold/yellow hue)
-        const favHue = 50 / 360; // A nice gold hue
-        const favSat = Math.min(1, s + 0.3);
-        const favLight = Math.max(0, l - 0.05);
-        const favoriteColor = hslToRgb(favHue, favSat, favLight);
-        const bgStr = hslToRgb(...bgHsl);
-        const [bgR, bgG, bgB] = bgRgb;
-        const gradientTop = `rgb(${Math.min(255, bgR + 10)}, ${Math.min(255, bgG + 12)}, ${Math.min(255, bgB + 15)})`;
-        
-        return {
-            '--bg': bgStr,
-            '--bg-gradient': `radial-gradient(circle at top center, ${gradientTop} 0%, ${bgStr} 100%)`,
-            '--panel': '#ffffff',
-            '--panel2': hslToRgb(h, s * 0.1, 0.92),
-            '--border': hslToRgb(h, s * 0.1, 0.88),
-            '--accent': primaryColor,
-            '--accent2': '#c0392b',
-            '--green': primaryColor,
-            '--fav': favoriteColor,
-            '--text': hslToRgb(...fontHsl),
-            '--dim': hslToRgb(h, s * 0.3, 0.45),
-            '--subdim': hslToRgb(h, s * 0.1, 0.85),
-            '--viz-bg': hslToRgb(h, s * 0.1, 0.92),
-            '--np-bg': hslToRgb(h, s * 0.05, 0.94),
-            '--ctrl-bg': hslToRgb(h, s * 0.05, 0.95),
-            '--pl-bg': bgStr,
-            '--pl-hover': hslToRgb(h, s * 0.1, 0.95),
-            '--pl-active': `rgba(${primaryRgb.join(',')}, 0.1)`,
-            '--pl-footer': bgStr,
-            '--seek-bg': hslToRgb(h, s * 0.1, 0.85),
-            '--tab-bg': hslToRgb(h, s * 0.1, 0.92),
-            '--tab-active': bgStr,
-            '--grid-line': hslToRgb(h, s * 0.1, 0.88),
-            '--btn-text': buttonTextColor,
-        };
+    } else {
+        while (getContrast([0, 0, 0], bgRgb) < 7 && bgHsl[2] < 0.98) {
+            bgHsl[2] += 0.01;
+            bgRgb = colorNameToRgb(hslToRgb(...bgHsl));
+        }
     }
 
-    // Dark Mode
-    let fontHsl = [h, s * 0.15, 0.9]; // Light, slightly colored font
-    let bgHsl = [h, s * 0.5, 0.05];   // Very dark, saturated background
-
-    // Special overrides for certain modifiers
-    if (modifier === 'glow' || modifier === 'neon') {
-        bgHsl = [h, s, 0.02]; // Almost pure black for max pop
-        fontHsl = [h, 0.1, 0.95];
-    } else if (modifier === 'pastel') {
-        bgHsl = [h, 0.2, 0.1];
-    } else if (modifier === 'metallic') {
-        bgHsl = [h, 0.1, 0.08];
-        fontHsl = [h, 0.05, 0.8];
+    // --- ACCENT ECOSYSTEM ---
+    // The accent (logos, viz) should always be high-vibrancy
+    let primaryHsl = [tunedH, Math.max(tunedS, 0.7), tunedL];
+    let primaryRgb = colorNameToRgb(hslToRgb(...primaryHsl));
+    
+    // Safety check for legibility of accent
+    const ACCENT_CONTRAST_RATIO = 2.0;
+    while (getContrast(primaryRgb, bgRgb) < ACCENT_CONTRAST_RATIO && primaryHsl[2] < 0.9 && primaryHsl[2] > 0.1) {
+        primaryHsl[2] += (mode === 'dark' ? 0.05 : -0.05);
+        primaryRgb = colorNameToRgb(hslToRgb(...primaryHsl));
     }
+    const primaryColor = hslToRgb(...primaryHsl);
+    const primaryRgbStr = primaryRgb.join(',');
 
-    let bgRgb = colorNameToRgb(hslToRgb(...bgHsl));
-    let fontRgb = colorNameToRgb(hslToRgb(...fontHsl));
-
-    while (getContrast(fontRgb, bgRgb) < MIN_CONTRAST_RATIO && bgHsl[2] < 0.25) {
-        bgHsl[2] += 0.01; // Make background slightly lighter if contrast fails
-        bgRgb = colorNameToRgb(hslToRgb(...bgHsl));
-    }
-
+    // Font color remains high contrast against the flooded background
+    const fontHsl = [tunedH, chassisSat * 0.2, mode === 'light' ? 0.05 : 0.95];
     const buttonTextColor = getContrast(primaryRgb, [255, 255, 255]) > getContrast(primaryRgb, [0, 0, 0]) ? '#FFFFFF' : '#000000';
-    // Generate a distinct but harmonious favorite color (gold/yellow hue)
-    const favHue = 50 / 360; // A nice gold hue
-    const favSat = Math.min(1, s + 0.2);
-    const favLight = Math.min(1, l + 0.15);
-    const favoriteColor = hslToRgb(favHue, favSat, favLight);
+    
+    const favHue = 50 / 360; 
+    const favoriteColor = hslToRgb(favHue, 0.8, 0.6);
+    const favoriteRgb = colorNameToRgb(favoriteColor);
+    
     const bgStr = hslToRgb(...bgHsl);
     const [bgR, bgG, bgB] = bgRgb;
-    const gradientTop = `rgb(${Math.min(255, bgR + 15)}, ${Math.min(255, bgG + 20)}, ${Math.min(255, bgB + 30)})`;
+    const gradientTop = `rgb(${Math.min(255, bgR + 10)}, ${Math.min(255, bgG + 10)}, ${Math.min(255, bgB + 15)})`;
 
     return {
         '--bg': bgStr,
         '--bg-gradient': `radial-gradient(circle at top center, ${gradientTop} 0%, ${bgStr} 100%)`,
-        '--panel': hslToRgb(h, s * 0.6, 0.12),
-        '--panel2': hslToRgb(h, s * 0.6, 0.14),
-        '--border': hslToRgb(h, s * 0.6, 0.18),
+        '--panel': hslToRgb(tunedH, chassisSat * 1.2, bgHsl[2] + (mode === 'dark' ? 0.05 : -0.05)),
+        '--panel2': hslToRgb(tunedH, chassisSat * 1.4, bgHsl[2] + (mode === 'dark' ? 0.08 : -0.08)),
+        '--border': hslToRgb(tunedH, chassisSat * 1.6, bgHsl[2] + (mode === 'dark' ? 0.12 : -0.12)),
         '--accent': primaryColor,
         '--accent2': '#f85149',
         '--green': primaryColor,
         '--fav': favoriteColor,
         '--text': hslToRgb(...fontHsl),
-        '--dim': hslToRgb(h, s * 0.3, 0.5),
-        '--subdim': hslToRgb(h, s * 0.6, 0.04),
-        '--viz-bg': hslToRgb(h, s * 0.6, 0.03),
-        '--np-bg': hslToRgb(h, s * 0.6, 0.1),
-        '--ctrl-bg': hslToRgb(h, s * 0.6, 0.03),
+        '--dim': hslToRgb(tunedH, chassisSat, 0.5),
+        '--subdim': hslToRgb(tunedH, chassisSat * 1.2, Math.max(0.01, bgHsl[2] - 0.02)),
+        '--viz-bg': hslToRgb(tunedH, chassisSat * 1.2, Math.max(0.01, bgHsl[2] - 0.03)),
+        '--np-bg': hslToRgb(tunedH, chassisSat * 1.2, bgHsl[2] + (mode === 'dark' ? 0.04 : -0.04)),
+        '--ctrl-bg': hslToRgb(tunedH, chassisSat * 1.2, Math.max(0.01, bgHsl[2] - 0.02)),
         '--pl-bg': bgStr,
-        '--pl-hover': hslToRgb(h, s * 0.6, 0.16),
-        '--pl-active': `rgba(${primaryRgb.join(',')}, 0.15)`,
-        '--pl-footer': hslToRgb(h, s * 0.6, 0.03),
-        '--seek-bg': hslToRgb(h, s * 0.6, 0.15),
-        '--tab-bg': hslToRgb(h, s * 0.6, 0.03),
-        '--tab-active': hslToRgb(h, s * 0.6, 0.1),
-        '--grid-line': hslToRgb(h, s * 0.6, 0.14),
+        '--pl-hover': hslToRgb(tunedH, chassisSat * 1.4, bgHsl[2] + (mode === 'dark' ? 0.09 : -0.09)),
+        '--pl-active': `rgba(${primaryRgbStr}, 0.25)`,
+        '--pl-footer': hslToRgb(tunedH, chassisSat * 1.2, Math.max(0.01, bgHsl[2] - 0.02)),
+        '--seek-bg': hslToRgb(tunedH, chassisSat * 1.4, bgHsl[2] + (mode === 'dark' ? 0.08 : -0.08)),
+        '--tab-bg': hslToRgb(tunedH, chassisSat * 1.2, Math.max(0.01, bgHsl[2] - 0.02)),
+        '--tab-active': hslToRgb(tunedH, chassisSat * 1.2, bgHsl[2] + (mode === 'dark' ? 0.04 : -0.04)),
+        '--grid-line': hslToRgb(tunedH, chassisSat * 1.4, bgHsl[2] + (mode === 'dark' ? 0.07 : -0.07)),
         '--btn-text': buttonTextColor,
+        '--glow': `0 0 15px rgba(${primaryRgbStr}, 0.15)`,
+        '--glow2': `0 0 10px rgba(${primaryRgbStr}, 0.4)`,
+        '--glowfav': `0 0 10px rgba(${favoriteRgb.join(',')}, 0.4)`,
+        '_hsl': { h: Math.round(primaryHsl[0] * 360), s: Math.round(primaryHsl[1] * 100), l: Math.round(primaryHsl[2] * 100) }
     };
 }
 
 function getLuminance(rgb) {
+    if (!rgb || rgb.length < 3) return 0;
     const a = rgb.map(v => {
         v /= 255;
         return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
@@ -351,14 +313,15 @@ function getLuminance(rgb) {
 }
 
 function getContrast(rgb1, rgb2) {
-    if (!rgb1 || !rgb2) return 1; // Failsafe
-    const lum1 = getLuminance(rgb1);
-    const lum2 = getLuminance(rgb2);
-    const brightest = Math.max(lum1, lum2);
-    const darkest = Math.min(lum1, lum2);
-    return (brightest + 0.05) / (darkest + 0.05);
+    if (!rgb1 || !rgb2) return 1;
+    const lum1 = getLuminance(rgb1), lum2 = getLuminance(rgb2);
+    return (Math.max(lum1, lum2) + 0.05) / (Math.min(lum1, lum2) + 0.05);
 }
 
+// ══ GLOBAL EXPORTS ═════════════════════════
+window.rabbitTheme = rabbitTheme;
+window.sparkyTheme = sparkyTheme;
+window.defaultTheme = rabbitTheme;
 window.colorNameToRgb = colorNameToRgb;
 window.rgbToHsl = rgbToHsl;
 window.hslToRgb = hslToRgb;
@@ -366,4 +329,9 @@ window.applyModifierToHsl = applyModifierToHsl;
 window.generatePaletteFromRgb = generatePaletteFromRgb;
 window.getLuminance = getLuminance;
 window.getContrast = getContrast;
-window.defaultTheme = defaultTheme;
+
+// ══ BOOT BRIDGE ════════════════════════════
+window.initThemeEngine = function() {
+    console.log('--- THEME ENGINE BOOTING ---');
+    if (window.initThemeUI) window.initThemeUI();
+};

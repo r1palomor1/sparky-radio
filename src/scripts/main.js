@@ -659,7 +659,7 @@ function setStatus(state, txt) {
   const dot = document.getElementById('statusDot');
   const text = document.getElementById('statusText');
   if (dot) dot.className = 'dot ' + ({ playing: 'active', buffering: 'buffering', error: 'error' }[state] || '');
-  if (text) text.textContent = txt.toUpperCase();
+  if (text) text.textContent = txt;
 }
 
 // ══ NOW PLAYING ═══════════════════════════
@@ -705,7 +705,7 @@ function playStationObj(st) {
   audioEl.pause();
   const url = st.url_resolved || st.url;
   audioEl.volume = document.getElementById('volSlider').value / 100;
-  setStatus('buffering', 'BUFFERING');
+  setStatus('buffering', 'Buffering');
   updateNowPlaying(st);
   updateMediaSession(st);
   if (url.toLowerCase().includes('.m3u8') && Hls.isSupported()) {
@@ -718,12 +718,12 @@ function playStationObj(st) {
   localStorage.setItem('sparky_last_station', JSON.stringify(st));
 }
   function onPlaySuccess() {
-    isPlaying = true; setStatus('playing', 'CONNECTED');
+    isPlaying = true; setStatus('playing', 'Connected');
     syncPlayBtns();
     cancelAnimationFrame(rafId); drawViz();
   }
   function onPlayError() {
-    setStatus('error', 'ERROR');
+    setStatus('error', 'Error');
     syncPlayBtns();
   }
 }
@@ -738,7 +738,7 @@ function playAtIndex(idx) {
 function stopPlayback() {
   audioEl.pause(); audioEl.src = '';
   isPlaying = false; 
-  setStatus('', 'IDLE');
+  setStatus('', 'Idle');
   syncPlayBtns();
   idleViz(); renderCurrent();
 }
@@ -772,7 +772,7 @@ function renderStations() {
   const pl = document.getElementById('playlist');
   if (!pl || activeTab !== 'stations') return;
   if (!stations.length) {
-    pl.innerHTML = '<div class="pl-empty"><div class="pl-empty-icon">📻</div><div>NO STATIONS LOADED</div></div>'; return;
+    pl.innerHTML = '<div class="pl-empty"><div class="pl-empty-icon">📻</div><div>No stations loaded</div></div>'; return;
   }
   let displayStations = [...stations];
   if (searchQuery) {
@@ -790,7 +790,7 @@ function renderStations() {
   }
 
   if (stations.length > 0 && !displayStations.length) {
-    pl.innerHTML = '<div class="pl-empty"><div class="pl-empty-icon">🔍</div><div>NO MATCHING STATIONS</div></div>';
+    pl.innerHTML = '<div class="pl-empty"><div class="pl-empty-icon">🔍</div><div>No matching stations</div></div>';
     return;
   }
 
@@ -806,7 +806,7 @@ function renderStations() {
     const rank = (((st.clickcount || 0) / mC) * 0.6) + (((st.votes || 0) / mV) * 0.3) + (((st.clicktrend || 0) / mT) * 0.1);
     const pwr = Math.min(100, Math.round(rank * 100));
 
-    const trending = (st.clicktrend || 0) > 50 ? '<span class="pl-status-badge trending">TRENDING</span>' : '';
+    const trending = (st.clicktrend || 0) > 50 ? '<span class="pl-status-badge trending">Trending</span>' : '';
     let primary = { id: 'pwr', icon: '⚡', val: `${pwr}%`, color: 'var(--accent)' };
     if (sortMode === 'vote') { primary = { id: 'vot', icon: '👍', val: fmtK(st.votes), color: 'var(--fav)' }; }
 
@@ -816,7 +816,7 @@ function renderStations() {
       </div>
       <div class="pl-main-col">
         <div class="pl-item-name">${esc(st.name)}</div>
-        <div class="pl-item-meta">${esc(st.countrycode || '--')} · ${esc((st.tags || '').split(',').slice(0, 2).join(', ').toUpperCase() || 'RADIO')}</div>
+        <div class="pl-item-meta">${esc(st.countrycode || '--')} · ${esc((st.tags || '').split(',').slice(0, 2).join(', ') || 'Radio')}</div>
         <div class="pl-item-stats">
           <span class="pl-stat-power" style="color:${primary.color}">⚡ ${primary.val}</span>
           ${(Number(st.bitrate || 0) >= 128) ? '<span class="hd-badge-inline">HD</span>' : ''}
@@ -861,7 +861,7 @@ function renderFavs() {
   favs = loadFavs();
   refreshFavBadge();
   if (!favs.length) {
-    pl.innerHTML = '<div class="pl-empty"><div class="pl-empty-icon">★</div><div>NO FAVORITES YET</div></div>'; return;
+    pl.innerHTML = '<div class="pl-empty"><div class="pl-empty-icon">★</div><div>No favorites yet</div></div>'; return;
   }
   if (favs.length > 1 && sortMode !== 'custom') {
     if (sortMode === 'power') {
@@ -876,7 +876,7 @@ function renderFavs() {
   }
 
   if (favs.length > 0 && !displayFavs.length) {
-    pl.innerHTML = '<div class="pl-empty"><div class="pl-empty-icon">★</div><div>NO MATCHING FAVORITES</div></div>';
+    pl.innerHTML = '<div class="pl-empty"><div class="pl-empty-icon">★</div><div>No matching favorites</div></div>';
     return;
   }
 
@@ -890,7 +890,7 @@ function renderFavs() {
     const pwr = Math.min(100, Math.round(rank * 100));
     const isManual = sortMode === 'custom';
 
-    const trending = (st.clicktrend || 0) > 50 ? '<span class="pl-status-badge trending">TRENDING</span>' : '';
+    const trending = (st.clicktrend || 0) > 50 ? '<span class="pl-status-badge trending">Trending</span>' : '';
     let primary = { id: 'pwr', icon: '⚡', val: `${pwr}%`, color: 'var(--accent)' };
     if (sortMode === 'vote') { primary = { id: 'vot', icon: '👍', val: fmtK(st.votes), color: 'var(--fav)' }; }
 
@@ -907,7 +907,7 @@ function renderFavs() {
       </div>
       <div class="pl-main-col">
         <div class="pl-item-name">${esc(st.name)}</div>
-        <div class="pl-item-meta">${esc(st.countrycode || '--')} · ${esc((st.tags || '').split(',').slice(0, 2).join(', ').toUpperCase() || 'RADIO')}</div>
+        <div class="pl-item-meta">${esc(st.countrycode || '--')} · ${esc((st.tags || '').split(',').slice(0, 2).join(', ') || 'Radio')}</div>
         <div class="pl-item-stats">
           <span class="pl-stat-power" style="color:${primary.color}">⚡ ${primary.val}</span>
           ${(Number(st.bitrate || 0) >= 128) ? '<span class="hd-badge-inline">HD</span>' : ''}
@@ -1295,14 +1295,14 @@ function loadFilterOptions() {
 
   cCont.innerHTML = finalC.map(c => {
     const name = CTRY_NAMES[c] || c;
-    const display = c === 'ALL' ? 'ALL COUNTRIES' : `${name} · ${c}`;
+    const display = c === 'ALL' ? 'All countries' : `${name} · ${c}`;
     return `<div class="preset-opt" data-val="${c}">${display}</div>`;
   }).join('');
 
   lCont.innerHTML = finalL.map(l => {
     const name = l.charAt(0).toUpperCase() + l.slice(1);
     const code = l === 'ALL' ? 'ALL' : l.substring(0, 3).toUpperCase();
-    const display = l === 'ALL' ? 'ALL LANGUAGES' : `${name} · ${code}`;
+    const display = l === 'ALL' ? 'All languages' : `${name} · ${code}`;
     return `<div class="preset-opt" data-val="${l}">${display}</div>`;
   }).join('');
 
@@ -1320,10 +1320,10 @@ function loadPresets() {
   const all = [...new Set([...defaultPresets, ...custom])].sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
   const container = document.getElementById('presetOptions');
   if (!container) return;
-  let html = `<div class="preset-opt add-opt" data-val="ADD">+ ADD NEW TUNE</div>`;
+  let html = `<div class="preset-opt add-opt" data-val="ADD">+ Add new tune</div>`;
   all.forEach(p => {
     const isDefault = defaultPresets.includes(p);
-    html += `<div class="preset-opt" data-val="${p}"><span>${p.toUpperCase()}</span>${!isDefault ? `<span class="preset-del" data-del="${p}">✕</span>` : ''}</div>`;
+    html += `<div class="preset-opt" data-val="${p}"><span>${p}</span>${!isDefault ? `<span class="preset-del" data-del="${p}">✕</span>` : ''}</div>`;
   });
   container.innerHTML = html;
   container.querySelectorAll('.preset-opt').forEach(opt => opt.onclick = (e) => { 
@@ -1344,8 +1344,8 @@ function loadPresets() {
       localStorage.setItem('sparky_search_presets', JSON.stringify(up)); 
       
       const trigger = document.getElementById('presetTrigger');
-      if (trigger && trigger.textContent === val.toUpperCase()) {
-        trigger.textContent = 'QUICK-TUNE';
+      if (trigger && trigger.textContent === val) {
+        trigger.textContent = 'Quick-Tune';
       }
       
       loadPresets(); 
@@ -1356,7 +1356,7 @@ function loadPresets() {
 function handlePresetSelect(val) {
   document.getElementById('presetOptions').classList.remove('show');
   if (val === 'ADD') {
-    sparkyPrompt("Enter new discovery label:", "ADD QUICK-TUNE", (term) => {
+    sparkyPrompt("Enter new discovery label:", "Add Quick-Tune", (term) => {
       if (term?.trim()) {
         const c = JSON.parse(localStorage.getItem('sparky_search_presets') || '[]');
         if (!c.includes(term.trim())) { 
@@ -1368,7 +1368,7 @@ function handlePresetSelect(val) {
       }
     });
   } else {
-    document.getElementById('presetTrigger').textContent = val.toUpperCase();
+    document.getElementById('presetTrigger').textContent = val;
     const inp = document.getElementById('searchInput'); 
     inp.value = val;
     if (window.syncSearchUI) window.syncSearchUI(); // Ensure 'X' appears
@@ -1392,14 +1392,14 @@ function loadSettingsOptions() {
 
   dcCont.innerHTML = CTRY_LIST.map(c => {
     const name = CTRY_NAMES[c] || c;
-    const display = c === 'ALL' ? 'ALL COUNTRIES' : `${name} · ${c}`;
+    const display = c === 'ALL' ? 'All countries' : `${name} · ${c}`;
     return `<div class="preset-opt${c === defC ? ' active' : ''}" data-val="${c}">${display}</div>`;
   }).join('');
 
   dlCont.innerHTML = LANG_LIST.map(l => {
     const name = l.charAt(0).toUpperCase() + l.slice(1);
     const code = l === 'ALL' ? 'ALL' : l.substring(0, 3).toUpperCase();
-    const display = l === 'ALL' ? 'ALL LANGUAGES' : `${name} · ${code}`;
+    const display = l === 'ALL' ? 'All languages' : `${name} · ${code}`;
     return `<div class="preset-opt${l === defL ? ' active' : ''}" data-val="${l}">${display}</div>`;
   }).join('');
 
@@ -1477,7 +1477,7 @@ window.addEventListener('DOMContentLoaded', () => {
     searchInput.value = '';
     searchInput.focus();
     toggleSearchClear();
-    document.getElementById('presetTrigger').textContent = 'QUICK-TUNE';
+    document.getElementById('presetTrigger').textContent = 'Quick-Tune';
     searchStations('', false); // Explicit clear
   };
   
@@ -1694,8 +1694,7 @@ window.addEventListener('DOMContentLoaded', () => {
   updateSortUI(); 
   
   // Just set the text directly if safe
-  const pt = document.getElementById('presetTrigger');
-  if (pt) pt.textContent = 'QUICK-TUNE';
+  if (pt) pt.textContent = 'Quick-Tune';
   bind('btnScan', () => searchStations(searchInput.value, true));
   const lastQ = localStorage.getItem('sparky_last_query');
   if (lastQ !== null) {

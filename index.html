@@ -31,7 +31,7 @@
         </button>
         <div class="status-cluster" id="statusCluster" title="System Settings & Status">
           <div class="dot" id="statusDot"></div>
-          <span id="statusText">IDLE</span>
+          <span id="statusText">Idle</span>
         </div>
       </div>
 
@@ -45,7 +45,7 @@
 
       <div class="np-main-content">
         <div class="np-header">
-          <div class="np-label">NOW PLAYING</div>
+          <div class="np-label">Now Playing</div>
           <button class="btn btn-sm btn-eq-toggle" id="btnEq">EQ</button>
         </div>
 
@@ -78,7 +78,7 @@
 
         <div class="np-ticker">
           <div class="np-name-wrap">
-            <div id="npName" class="np-name">SELECT A STATION</div>
+            <div id="npName" class="np-name">Select a station</div>
           </div>
         </div>
 
@@ -98,7 +98,7 @@
         <div class="np-meta-badge np-meta-primary" title="Live audience (Clicks last 24h)"><i>🔥</i> <span id="npClicks">—</span></div>
         <div class="np-meta-badge np-meta-primary" title="Global community votes"><i>👍</i> <span id="npVotes">—</span></div>
         <div class="np-meta-badge np-meta-secondary" title="Current popularity momentum"><i>📈</i> <span id="npTrend">—</span></div>
-        <div class="np-meta-badge np-meta-secondary" title="Audio compression format">CODE <span id="npCodec">—</span></div>
+        <div class="np-meta-badge np-meta-secondary" title="Audio compression format">Code <span id="npCodec">—</span></div>
         <div class="np-meta-badge np-hd-badge" id="npHD">HD</div>
       </div>
     </div>
@@ -110,9 +110,9 @@
     <!-- TAB + SEARCH COMBINED ROW -->
     <div class="tab-search-row">
       <div class="tab-bar">
-        <button class="tab active" id="tabStations">📡 STATIONS <span class="tab-badge"
+        <button class="tab active" id="tabStations">📡 Stations <span class="tab-badge"
             id="stationsBadge">0</span></button>
-        <button class="tab fav-tab" id="tabFavs">★ FAVORITES <span class="tab-badge" id="favsBadge">0</span></button>
+        <button class="tab fav-tab" id="tabFavs">★ Favorites <span class="tab-badge" id="favsBadge">0</span></button>
       </div>
       <div class="search-area" id="searchArea">
         <div class="search-wrap">
@@ -120,12 +120,12 @@
           <input type="text" id="searchInput" placeholder="Search e.g. Top +Charts ; Rock -Indie" />
           <button class="search-clear" id="btnSearchClear" title="Clear search">&#10006;</button>
         </div>
-        <button class="btn btn-search" id="btnSearch">SCAN</button>
+        <button class="btn btn-search" id="btnSearch">Scan</button>
       </div>
       <!-- PERSISTENT FILTERS (Always Visible) -->
       <div class="filters-area">
         <div class="preset-dropdown-wrap preset-qt-wrap">
-          <div class="preset-trigger" id="presetTrigger">QUICK-TUNE</div>
+          <div class="preset-trigger" id="presetTrigger">Quick-Tune</div>
           <div class="preset-options" id="presetOptions"></div>
         </div>
         <div class="preset-dropdown-wrap preset-cl-wrap">
@@ -166,7 +166,7 @@
       <div class="playlist" id="playlist">
         <div class="pl-empty">
           <div class="pl-empty-icon">📡</div>
-          <div>SEARCH TO DISCOVER STATIONS</div>
+          <div>Search to discover stations</div>
         </div>
       </div>
     </div>
@@ -177,31 +177,31 @@
         <!-- ADMIN GROUP -->
         <button class="btn btn-footer-admin" id="btnAdd" title="Add custom station">
           <span class="material-symbols-outlined">add_circle</span>
-          <span class="btn-label">ADD</span>
+          <span class="btn-label">Add</span>
         </button>
 
         <button class="btn btn-footer-nav" id="btnPrevFooter" title="Previous station">
           <span class="material-symbols-outlined">skip_previous</span>
-          <span class="btn-label">PREV</span>
+          <span class="btn-label">Prev</span>
         </button>
         <button class="btn btn-footer-play" id="btnPlayFooter" title="Toggle Play/Stop">
           <span class="material-symbols-outlined">play_arrow</span>
-          <span class="btn-label">PLAY</span>
+          <span class="btn-label">Play</span>
         </button>
         <button class="btn btn-footer-nav" id="btnNextFooter" title="Next station">
           <span class="material-symbols-outlined">skip_next</span>
-          <span class="btn-label">NEXT</span>
+          <span class="btn-label">Next</span>
         </button>
 
         <!-- VOLUME CONTROLLER (Right Aligned) -->
         <div class="footer-volume-ctrl" id="volCtrl">
           <button class="btn btn-footer-nav" id="btnVolToggle" title="Toggle Volume">
             <span class="material-symbols-outlined">volume_up</span>
-            <span class="btn-label">VOL</span>
+            <span class="btn-label">Vol</span>
           </button>
           <div class="vol-popover" id="volPopover">
              <div class="vol-popover-inner">
-               <span class="vol-pop-label">VOLUME</span>
+               <span class="vol-pop-label">Volume</span>
                <input type="range" id="volSlider" min="0" max="100" value="80">
              </div>
           </div>
@@ -321,22 +321,15 @@
     </div>
   </div>
 
-  <!-- THEME ENGINE DIALOG -->
+  <!-- THEME ENGINE DIALOG (STUDIO MODE) -->
   <div id="themeDialogOverlay" class="custom-prompt-overlay" style="display:none">
     <div class="custom-prompt-dialog">
         <div class="custom-prompt-title-wrapper">
-            <p id="themeDialogTitle" class="custom-prompt-title">Change Theme</p>
-            <div id="themeLabToggle" class="lab-toggle-wrapper" style="display: none;" title="Apply a modifier">
-                <label for="lab-checkbox">Lab</label>
-                <input type="checkbox" id="lab-checkbox" class="lab-checkbox">
-            </div>
+            <p id="themeDialogTitle" class="custom-prompt-title">Theme Studio</p>
         </div>
         <p id="themeDialogError" class="custom-prompt-error"></p>
         <ul id="themeColorList" class="theme-color-list scrollable-list-dialog" tabindex="-1"></ul>
-        <div class="dialog-input-wrapper">
-            <input type="text" id="themeDialogInput" placeholder="e.g., 'SteelBlue' or #3498db" inputmode="text">
-            <button id="clearThemeInputBtn" title="Clear color" style="display: none;"><span class="material-symbols-outlined">close</span></button>
-        </div>
+        
         <div class="custom-prompt-actions">
             <div class="custom-prompt-actions-left">
                 <button id="themeModeToggleBtn" class="dialog-icon-btn" title="Switch Mode">
@@ -346,7 +339,8 @@
             </div>
             <div class="custom-prompt-actions-right">
                 <button id="themeDialogCancel" class="secondary">Cancel</button>
-                <button id="themeDialogOk">OK</button>
+                <button id="themeDialogOk">Ok</button>
+                <button id="themeDialogSave" title="Save as My Custom Theme">Save Theme</button>
             </div>
         </div>
     </div>
