@@ -896,8 +896,12 @@ function renderFavs() {
 
     const sidebarHtml = isManual ? `
       <div class="fav-sort-btns">
-        <button class="btn-stack" data-up="${st.sparkyId}">▲</button>
-        <button class="btn-stack" data-down="${st.sparkyId}">▼</button>
+        <button class="pl-action-btn pl-sort-up" data-up="${st.sparkyId}" title="Move Up">
+          <span class="material-symbols-outlined">expand_less</span>
+        </button>
+        <button class="pl-action-btn pl-sort-down" data-down="${st.sparkyId}" title="Move Down">
+          <span class="material-symbols-outlined">expand_more</span>
+        </button>
       </div>
     ` : `<div class="pl-num">${actv ? '▶' : (i + 1).toString().padStart(2, '0')}</div>`;
 
@@ -938,59 +942,56 @@ function renderFavs() {
   });
   pl.querySelectorAll('[data-rmfav]').forEach(btn => btn.onclick = (e) => {
     e.stopPropagation();
-    const sid = btn.dataset.rmfav; // sparkyId — permanent identity, sort-order independent
+    const sid = btn.dataset.rmfav; 
     const m = loadFavs();
     const f = m.find(x => x.sparkyId === sid);
     if (!f) return;
     sparkyConfirm(`Remove [${f.name}]?`, () => { removeFavBySparkyId(sid); renderFavs(); });
   });
+
   pl.querySelectorAll('[data-edit]').forEach(btn => btn.onclick = (e) => {
     e.stopPropagation();
-    const sid = btn.dataset.edit; // sparkyId — permanent identity, sort-order independent
+    const sid = btn.dataset.edit; 
     const m = loadFavs();
-    const storageIdx = m.findIndex(f => f.sparkyId === sid);
-    if (storageIdx === -1) return; // entry no longer exists — bail out
-    const st = m[storageIdx]; // always the exact correct entry
-    const originalUrl = st.url;
-    openEditModal(st.name, st.url, (n, u) => {
-      if (n === null) return; // user cancelled — do nothing
-      const newName = n.trim() || st.name;
-      const newUrl = (u || '').trim() || originalUrl;
-      let fresh = loadFavs(); // reload in case anything changed while modal was open
-      const freshIdx = fresh.findIndex(f => f.sparkyId === sid);
-      if (freshIdx === -1) return;
-      const urlChanged = norm(newUrl) !== norm(originalUrl);
-      const doSave = () => {
-        fresh[freshIdx].name = newName;
-        fresh[freshIdx].url = newUrl;
-        saveFavs(fresh);
-        renderFavs();
-      };
-      if (urlChanged) {
-        // Only warn if new URL conflicts with a DIFFERENT existing favorite (not self)
-        const conflict = fresh.some((f, i) => i !== freshIdx && norm(f.url) === norm(newUrl));
-        if (conflict) {
-          sparkyConfirm(`<span style="color:#ff0; font-weight:bold; font-size:13px">⚠ CAUTION: DUPLICATE URL</span><br><br>This URL already exists in another Favorite. Proceed anyway?`, doSave, "DUPLICATE DETECTED");
-          return;
-        }
+    const f = m.find(x => x.sparkyId === sid);
+    if (f) openEditModal(f.name, f.url, (newName, newUrl) => {
+      if (newName !== null) {
+        f.name = newName; f.url = newUrl;
+        saveFavs(m); renderFavs();
       }
-      doSave();
     });
   });
+
+  // Bind sorting arrows
   pl.querySelectorAll('[data-up]').forEach(btn => btn.onclick = (e) => {
     e.stopPropagation();
-    const sid = btn.dataset.up; // sparkyId
-    let m = loadFavs();
-    const idx = m.findIndex(f => f.sparkyId === sid);
-    if (idx > 0) { [m[idx - 1], m[idx]] = [m[idx], m[idx - 1]]; saveFavs(m); renderFavs(); }
+    handleMoveFav(btn.dataset.up, 'up');
   });
   pl.querySelectorAll('[data-down]').forEach(btn => btn.onclick = (e) => {
     e.stopPropagation();
-    const sid = btn.dataset.down; // sparkyId
-    let m = loadFavs();
-    const idx = m.findIndex(f => f.sparkyId === sid);
-    if (idx < m.length - 1) { [m[idx + 1], m[idx]] = [m[idx], m[idx + 1]]; saveFavs(m); renderFavs(); }
+    handleMoveFav(btn.dataset.down, 'down');
   });
+}
+
+function handleMoveFav(sid, direction) {
+  const m = loadFavs();
+  const idx = m.findIndex(f => f.sparkyId === sid);
+  if (idx === -1) return;
+
+  const targetIdx = direction === 'up' ? idx - 1 : idx + 1;
+  if (targetIdx < 0 || targetIdx >= m.length) return;
+
+  // Atomic Swap
+  [m[idx], m[targetIdx]] = [m[targetIdx], m[idx]];
+  saveFavs(m);
+  renderFavs();
+  triggerHaptic();
+}
+
+function triggerHaptic() {
+  if (window.navigator && window.navigator.vibrate) {
+    window.navigator.vibrate(10);
+  }
 }
 
 // ══ TRANSPORT ══════════════════════════════

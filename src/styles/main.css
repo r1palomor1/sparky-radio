@@ -1272,10 +1272,10 @@ body.light input[type=text] {
 }
 
 .pl-sort-btn {
-  width: 28px;
-  background: none;
+  width: 32px;
+  background: rgba(255, 255, 255, 0.02);
   border: none;
-  border-right: 1px solid rgba(255, 255, 255, 0.03); /* Dimmed vertical separator */
+  border-right: 1px solid var(--border); 
   color: var(--text);
   cursor: pointer;
   display: flex;
@@ -1288,6 +1288,7 @@ body.light input[type=text] {
 .pl-sort-btn:hover {
   color: var(--accent);
   background: rgba(255, 255, 255, 0.05);
+  border-right-color: var(--accent);
 }
 
 .pl-sort-btn .material-symbols-outlined {
@@ -1758,7 +1759,7 @@ body.light .preset-label {
   flex-direction: column;
   gap: 4px;
   min-width: 0;
-  padding-right: 42px; /* Reserved space for the absolute-positioned actions */
+  padding-right: 85px; /* Increased to accommodate sorting stack + actions */
 }
 
 .pl-item-name {
@@ -1804,12 +1805,36 @@ body.light .preset-label {
 .pl-actions-col {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
   position: absolute;
   right: 12px;
   top: 50%;
   transform: translateY(-50%);
   z-index: 5;
+}
+
+.fav-sort-btns {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border-right: 1px solid var(--border);
+  padding-right: 4px;
+  margin-right: 4px;
+}
+
+.pl-sort-up, .pl-sort-down {
+  height: 18px !important;
+  padding: 0 !important;
+  opacity: 0.4 !important;
+}
+
+.pl-sort-up:hover, .pl-sort-down:hover {
+  opacity: 1 !important;
+  color: var(--accent) !important;
+}
+
+.pl-sort-up span, .pl-sort-down span {
+  font-size: 18px !important;
 }
 
 .pl-action-btn {
