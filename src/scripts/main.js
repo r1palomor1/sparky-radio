@@ -1057,11 +1057,15 @@ const syncPlayBtns = () => {
   if (playBtnFooter) {
     const icon = playBtnFooter.querySelector('.material-symbols-outlined');
     const label = playBtnFooter.querySelector('.btn-label');
-    if (icon && label) {
-      icon.textContent = isP ? 'stop' : 'play_arrow'; // Changed to STOP icon for live streams
-      label.textContent = isP ? 'STOP' : 'PLAY';      // Changed to STOP label
-    } else {
-      playBtnFooter.innerHTML = isP ? '&#9632; STOP' : '&#9654; PLAY';
+    if (icon) {
+      icon.textContent = isP ? 'stop' : 'play_arrow';
+    }
+    if (label) {
+      label.textContent = isP ? 'STOP' : 'PLAY';
+    }
+    // If neither icon nor label exists, but the button does, handle fallback safely
+    if (!icon && !label) {
+      playBtnFooter.innerHTML = isP ? '<span class="material-symbols-outlined">stop</span>' : '<span class="material-symbols-outlined">play_arrow</span>';
     }
   }
 };

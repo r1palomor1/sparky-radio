@@ -79,6 +79,12 @@
             if (!key.startsWith('_')) document.documentElement.style.setProperty(key, value);
         });
 
+        // Update system theme color (status bar) for mobile devices
+        const metaThemeColor = document.getElementById('metaThemeColor');
+        if (metaThemeColor && themeColors['--bg']) {
+            metaThemeColor.setAttribute('content', themeColors['--bg']);
+        }
+
         if (isConfirmation) {
             currentThemeName = themeToApply.modifier ? `${themeToApply.name}:${themeToApply.modifier}` : themeToApply.name;
             localStorage.setItem('sparky_theme_name', currentThemeName);
