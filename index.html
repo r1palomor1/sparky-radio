@@ -232,8 +232,6 @@
       <div id="debugOutput" class="debug-log"></div>
       <div class="modal-footer" style="flex-wrap:wrap; gap:5px">
         <button class="btn btn-sm" style="background:#040; border-color:#0f0" id="btnAuditFavs">AUDIT VAULT</button>
-        <button class="btn btn-sm" id="btnExportFavs">EXPORT VAULT</button>
-        <button class="btn btn-sm" id="btnImportFavs">RESTORE VAULT</button>
         <button class="btn btn-sm" id="btnCopyLogs">COPY LOGS</button>
         <button class="btn btn-sm" id="btnDebugClose">CLOSE</button>
       </div>
@@ -243,14 +241,6 @@
   <div class="modal-overlay" id="settingsModal" style="display:none">
     <div class="modal-content" style="max-width:320px; padding: 15px;">
       <div class="modal-header" style="margin-bottom: 20px;">COMMAND CENTER</div>
-      <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 25px;">
-        <button class="btn"
-          style="justify-content: flex-start; padding: 12px; width: 100%; border-color: var(--accent);"
-          id="btnOpenDebug">
-          <span class="material-symbols-outlined" style="font-size: calc(18px * var(--text-scale));">terminal</span>
-          VIEW SYSTEM DIAGNOSTICS
-        </button>
-      </div>
       <div style="border-top: 1px solid var(--border); padding-top: 15px; margin-bottom: 20px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
           <div
@@ -272,22 +262,44 @@
         <div
           style="font-size: calc(10px * var(--text-scale)); color: var(--accent); letter-spacing: 1.5px; font-weight: 500; margin-bottom: 12px;">
           GLOBAL DEFAULTS</div>
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-          <div style="font-size: calc(11px * var(--text-scale)); color: var(--text); font-weight: 400;">DEFAULT COUNTRY</div>
-          <div class="preset-dropdown-wrap" style="width: 140px;">
-            <div class="preset-trigger" id="defaultCountryTrigger">ALL</div>
-            <div class="preset-options" id="defaultCountryOptions"></div>
+        <div style="display: flex; gap: 10px; margin-bottom: 12px;">
+          <div style="flex: 1; display: flex; flex-direction: column; gap: 4px;">
+            <div style="font-size: calc(8px * var(--text-scale)); color: var(--dim); letter-spacing: 1px;">COUNTRY</div>
+            <div class="preset-dropdown-wrap" style="width: 100%;">
+              <div class="preset-trigger" id="defaultCountryTrigger">ALL</div>
+              <div class="preset-options" id="defaultCountryOptions"></div>
+            </div>
           </div>
-        </div>
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-          <div style="font-size: calc(10px * var(--text-scale)); color: var(--text);">DEFAULT LANGUAGE</div>
-          <div class="preset-dropdown-wrap" style="width: 140px;">
-            <div class="preset-trigger" id="defaultLangTrigger">ALL</div>
-            <div class="preset-options" id="defaultLangOptions"></div>
+          <div style="flex: 1; display: flex; flex-direction: column; gap: 4px;">
+            <div style="font-size: calc(8px * var(--text-scale)); color: var(--dim); letter-spacing: 1px;">LANGUAGE</div>
+            <div class="preset-dropdown-wrap" style="width: 100%;">
+              <div class="preset-trigger" id="defaultLangTrigger">ALL</div>
+              <div class="preset-options" id="defaultLangOptions"></div>
+            </div>
           </div>
         </div>
         <!-- Standardized to Full Telemetry view -->
       </div>
+      
+      <!-- Vault Management -->
+      <div style="border-top: 1px solid var(--border); padding-top: 15px; margin-bottom: 20px;">
+        <div style="font-size: calc(10px * var(--text-scale)); color: var(--accent); letter-spacing: 1.5px; font-weight: 500; margin-bottom: 12px;">
+          VAULT MANAGEMENT</div>
+        <div style="display: flex; gap: 10px;">
+          <button class="btn btn-sm" style="flex: 1;" id="btnExportFavs">EXPORT VAULT</button>
+          <button class="btn btn-sm" style="flex: 1;" id="btnImportFavs">RESTORE VAULT</button>
+        </div>
+      </div>
+
+      <div style="margin-bottom: 20px;">
+        <button class="btn"
+          style="justify-content: flex-start; padding: 12px; width: 100%; border-color: var(--accent);"
+          id="btnOpenDebug">
+          <span class="material-symbols-outlined" style="font-size: calc(18px * var(--text-scale));">terminal</span>
+          VIEW SYSTEM DIAGNOSTICS
+        </button>
+      </div>
+
       <div style="border-top: 1px solid var(--border); padding-top: 12px;">
         <div
           style="font-size: calc(9px * var(--text-scale)); color: var(--accent); letter-spacing: 1.5px; margin-bottom: 6px; font-weight: 700;">
