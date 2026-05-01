@@ -1776,13 +1776,13 @@ body.light .preset-label {
 .pl-item-meta {
   font-family: 'Share Tech Mono', monospace;
   font-size: calc(10px * var(--text-scale));
-  color: var(--panel-dim);
+  color: var(--panel-text); /* Higher contrast for legibility */
   text-transform: none;
   letter-spacing: 0.5px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  opacity: 0.8;
+  opacity: 0.6; /* Slightly dimmed but clearly readable */
 }
 
 .pl-item-stats {
@@ -2221,15 +2221,14 @@ body.light .footer {
   gap: 4px;
 }
 
-.btn-footer-admin,
 .btn-footer-nav,
 .btn-footer-play {
-  height: 58px;
+  height: 48px; /* Reduced for icon-only layout */
   min-width: 48px;
   /* Slightly tighter base */
   flex-direction: column !important;
   gap: 4px !important;
-  border-radius: 8px !important;
+  border-radius: 50% !important; /* Circular for clean icon-only look */
   background: transparent !important;
   border: none !important;
   transition: all 0.2s;
