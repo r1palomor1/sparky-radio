@@ -271,6 +271,12 @@
             document.querySelectorAll('.theme-color-item').forEach(item => item.classList.remove('selected'));
             li.classList.add('selected');
             
+            // Best Practice: Reset modifier to 'None' on base color selection to show pure palette
+            studioActiveModifier = 'None';
+            document.querySelectorAll('.modifier-chip').forEach(c => {
+                c.classList.toggle('active', c.dataset.mod === 'None');
+            });
+
             studioBaseColor = li.dataset.colorName;
             await applyTheme({ name: `custom:${studioBaseColor}`, modifier: studioActiveModifier });
         });
