@@ -128,7 +128,7 @@ function updateDeploymentUI() {
 
 let audioCtx, analyser, srcNode;
 let freqData;
-let smoothedBands = new Float32Array(30); // Pre-init for 30 bars
+let smoothedBands = new Float32Array(128); // Pre-init for high-density bars
 let sortTooltipTimeout;
 
 // ══ THEME INITIALIZATION ══════════════════
@@ -608,38 +608,36 @@ function drawViz() {
   const totalBins = analyser.frequencyBinCount;
   const barCount = vizBars.length;
   const minBin = 1;
-  const maxBin = Math.min(totalBins - 1, 100); // Focus on musical range
+  const maxBin = Math.min(totalBins - 1, 120); // Focus on musical range
 
   vizBars.forEach((bar, i) => {
-    // Non-linear band mapping: More detail in bass/mids, grouping in treble
     const t0 = i / barCount;
     const t1 = (i + 1) / barCount;
 
-    const startBin = Math.floor(minBin + Math.pow(t0, 1.8) * (maxBin - minBin));
-    const endBin = Math.floor(minBin + Math.pow(t1, 1.8) * (maxBin - minBin));
+    const startBin = Math.floor(minBin + Math.pow(t0, 1.4) * (maxBin - minBin));
+    const endBin = Math.floor(minBin + Math.pow(t1, 1.4) * (maxBin - minBin));
 
     let val = getBandEnergy(freqData, startBin, Math.max(startBin, endBin));
 
-    // Subtle progressive compensation (tilt)
-    const tilt = 1 + (i / barCount) * 0.4;
+    // Dynamic Range Expansion (High-Fidelity "Tips and Valleys")
+    const tilt = 1 + (i / barCount) * 0.6;
     val *= tilt;
 
-    // Expand quiet details (visual compressor)
+    // Sharpen the peaks (Power curve)
     let normVal = val / 255;
-    normVal = Math.pow(normVal, 0.65);
+    normVal = Math.pow(normVal, 1.3); // Sharper contrast
 
-    // Visual smoothing: Fast rise (attack), slower fall (decay)
+    // Visual smoothing: Snappy attack, smooth decay
     const prev = smoothedBands[i] || 0;
-    const attack = 0.55;
-    const decay = 0.18;
+    const attack = 0.8; 
+    const decay = 0.1;
     smoothedBands[i] = normVal > prev
       ? lerp(prev, normVal, attack)
       : lerp(prev, normVal, decay);
 
-    // Height mapping
-    const minH = 4;
-    const maxH = 28;
-    const h = minH + smoothedBands[i] * (maxH - minH);
+    const minH = 2;
+    const maxH = 28; 
+    const h = minH + (smoothedBands[i] * maxH);
 
     bar.style.height = h.toFixed(1) + 'px';
   });
@@ -649,7 +647,7 @@ function idleViz() {
   cancelAnimationFrame(rafId); let t = 0;
   (function tick() {
     rafId = requestAnimationFrame(tick); t += .05;
-    vizBars.forEach((b, i) => { b.style.height = (4 + Math.abs(Math.sin(t + i * .4)) * 10) + 'px'; });
+    vizBars.forEach((b, i) => { b.style.height = (2 + Math.abs(Math.sin(t + i * .2)) * 6) + 'px'; });
   })();
 }
 idleViz();
@@ -665,26 +663,59 @@ function setStatus(state, txt) {
 // ══ NOW PLAYING ═══════════════════════════
 function updateNowPlaying(st) {
   const nm = document.getElementById('npName');
+  const sm = document.getElementById('npSubMeta');
   const favEl = document.getElementById('npFavicon');
   if (!nm) return;
+
   if (favEl) favEl.innerHTML = st ? renderFavicon(st) : '';
-  nm.textContent = st ? st.name : '— SELECT A STATION —';
-  nm.className = 'np-name' + (st ? ' running' : '');
-  if (st) {
-    const textWidth = nm.scrollWidth;
-    const containerWidth = nm.parentElement.offsetWidth;
-    const totalDist = textWidth + containerWidth;
-    const speed = 35; // Pixels per second (Slower, relaxed pace)
-    const duration = totalDist / speed;
+  nm.textContent = st ? st.name : 'SELECT A STATION';
+  
+  // CONDITIONAL SCROLLING LOGIC
+  nm.classList.remove('scrolling');
+  nm.style.removeProperty('--ticker-end');
+  nm.style.removeProperty('--ticker-duration');
+
+  // We need a small timeout to let the DOM update before measuring
+  setTimeout(() => {
+    const container = nm.parentElement;
+    if (!container) return;
     
-    nm.style.setProperty('--ticker-duration', duration + 's');
-    nm.style.setProperty('--ticker-start', containerWidth + 'px');
-    nm.style.setProperty('--ticker-end', '-' + textWidth + 'px');
+    // Reset before measurement
+    nm.classList.remove('scrolling');
+    nm.style.transform = 'none';
+
+    // Force a layout recalculation
+    void nm.offsetWidth;
+
+    const isOverflowing = nm.scrollWidth > (container.clientWidth + 2);
+    
+    if (isOverflowing) {
+      const scrollDist = nm.scrollWidth + 60; // Extra buffer
+      const speed = 25; // Slower for industrial elegance
+      const duration = scrollDist / speed;
+      
+      nm.style.setProperty('--ticker-end', `-${scrollDist}px`);
+      nm.style.setProperty('--ticker-duration', `${duration}s`);
+      nm.classList.add('scrolling');
+    }
+  }, 150);
+  
+  if (sm) {
+    if (st) {
+      const location = st.countrycode || st.country || 'Global';
+      const genre = (st.tags || 'Various').split(',')[0].trim();
+      sm.textContent = `${location.toUpperCase()} · ${genre}`;
+    } else {
+      sm.textContent = '—';
+    }
   }
+
   const votes = document.getElementById('npVotes');
   const clicks = document.getElementById('npClicks');
   const trend = document.getElementById('npTrend');
   const codec = document.getElementById('npCodec');
+  const npHD = document.getElementById('npHD');
+
   if (trend) trend.textContent = (st?.clicktrend !== undefined) ? (st.clicktrend > 0 ? '+' + st.clicktrend : st.clicktrend) : '—';
   if (codec) codec.textContent = (st?.codec || 'MP3').toUpperCase();
   
@@ -816,7 +847,7 @@ function renderStations() {
       </div>
       <div class="pl-main-col">
         <div class="pl-item-name">${esc(st.name)}</div>
-        <div class="pl-item-meta">${esc(st.countrycode || '--')} · ${esc((st.tags || '').split(',').slice(0, 2).join(', ') || 'Radio')}</div>
+        <div class="pl-item-meta">${esc(st.countrycode || '--')} · ${esc((st.tags || '').split(',')[0].trim() || 'Radio')}</div>
         <div class="pl-item-stats">
           <span class="pl-stat-power" style="color:${primary.color}">⚡ ${primary.val}</span>
           ${(Number(st.bitrate || 0) >= 128) ? '<span class="hd-badge-inline">HD</span>' : ''}
@@ -894,24 +925,13 @@ function renderFavs() {
     let primary = { id: 'pwr', icon: '⚡', val: `${pwr}%`, color: 'var(--accent)' };
     if (sortMode === 'vote') { primary = { id: 'vot', icon: '👍', val: fmtK(st.votes), color: 'var(--fav)' }; }
 
-    const sidebarHtml = isManual ? `
-      <div class="fav-sort-btns">
-        <button class="pl-action-btn pl-sort-up" data-up="${st.sparkyId}" title="Move Up">
-          <span class="material-symbols-outlined">expand_less</span>
-        </button>
-        <button class="pl-action-btn pl-sort-down" data-down="${st.sparkyId}" title="Move Down">
-          <span class="material-symbols-outlined">expand_more</span>
-        </button>
-      </div>
-    ` : `<div class="pl-num">${actv ? '▶' : (i + 1).toString().padStart(2, '0')}</div>`;
-
     return `<div class="pl-item${actv ? ' active' : ''}" data-sid="${st.sparkyId}">
       <div class="pl-favicon-col">
         ${renderFavicon(st)}
       </div>
       <div class="pl-main-col">
         <div class="pl-item-name">${esc(st.name)}</div>
-        <div class="pl-item-meta">${esc(st.countrycode || '--')} · ${esc((st.tags || '').split(',').slice(0, 2).join(', ') || 'Radio')}</div>
+        <div class="pl-item-meta">${esc(st.countrycode || '--')} · ${esc((st.tags || '').split(',')[0].trim() || 'Radio')}</div>
         <div class="pl-item-stats">
           <span class="pl-stat-power" style="color:${primary.color}">⚡ ${primary.val}</span>
           ${(Number(st.bitrate || 0) >= 128) ? '<span class="hd-badge-inline">HD</span>' : ''}
@@ -919,13 +939,22 @@ function renderFavs() {
         </div>
       </div>
       <div class="pl-actions-col">
-        ${isManual ? sidebarHtml : ''}
         <button class="pl-action-btn pl-edit" data-edit="${st.sparkyId}" title="Edit Favorite">
           <span class="material-symbols-outlined">edit</span>
         </button>
         <button class="pl-action-btn pl-remove" data-rmfav="${st.sparkyId}" title="Remove Favorite" style="color:var(--accent2)">
           <span class="material-symbols-outlined">delete</span>
         </button>
+        ${isManual ? `
+          <div class="pl-sort-col">
+            <button class="pl-action-btn pl-sort-up" data-up="${st.sparkyId}" title="Move Up">
+              <span class="material-symbols-outlined">expand_less</span>
+            </button>
+            <button class="pl-action-btn pl-sort-down" data-down="${st.sparkyId}" title="Move Down">
+              <span class="material-symbols-outlined">expand_more</span>
+            </button>
+          </div>
+        ` : ''}
       </div>
     </div>`;
 
@@ -1699,8 +1728,8 @@ window.addEventListener('DOMContentLoaded', () => {
   updateSortUI(); 
   
   // Just set the text directly if safe
-  if (pt) pt.textContent = 'Quick-Tune';
-  bind('btnScan', () => searchStations(searchInput.value, true));
+  const presetTrigger = document.getElementById('presetTrigger');
+  if (presetTrigger) presetTrigger.textContent = 'Quick-Tune';
   const lastQ = localStorage.getItem('sparky_last_query');
   if (lastQ !== null) {
     if (searchInput) searchInput.value = lastQ;

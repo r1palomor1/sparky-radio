@@ -14,9 +14,11 @@
 
 :root {
   --text-scale: 1.0;
-  --bg: #0a0c12; /* Calm deep blue-black */
+  --bg: #0a0c12;
+  /* Calm deep blue-black */
   --bg-gradient: radial-gradient(circle at top center, #0f172a 0%, #0a0c12 100%);
-  --panel: #061021; /* Refined tonal separation */
+  --panel: #061021;
+  /* Refined tonal separation */
   --panel-text: #ffffff;
   --panel-dim: rgba(255, 255, 255, 0.6);
   --panel-border: rgba(255, 255, 255, 0.1);
@@ -25,7 +27,8 @@
   --panel-glow: transparent;
   --accent-correction: none;
   --panel2: #1e2633;
-  --border: rgba(255, 255, 255, 0.05); /* Soft, low-contrast border */
+  --border: rgba(255, 255, 255, 0.05);
+  /* Soft, low-contrast border */
   --accent: transparent;
   --accent2: #f85149;
   --green: #4fd1c5;
@@ -44,7 +47,8 @@
   --tab-bg: #05070a;
   --tab-active: #161c26;
   --grid-line: #1e2633;
-  --glow: 0 0 15px rgba(0, 242, 255, 0.1); /* Restrained ambient glow */
+  --glow: 0 0 15px rgba(0, 242, 255, 0.1);
+  /* Restrained ambient glow */
   --glow2: 0 0 10px rgba(79, 209, 197, 0.4);
   --glowfav: 0 0 10px rgba(227, 179, 65, 0.4);
   --app-border: rgba(255, 255, 255, 0.05);
@@ -113,7 +117,8 @@ body.light {
   max-width: 420px;
   height: 95dvh;
   max-height: 900px;
-  background: #05070a; /* Solid True Black for uniform vertical borders */
+  background: #05070a;
+  /* Solid True Black for uniform vertical borders */
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6);
   border-radius: 12px;
@@ -121,7 +126,8 @@ body.light {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  padding: 0 14px; /* The unified vertical side gutters */
+  padding: 0 14px;
+  /* The unified vertical side gutters */
   transition: background 0.3s, border-color 0.3s;
 }
 
@@ -168,12 +174,12 @@ body.light .app {
   .pl-item-name {
     font-size: calc(13px * var(--text-scale)) !important;
   }
-  
+
   .pl-favicon-col {
     width: 60px !important;
     height: 60px !important;
   }
-  
+
   .pl-item {
     grid-template-columns: 60px 1fr !important;
     padding: 12px !important;
@@ -224,7 +230,8 @@ body.light .app {
   background: var(--bg);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
-  padding: 10px 15px; /* Added horizontal padding for breathability */
+  padding: 10px 15px;
+  /* Added horizontal padding for breathability */
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -440,27 +447,58 @@ body.light .header {
 #panelColorPicker::-webkit-color-swatch-wrapper {
   padding: 0;
 }
+
 #panelColorPicker::-webkit-color-swatch {
   border: none;
   border-radius: 2px;
-  opacity: 0.15; /* Make the swatch subtle so the text overlay is visible */
+  opacity: 0.15;
+  /* Make the swatch subtle so the text overlay is visible */
 }
 
 .now-playing {
-  margin: 12px 0;
-  padding: 16px;
-  background: var(--panel);
+  padding: 12px;
+  background: radial-gradient(circle at 10% 10%, rgba(255, 255, 255, 0.03) 0%, transparent 50%), var(--panel);
+  /* Mockup Glow */
   border: 1px solid var(--panel-border);
   border-radius: 12px;
   display: flex;
-  flex-wrap: wrap; /* Added to allow metadata row to wrap below content */
-  align-items: center;
-  gap: 12px; /* Reduced gap */
-  box-shadow: 0 15px 45px rgba(0, 0, 0, 0.3);
+  flex-direction: column; /* Restructured to vertical stack of rows */
+  gap: 12px;
+  box-shadow: 0 15px 45px rgba(0, 0, 0, 0.4);
   transition: all 0.3s ease;
-  overflow: visible; /* Changed from hidden to ensure no badges are clipped */
+  overflow: hidden;
   position: relative;
   z-index: 100;
+}
+
+.np-body {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+@media (max-width: 480px) {
+  .now-playing {
+    padding: 10px;
+    gap: 8px;
+  }
+
+  .np-body {
+    flex-direction: row; /* KEEP SIDE-BY-SIDE ON MOBILE */
+    align-items: center;
+    gap: 10px;
+  }
+
+  .np-side-favicon-wrap {
+    width: 65px; /* Back to reasonable size for this layout */
+    height: 65px;
+  }
+
+  .np-main-content {
+    padding-top: 0;
+  }
 }
 
 .np-main-content {
@@ -469,18 +507,24 @@ body.light .header {
   flex-direction: column;
   gap: 8px;
   min-width: 0;
-  text-align: center; /* Align text center like mockup */
+  text-align: left;
+  /* Industrial alignment */
 }
 
 .np-meta {
   display: flex;
-  justify-content: center; /* Center badges across the full card width */
+  justify-content: space-between;
+  /* Spread badges across row */
   align-items: center;
-  gap: 8px;
-  margin-top: 4px; /* Tightened space above badges */
-  width: 100%; /* Force new line when wrapping */
-  padding-top: 0; /* Removed padding */
-  border-top: none; /* Removed the dimmed line as requested */
+  gap: 6px;
+  margin-top: 0;
+  padding-bottom: 2px;
+  /* Visual baseline correction */
+  width: 100%;
+  flex-wrap: nowrap;
+  /* Enforced single row */
+  padding-top: 0;
+  border-top: none;
 }
 
 /* ── EQ MASKING LOGIC ── */
@@ -492,17 +536,27 @@ body.light .header {
 }
 
 .np-side-favicon-wrap {
-  width: 80px;
-  height: 80px;
+  width: 120px;
+  height: 120px;
   flex-shrink: 0;
-  border-radius: 6px;
-  background: var(--panel); /* Blends into NP card */
-  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel);
+  /* Reactive background for seamless integration */
+  border: 1px solid var(--panel-border);
   overflow: hidden;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.np-side-favicon-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  /* Don't cut off station logos */
+  padding: 8px;
+  /* Breathing room for logos */
 }
 
 .np-main-content {
@@ -510,10 +564,20 @@ body.light .header {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  justify-content: space-between;
+  /* Push Label to Top and Tags to Bottom */
+  gap: 8px;
 }
 
 .np-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  /* Align to top for industrial look */
+  width: 100%;
+}
+
+.np-label-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -522,33 +586,42 @@ body.light .header {
 
 .np-label {
   font-family: 'Share Tech Mono', monospace;
-  font-size: calc(12px * var(--text-scale));
-  letter-spacing: 1.5px;
+  font-size: calc(9px * var(--text-scale));
+  letter-spacing: 2.5px;
   color: var(--accent);
   filter: var(--accent-correction);
-  /* Teal accent for labels */
-  text-transform: none;
-  font-weight: 500;
-  opacity: 0.9;
-  transition: filter 0.3s ease;
+  text-transform: uppercase;
+  font-weight: 700;
+  opacity: 0.7;
+}
+
+.np-sub-meta {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: calc(11px * var(--text-scale));
+  color: var(--dim);
+  letter-spacing: 0.5px;
+  margin-top: 1px;
 }
 
 
 
 .btn-eq-toggle {
-  background: transparent;
-  border: none;
-  padding: 4px 0;
-  font-size: calc(12px * var(--text-scale));
-  font-weight: 700;
-  color: var(--panel-text);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+  padding: 1px 6px;
+  /* High-density industrial fit */
+  font-size: 8px;
+  /* Tighter for mockup parity */
+  font-weight: 800;
+  color: var(--dim);
   transition: all 0.2s ease;
   -webkit-font-smoothing: antialiased;
-  letter-spacing: 1.2px;
+  letter-spacing: 1px;
   cursor: pointer;
-  margin-right: 8px; /* Shifted left as requested */
+  border-radius: 3px;
   pointer-events: auto;
-  z-index: 15; /* Sits above the EQ panel itself */
+  z-index: 15;
+  text-transform: uppercase;
 }
 
 .btn-eq-toggle:hover {
@@ -565,21 +638,40 @@ body.light .header {
 /* np-ticker moved to consolidated block at L754 */
 
 
+.np-name-container {
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
 .np-name {
   font-family: 'Archivo', sans-serif;
-  font-size: calc(19px * var(--text-scale));
-  font-weight: 700;
+  font-size: calc(24px * var(--text-scale));
+  font-weight: 800;
   color: var(--panel-text);
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
-  line-height: 0.95;
-  text-shadow: none;
+  text-transform: none;
+  /* Mixed Case */
+  letter-spacing: -0.2px;
+  line-height: 1.1;
   display: inline-block;
   white-space: nowrap;
   will-change: transform;
-  transform: scaleY(1.15);
-  transform-origin: top;
-  animation: ticker var(--ticker-duration, 15s) linear infinite;
+}
+
+.np-name.scrolling {
+  animation: np-ticker var(--ticker-duration, 10s) linear infinite;
+  padding-right: 50px;
+  /* Gap before restart */
+}
+
+@keyframes np-ticker {
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(var(--ticker-end, -100%));
+  }
 }
 
 @keyframes ticker {
@@ -593,27 +685,50 @@ body.light .header {
 }
 
 .np-viz-container {
-  height: 44px;
+  height: 32px;
+  /* Thinner for mockup parity */
   display: flex;
   align-items: center;
-  justify-content: center;
-  background: rgba(0, 0, 0, 0.12);
-  border-radius: 12px;
-  margin: 0;
+  justify-content: flex-start;
+  background: transparent;
+  border-radius: 0;
+  margin: 8px 0;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.02);
+  border: none;
+  /* Organic Right Fade-out as seen in high-fidelity mockup */
+  -webkit-mask-image: linear-gradient(to right, black 70%, transparent 100%);
+  mask-image: linear-gradient(to right, black 70%, transparent 100%);
 }
 
 .np-viz-container .visualizer {
   display: flex;
   align-items: center;
-  /* Symmetrical waveform expansion */
-  justify-content: center;
+  justify-content: center; /* Symmetric waveform centering */
   gap: 2px;
   width: 100%;
   height: 100%;
-  filter: var(--accent-correction);
+  /* Removed accent-correction to prevent yellow-tint color shifting */
   transition: filter 0.3s ease;
+}
+
+.bar {
+  flex: 1;
+  max-width: 4px; /* Thin line industrial aesthetic */
+  background: var(--accent);
+  border-radius: 4px; /* Organic waveform rounding */
+  min-height: 2px;
+  transition: height 0.08s cubic-bezier(0.165, 0.84, 0.44, 1);
+  will-change: height;
+}
+
+.bolt-icon {
+  color: var(--accent);
+  font-size: 24px;
+  margin-right: 4px;
+  filter: drop-shadow(0 0 8px rgba(var(--accent-rgb, 0, 242, 255), 0.3));
+  font-variation-settings: 'FILL' 1;
+  display: flex;
+  align-items: center;
 }
 
 /* np-meta consolidated at L474 */
@@ -621,18 +736,47 @@ body.light .header {
 .np-meta-badge {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 4px;
-  background: var(--panel-border);
-  padding: 3px 7px;
-  border-radius: 24px; /* The "Pill" look */
+  background: rgba(255, 255, 255, 0.05);
+  padding: 4px 4px;
+  /* Minimal padding for ultra-tight row */
+  border-radius: 4px;
   font-family: 'Share Tech Mono', monospace;
-  font-size: calc(9px * var(--text-scale));
-  color: var(--panel-text);
-  border: 1px solid var(--panel-border);
+  font-size: calc(9.5px * var(--text-scale));
+  /* Slightly smaller for density */
+  color: var(--text);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   white-space: nowrap;
   transition: all 0.2s ease;
-  opacity: 0.8;
-  flex: 0 0 auto; /* Don't shrink, stay solid */
+  opacity: 0.85;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.np-meta-badge span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.np-meta-badge:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--accent);
+  opacity: 1;
+}
+
+.np-hd-badge {
+  color: var(--dim);
+  letter-spacing: 1px;
+}
+
+.np-hd-badge.active {
+  color: var(--fav);
+  border-color: var(--fav);
+  font-weight: 800;
+  box-shadow: 0 0 10px rgba(227, 179, 65, 0.2);
 }
 
 @media (max-width: 400px) {
@@ -644,12 +788,16 @@ body.light .header {
   .np-meta {
     gap: 3px;
   }
+
   .now-playing {
-    padding: 12px; /* Tighter padding for mobile */
+    padding: 12px;
+    /* Tighter padding for mobile */
     gap: 10px;
   }
+
   .np-side-favicon-wrap {
-    width: 80px; /* Scaled down from desktop/tablet */
+    width: 80px;
+    /* Scaled down from desktop/tablet */
     height: 80px;
   }
 }
@@ -881,6 +1029,7 @@ body.light .pl-status-badge.trending {
   position: relative;
 }
 
+
 .np-favicon-badge {
   width: 28px;
   height: 28px;
@@ -1033,9 +1182,11 @@ input[type=range]::-moz-range-thumb {
   display: flex;
   flex-direction: column;
   background: var(--tab-bg);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08); /* Synced with Header border */
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  /* Synced with Header border */
   margin-top: 10px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08); /* Synced with Header border */
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  /* Synced with Header border */
 }
 
 
@@ -1043,7 +1194,8 @@ input[type=range]::-moz-range-thumb {
   display: flex;
   width: auto;
   margin: 12px 0;
-  gap: 8px; /* Increased gap for better touch separation without the container */
+  gap: 8px;
+  /* Increased gap for better touch separation without the container */
   justify-content: center;
 }
 
@@ -1067,7 +1219,8 @@ input[type=range]::-moz-range-thumb {
   gap: 6px;
   white-space: nowrap;
   font-weight: 600;
-  color: var(--panel-dim); /* Adaptive contrast for tabs */
+  color: var(--panel-dim);
+  /* Adaptive contrast for tabs */
 }
 
 .tab:hover {
@@ -1183,7 +1336,9 @@ input[type=range]::-moz-range-thumb {
   pointer-events: none;
 }
 
-.btn-eq-toggle, .btn-search, .preset-trigger {
+.btn-eq-toggle,
+.btn-search,
+.preset-trigger {
   background: var(--panel);
 }
 
@@ -1255,12 +1410,14 @@ body.light input[type=text] {
 .playlist-header {
   background: var(--ctrl-bg);
   height: 26px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08); /* Synced with Header border */
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  /* Synced with Header border */
   display: flex;
   align-items: stretch;
   justify-content: space-between;
   padding: 0;
-  margin: 0; /* Horizontal margin removed */
+  margin: 0;
+  /* Horizontal margin removed */
 }
 
 .pl-header-left {
@@ -1275,7 +1432,7 @@ body.light input[type=text] {
   width: 32px;
   background: rgba(255, 255, 255, 0.02);
   border: none;
-  border-right: 1px solid var(--border); 
+  border-right: 1px solid var(--border);
   color: var(--text);
   cursor: pointer;
   display: flex;
@@ -1378,7 +1535,8 @@ body.light input[type=text] {
   -webkit-overflow-scrolling: touch;
   background: transparent;
   position: relative;
-  padding: 10px 0; /* Horizontal padding removed */
+  padding: 10px 0;
+  /* Horizontal padding removed */
 }
 
 .pl-empty {
@@ -1394,17 +1552,21 @@ body.light input[type=text] {
 }
 
 .playlist::-webkit-scrollbar {
-  width: 8px; /* Touch-optimized for mobile/tablet */
+  width: 8px;
+  /* Touch-optimized for mobile/tablet */
 }
 
 .playlist::-webkit-scrollbar-track {
-  background: transparent; /* Clean invisible track */
+  background: transparent;
+  /* Clean invisible track */
 }
 
 .playlist::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.12); /* Glassmorphic indicator */
+  background: rgba(255, 255, 255, 0.12);
+  /* Glassmorphic indicator */
   border-radius: 20px;
-  border: 2px solid transparent; /* Creates a clean 'floating' effect */
+  border: 2px solid transparent;
+  /* Creates a clean 'floating' effect */
   background-clip: padding-box;
 }
 
@@ -1425,8 +1587,10 @@ body.light input[type=text] {
   gap: 20px;
   padding: 12px 0;
   margin: 4px 0;
-  background: rgba(255, 255, 255, 0.015); /* Subtle floor for filters */
-  border-bottom: none; /* Removed redundant border to fix double line issue */
+  background: rgba(255, 255, 255, 0.015);
+  /* Subtle floor for filters */
+  border-bottom: none;
+  /* Removed redundant border to fix double line issue */
 }
 
 
@@ -1571,7 +1735,8 @@ body.light .preset-label {
   justify-content: center;
   align-items: center;
   gap: 6px;
-  opacity: 1; /* Explicitly solid */
+  opacity: 1;
+  /* Explicitly solid */
   text-transform: none !important;
   font-weight: 500 !important;
 }
@@ -1689,7 +1854,8 @@ body.light .preset-label {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--panel); /* Blends into card */
+  background: var(--panel);
+  /* Blends into card */
   border-radius: 4px;
   border: 1px solid var(--border);
   flex-shrink: 0;
@@ -1697,14 +1863,13 @@ body.light .preset-label {
 }
 
 .pl-item {
-  display: grid;
-  grid-template-columns: 60px 1fr; /* Removed the third 'auto' column */
+  display: flex;
   gap: 14px;
   padding: 12px;
-  position: relative; /* Base for absolute actions */
+  position: relative;
   background: var(--panel);
   border: 1px solid var(--panel-border);
-  border-radius: 12px; 
+  border-radius: 12px;
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
   align-items: center;
   transition: all 0.2s ease;
@@ -1730,14 +1895,16 @@ body.light .preset-label {
   background: var(--panel-active);
   /* Theme-aware active tint */
   border-left: 4px solid var(--accent);
-  filter: var(--accent-correction); /* Apply brand protection to the whole active state if needed */
+  filter: var(--accent-correction);
+  /* Apply brand protection to the whole active state if needed */
   box-shadow: inset 5px 0 20px var(--panel-glow);
 }
 
 .pl-favicon-col {
   width: 60px;
   height: 60px;
-  background: var(--panel); /* Blends into card */
+  background: var(--panel);
+  /* Blends into card */
   border-radius: 6px;
   border: 1px solid var(--border);
   display: flex;
@@ -1757,14 +1924,19 @@ body.light .preset-label {
 .pl-main-col {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  justify-content: center;
+  gap: 6px;
+  /* Equal spacing between name, tags, and stats */
   min-width: 0;
-  padding-right: 85px; /* Increased to accommodate sorting stack + actions */
+  padding-right: 110px;
+  /* Increased to protect expanded right-side utility cluster */
+  flex: 1;
 }
 
 .pl-item-name {
   font-family: 'Archivo', sans-serif;
-  font-size: calc(13px * var(--text-scale)); /* Slightly smaller for better fit */
+  font-size: calc(13px * var(--text-scale));
+  /* Slightly smaller for better fit */
   font-weight: 700;
   color: var(--panel-text);
   white-space: nowrap;
@@ -1777,20 +1949,22 @@ body.light .preset-label {
 .pl-item-meta {
   font-family: 'Share Tech Mono', monospace;
   font-size: calc(10px * var(--text-scale));
-  color: var(--panel-text); /* Higher contrast for legibility */
+  color: var(--panel-text);
+  /* Higher contrast for legibility */
   text-transform: none;
   letter-spacing: 0.5px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  opacity: 0.6; /* Slightly dimmed but clearly readable */
+  opacity: 0.6;
+  /* Slightly dimmed but clearly readable */
 }
 
 .pl-item-stats {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-top: 6px;
+  /* Removed margin-top to maintain 1:1 proportional gap from flex container */
 }
 
 .pl-stat-power {
@@ -1805,7 +1979,8 @@ body.light .preset-label {
 .pl-actions-col {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 12px;
+  /* Increased gap between sort and edit/delete */
   position: absolute;
   right: 12px;
   top: 50%;
@@ -1813,28 +1988,43 @@ body.light .preset-label {
   z-index: 5;
 }
 
-.fav-sort-btns {
+.pl-sort-col {
   display: flex;
   flex-direction: column;
-  gap: 0;
-  border-right: 1px solid var(--border);
-  padding-right: 4px;
-  margin-right: 4px;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  /* Prevent accidental touches */
+  padding: 0 4px;
+  min-width: 32px;
+  flex-shrink: 0;
+  margin-left: 10px;
+  /* Protective safety buffer from accidental deletes */
 }
 
-.pl-sort-up, .pl-sort-down {
-  height: 18px !important;
+.pl-sort-up,
+.pl-sort-down {
+  height: 24px !important;
+  /* Increased touch target */
+  width: 24px !important;
   padding: 0 !important;
-  opacity: 0.4 !important;
+  opacity: 0.5 !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.pl-sort-up:hover, .pl-sort-down:hover {
+.pl-sort-up:hover,
+.pl-sort-down:hover {
   opacity: 1 !important;
   color: var(--accent) !important;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
 }
 
-.pl-sort-up span, .pl-sort-down span {
-  font-size: 18px !important;
+.pl-sort-up span,
+.pl-sort-down span {
+  font-size: 20px !important;
 }
 
 .pl-action-btn {
@@ -2138,19 +2328,22 @@ body.light .btn-preset.active {
   gap: 8px;
 }
 
-.btn-save, .btn-reset {
+.btn-save,
+.btn-reset {
   flex: 1;
   padding: 10px !important;
   font-weight: 800 !important;
   letter-spacing: 1.5px !important;
   font-size: 10px !important;
-  color: var(--panel-text) !important; /* Maximum brightness alignment */
+  color: var(--panel-text) !important;
+  /* Maximum brightness alignment */
   border: 1px solid var(--panel-border) !important;
   background: rgba(255, 255, 255, 0.05) !important;
   transition: all 0.2s ease !important;
 }
 
-.btn-save:hover, .btn-reset:hover {
+.btn-save:hover,
+.btn-reset:hover {
   background: var(--panel-hover) !important;
   border-color: var(--accent) !important;
 }
@@ -2182,7 +2375,8 @@ body.light .btn-preset.active {
   border-radius: 12px;
   box-shadow: 0 15px 50px rgba(0, 0, 0, 0.6);
   font-family: 'Share Tech Mono', monospace;
-  font-weight: 500; /* Crisper weight */
+  font-weight: 500;
+  /* Crisper weight */
   font-size: calc(13px * var(--text-scale));
   color: var(--panel-text);
   line-height: 1.4;
@@ -2211,7 +2405,8 @@ body.light .btn-preset.active {
 .footer {
   height: auto;
   min-height: 70px;
-  padding: 12px; /* Uniform padding for symmetry */
+  padding: 12px;
+  /* Uniform padding for symmetry */
   padding-bottom: calc(12px + env(safe-area-inset-bottom));
 
   background: rgba(20, 20, 20, 0.35);
@@ -2246,12 +2441,14 @@ body.light .footer {
 
 .btn-footer-nav,
 .btn-footer-play {
-  height: 48px; /* Reduced for icon-only layout */
+  height: 48px;
+  /* Reduced for icon-only layout */
   min-width: 48px;
   /* Slightly tighter base */
   flex-direction: column !important;
   gap: 4px !important;
-  border-radius: 50% !important; /* Circular for clean icon-only look */
+  border-radius: 50% !important;
+  /* Circular for clean icon-only look */
   background: transparent !important;
   border: none !important;
   transition: all 0.2s;
@@ -2361,7 +2558,8 @@ body.light .footer {
 }
 
 .btn-footer-play {
-  width: 58px; /* Force square for perfect circle */
+  width: 58px;
+  /* Force square for perfect circle */
   height: 58px;
   background: rgba(255, 255, 255, 0.05) !important;
   border: 1px solid var(--border) !important;

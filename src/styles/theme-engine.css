@@ -114,22 +114,7 @@
     background: var(--accent) !important;
 }
 
-/* === Dashboard Foundation === */
-.visualizer {
-    display: flex;
-    align-items: flex-end;
-    gap: 3px;
-    height: 30px;
-    width: 100%;
-}
-
-.bar {
-    flex: 1;
-    background: var(--accent);
-    min-height: 2px;
-    box-shadow: 0 0 10px var(--accent);
-    transition: height 0.05s ease;
-}
+/* Visualizer styles consolidated in main.css */
 
 #npName {
     color: var(--text) !important;
