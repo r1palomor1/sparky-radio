@@ -1536,10 +1536,10 @@ window.addEventListener('DOMContentLoaded', () => {
 
   };
 
-  // ── VOLUME POPOVER LOGIC ──
+  // ── VOLUME ROW LOGIC ──
   let volTimer = null;
   const volCtrl = document.getElementById('volCtrl');
-  const volPopover = document.getElementById('volPopover');
+  const volRow = document.getElementById('volRow');
   const btnVolToggle = document.getElementById('btnVolToggle');
   const volSlider = document.getElementById('volSlider');
 
@@ -1554,22 +1554,22 @@ window.addEventListener('DOMContentLoaded', () => {
   };
 
   const showVol = () => {
-    volPopover?.classList.add('show');
+    volRow?.classList.add('show');
     resetVolTimer();
   };
   const hideVol = () => {
-    volPopover?.classList.remove('show');
+    volRow?.classList.remove('show');
     if (volTimer) clearTimeout(volTimer);
   };
   const resetVolTimer = () => {
     if (volTimer) clearTimeout(volTimer);
-    volTimer = setTimeout(hideVol, 2000); 
+    volTimer = setTimeout(hideVol, 2000); // Re-calibrated to 2s for snappier dismissal
   };
 
   if (btnVolToggle) {
     btnVolToggle.onclick = (e) => {
       e.stopPropagation();
-      volPopover?.classList.contains('show') ? hideVol() : showVol();
+      volRow?.classList.contains('show') ? hideVol() : showVol();
     };
   }
 
@@ -1593,7 +1593,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
   // Click away to close (Integrated with existing window click)
   window.addEventListener('click', (e) => {
-    if (volPopover && !volCtrl?.contains(e.target)) hideVol();
+    if (volRow && !volCtrl?.contains(e.target) && !volRow.contains(e.target)) hideVol();
   });
 
 

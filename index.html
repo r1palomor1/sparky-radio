@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>SPARKY · Internet Radio</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link
@@ -175,6 +175,15 @@
 
     <!-- FOOTER -->
     <div class="footer">
+      <!-- INTEGRATED VOLUME ROW (Dynamic) -->
+      <div class="footer-volume-row" id="volRow">
+         <div class="vol-row-inner">
+            <span class="material-symbols-outlined vol-row-icon">volume_down</span>
+            <input type="range" id="volSlider" min="0" max="100" value="80">
+            <span class="material-symbols-outlined vol-row-icon">volume_up</span>
+         </div>
+      </div>
+
       <div class="footer-layout">
         <!-- ADMIN GROUP -->
         <button class="btn btn-footer-admin" id="btnAdd" title="Add custom station">
@@ -192,17 +201,11 @@
           <span class="material-symbols-outlined">skip_next</span>
         </button>
 
-        <!-- VOLUME CONTROLLER (Right Aligned) -->
+        <!-- VOLUME CONTROLLER (Trigger Only) -->
         <div class="footer-volume-ctrl" id="volCtrl">
           <button class="btn btn-footer-nav" id="btnVolToggle" title="Toggle Volume">
             <span class="material-symbols-outlined">volume_up</span>
           </button>
-          <div class="vol-popover" id="volPopover">
-             <div class="vol-popover-inner">
-               <span class="vol-pop-label">Volume</span>
-               <input type="range" id="volSlider" min="0" max="100" value="80">
-             </div>
-          </div>
         </div>
       </div>
 
