@@ -833,13 +833,21 @@ function renderStations() {
   pl.innerHTML = displayStations.map((st, i) => {
     const actv = currentSrc && (norm(currentSrc.url) === norm(st.url_resolved || st.url));
     const favd = isFav(st, currentFavs);
-
     const rank = (((st.clickcount || 0) / mC) * 0.6) + (((st.votes || 0) / mV) * 0.3) + (((st.clicktrend || 0) / mT) * 0.1);
     const pwr = Math.min(100, Math.round(rank * 100));
-
     const trending = (st.clicktrend || 0) > 50 ? '<span class="pl-status-badge trending">Trending</span>' : '';
     let primary = { id: 'pwr', icon: '⚡', val: `${pwr}%`, color: 'var(--accent)' };
     if (sortMode === 'vote') { primary = { id: 'vot', icon: '👍', val: fmtK(st.votes), color: 'var(--fav)' }; }
+
+    const tagArr = (st.tags || '').split(',').map(t => t.trim()).filter(t => t);
+    let dispTags = tagArr.slice(0, 2);
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      let match = tagArr.find(t => t.toLowerCase().includes(q));
+      if (!match && st.name.toLowerCase().includes(q)) match = searchQuery;
+      if (match && !dispTags.some(dt => dt.toLowerCase().includes(q))) dispTags.push(match);
+    }
+    const finalTags = dispTags.slice(0, 3).join(', ') || 'Radio';
 
     return `<div class="pl-item${actv ? ' active' : ''}" data-idx="${i}">
       <div class="pl-favicon-col">
@@ -847,7 +855,7 @@ function renderStations() {
       </div>
       <div class="pl-main-col">
         <div class="pl-item-name">${esc(st.name)}</div>
-        <div class="pl-item-meta">${esc(st.countrycode || '--')} · ${esc((st.tags || '').split(',')[0].trim() || 'Radio')}</div>
+        <div class="pl-item-meta">${esc(st.countrycode || '--')} · ${esc(finalTags)}</div>
         <div class="pl-item-stats">
           <span class="pl-stat-power" style="color:${primary.color}">⚡ ${primary.val}</span>
           ${(Number(st.bitrate || 0) >= 128) ? '<span class="hd-badge-inline">HD</span>' : ''}
@@ -925,13 +933,23 @@ function renderFavs() {
     let primary = { id: 'pwr', icon: '⚡', val: `${pwr}%`, color: 'var(--accent)' };
     if (sortMode === 'vote') { primary = { id: 'vot', icon: '👍', val: fmtK(st.votes), color: 'var(--fav)' }; }
 
+    const tagArr = (st.tags || '').split(',').map(t => t.trim()).filter(t => t);
+    let dispTags = tagArr.slice(0, 2);
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      let match = tagArr.find(t => t.toLowerCase().includes(q));
+      if (!match && st.name.toLowerCase().includes(q)) match = searchQuery; 
+      if (match && !dispTags.some(dt => dt.toLowerCase().includes(q))) dispTags.push(match);
+    }
+    const finalTags = dispTags.slice(0, 3).join(', ') || 'Radio';
+
     return `<div class="pl-item${actv ? ' active' : ''}" data-sid="${st.sparkyId}">
       <div class="pl-favicon-col">
         ${renderFavicon(st)}
       </div>
       <div class="pl-main-col">
         <div class="pl-item-name">${esc(st.name)}</div>
-        <div class="pl-item-meta">${esc(st.countrycode || '--')} · ${esc((st.tags || '').split(',')[0].trim() || 'Radio')}</div>
+        <div class="pl-item-meta">${esc(st.countrycode || '--')} · ${esc(finalTags)}</div>
         <div class="pl-item-stats">
           <span class="pl-stat-power" style="color:${primary.color}">⚡ ${primary.val}</span>
           ${(Number(st.bitrate || 0) >= 128) ? '<span class="hd-badge-inline">HD</span>' : ''}
@@ -1109,6 +1127,7 @@ const updateVolFill = (el) => {
 // ══ SEARCH ════════════════════════════════
 async function searchStations(q, isManual = false) {
   if (isSearching) return;
+  searchQuery = (q || "").trim();
 
   localStorage.setItem('sparky_last_query', q || ''); 
   const hasFilters = filterCountry !== 'ALL' || filterLang !== 'ALL' || filterHiFi;
@@ -1135,21 +1154,34 @@ async function searchStations(q, isManual = false) {
   }
 
   let success = false;
+  const isEscalated = arguments[2] === true; // Internal flag for deep scan
+
   for (const srv of mirrors) {
     try {
-      const params = { limit: 250, hidebroken: true, order: 'clickcount', reverse: true };
-      if (apiQ) params.name = apiQ;
-      if (filterCountry !== 'ALL') params.countrycode = filterCountry;
-      if (filterLang !== 'ALL') params.language = filterLang.toLowerCase();
-      const res = await fetch(`https://${srv}/json/stations/search?` + new URLSearchParams(params));
-      if (!res.ok) continue;
+      const baseParams = { limit: 250, hidebroken: true, order: 'clickcount', reverse: true };
+      
+      // Only apply filters on the first pass. If we are deep scanning, we go global.
+      if (!isEscalated) {
+        if (filterCountry !== 'ALL') baseParams.countrycode = filterCountry;
+        if (filterLang !== 'ALL') baseParams.language = filterLang.toLowerCase();
+      }
 
-      // Mirror Telemetry (Logic preserved per request)
-      const mirrorIndicator = document.getElementById('mirrorIndicator');
-      if (mirrorIndicator) mirrorIndicator.textContent = srv.split('.')[0].toUpperCase();
+      const searchTasks = [];
+      if (apiQ) {
+        searchTasks.push(fetch(`https://${srv}/json/stations/search?` + new URLSearchParams({ ...baseParams, name: apiQ })));
+        searchTasks.push(fetch(`https://${srv}/json/stations/search?` + new URLSearchParams({ ...baseParams, tag: apiQ })));
+      } else {
+        searchTasks.push(fetch(`https://${srv}/json/stations/search?` + new URLSearchParams(baseParams)));
+      }
 
-      const raw = await res.json();
-      let filtered = raw.filter(st => {
+      const responses = await Promise.all(searchTasks);
+      const results = await Promise.all(responses.map(r => r.ok ? r.json() : []));
+      const raw = [].concat(...results);
+      const uniqueMap = new Map();
+      raw.forEach(st => { const id = st.stationuuid || st.url; if (!uniqueMap.has(id)) uniqueMap.set(id, st); });
+      const deduplicatedRaw = Array.from(uniqueMap.values());
+
+      let filtered = deduplicatedRaw.filter(st => {
         const blob = (st.name + " " + (st.tags || '')).toLowerCase();
         for (const ex of excluded) if (blob.includes(ex)) return false;
         for (const req of required) if (!blob.includes(req)) return false;
@@ -1157,23 +1189,40 @@ async function searchStations(q, isManual = false) {
       });
       if (filterHiFi) filtered = filtered.filter(s => Number(s.bitrate || 0) >= 128);
 
-      // ══ SMART-TUNE RE-SORT (1:1 FIDELITY) ════
+      // ESCALATION LOGIC
+      if (filtered.length === 0 && !isEscalated && (filterCountry !== 'ALL' || filterLang !== 'ALL')) {
+        console.log(`[SEARCH] No results in ${filterCountry}/${filterLang}. Escalating to Global Deep Scan...`);
+        isSearching = false; // Reset for recursion
+        return searchStations(q, isManual, true); 
+      }
+
+      if (filtered.length > 0) {
+        // Success!
+      } else if (srv === mirrors[mirrors.length - 1]) {
+        // End of the line
+      } else {
+        continue;
+      }
+
+      const mirrorIndicator = document.getElementById('mirrorIndicator');
+      if (mirrorIndicator) mirrorIndicator.textContent = (isEscalated ? '🌐 ' : '') + srv.split('.')[0].toUpperCase();
+
       const maxClicks = Math.max(...filtered.map(s => Number(s.clickcount || 0)), 1);
       const maxVotes = Math.max(...filtered.map(s => Number(s.votes || 0)), 1);
       const maxTrend = Math.max(...filtered.map(s => Number(s.clicktrend || 0)), 1);
-
-      const getScore = s => (
-        ((Number(s.clickcount || 0) / maxClicks) * 0.6) +
-        ((Number(s.votes || 0) / maxVotes) * 0.3) +
-        ((Number(s.clicktrend || 0) / maxTrend) * 0.1)
-      );
+      const getScore = s => (((Number(s.clickcount || 0) / maxClicks) * 0.6) + ((Number(s.votes || 0) / maxVotes) * 0.3) + ((Number(s.clicktrend || 0) / maxTrend) * 0.1));
 
       stations = filtered.sort((a, b) => getScore(b) - getScore(a));
       success = true; break;
     } catch (e) { }
   }
-  if (success) renderStations();
-  else if (pl) pl.innerHTML = '<div class="pl-empty">⚠ ALL MIRRORS UNREACHABLE</div>';
+  
+  if (success) {
+    renderStations();
+  } else if (pl) {
+    const fallbackMsg = q ? `NO STATIONS FOUND FOR "${q.toUpperCase()}"<br><span style="font-size:10px; color:var(--dim)">TRY SEARCHING BY GENRE (E.G. REGGAETON, ROCK)</span>` : '⚠ ALL MIRRORS UNREACHABLE';
+    pl.innerHTML = `<div class="pl-empty"><div class="pl-empty-icon">📡</div><div>${fallbackMsg}</div></div>`;
+  }
   isSearching = false;
 }
 
