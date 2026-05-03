@@ -162,6 +162,11 @@
           </button>
           <div class="pl-label" id="plLabel">Stations</div>
         </div>
+        <div class="pl-header-right" id="plHeaderRight" style="display:none">
+          <button class="pl-view-btn" id="btnViewToggle" title="Toggle View Mode">
+            <span class="material-symbols-outlined" id="viewToggleIcon">grid_view</span>
+          </button>
+        </div>
       </div>
 
       <!-- PLAYLIST -->
@@ -213,7 +218,7 @@
   </div>
 
   <!-- SYSTEM MODALS -->
-  <div class="modal-overlay" id="sparkyModal" style="display:none">
+  <div class="modal-overlay system-alert" id="sparkyModal" style="display:none">
     <div class="modal-content">
       <div class="modal-header" id="sparkyModalHeader">SYSTEM ALERT</div>
       <div id="sparkyModalText" style="font-size:calc(12px * var(--text-scale)); line-height:1.4; color:var(--text)">
@@ -323,6 +328,11 @@
         <label style="font-size:calc(9px * var(--text-scale)); color:var(--accent)">STATION NAME</label>
         <input type="text" id="editStationName" maxlength="80"
           style="width:100%; background:var(--bg); border:1px solid var(--border); color:var(--text); padding:5px;">
+        <label style="font-size:calc(9px * var(--text-scale)); color:var(--accent); margin-top:8px;">CATEGORY</label>
+        <div class="preset-dropdown-wrap" style="width: 100%;" id="editCatDropdown">
+          <div class="preset-trigger" id="editCatTrigger">Undefined</div>
+          <div class="preset-options" id="editCatOptions"></div>
+        </div>
         <label style="font-size:calc(9px * var(--text-scale)); color:var(--accent); margin-top:8px;">STREAM URL</label>
         <input type="text" id="editStationUrl" maxlength="300"
           style="width:100%; background:var(--bg); border:1px solid var(--border); color:var(--text); padding:5px;">

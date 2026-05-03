@@ -151,8 +151,11 @@ let currentIdx = -1;
 let activeTab = 'stations';
 let sortMode = 'power';
 let favSortMode = localStorage.getItem('sparky_fav_sort_mode') || 'power';
+let favViewMode = localStorage.getItem('sparky_fav_view') || 'list';
+let collapsedCategories = JSON.parse(localStorage.getItem('sparky_collapsed_cats') || '[]');
 let currentSrc = null;
 let isPlaying = false;
+let activeSearchPreset = '';
 let favs = []; // Global synced favorites list
 let textScale = parseFloat(localStorage.getItem('sparky_text_scale')) || 1.0;
 let shuffle = false;
@@ -163,6 +166,8 @@ let filterLang = 'ALL';
 let panelColor = localStorage.getItem('sparky_panel_color') || '#061021';
 let searchQuery = '';
 let filterHiFi = false;
+let isSyncingFavs = false;
+let customCategories = JSON.parse(localStorage.getItem('sparky_custom_categories') || '[]');
 
 let wasCollapsedBeforeEQ = false; // State persistence for EQ engaged mode
 let isSearching = false;
@@ -211,8 +216,19 @@ const FAV_KEY = 'sparky_favorites';
 function loadFavs() {
   try {
     const raw = JSON.parse(localStorage.getItem(FAV_KEY)) || [];
+    const custom = JSON.parse(localStorage.getItem('sparky_search_presets') || '[]');
+    const allPresets = [...new Set([...defaultPresets, ...custom])];
+    
     let changed = false;
-    raw.forEach(f => { if (!f.sparkyId) { f.sparkyId = crypto.randomUUID(); changed = true; } });
+    raw.forEach(f => { 
+      if (!f.sparkyId) { f.sparkyId = crypto.randomUUID(); changed = true; }
+      if (!f.category || f.category === 'General') {
+        const tags = (f.tags || '').toLowerCase();
+        const found = allPresets.find(p => tags.includes(p.toLowerCase()));
+        f.category = found || 'Undefined';
+        changed = true;
+      }
+    });
     if (changed) localStorage.setItem(FAV_KEY, JSON.stringify(raw));
     return raw;
   } catch { return []; }
@@ -266,13 +282,23 @@ function addFav(st) {
   });
 
   const proceed = () => {
+    const getInitialCat = () => {
+      if (activeSearchPreset && activeSearchPreset !== 'ADD') return activeSearchPreset;
+      const custom = JSON.parse(localStorage.getItem('sparky_search_presets') || '[]');
+      const allPresets = [...new Set([...defaultPresets, ...custom])];
+      const tags = (st.tags || '').toLowerCase();
+      const found = allPresets.find(p => tags.includes(p.toLowerCase()));
+      return found || 'Undefined';
+    };
+
     favs.push({
       sparkyId: crypto.randomUUID(), // permanent unique key for this favorites entry
       id: uuid, name: st.name, url: u,
       bitrate: st.bitrate, codec: st.codec,
       countrycode: st.countrycode, tags: st.tags || '',
       votes: st.votes || 0, clickcount: st.clickcount || 0, clicktrend: st.clicktrend || 0,
-      isRescued: st.isRescued || false
+      isRescued: st.isRescued || false,
+      category: getInitialCat()
     });
     saveFavs(favs);
     refreshFavBadge();
@@ -350,6 +376,10 @@ function switchTab(tab) {
   document.getElementById('searchArea').style.display = tab === 'stations' ? '' : 'none';
   document.querySelector('.filters-area').classList.toggle('fav-mode-gap', tab === 'favs');
 
+  const hr = document.getElementById('plHeaderRight');
+  if (hr) hr.style.display = tab === 'favs' ? 'flex' : 'none';
+  if (tab === 'favs') updateViewToggleUI();
+
   if (tab === 'stations') {
     sortMode = 'power';
     document.getElementById('plLabel').textContent = 'Stations';
@@ -366,32 +396,37 @@ document.getElementById('tabStations').addEventListener('click', () => switchTab
 document.getElementById('tabFavs').addEventListener('click', () => switchTab('favs'));
 
 async function backgroundSyncFavs() {
+  if (isSyncingFavs) return;
+  isSyncingFavs = true;
   const fv = loadFavs();
-  if (!fv.length) return;
+  if (!fv.length) { isSyncingFavs = false; return; }
   const mirrors = ["de1.api.radio-browser.info", "at1.api.radio-browser.info", "nl1.api.radio-browser.info"];
-  for (let f of fv) {
-    await sleep(500);
-    let id = f.id || f.stationuuid;
-    const m = mirrors[Math.floor(Math.random() * mirrors.length)];
-    try {
-      if (!id) {
-        const sr = await fetch(`https://${m}/json/stations/byurl?url=${encodeURIComponent(f.url.split('?')[0])}`);
-        const res = await sr.json();
-        if (res && res.length) {
-          id = res[0].stationuuid;
-          let latest = loadFavs();
-          let idx = latest.findIndex(fav => norm(fav.url) === norm(f.url));
-          if (idx !== -1) { latest[idx].id = id; saveFavs(latest); }
-        } else continue;
-      }
-      const r = await fetch(`https://${m}/json/stations/byuuid/${id}`, { cache: 'no-store' });
-      const d = await r.json();
-      if (d && d.length) {
-        syncFavMetadata(d[0]);
-        if (activeTab === 'favs') renderFavs();
-      }
-    } catch (e) { console.error("[SYNC_ERROR]", e); }
-  }
+  try {
+    for (let f of fv) {
+      await sleep(500);
+      let id = f.id || f.stationuuid;
+      const m = mirrors[Math.floor(Math.random() * mirrors.length)];
+      try {
+        if (!id) {
+          const sr = await fetch(`https://${m}/json/stations/byurl?url=${encodeURIComponent(f.url.split('?')[0])}`);
+          const res = await sr.json();
+          if (res && res.length) {
+            id = res[0].stationuuid;
+            let latest = loadFavs();
+            let idx = latest.findIndex(fav => norm(fav.url) === norm(f.url));
+            if (idx !== -1) { latest[idx].id = id; saveFavs(latest); }
+          } else continue;
+        }
+        const r = await fetch(`https://${m}/json/stations/byuuid/${id}`, { cache: 'no-store' });
+        const d = await r.json();
+        if (d && d.length) {
+          syncFavMetadata(d[0]);
+          if (activeTab === 'favs') renderFavs();
+        }
+      } catch (e) { /* Silent fail for individual stations */ }
+    }
+  } catch (e) { console.error("[GLOBAL_SYNC_ERROR]", e); }
+  isSyncingFavs = false;
 }
 
 // ══ EQ ════════════════════════════════════
@@ -591,29 +626,97 @@ function sparkyPrompt(msg, header, onOk) {
   cancel.onclick = () => { modal.style.display = 'none'; if (onOk) onOk(null); };
 }
 
-function openEditModal(name, url, onSave) {
+function loadEditCategories(currentVal) {
+  const customPresets = JSON.parse(localStorage.getItem('sparky_search_presets') || '[]');
+  const all = [...new Set([...defaultPresets, ...customPresets, ...customCategories, 'Undefined'])].sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
+  
+  const container = document.getElementById('editCatOptions');
+  const trigger = document.getElementById('editCatTrigger');
+  if (!container || !trigger) return;
+
+  trigger.textContent = currentVal || 'Undefined';
+  
+  let html = `<div class="preset-opt add-opt" data-val="ADD_CAT">+ Add Category</div>`;
+  all.forEach(c => {
+    // Only deletable if it is a custom category or a custom preset (not a factory preset)
+    const isCustomCat = customCategories.includes(c);
+    const isCustomPreset = customPresets.includes(c) && !defaultPresets.includes(c);
+    const isDeletable = isCustomCat || isCustomPreset;
+
+    html += `<div class="preset-opt" data-val="${c}"><span>${c}</span>${isDeletable ? `<span class="preset-del" data-del-cat="${c}">✕</span>` : ''}</div>`;
+  });
+  container.innerHTML = html;
+
+  container.querySelectorAll('.preset-opt').forEach(opt => opt.onclick = (e) => {
+    if (e.target.classList.contains('preset-del')) return;
+    const val = opt.dataset.val;
+    if (val === 'ADD_CAT') {
+      sparkyPrompt("Enter new category name:", "ADD CATEGORY", (name) => {
+        if (!name) return;
+        if (!customCategories.includes(name)) {
+          customCategories.push(name);
+          localStorage.setItem('sparky_custom_categories', JSON.stringify(customCategories));
+          loadEditCategories(name);
+        }
+      });
+    } else {
+      trigger.textContent = val;
+      container.classList.remove('show');
+    }
+  });
+
+  container.querySelectorAll('[data-del-cat]').forEach(btn => btn.onclick = (e) => {
+    e.stopPropagation();
+    const val = btn.dataset.delCat;
+    sparkyConfirm(`Remove [${val}] from categories?`, () => {
+      // If it's a custom preset, we don't delete the preset itself, just remove from customCategories if it's there
+      customCategories = customCategories.filter(x => x !== val);
+      localStorage.setItem('sparky_custom_categories', JSON.stringify(customCategories));
+      if (trigger.textContent === val) trigger.textContent = 'Undefined';
+      loadEditCategories(trigger.textContent);
+    });
+  });
+}
+
+function openEditModal(name, url, category, onSave) {
   const overlay = document.getElementById('editModalOverlay');
   const nameInput = document.getElementById('editStationName');
   const urlInput = document.getElementById('editStationUrl');
+  const catTrigger = document.getElementById('editCatTrigger');
+  const catOptions = document.getElementById('editCatOptions');
   const saveBtn = document.getElementById('editModalSave');
   const cancelBtn = document.getElementById('editModalCancel');
+  
+  loadEditCategories(category || 'Undefined');
+  
   nameInput.value = name || '';
   urlInput.value = url || '';
+  
   overlay.style.display = 'flex';
   nameInput.focus();
+
+  // Bind dropdown toggle
+  catTrigger.onclick = (e) => { e.stopPropagation(); catOptions.classList.toggle('show'); };
+  
   function closeModal() {
     overlay.style.display = 'none';
+    catOptions.classList.remove('show');
     saveBtn.onclick = null;
     cancelBtn.onclick = null;
     overlay.onclick = null;
     document.onkeydown = null;
   }
-  saveBtn.onclick = (e) => { e.preventDefault(); closeModal(); onSave(nameInput.value.trim(), urlInput.value.trim()); };
-  cancelBtn.onclick = (e) => { e.preventDefault(); closeModal(); onSave(null, null); };
-  overlay.onclick = (e) => { if (e.target === overlay) { closeModal(); onSave(null, null); } };
+  saveBtn.onclick = (e) => { 
+    e.preventDefault(); 
+    const finalCat = catTrigger.textContent;
+    closeModal(); 
+    onSave(nameInput.value.trim(), urlInput.value.trim(), finalCat); 
+  };
+  cancelBtn.onclick = (e) => { e.preventDefault(); closeModal(); onSave(null, null, null); };
+  overlay.onclick = (e) => { if (e.target === overlay) { closeModal(); onSave(null, null, null); } };
   document.onkeydown = (e) => {
-    if (e.key === 'Escape') { closeModal(); onSave(null, null); }
-    if (e.key === 'Enter' && document.activeElement !== cancelBtn) { saveBtn.click(); }
+    if (e.key === 'Escape') cancelBtn.click();
+    if (e.key === 'Enter') saveBtn.click();
   };
 }
 
@@ -991,6 +1094,11 @@ function renderFavs() {
   if (!favs.length) {
     pl.innerHTML = '<div class="pl-empty"><div class="pl-empty-icon">★</div><div>No favorites yet</div></div>'; return;
   }
+
+  if (favViewMode === 'grouped') {
+    renderGroupedFavs(pl);
+    return;
+  }
   if (favs.length > 1 && sortMode !== 'custom') {
     if (sortMode === 'power') {
       const maxC = Math.max(...favs.map(s => s.clickcount || 0), 1);
@@ -1095,9 +1203,9 @@ function renderFavs() {
     const sid = btn.dataset.edit; 
     const m = loadFavs();
     const f = m.find(x => x.sparkyId === sid);
-    if (f) openEditModal(f.name, f.url, (newName, newUrl) => {
+    if (f) openEditModal(f.name, f.url, f.category || 'General', (newName, newUrl, newCat) => {
       if (newName !== null) {
-        f.name = newName; f.url = newUrl;
+        f.name = newName; f.url = newUrl; f.category = newCat;
         saveFavs(m); renderFavs();
       }
     });
@@ -1111,6 +1219,132 @@ function renderFavs() {
   pl.querySelectorAll('[data-down]').forEach(btn => btn.onclick = (e) => {
     e.stopPropagation();
     handleMoveFav(btn.dataset.down, 'down');
+  });
+}
+
+function groupFavsByCategory(list) {
+  const groups = {};
+  list.forEach(f => {
+    const cat = f.category || 'General';
+    if (!groups[cat]) groups[cat] = [];
+    groups[cat].push(f);
+  });
+  return groups;
+}
+
+function renderGroupedFavs(pl) {
+  const groups = groupFavsByCategory(favs);
+  const sortedCats = Object.keys(groups).sort();
+  
+  const mC = Math.max(...favs.map(s => s.clickcount || 0), 1);
+  const mV = Math.max(...favs.map(s => s.votes || 0), 1);
+  const mT = Math.max(...favs.map(s => s.clicktrend || 0), 1);
+
+  pl.innerHTML = sortedCats.map(cat => {
+    const catFavs = groups[cat];
+    // Internal Sorting: Follows Power or Vote ranking (Defaults to Power if Custom is active)
+    const effectiveSort = (sortMode === 'vote') ? 'vote' : 'power';
+    
+    if (effectiveSort === 'power') {
+      catFavs.sort((a, b) => {
+        const scoreA = (((a.clickcount || 0) / mC) * 0.6) + (((a.votes || 0) / mV) * 0.3) + (((a.clicktrend || 0) / mT) * 0.1);
+        const scoreB = (((b.clickcount || 0) / mC) * 0.6) + (((b.votes || 0) / mV) * 0.3) + (((b.clicktrend || 0) / mT) * 0.1);
+        return scoreB - scoreA;
+      });
+    } else {
+      catFavs.sort((a, b) => (b.votes || 0) - (a.votes || 0));
+    }
+
+    const isCollapsed = collapsedCategories.includes(cat);
+    
+    return `
+      <div class="pl-category-group${isCollapsed ? ' collapsed' : ''}" data-cat="${cat}">
+        <div class="pl-category-header">
+          <span class="pl-category-title">${cat} <span class="pl-category-count">${catFavs.length}</span></span>
+          <span class="material-symbols-outlined expand-icon">expand_more</span>
+        </div>
+        <div class="pl-category-content">
+          ${catFavs.map(st => {
+            const actv = currentSrc && (
+              (st.stationuuid && currentSrc.stationuuid === st.stationuuid) ||
+              (st.sparkyId && currentSrc.sparkyId === st.sparkyId) ||
+              (norm(currentSrc.url) === norm(st.url_resolved || st.url))
+            );
+            const rank = (((st.clickcount || 0) / mC) * 0.6) + (((st.votes || 0) / mV) * 0.3) + (((st.clicktrend || 0) / mT) * 0.1);
+            const pwr = Math.min(100, Math.round(rank * 100));
+            const trending = (st.clicktrend || 0) > 50 ? '<span class="pl-status-badge trending">Trending</span>' : '';
+            let primary = { id: 'pwr', icon: '⚡', val: `${pwr}%`, color: 'var(--accent)' };
+            if (sortMode === 'vote') { primary = { id: 'vot', icon: '👍', val: fmtK(st.votes), color: 'var(--fav)' }; }
+            const tagArr = (st.tags || '').split(',').map(t => t.trim()).filter(t => t);
+            const finalTags = tagArr.slice(0, 3).join(', ') || 'Radio';
+            const rescued = st.isRescued ? ' rescued' : '';
+
+            return `<div class="pl-item${actv ? ' active' : ''}${rescued}" data-sid="${st.sparkyId}">
+              <div class="pl-favicon-col">${renderFavicon(st)}</div>
+              <div class="pl-main-col">
+                <div class="pl-item-name">${esc(st.name)}</div>
+                <div class="pl-item-meta">${esc(st.countrycode || '--')} · ${esc(finalTags)}</div>
+                <div class="pl-item-stats">
+                  <span class="pl-stat-power" style="color:${primary.color}">⚡ ${primary.val}</span>
+                  ${(Number(st.bitrate || 0) >= 128) ? '<span class="hd-badge-inline">HD</span>' : ''}
+                  ${trending}
+                </div>
+              </div>
+              <div class="pl-actions-col">
+                <button class="pl-action-btn pl-edit" data-edit="${st.sparkyId}"><span class="material-symbols-outlined">edit</span></button>
+                <button class="pl-action-btn pl-remove" data-rmfav="${st.sparkyId}" style="color:var(--accent2)"><span class="material-symbols-outlined">delete</span></button>
+              </div>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  // Re-bind click handlers for cards and headers
+  pl.querySelectorAll('.pl-category-header').forEach(h => h.onclick = () => {
+    const group = h.parentElement;
+    const cat = group.dataset.cat;
+    group.classList.toggle('collapsed');
+    if (group.classList.contains('collapsed')) {
+      if (!collapsedCategories.includes(cat)) collapsedCategories.push(cat);
+    } else {
+      collapsedCategories = collapsedCategories.filter(c => c !== cat);
+    }
+    localStorage.setItem('sparky_collapsed_cats', JSON.stringify(collapsedCategories));
+  });
+
+  // Re-bind station actions (same as standard list)
+  bindStationActions(pl);
+}
+
+function bindStationActions(pl) {
+  pl.querySelectorAll('.pl-item').forEach(el => {
+    el.onclick = (e) => {
+      if (e.target.closest('button')) return;
+      const sId = el.dataset.sid;
+      const target = favs.find(f => f.sparkyId === sId);
+      if (target) playStationObj(target);
+    };
+  });
+  pl.querySelectorAll('[data-rmfav]').forEach(btn => btn.onclick = (e) => {
+    e.stopPropagation();
+    const sid = btn.dataset.rmfav;
+    const m = loadFavs();
+    const f = m.find(x => x.sparkyId === sid);
+    if (f) sparkyConfirm(`Remove [${f.name}]?`, () => { removeFavBySparkyId(sid); renderFavs(); });
+  });
+  pl.querySelectorAll('[data-edit]').forEach(btn => btn.onclick = (e) => {
+    e.stopPropagation();
+    const sid = btn.dataset.edit;
+    const m = loadFavs();
+    const f = m.find(x => x.sparkyId === sid);
+    if (f) openEditModal(f.name, f.url, f.category || 'General', (newName, newUrl, newCat) => {
+      if (newName !== null) {
+        f.name = newName; f.url = newUrl; f.category = newCat;
+        saveFavs(m); renderFavs();
+      }
+    });
   });
 }
 
@@ -1531,26 +1765,19 @@ function loadPresets() {
 }
 
 function handlePresetSelect(val) {
-  document.getElementById('presetOptions').classList.remove('show');
+  const container = document.getElementById('presetOptions');
   if (val === 'ADD') {
-    sparkyPrompt("Enter new discovery label:", "Add Quick-Tune", (term) => {
-      if (term?.trim()) {
-        const c = JSON.parse(localStorage.getItem('sparky_search_presets') || '[]');
-        if (!c.includes(term.trim())) { 
-          c.push(term.trim()); 
-          localStorage.setItem('sparky_search_presets', JSON.stringify(c)); 
-          loadPresets(); 
-          handlePresetSelect(term.trim()); 
-        }
-      }
+    sparkyPrompt("Enter new tune name (e.g. Jazz, 80s):", "ADD QUICK-TUNE", (name) => {
+      if (!name) return;
+      const c = JSON.parse(localStorage.getItem('sparky_search_presets') || '[]');
+      if (!c.includes(name)) { c.push(name); localStorage.setItem('sparky_search_presets', JSON.stringify(c)); loadPresets(); }
     });
-  } else {
+  }
+  else {
+    activeSearchPreset = val;
+    searchStations(val, true);
     document.getElementById('presetTrigger').textContent = val;
-    const inp = document.getElementById('searchInput'); 
-    inp.value = val;
-    if (window.syncSearchUI) window.syncSearchUI(); // Ensure 'X' appears
-    switchTab('stations'); 
-    searchStations(val);
+    container.classList.remove('show');
   }
 }
 
@@ -1857,6 +2084,25 @@ window.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  // ── VIEW MODE BINDINGS ──
+  bind('btnViewToggle', () => {
+    favViewMode = (favViewMode === 'list' ? 'grouped' : 'list');
+    localStorage.setItem('sparky_fav_view', favViewMode);
+    
+    // Auto-Collapse Feature: If entering grouped view for the first time or by choice, start all collapsed
+    if (favViewMode === 'grouped') {
+      const groups = groupFavsByCategory(favs);
+      collapsedCategories = Object.keys(groups);
+      localStorage.setItem('sparky_collapsed_cats', JSON.stringify(collapsedCategories));
+    }
+
+    updateViewToggleUI();
+    renderFavs();
+    triggerHaptic();
+  });
+  
+  updateViewToggleUI();
+
   // ══ LAST STATION RESTORATION ══
   const last = localStorage.getItem('sparky_last_station');
   if (last) {
@@ -1884,6 +2130,13 @@ window.addEventListener('DOMContentLoaded', () => {
   
   if (window.syncSearchUI) window.syncSearchUI();
 });
+
+function updateViewToggleUI() {
+  const icon = document.getElementById('viewToggleIcon');
+  if (!icon) return;
+  icon.textContent = favViewMode === 'list' ? 'grid_view' : 'format_list_bulleted';
+  icon.parentElement.title = favViewMode === 'list' ? 'Switch to Category View' : 'Switch to List View';
+}
 
 function updateSortUI() {
   const btn = document.getElementById('btnSortMode');

@@ -1762,7 +1762,7 @@ body.light .preset-label {
   border-radius: 2px;
   cursor: pointer;
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
   gap: 6px;
   opacity: 1;
@@ -1823,7 +1823,7 @@ body.light .preset-label {
   padding: 8px 12px;
   cursor: pointer;
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
   gap: 10px;
   transition: all 0.2s;
@@ -1850,6 +1850,7 @@ body.light .preset-label {
 }
 
 .preset-del {
+  margin-left: auto;
   padding: 4px 8px;
   color: var(--dim);
   font-size: 10px;
@@ -2019,6 +2020,100 @@ body.light .preset-label {
   top: 50%;
   transform: translateY(-50%);
   z-index: 5;
+}
+
+/* ── CATEGORY VIEW COMPONENTS ── */
+.pl-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.pl-view-btn {
+  background: none;
+  border: none;
+  color: var(--dim);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  transition: all 0.2s;
+  opacity: 0.6;
+}
+
+.pl-view-btn:hover, .pl-view-btn.active {
+  color: var(--accent);
+  opacity: 1;
+}
+
+.pl-category-group {
+  margin-bottom: 16px;
+}
+
+.pl-category-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 18px;
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  margin-bottom: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+}
+
+.pl-category-header:hover {
+  background: var(--panel-hover);
+  border-color: var(--panel-glow);
+  box-shadow: 0 8px 35px var(--panel-glow);
+}
+
+.pl-category-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+.pl-category-count {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  color: var(--dim);
+  background: rgba(0, 0, 0, 0.3);
+  padding: 2px 6px;
+  border-radius: 10px;
+}
+
+.pl-category-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0; /* Cards handle their own margins */
+  transition: max-height 0.3s ease-out;
+  overflow: hidden;
+}
+
+.pl-category-group.collapsed .pl-category-content {
+  max-height: 0;
+  margin-bottom: 0;
+}
+
+.pl-category-header .expand-icon {
+  font-size: 18px;
+  transition: transform 0.3s;
+  color: var(--dim);
+}
+
+.pl-category-group.collapsed .expand-icon {
+  transform: rotate(-90deg);
 }
 
 .pl-sort-col {
