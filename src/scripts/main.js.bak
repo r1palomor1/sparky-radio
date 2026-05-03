@@ -953,8 +953,7 @@ function updateNowPlaying(st) {
     if (st) {
       const location = st.countrycode || st.country || 'Global';
       const genre = (st.tags || 'Various').split(',')[0].trim();
-      const hdBadge = (Number(st?.bitrate || 0) >= 128) ? '<span class="hd-badge-inline" style="margin-left: 8px; vertical-align: middle;">HD</span>' : '';
-      sm.innerHTML = `${location.toUpperCase()} · ${genre}${hdBadge}`;
+      sm.textContent = `${location.toUpperCase()} · ${genre}`;
     } else {
       sm.textContent = '—';
     }
@@ -964,9 +963,12 @@ function updateNowPlaying(st) {
   const clicks = document.getElementById('npClicks');
   const trend = document.getElementById('npTrend');
   const codec = document.getElementById('npCodec');
+  const npHD = document.getElementById('npHD');
 
   if (trend) trend.textContent = (st?.clicktrend !== undefined) ? (st.clicktrend > 0 ? '+' + st.clicktrend : st.clicktrend) : '—';
   if (codec) codec.textContent = (st?.codec || 'MP3').toUpperCase();
+  
+  if (npHD) npHD.classList.toggle('active', (Number(st?.bitrate || 0) >= 128));
   if (votes) votes.textContent = fmtK(st?.votes || 0);
   if (clicks) clicks.textContent = fmtK(st?.clickcount || 0);
 }

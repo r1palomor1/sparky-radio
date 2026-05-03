@@ -814,6 +814,22 @@ body.light .header {
   opacity: 1;
 }
 
+.np-hd-badge {
+  color: var(--panel-text);
+  font-weight: 400;
+}
+
+.np-hd-badge.active {
+  background: var(--bg);
+  color: var(--semantic-status);
+  border: 1px solid var(--semantic-status);
+  font-weight: 500;
+  font-size: 9px;
+  border-radius: 3px !important;
+  letter-spacing: 1px;
+  box-shadow: none;
+}
+
 @media (max-width: 400px) {
   .np-meta-badge {
     padding: 2px 5px;
