@@ -60,38 +60,34 @@
 }
 
 .np-hd-badge {
-    /* INACTIVE: Match other np-meta-badges (Pill style) */
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
+    /* Theme #1: Inactive state matches NP Codec / Clicks structure */
     background: var(--panel-border) !important;
-    padding: 3px 7px !important;
-    border-radius: 24px !important;
-    font-family: 'Share Tech Mono', monospace !important;
-    font-size: calc(9px * var(--text-scale)) !important;
-    color: var(--panel-text) !important;
     border: 1px solid var(--panel-border) !important;
-    opacity: 0.8 !important;
-    flex: 0 0 auto !important;
-    transition: all 0.3s ease !important;
+    color: var(--panel-text) !important;
+    border-radius: 4px !important;
+    flex: 1 1 0px !important;
+    transition: all 0.2s ease !important;
+    font-size: calc(9.5px * var(--text-scale)) !important;
+    letter-spacing: 0.5px !important;
+    opacity: 1 !important;
+    font-weight: 400 !important;
 }
 
 .np-hd-badge.active {
-    /* ACTIVE: Match the PL item HD badge style (Rect style) */
-    border-color: var(--semantic-status) !important;
+    /* Theme #2: Active state matches Playlist HD style */
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
     color: var(--semantic-status) !important;
     background: var(--bg-color) !important;
     font-weight: 500 !important;
     font-size: 9px !important;
-    padding: 1px 5px !important;
     border-radius: 3px !important;
-    opacity: 1 !important;
-    box-shadow: 0 0 10px rgba(255, 255, 255, 0.1) !important;
     letter-spacing: 1px !important;
+    opacity: 1 !important;
+    box-shadow: none !important;
 }
 
 /* ── ADAPTIVE CONTRAST ── */
-.pl-item-meta, .np-meta-badge {
+.pl-item-meta {
     color: var(--dim) !important;
     border-color: var(--border) !important;
     opacity: 1 !important;
@@ -115,6 +111,10 @@
 }
 
 /* Visualizer styles consolidated in main.css */
+
+.btn-eq-toggle, .np-label {
+    color: var(--accent) !important;
+}
 
 #npName {
     color: var(--text) !important;

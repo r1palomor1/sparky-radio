@@ -44,12 +44,15 @@
       <!-- NP HEADER: Decoupled for top-level full-width positioning -->
       <div class="np-header">
         <div class="np-label-row">
-          <div class="np-label">NOW PLAYING</div>
+          <div class="np-label" id="npLabel" title="Jump to Category in Favorites">
+            <span class="material-symbols-outlined np-cat-icon" id="npCatIcon">folder</span>
+            <span id="npCatName">NOW PLAYING</span>
+          </div>
           <button class="btn-eq-toggle" id="btnEq">EQ</button>
         </div>
       </div>
 
-      <div class="np-body">
+      <div class="np-body" id="npJumpArea" title="Jump to Active Station in Favorites/Discovery">
         <!-- SIDE FAVICON CONTAINER -->
         <div class="np-side-favicon-wrap" id="npFavicon"></div>
 
@@ -90,8 +93,8 @@
             <button class="btn btn-sm btn-preset" id="pre-custom">CUSTOM</button>
           </div>
           <div class="eq-actions">
-            <button class="btn btn-sm btn-action btn-save" title="Commit current to active memory">SAVE TO MEMORY</button>
             <button class="btn btn-sm btn-action btn-reset" title="Restore factory specs">RESTORE DEFAULTS</button>
+            <button class="btn btn-sm btn-action btn-save" title="Apply or Commit current settings">APPLY PRESET</button>
           </div>
         </div>
       </div>

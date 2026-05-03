@@ -33,7 +33,7 @@
   window.auditFavs = async () => {
     console.log('--- STARTING ACTIVE RESCUE AUDIT ---');
     const favs = JSON.parse(localStorage.getItem('sparky_favorites') || '[]');
-    if (!favs.length) { console.warn('Vault is empty.'); return; }
+    if (!favs.length) { console.warn('Favorites list is empty.'); return; }
     console.log(`Total Records: ${favs.length}`);
     for (const [i, f] of favs.entries()) {
       const id = f.stationuuid || f.id;
@@ -171,6 +171,7 @@ let customCategories = JSON.parse(localStorage.getItem('sparky_custom_categories
 
 let wasCollapsedBeforeEQ = false; // State persistence for EQ engaged mode
 let isSearching = false;
+let scrollPositions = { stations: 0, favs: 0 };
 const APP_CODENAME = "Smart-Tune Pro";
 
 
@@ -244,6 +245,17 @@ function norm(u) {
     n = n.replace(/^https?:\/\//, '').replace(/\/$/, '');
     return n;
   } catch (e) { return u ? u.toLowerCase().trim() : ''; }
+}
+
+function findFavMatch(st) {
+  if (!st) return null;
+  const currentFavs = loadFavs();
+  return currentFavs.find(f => 
+    (st.stationuuid && f.stationuuid === st.stationuuid) ||
+    (st.sparkyId && f.sparkyId === st.sparkyId) ||
+    (norm(f.url) === norm(st.url_resolved || st.url)) ||
+    (norm(f.url_resolved) === norm(st.url_resolved || st.url))
+  );
 }
 
 function isFav(st, currentFavs) {
@@ -370,6 +382,9 @@ function syncFavMetadata(st) {
 
 // ══ TABS ═══════════════════════════════════
 function switchTab(tab) {
+  const pl = document.getElementById('playlist');
+  if (pl) scrollPositions[activeTab] = pl.scrollTop;
+
   activeTab = tab;
   document.getElementById('tabStations').classList.toggle('active', tab === 'stations');
   document.getElementById('tabFavs').classList.toggle('active', tab === 'favs');
@@ -391,6 +406,11 @@ function switchTab(tab) {
     backgroundSyncFavs();
   }
   updateSortUI();
+
+  if (pl) {
+    // Restore scroll after render
+    setTimeout(() => { pl.scrollTop = scrollPositions[tab]; }, 10);
+  }
 }
 document.getElementById('tabStations').addEventListener('click', () => switchTab('stations'));
 document.getElementById('tabFavs').addEventListener('click', () => switchTab('favs'));
@@ -450,14 +470,37 @@ const FACTORY_PRESETS = {
 let currentPresets = JSON.parse(localStorage.getItem('sparky_eq_presets') || JSON.stringify(FACTORY_PRESETS));
 let activePreset = localStorage.getItem('sparky_active_preset') || 'flat';
 let lastSavedVals = [...(FACTORY_PRESETS.flat)];
+let appliedEqVals = [...(FACTORY_PRESETS.flat)];
+let appliedPreset = activePreset;
+let isStagedPreset = false;
 
 function updateSaveButtonState() {
   const btn = document.querySelector('.btn-save');
   if (!btn) return;
-  const changed = eqVals.some((v, i) => Math.abs(v - lastSavedVals[i]) > 0.1);
-  btn.style.opacity = changed ? '1' : '0.35';
-  btn.style.pointerEvents = changed ? 'auto' : 'none';
-  btn.title = changed ? `Commit changes to [${activePreset.toUpperCase()}]` : `[${activePreset.toUpperCase()}] is currently synchronized`;
+  
+  const changedFromApplied = eqVals.some((v, i) => Math.abs(v - appliedEqVals[i]) > 0.1);
+  const changedFromSaved = eqVals.some((v, i) => Math.abs(v - lastSavedVals[i]) > 0.1);
+  const isAlreadyApplied = (activePreset === appliedPreset) && !eqVals.some((v, i) => Math.abs(v - appliedEqVals[i]) > 0.1);
+  const presetName = activePreset.toUpperCase();
+
+  btn.classList.toggle('btn-save-alert', (isStagedPreset && !isAlreadyApplied) || changedFromSaved);
+  
+  if (isStagedPreset && !isAlreadyApplied) {
+    btn.style.opacity = '1';
+    btn.style.pointerEvents = 'auto';
+    btn.innerHTML = `<span class="material-symbols-outlined" style="font-size:14px">check</span> APPLY ${presetName}`;
+    btn.title = `Apply [${presetName}] settings to the audio engine`;
+  } else if (changedFromSaved) {
+    btn.style.opacity = '1';
+    btn.style.pointerEvents = 'auto';
+    btn.innerHTML = `<span class="material-symbols-outlined" style="font-size:14px">save</span> SAVE ${presetName}`;
+    btn.title = `Save custom adjustments to the [${presetName}] preset slot`;
+  } else {
+    btn.style.opacity = '0.4';
+    btn.style.pointerEvents = 'none';
+    btn.innerHTML = `<span class="material-symbols-outlined" style="font-size:14px">settings_input_component</span> APPLY PRESET`;
+    btn.title = `Select a preset to apply or modify settings`;
+  }
 }
 
 function initEq() {
@@ -486,6 +529,8 @@ function initEq() {
       f.style.bottom = (p * 100) + '%';
       f.setAttribute('data-db', v.toFixed(1) + 'dB');
       if (eqNodes[i]) eqNodes[i].gain.value = v;
+      appliedEqVals[i] = v; // Manual tweaks are applied immediately
+      isStagedPreset = false; // Manual tweak breaks the "staged preset" state
       updateSaveButtonState();
     };
 
@@ -514,6 +559,7 @@ function setEqPreset(p) {
   document.querySelectorAll('.btn-preset').forEach(b => b.classList.remove('active'));
   const btn = document.getElementById('pre-' + p);
   if (btn) btn.classList.add('active');
+  
   vals.forEach((v, i) => {
     eqVals[i] = v;
     const pcent = ((v / 30) + 0.5) * 100;
@@ -522,9 +568,11 @@ function setEqPreset(p) {
       f.style.bottom = pcent + '%';
       f.setAttribute('data-db', v.toFixed(1) + 'dB');
     }
-    if (eqNodes[i]) eqNodes[i].gain.value = v;
+    // Note: Audio nodes NOT updated yet. This is "staged".
   });
+  
   lastSavedVals = [...vals];
+  isStagedPreset = true; 
   updateSaveButtonState();
 }
 
@@ -542,14 +590,33 @@ document.querySelector('.btn-reset').onclick = resetEqDefaults;
 
 function saveCustomEq() {
   if (!activePreset) {
-    sparkyAlert("Please select a preset slot (e.g., CUSTOM or FLAT) to save your current levels.", "SAVE BLOCKED");
+    sparkyAlert("Please select a preset slot (e.g., CUSTOM or FLAT) to manage settings.", "ACTION REQUIRED");
     return;
   }
+  
   const p = activePreset.toUpperCase();
-  sparkyConfirm(`Commit current slider levels to the <strong>[${p}]</strong> memory bank?`, () => {
+  
+  if (isStagedPreset) {
+    // APPLY LOGIC
+    eqVals.forEach((v, i) => {
+      if (eqNodes[i]) eqNodes[i].gain.value = v;
+      appliedEqVals[i] = v;
+    });
+    appliedPreset = activePreset;
+    isStagedPreset = false;
+    updateSaveButtonState();
+    console.log(`[EQ] Applied ${p} Preset`);
+    return;
+  }
+
+  // SAVE LOGIC
+  sparkyConfirm(`Commit current custom adjustments to the <strong>[${p}]</strong> memory bank?`, () => {
     currentPresets[activePreset] = [...eqVals];
     lastSavedVals = [...eqVals];
+    appliedEqVals = [...eqVals];
+    appliedPreset = activePreset;
     localStorage.setItem('sparky_eq_presets', JSON.stringify(currentPresets));
+    isStagedPreset = false;
     updateSaveButtonState();
   }, "CONFIRM MEMORY WRITE");
 }
@@ -557,23 +624,24 @@ function saveCustomEq() {
 function resetEqDefaults() {
   if (activePreset) {
     const p = activePreset.toUpperCase();
-    sparkyConfirm(`Reset the <strong>[${p}]</strong> preset to its original factory levels? (This will only affect the current preset).`, () => {
+    sparkyConfirm(`Reset the <strong>[${p}]</strong> preset to its original factory levels?`, () => {
       currentPresets[activePreset] = [...FACTORY_PRESETS[activePreset]];
       localStorage.setItem('sparky_eq_presets', JSON.stringify(currentPresets));
       setEqPreset(activePreset);
+      // Force apply after reset for immediate recovery
+      eqVals.forEach((v, i) => { if (eqNodes[i]) eqNodes[i].gain.value = v; appliedEqVals[i] = v; });
+      appliedPreset = activePreset;
+      isStagedPreset = false;
+      updateSaveButtonState();
     }, "RESTORE PRESET");
   } else {
-    sparkyConfirm(`<strong>GLOBAL FACTORY RESET:</strong> No preset is currently selected. Do you want to restore <strong>ALL</strong> presets to their original factory levels?`, () => {
+    sparkyConfirm(`<strong>GLOBAL FACTORY RESET:</strong> Restore <strong>ALL</strong> presets to original specs?`, () => {
       currentPresets = JSON.parse(JSON.stringify(FACTORY_PRESETS));
       localStorage.setItem('sparky_eq_presets', JSON.stringify(currentPresets));
-      // Re-apply flat defaults visually
-      FACTORY_PRESETS.flat.forEach((v, i) => {
-         eqVals[i] = v;
-         if (eqNodes[i]) eqNodes[i].gain.value = v;
-         const f = document.getElementById('eqF' + i);
-         if (f) { f.style.bottom = '50%'; f.setAttribute('data-db', '0.0dB'); }
-      });
-      lastSavedVals = [...FACTORY_PRESETS.flat];
+      setEqPreset('flat');
+      eqVals.forEach((v, i) => { if (eqNodes[i]) eqNodes[i].gain.value = v; appliedEqVals[i] = v; });
+      appliedPreset = 'flat';
+      isStagedPreset = false;
       updateSaveButtonState();
     }, "GLOBAL FACTORY RESET");
   }
@@ -833,10 +901,23 @@ function updateNowPlaying(st) {
   const nm = document.getElementById('npName');
   const sm = document.getElementById('npSubMeta');
   const favEl = document.getElementById('npFavicon');
+  const catNameEl = document.getElementById('npCatName');
+  const catIconEl = document.getElementById('npCatIcon');
   if (!nm) return;
 
   if (favEl) favEl.innerHTML = st ? renderFavicon(st) : '';
   nm.textContent = st ? st.name : 'SELECT A STATION';
+  
+  if (catNameEl && catIconEl) {
+    const fav = findFavMatch(st);
+    if (fav && fav.category) {
+      catNameEl.textContent = fav.category.toUpperCase();
+      catIconEl.textContent = 'bookmark_manager';
+    } else {
+      catNameEl.textContent = 'NOW PLAYING';
+      catIconEl.textContent = 'folder';
+    }
+  }
   
   // CONDITIONAL SCROLLING LOGIC
   nm.classList.remove('scrolling');
@@ -890,6 +971,85 @@ function updateNowPlaying(st) {
   if (npHD) npHD.classList.toggle('active', (Number(st?.bitrate || 0) >= 128));
   if (votes) votes.textContent = fmtK(st?.votes || 0);
   if (clicks) clicks.textContent = fmtK(st?.clickcount || 0);
+}
+
+function jumpToCategoryShortcut(st) {
+  if (!st) return;
+  const fav = findFavMatch(st);
+  if (!fav || !fav.category) {
+    sparkyAlert("This station is not in your Favorites yet.", "STATION NOT CATEGORIZED");
+    return;
+  }
+  
+  const cat = fav.category;
+  favViewMode = 'grouped';
+  localStorage.setItem('sparky_fav_view', 'grouped');
+  updateViewToggleUI();
+  
+  // Expand category if collapsed
+  collapsedCategories = collapsedCategories.filter(c => c !== cat);
+  localStorage.setItem('sparky_collapsed_cats', JSON.stringify(collapsedCategories));
+  
+  switchTab('favs');
+  renderFavs();
+  
+  setTimeout(() => {
+    const sid = fav.sparkyId;
+    const el = document.querySelector(`.pl-item[data-sid="${sid}"]`);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.classList.add('jump-highlight');
+      setTimeout(() => el.classList.remove('jump-highlight'), 2000);
+    } else {
+      // Fallback to category header if item not rendered yet or filtered
+      const catEl = document.querySelector(`.pl-category-header[data-cat="${cat}"]`);
+      if (catEl) catEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, 200);
+}
+
+function jumpToStation(st) {
+  if (!st) return;
+  const favMatch = findFavMatch(st);
+  
+  if (favMatch) {
+    // Navigate within Favorites
+    switchTab('favs');
+    
+    if (favViewMode === 'grouped') {
+      const cat = favMatch.category || 'General';
+      collapsedCategories = collapsedCategories.filter(c => c !== cat);
+      localStorage.setItem('sparky_collapsed_cats', JSON.stringify(collapsedCategories));
+      renderFavs();
+    }
+    
+    setTimeout(() => {
+      const sid = favMatch.sparkyId;
+      const el = document.querySelector(`.pl-item[data-sid="${sid}"]`);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        el.classList.add('jump-highlight');
+        setTimeout(() => el.classList.remove('jump-highlight'), 2000);
+      }
+    }, 200);
+    return;
+  }
+  
+  const url = st.url_resolved || st.url;
+  const discoveryMatchIdx = stations.findIndex(s => norm(s.url) === norm(url));
+  if (discoveryMatchIdx !== -1) {
+    // Navigate within Discovery
+    switchTab('stations');
+    setTimeout(() => {
+      const el = document.querySelector(`.pl-item[data-idx="${discoveryMatchIdx}"]`);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        el.classList.add('jump-highlight');
+        setTimeout(() => el.classList.remove('jump-highlight'), 2000);
+      }
+    }, 200);
+    return;
+  }
 }
 
 // ══ PLAYBACK ══════════════════════════════
@@ -1008,9 +1168,14 @@ function renderStations() {
   }
 
   if (stations.length > 0 && !displayStations.length) {
+    const sb = document.getElementById('stationsBadge');
+    if (sb) sb.textContent = '0';
     pl.innerHTML = '<div class="pl-empty"><div class="pl-empty-icon">🔍</div><div>No matching stations</div></div>';
     return;
   }
+  
+  const sb = document.getElementById('stationsBadge');
+  if (sb) sb.textContent = displayStations.length;
 
   const mC = Math.max(...displayStations.map(s => s.clickcount || 0), 1);
   const mV = Math.max(...displayStations.map(s => s.votes || 0), 1);
@@ -1021,7 +1186,8 @@ function renderStations() {
     const actv = currentSrc && (
       (st.stationuuid && currentSrc.stationuuid === st.stationuuid) ||
       (st.sparkyId && currentSrc.sparkyId === st.sparkyId) ||
-      (norm(currentSrc.url) === norm(st.url_resolved || st.url))
+      (norm(currentSrc.url) === norm(st.url_resolved || st.url)) ||
+      (norm(currentSrc.url_resolved) === norm(st.url_resolved || st.url))
     );
     const favd = isFav(st, currentFavs);
     const rank = (((st.clickcount || 0) / mC) * 0.6) + (((st.votes || 0) / mV) * 0.3) + (((st.clicktrend || 0) / mT) * 0.1);
@@ -1124,7 +1290,8 @@ function renderFavs() {
     const actv = currentSrc && (
       (st.stationuuid && currentSrc.stationuuid === st.stationuuid) ||
       (st.sparkyId && currentSrc.sparkyId === st.sparkyId) ||
-      (norm(currentSrc.url) === norm(st.url_resolved || st.url))
+      (norm(currentSrc.url) === norm(st.url_resolved || st.url)) ||
+      (norm(currentSrc.url_resolved) === norm(st.url_resolved || st.url))
     );
     const rank = (((st.clickcount || 0) / mC) * 0.6) + (((st.votes || 0) / mV) * 0.3) + (((st.clicktrend || 0) / mT) * 0.1);
     const pwr = Math.min(100, Math.round(rank * 100));
@@ -1268,7 +1435,8 @@ function renderGroupedFavs(pl) {
             const actv = currentSrc && (
               (st.stationuuid && currentSrc.stationuuid === st.stationuuid) ||
               (st.sparkyId && currentSrc.sparkyId === st.sparkyId) ||
-              (norm(currentSrc.url) === norm(st.url_resolved || st.url))
+              (norm(currentSrc.url) === norm(st.url_resolved || st.url)) ||
+              (norm(currentSrc.url_resolved) === norm(st.url_resolved || st.url))
             );
             const rank = (((st.clickcount || 0) / mC) * 0.6) + (((st.votes || 0) / mV) * 0.3) + (((st.clicktrend || 0) / mT) * 0.1);
             const pwr = Math.min(100, Math.round(rank * 100));
@@ -1775,6 +1943,11 @@ function handlePresetSelect(val) {
   }
   else {
     activeSearchPreset = val;
+    const si = document.getElementById('searchInput');
+    if (si) {
+      si.value = val;
+      if (window.syncSearchUI) window.syncSearchUI();
+    }
     searchStations(val, true);
     document.getElementById('presetTrigger').textContent = val;
     container.classList.remove('show');
@@ -1846,6 +2019,9 @@ window.addEventListener('DOMContentLoaded', () => {
   loadFilterOptions();
   loadSettingsOptions();
 
+  bind('npLabel', (e) => { e.stopPropagation(); jumpToCategoryShortcut(currentSrc); });
+  bind('npJumpArea', () => jumpToStation(currentSrc));
+
   // ══ DEFAULTS TRIGGERS ══
   // ══ DEFAULTS TRIGGERS (Safe Bindings) ══
   bind('defaultCountryTrigger', (e) => { e.stopPropagation(); document.getElementById('defaultCountryOptions')?.classList.toggle('show'); });
@@ -1894,6 +2070,7 @@ window.addEventListener('DOMContentLoaded', () => {
     np?.classList.toggle('eq-open', isOpen);
     document.querySelector('.app')?.classList.toggle('eq-mode', isOpen);
     document.getElementById('btnEq').classList.toggle('active', isOpen);
+    document.getElementById('btnEq').innerHTML = isOpen ? '<span class="material-symbols-outlined" style="font-size:18px">close</span>' : 'EQ';
     
     if (isOpen) {
       wasCollapsedBeforeEQ = document.getElementById('filterRack').classList.contains('collapsed');
