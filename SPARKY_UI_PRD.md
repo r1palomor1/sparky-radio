@@ -280,15 +280,56 @@ Opening the EQ should transform the app into a dedicated audio console.
 
 ---
 
-## Deferred / Out of Scope
+## PHASE 5 — Intelligent Discovery & Resilience (~6 hrs total)
+*This phase transforms Sparky from a directory browser into a robust discovery engine with self-healing capabilities.*
 
-| Item | Reason |
-|---|---|
-| Two-column desktop layout | Deprioritized — desktop rarely used, effort vs. benefit poor |
-| Hover action tray on cards | Removed — not applicable on mobile/tablet |
-| Keyboard shortcuts | Not relevant for mobile |
-| Debug/Diagnostics modal | Developer tool — no redesign needed |
-| PWA / offline | Infrastructure, not UI |
+---
+
+### 25. Parallel Discovery Engine ⭐
+**Goal:** High Discovery Fidelity  
+Refactor the search engine to perform simultaneous, non-blocking queries against both the `Name` and `Tags` fields. 
+- Merges results from both vectors.
+- Deduplicates using a Map-based ranker.
+- Ensures artists and genres are found even if not in the station title.
+
+**Effort:** 1.5 hr · JS (searchStations)  
+**Status:** ✅ Completed
+
+---
+
+### 26. Contextual Smart Tags ⭐
+**Goal:** Persistence & Clarity  
+Dynamic metadata rendering that explains *why* a station was found.
+- Promotes the search term (e.g., "Tropical") to the 3rd tag slot.
+- Performs "Full-Identity" scans of both the Name and Tags to find the match.
+- High visual feedback for saved favorites.
+
+**Effort:** 1 hr · JS (renderers)  
+**Status:** ✅ Completed
+
+---
+
+### 27. Auto-Escalation Deep Scan ⭐
+**Goal:** Zero-Result Prevention  
+Intelligent recursive fallback for search. If a search with active country/language filters returns 0 results, the app automatically retries with global filters.
+- Displays "Discovery Tips" if global results are still empty.
+- Ensures users never hit a "dead end" in discovery.
+
+**Effort:** 1 hr · JS (searchStations)  
+**Status:** ✅ Completed
+
+---
+
+### 28. Self-Healing Vault (Active Rescue) ⭐
+**Goal:** 100% Reliability / Premium UX  
+Automated link recovery for broken favorites using secondary directory snapshots (M3U backups).
+- **The Trigger**: Detects playback error on a favorite station.
+- **The Rescue**: Silently searches the M3U backup repository for a matching station "Fingerprint" (Name + State + Homepage).
+- **The Swap**: If a working URL is found, the favorite is automatically updated with the new link.
+
+**Effort:** 3-4 hr · JS (Audio Error Handler + M3U Parser)  
+**Dependency:** Item 21 (State Persistence)  
+**Status:** ✅ Completed
 
 ---
 
@@ -323,6 +364,10 @@ Opening the EQ should transform the app into a dedicated audio console.
 | 22 | EQ Focus Mode | 4 | ✅ |
 | 23 | UI Rhythm & Control Spacing | 4 | ✅ |
 | 24 | Signal Fidelity Intelligence (HD Badges) | 4 | ✅ |
+| 25 | Parallel Discovery Engine | 5 | ✅ |
+| 26 | Contextual Smart Tags | 5 | ✅ |
+| 27 | Auto-Escalation Deep Scan | 5 | ✅ |
+| 28 | Self-Healing Vault (Active Rescue) | 5 | ✅ |
 
 ---
 
@@ -351,4 +396,3 @@ The agent will:
 - **Repo:** `c:\Users\palom\Vibe Coding Apps\Radio Internet Claude\sparky-radio`
 
 ---
-

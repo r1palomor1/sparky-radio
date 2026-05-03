@@ -66,6 +66,68 @@
     console.warn(`[RESCUE] FAILED: Could not find clean signature match for ${st.name}`);
     return false;
   }
+
+  let m3uCache = null;
+  async function fetchM3UBackup() {
+    if (m3uCache) return m3uCache;
+    try {
+      console.log('[RESCUE] Fetching Backup Repository...');
+      const res = await fetch('https://raw.githubusercontent.com/junguler/m3u-radio-music-playlists/main/allradio.net/---everything-full.m3u');
+      if (!res.ok) throw new Error('Repo unreachable');
+      m3uCache = await res.text();
+      return m3uCache;
+    } catch (e) {
+      console.error('[RESCUE_FETCH_ERROR]', e);
+      return null;
+    }
+  }
+
+  window.activeRescueFromM3U = async function(st) {
+    const m3u = await fetchM3UBackup();
+    if (!m3u) return false;
+
+    const targetName = st.name.toLowerCase().trim();
+    const lines = m3u.split('\n');
+    
+    // Attempt high-fidelity match using name fingerprint
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (line.startsWith('#EXTINF:')) {
+        const namePart = line.split(',')[1];
+        if (namePart && namePart.toLowerCase().trim() === targetName) {
+          const nextLine = lines[i + 1] ? lines[i + 1].trim() : '';
+          if (nextLine && nextLine.startsWith('http')) {
+            console.log(`[ACTIVE_RESCUE] MATCH FOUND: ${st.name} -> ${nextLine}`);
+            st.url = nextLine;
+            st.url_resolved = nextLine;
+            st.isRescued = true;
+            syncFavMetadata(st);
+            return true;
+          }
+        }
+      }
+    }
+    
+    // Fuzzy fallback if exact match fails
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (line.startsWith('#EXTINF:')) {
+        const namePart = line.split(',')[1];
+        if (namePart && namePart.toLowerCase().trim().includes(targetName)) {
+          const nextLine = lines[i + 1] ? lines[i + 1].trim() : '';
+          if (nextLine && nextLine.startsWith('http')) {
+            console.log(`[ACTIVE_RESCUE] FUZZY MATCH FOUND: ${st.name} -> ${nextLine}`);
+            st.url = nextLine;
+            st.url_resolved = nextLine;
+            st.isRescued = true;
+            syncFavMetadata(st);
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  };
 })();
 
 // ══ STORAGE MIGRATION ══════════════════════
@@ -209,7 +271,8 @@ function addFav(st) {
       id: uuid, name: st.name, url: u,
       bitrate: st.bitrate, codec: st.codec,
       countrycode: st.countrycode, tags: st.tags || '',
-      votes: st.votes || 0, clickcount: st.clickcount || 0, clicktrend: st.clicktrend || 0
+      votes: st.votes || 0, clickcount: st.clickcount || 0, clicktrend: st.clicktrend || 0,
+      isRescued: st.isRescued || false
     });
     saveFavs(favs);
     refreshFavBadge();
@@ -255,6 +318,7 @@ function syncFavMetadata(st) {
   const u = st.url_resolved || st.url;
   const uuid = st.stationuuid || st.id;
   const favIdx = favs.findIndex(f => {
+    if (st.sparkyId && f.sparkyId === st.sparkyId) return true;
     const fUuid = f.stationuuid || f.id;
     const fName = (f.name || '').trim().toLowerCase();
     const fUrl = (f.url_resolved || f.url || '').trim().toLowerCase();
@@ -273,6 +337,7 @@ function syncFavMetadata(st) {
     if (st.favicon !== undefined && favs[favIdx].favicon !== st.favicon) { favs[favIdx].favicon = st.favicon; changed = true; }
     if ((st.clickcount || st.c) !== undefined && favs[favIdx].clickcount !== (st.clickcount || st.c)) { favs[favIdx].clickcount = st.clickcount || st.c; changed = true; }
     if (uuid && !favs[favIdx].id && !favs[favIdx].stationuuid) { favs[favIdx].id = uuid; changed = true; }
+    if (st.isRescued !== undefined && favs[favIdx].isRescued !== st.isRescued) { favs[favIdx].isRescued = st.isRescued; changed = true; }
     if (changed) saveFavs(favs);
   }
 }
@@ -753,7 +818,26 @@ function playStationObj(st) {
     syncPlayBtns();
     cancelAnimationFrame(rafId); drawViz();
   }
-  function onPlayError() {
+  async function onPlayError() {
+    if (!st._retryAttempted) {
+      console.log(`[PLAY_ERROR] Transient error for ${st.name}. Retrying original link...`);
+      setStatus('buffering', 'Reconnecting...');
+      st._retryAttempted = true;
+      await sleep(1500);
+      playStationObj(st);
+      return;
+    }
+
+    if (!st._rescueAttempted) {
+      setStatus('buffering', 'Active Rescue...');
+      st._rescueAttempted = true;
+      const rescued = await window.activeRescueFromM3U(st);
+      if (rescued) {
+        console.log(`[ACTIVE_RESCUE] Retrying with healed link for ${st.name}`);
+        playStationObj(st);
+        return;
+      }
+    }
     setStatus('error', 'Error');
     syncPlayBtns();
   }
@@ -831,7 +915,11 @@ function renderStations() {
 
   const currentFavs = loadFavs();
   pl.innerHTML = displayStations.map((st, i) => {
-    const actv = currentSrc && (norm(currentSrc.url) === norm(st.url_resolved || st.url));
+    const actv = currentSrc && (
+      (st.stationuuid && currentSrc.stationuuid === st.stationuuid) ||
+      (st.sparkyId && currentSrc.sparkyId === st.sparkyId) ||
+      (norm(currentSrc.url) === norm(st.url_resolved || st.url))
+    );
     const favd = isFav(st, currentFavs);
     const rank = (((st.clickcount || 0) / mC) * 0.6) + (((st.votes || 0) / mV) * 0.3) + (((st.clicktrend || 0) / mT) * 0.1);
     const pwr = Math.min(100, Math.round(rank * 100));
@@ -848,8 +936,9 @@ function renderStations() {
       if (match && !dispTags.some(dt => dt.toLowerCase().includes(q))) dispTags.push(match);
     }
     const finalTags = dispTags.slice(0, 3).join(', ') || 'Radio';
+    const rescued = st.isRescued ? ' rescued' : '';
 
-    return `<div class="pl-item${actv ? ' active' : ''}" data-idx="${i}">
+    return `<div class="pl-item${actv ? ' active' : ''}${rescued}" data-idx="${i}">
       <div class="pl-favicon-col">
         ${renderFavicon(st)}
       </div>
@@ -924,7 +1013,11 @@ function renderFavs() {
   const mT = Math.max(...displayFavs.map(s => s.clicktrend || 0), 1);
 
   pl.innerHTML = displayFavs.map((st, i) => {
-    const actv = currentSrc && (norm(currentSrc.url) === norm(st.url_resolved || st.url));
+    const actv = currentSrc && (
+      (st.stationuuid && currentSrc.stationuuid === st.stationuuid) ||
+      (st.sparkyId && currentSrc.sparkyId === st.sparkyId) ||
+      (norm(currentSrc.url) === norm(st.url_resolved || st.url))
+    );
     const rank = (((st.clickcount || 0) / mC) * 0.6) + (((st.votes || 0) / mV) * 0.3) + (((st.clicktrend || 0) / mT) * 0.1);
     const pwr = Math.min(100, Math.round(rank * 100));
     const isManual = sortMode === 'custom';
@@ -942,8 +1035,9 @@ function renderFavs() {
       if (match && !dispTags.some(dt => dt.toLowerCase().includes(q))) dispTags.push(match);
     }
     const finalTags = dispTags.slice(0, 3).join(', ') || 'Radio';
+    const rescued = st.isRescued ? ' rescued' : '';
 
-    return `<div class="pl-item${actv ? ' active' : ''}" data-sid="${st.sparkyId}">
+    return `<div class="pl-item${actv ? ' active' : ''}${rescued}" data-sid="${st.sparkyId}">
       <div class="pl-favicon-col">
         ${renderFavicon(st)}
       </div>

@@ -1693,7 +1693,7 @@ body.light .preset-label {
 }
 
 
-@media (max-width: 599px) {
+@media (max-width: 800px) {
   .filters-area {
     padding: 6px 4px !important;
     gap: 6px !important;
@@ -1713,6 +1713,21 @@ body.light .preset-label {
   .btn-hifi {
     padding: 2px 5px !important;
     font-size: calc(7px * var(--text-scale)) !important;
+  }
+
+  .pl-main-col {
+    padding-right: 65px !important;
+  }
+
+  .pl-actions-col {
+    gap: 0px !important;
+    right: 4px !important;
+  }
+
+  .pl-sort-col {
+    gap: 2px !important;
+    margin-left: 0px !important;
+    min-width: 28px !important;
   }
 }
 
@@ -1913,6 +1928,10 @@ body.light .preset-label {
   filter: var(--accent-correction);
   /* Apply brand protection to the whole active state if needed */
   box-shadow: inset 5px 0 20px var(--panel-glow);
+}
+
+.pl-item.active.rescued {
+  /* Logic moved to theme-engine.css for industrial parity */
 }
 
 .pl-favicon-col {

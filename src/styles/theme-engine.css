@@ -560,8 +560,17 @@
     z-index: 2;
 }
 
+.pl-item.active.rescued {
+    border-color: var(--semantic-fav) !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 0 15px var(--semantic-fav);
+}
+
 .pl-item.active .pl-item-name {
     color: var(--accent) !important;
+}
+
+.pl-item.active.rescued .pl-item-name {
+    color: var(--semantic-fav) !important;
 }
 
 .pl-item.active .pl-item-meta {
