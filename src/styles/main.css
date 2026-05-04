@@ -976,6 +976,20 @@ body.light .pl-status-badge.trending {
   box-shadow: none;
 }
 
+.np-stat-badge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 500;
+  font-size: calc(10px * var(--text-scale));
+  padding: 4px 8px;
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text);
+  transition: all 0.2s ease;
+}
+
 .pl-badge-group {
   display: flex;
   gap: 4px;
@@ -1295,7 +1309,14 @@ input[type=range]::-moz-range-thumb {
   border-radius: 8px;
   color: var(--panel-text);
   transition: all .2s;
-  font-weight: 600;
+  font-weight: 500;
+}
+
+.tab-count {
+  font-size: calc(10px * var(--text-scale));
+  font-weight: 500;
+  color: var(--text);
+  opacity: 0.6;
 }
 
 .tab.active .tab-badge {
@@ -2028,10 +2049,8 @@ body.light .preset-label {
 .pl-stat-power {
   font-family: 'Share Tech Mono', monospace;
   font-size: calc(9px * var(--text-scale));
-  font-weight: 700;
-  color: var(--panel-text);
-  filter: var(--accent-correction);
-  opacity: 0.9;
+  font-weight: 500;
+  color: var(--text) !important;
 }
 
 .pl-actions-col {
@@ -2060,7 +2079,7 @@ body.light .preset-label {
 .pl-view-btn {
   background: none;
   border: none;
-  color: var(--dim);
+  color: var(--text) !important;
   cursor: pointer;
   padding: 4px;
   display: flex;
@@ -3146,11 +3165,15 @@ body.light .footer {
 }
 .filter-chip.active {
   background: var(--tab-active);
-  color: var(--accent);
+  color: var(--text) !important;
   border-color: var(--accent);
   font-weight: 700;
   box-shadow: var(--glow);
   opacity: 1;
+}
+
+.filter-chip[data-filter="ALL"] {
+  color: var(--text) !important;
 }
 
 
@@ -3254,21 +3277,29 @@ body.light .filter-chip {
 
 .card-stat-pwr {
   font-size: calc(9px * var(--text-scale));
-  font-weight: 800;
-  color: var(--accent);
+  font-weight: 500;
+  color: var(--text) !important;
   display: flex;
   align-items: center;
   gap: 2px;
 }
 
-.card-heart {
-  font-size: 16px !important;
-  color: var(--dim);
+.pl-discovery-grid .card-remove {
+  padding: 2px;
+  color: var(--dim) !important;
   cursor: pointer;
   transition: all 0.2s ease;
+  opacity: 0.4 !important;
 }
 
-.card-heart.is-fav {
-  color: var(--fav);
-  font-variation-settings: "FILL" 1;
-}
+.pl-discovery-grid .card-remove .material-symbols-outlined {
+  font-size: 14px;
+}
+
+.pl-discovery-grid .card-remove:hover {
+  opacity: 1 !important;
+  color: var(--accent2) !important;
+  transform: scale(1.1);
+}
+
+
