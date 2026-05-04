@@ -192,11 +192,11 @@
       </div>
 
       <div class="footer-layout">
-        <!-- ADMIN GROUP -->
-        <button class="btn btn-footer-admin" id="btnAdd" title="Add custom station">
-          <span class="material-symbols-outlined">add_circle</span>
-          <span class="btn-label">Add</span>
-        </button>
+        <!-- BRANDING ANCHOR (Restores Center Symmetry) -->
+        <div class="btn btn-footer-nav" style="opacity: 0.4; cursor: default; border-color: transparent;">
+          <span class="material-symbols-outlined">radio</span>
+        </div>
+
 
         <button class="btn btn-footer-nav" id="btnPrevFooter" title="Previous station">
           <span class="material-symbols-outlined">skip_previous</span>
@@ -220,6 +220,25 @@
   </div>
 
   <!-- SYSTEM MODALS -->
+  <div class="modal-overlay system-alert" id="faviconGuideModal" style="display:none">
+    <div class="modal-content" style="max-width:320px">
+      <div class="modal-header">FAVICON GUIDE</div>
+      <div style="font-size:calc(11px * var(--text-scale)); line-height:1.5; font-family:'Share Tech Mono', monospace; color:var(--text)">
+        <div style="color:var(--accent); margin-bottom:8px; border-bottom:1px solid var(--border); padding-bottom:4px">FAVICON STANDARDS</div>
+        • Use SQUARE (1:1) aspect ratio<br>
+        • 64x64px or 128x128px recommended<br>
+        • PNG, SVG, or WEBP (transparency preferred)<br><br>
+        <div style="color:var(--accent); margin-bottom:8px; border-bottom:1px solid var(--border); padding-bottom:4px">QUICK SOURCES</div>
+        • Clearbit: logo.clearbit.com/domain.com<br>
+        • Google: google.com/s2/favicons?domain=domain.com&sz=128<br><br>
+        <div style="color:var(--dim); font-size:calc(9px * var(--text-scale))">TIP: Right-click any image online and select "Copy Image Address" to paste here.</div>
+      </div>
+      <div class="modal-footer" style="margin-top:20px;">
+        <button class="btn btn-sm" id="btnFaviconGuideClose">DISMISS</button>
+      </div>
+    </div>
+  </div>
+
   <div class="modal-overlay system-alert" id="sparkyModal" style="display:none">
     <div class="modal-content">
       <div class="modal-header" id="sparkyModalHeader">SYSTEM ALERT</div>
@@ -249,7 +268,7 @@
   <div class="modal-overlay" id="settingsModal" style="display:none">
     <div class="modal-content" style="max-width:320px; padding: 15px;">
       <div class="modal-header" style="margin-bottom: 20px;">COMMAND CENTER</div>
-      <div style="border-top: 1px solid var(--border); padding-top: 15px; margin-bottom: 20px;">
+      <div style="padding-top: 15px; margin-bottom: 20px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
           <div
             style="font-size: calc(10px * var(--text-scale)); color: var(--accent); letter-spacing: 1.5px; font-weight: 500;">
@@ -293,15 +312,16 @@
       <div style="border-top: 1px solid var(--border); padding-top: 15px; margin-bottom: 20px;">
         <div style="font-size: calc(10px * var(--text-scale)); color: var(--accent); letter-spacing: 1.5px; font-weight: 500; margin-bottom: 12px;">
           VAULT MANAGEMENT</div>
-        <div style="display: flex; gap: 10px;">
+        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
           <button class="btn btn-sm" style="flex: 1;" id="btnExportFavs">EXPORT VAULT</button>
           <button class="btn btn-sm" style="flex: 1;" id="btnImportFavs">RESTORE VAULT</button>
         </div>
+        <button class="btn btn-sm" style="width: 100%; border-color: var(--accent); color: var(--accent); margin-top: 15px;" id="btnAddVault">+ ADD CUSTOM STATION</button>
       </div>
 
       <div style="margin-bottom: 20px;">
         <button class="btn"
-          style="justify-content: flex-start; padding: 12px; width: 100%; border-color: var(--accent);"
+          style="justify-content: center; padding: 12px; width: 100%; border-color: var(--accent);"
           id="btnOpenDebug">
           <span class="material-symbols-outlined" style="font-size: calc(18px * var(--text-scale));">terminal</span>
           VIEW SYSTEM DIAGNOSTICS
@@ -325,7 +345,7 @@
 
   <div class="modal-overlay" id="editModalOverlay" style="display:none">
     <div class="modal-content">
-      <div class="modal-header">EDIT STATION</div>
+      <div class="modal-header" id="editModalHeader">EDIT STATION</div>
       <div style="display:flex; flex-direction:column; gap:8px;">
         <label style="font-size:calc(9px * var(--text-scale)); color:var(--accent)">STATION NAME</label>
         <input type="text" id="editStationName" maxlength="80"
@@ -337,6 +357,12 @@
         </div>
         <label style="font-size:calc(9px * var(--text-scale)); color:var(--accent); margin-top:8px;">STREAM URL</label>
         <input type="text" id="editStationUrl" maxlength="300"
+          style="width:100%; background:var(--bg); border:1px solid var(--border); color:var(--text); padding:5px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
+          <label style="font-size:calc(9px * var(--text-scale)); color:var(--accent)">FAVICON URL</label>
+          <span class="material-symbols-outlined" style="font-size:calc(18px * var(--text-scale)); color:var(--accent); cursor:pointer; opacity:0.9; padding:4px;" id="btnFaviconInfo">info</span>
+        </div>
+        <input type="text" id="editStationFavicon" maxlength="500" placeholder="https://... (Optional)"
           style="width:100%; background:var(--bg); border:1px solid var(--border); color:var(--text); padding:5px;">
       </div>
       <div class="modal-footer" style="margin-top:20px;">

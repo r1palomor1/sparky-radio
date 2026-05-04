@@ -147,12 +147,14 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 // ══ STATE ══════════════════════════════════
 const audioEl = document.getElementById('audioEl');
 let stations = [];
-let currentIdx = -1;
 let activeTab = 'stations';
 let sortMode = 'power';
 let favSortMode = localStorage.getItem('sparky_fav_sort_mode') || 'power';
 let favViewMode = localStorage.getItem('sparky_fav_view') || 'list';
 let collapsedCategories = JSON.parse(localStorage.getItem('sparky_collapsed_cats') || '[]');
+let lastRenderedList = []; // Cache of exactly what is on screen
+let currentIdx = -1; 
+let isSearching = false;
 let currentSrc = null;
 let isPlaying = false;
 let activeSearchPreset = '';
@@ -170,11 +172,8 @@ let isSyncingFavs = false;
 let customCategories = JSON.parse(localStorage.getItem('sparky_custom_categories') || '[]');
 
 let wasCollapsedBeforeEQ = false; // State persistence for EQ engaged mode
-let isSearching = false;
 let scrollPositions = { stations: 0, favs: 0 };
 const APP_CODENAME = "Smart-Tune Pro";
-
-
 
 
 function updateDeploymentUI() {
@@ -277,45 +276,61 @@ function isFav(st, currentFavs) {
   });
 }
 
-function addFav(st) {
-  const favs = loadFavs(), u = st.url_resolved || st.url;
+function getSuggestedCategory(st) {
+  if (activeSearchPreset && activeSearchPreset !== 'ADD' && activeSearchPreset !== 'ALL') return activeSearchPreset;
+  const custom = JSON.parse(localStorage.getItem('sparky_search_presets') || '[]');
+  const allPresets = [...new Set([...defaultPresets, ...custom])];
+  const tags = (st.tags || '').toLowerCase();
+  const found = allPresets.find(p => tags.includes(p.toLowerCase()));
+  return found || 'Select Category';
+}
+
+function isValidImageUrl(url) {
+  if (!url) return true;
+  const u = url.toLowerCase().trim();
+  if (u.startsWith('data:image/')) return true;
+  if (!u.startsWith('http://') && !u.startsWith('https://')) return false;
+  const exts = ['.png', '.jpg', '.jpeg', '.ico', '.gif', '.webp', '.svg'];
+  return exts.some(ext => u.includes(ext)) || u.split('?')[0].includes('.');
+}
+
+function addFav(st, customName, customUrl, customCat, customFav) {
+  const favs = loadFavs(), u = customUrl || st.url_resolved || st.url;
   const uuid = st.stationuuid || st.id || '';
+
+  const proceed = () => {
+    favs.push({
+      sparkyId: crypto.randomUUID(), 
+      id: uuid, 
+      name: customName || st.name, 
+      url: u,
+      bitrate: st.bitrate, 
+      codec: st.codec,
+      countrycode: st.countrycode, 
+      tags: st.tags || '',
+      votes: st.votes || 0, 
+      clickcount: st.clickcount || 0, 
+      clicktrend: st.clicktrend || 0,
+      isRescued: st.isRescued || false,
+      favicon: customFav !== undefined ? customFav : (st.favicon || ''),
+      category: customCat || getSuggestedCategory(st)
+    });
+    saveFavs(favs);
+    refreshFavBadge();
+    if (activeTab === 'favs') renderFavs();
+  };
 
   const existing = favs.filter(f => {
     const fUuid = f.stationuuid || f.id;
     const fName = (f.name || '').trim().toLowerCase();
     const fUrl = (f.url_resolved || f.url || '').trim().toLowerCase();
-    const stName = (st.name || '').trim().toLowerCase();
+    const stName = ((customName || st.name) || '').trim().toLowerCase();
     const stUrl = (u || '').trim().toLowerCase();
     
     if (uuid && fUuid && uuid === fUuid) return true;
     if (stName === fName && stUrl === fUrl) return true;
     return false;
   });
-
-  const proceed = () => {
-    const getInitialCat = () => {
-      if (activeSearchPreset && activeSearchPreset !== 'ADD') return activeSearchPreset;
-      const custom = JSON.parse(localStorage.getItem('sparky_search_presets') || '[]');
-      const allPresets = [...new Set([...defaultPresets, ...custom])];
-      const tags = (st.tags || '').toLowerCase();
-      const found = allPresets.find(p => tags.includes(p.toLowerCase()));
-      return found || 'Undefined';
-    };
-
-    favs.push({
-      sparkyId: crypto.randomUUID(), // permanent unique key for this favorites entry
-      id: uuid, name: st.name, url: u,
-      bitrate: st.bitrate, codec: st.codec,
-      countrycode: st.countrycode, tags: st.tags || '',
-      votes: st.votes || 0, clickcount: st.clickcount || 0, clicktrend: st.clicktrend || 0,
-      isRescued: st.isRescued || false,
-      category: getInitialCat()
-    });
-    saveFavs(favs);
-    refreshFavBadge();
-    if (activeTab === 'favs') renderFavs();
-  };
 
   if (existing.length > 0) {
     sparkyConfirm(`<span style="color:#ff0; font-weight:bold; font-size:13px">⚠ CAUTION: DUPLICATE URL</span><br><br>There is already a station in your Favorites with the same URL. Proceed anyway?`, proceed, "DUPLICATE DETECTED");
@@ -696,13 +711,14 @@ function sparkyPrompt(msg, header, onOk) {
 
 function loadEditCategories(currentVal) {
   const customPresets = JSON.parse(localStorage.getItem('sparky_search_presets') || '[]');
-  const all = [...new Set([...defaultPresets, ...customPresets, ...customCategories, 'Undefined'])].sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
+  const vaultCats = [...new Set(loadFavs().map(f => f.category || 'General'))];
+  const all = [...new Set([...defaultPresets, ...customPresets, ...customCategories, ...vaultCats, 'General'])].sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
   
   const container = document.getElementById('editCatOptions');
   const trigger = document.getElementById('editCatTrigger');
   if (!container || !trigger) return;
 
-  trigger.textContent = currentVal || 'Undefined';
+  trigger.textContent = currentVal || 'Select Category';
   
   let html = `<div class="preset-opt add-opt" data-val="ADD_CAT">+ Add Category</div>`;
   all.forEach(c => {
@@ -746,22 +762,46 @@ function loadEditCategories(currentVal) {
   });
 }
 
-function openEditModal(name, url, category, onSave) {
+function openEditModal(name, url, category, favicon, onSave, title = "EDIT STATION", btnText = "SAVE CHANGES", focusField = "name") {
   const overlay = document.getElementById('editModalOverlay');
+  const header = document.getElementById('editModalHeader');
   const nameInput = document.getElementById('editStationName');
   const urlInput = document.getElementById('editStationUrl');
+  const favInput = document.getElementById('editStationFavicon');
   const catTrigger = document.getElementById('editCatTrigger');
   const catOptions = document.getElementById('editCatOptions');
   const saveBtn = document.getElementById('editModalSave');
   const cancelBtn = document.getElementById('editModalCancel');
   
-  loadEditCategories(category || 'Undefined');
+  if (header) header.textContent = title;
+  if (saveBtn) saveBtn.textContent = btnText;
+  
+  loadEditCategories(category || 'Select Category');
   
   nameInput.value = name || '';
   urlInput.value = url || '';
+  favInput.value = favicon || '';
+
+  const infoBtn = document.getElementById('btnFaviconInfo');
+  if (infoBtn) {
+    infoBtn.onclick = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const m = document.getElementById('faviconGuideModal');
+      if (m) m.style.display = 'flex';
+    };
+  }
+  const closeGuide = document.getElementById('btnFaviconGuideClose');
+  if (closeGuide) closeGuide.onclick = () => {
+    const m = document.getElementById('faviconGuideModal');
+    if (m) m.style.display = 'none';
+  };
   
   overlay.style.display = 'flex';
-  nameInput.focus();
+  
+  if (focusField === 'name') {
+    nameInput.focus();
+  }
 
   // Bind dropdown toggle
   catTrigger.onclick = (e) => { e.stopPropagation(); catOptions.classList.toggle('show'); };
@@ -777,11 +817,18 @@ function openEditModal(name, url, category, onSave) {
   saveBtn.onclick = (e) => { 
     e.preventDefault(); 
     const finalCat = catTrigger.textContent;
+    const finalFav = favInput.value.trim();
+    
+    if (!isValidImageUrl(finalFav)) {
+      sparkyAlert("FAVICON REQUIREMENTS:\n• Must start with http:// or https://\n• Must point to a valid image (.png, .jpg, .ico, .webp, .svg)\n• Data URIs are also supported.", "INVALID FAVICON URL");
+      return;
+    }
+    
     closeModal(); 
-    onSave(nameInput.value.trim(), urlInput.value.trim(), finalCat); 
+    onSave(nameInput.value.trim(), urlInput.value.trim(), finalCat, finalFav); 
   };
-  cancelBtn.onclick = (e) => { e.preventDefault(); closeModal(); onSave(null, null, null); };
-  overlay.onclick = (e) => { if (e.target === overlay) { closeModal(); onSave(null, null, null); } };
+  cancelBtn.onclick = (e) => { e.preventDefault(); closeModal(); onSave(null, null, null, null); };
+  overlay.onclick = (e) => { if (e.target === overlay) { closeModal(); onSave(null, null, null, null); } };
   document.onkeydown = (e) => {
     if (e.key === 'Escape') cancelBtn.click();
     if (e.key === 'Enter') saveBtn.click();
@@ -1104,11 +1151,14 @@ function playStationObj(st) {
   }
 }
 
+function getCurrentNavigationList() {
+  return lastRenderedList.length > 0 ? lastRenderedList : stations;
+}
+
 function playAtIndex(idx) {
-  const list = activeTab === 'favs' ? favs : stations;
+  const list = getCurrentNavigationList();
   if (idx < 0 || idx >= list.length) return;
-  currentIdx = idx; playStationObj(list[idx]);
-  renderCurrent();
+  playStationObj(list[idx]);
 }
 
 function stopPlayback() {
@@ -1126,7 +1176,26 @@ function togglePlay() {
   else if (activeTab === 'favs' && favs.length) playAtIndex(0);
 }
 
-function renderCurrent() { activeTab === 'stations' ? renderStations() : renderFavs(); }
+function scrollToActive() {
+  const activeEl = document.querySelector('.pl-item.active');
+  if (!activeEl) return;
+  
+  // If in grouped mode, ensure parent category is expanded
+  const group = activeEl.closest('.pl-category-group');
+  if (group && group.classList.contains('collapsed')) {
+    const cat = group.dataset.cat;
+    group.classList.remove('collapsed');
+    collapsedCategories = collapsedCategories.filter(c => c !== cat);
+    localStorage.setItem('sparky_collapsed_cats', JSON.stringify(collapsedCategories));
+  }
+
+  activeEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function renderCurrent() { 
+  if (activeTab === 'stations') renderStations(); else renderFavs();
+  scrollToActive();
+}
 
 // ══ RENDERERS ══════════════════════════════
 function renderFavicon(st) {
@@ -1237,8 +1306,21 @@ function renderStations() {
     };
   });
   pl.querySelectorAll('.pl-heart-btn').forEach(btn => btn.onclick = (e) => {
-    e.stopPropagation(); const st = displayStations[btn.dataset.fav];
-    isFav(st) ? removeFavByUrl(st.url_resolved || st.url) : addFav(st); renderStations();
+    e.stopPropagation(); 
+    const st = displayStations[btn.dataset.fav];
+    if (isFav(st)) {
+      removeFavByUrl(st.url_resolved || st.url); 
+      renderStations();
+    } else {
+      const suggested = getSuggestedCategory(st);
+      openEditModal(st.name, st.url_resolved || st.url, suggested, st.favicon || '', (newName, newUrl, newCat, newFav) => {
+        if (newName && newUrl) {
+          const finalCat = (newCat === 'Select Category') ? 'Undefined' : newCat;
+          addFav(st, newName, newUrl, finalCat, newFav);
+          renderStations();
+        }
+      }, "ADD TO FAVORITES", "ADD FAVORITES", "category");
+    }
   });
   pl.querySelectorAll('.pl-remove').forEach(btn => btn.onclick = (e) => {
     e.stopPropagation(); const idx = parseInt(btn.dataset.rmst);
@@ -1248,6 +1330,7 @@ function renderStations() {
       renderStations(); 
     });
   });
+  lastRenderedList = displayStations;
 }
 
 function renderFavs() {
@@ -1368,9 +1451,9 @@ function renderFavs() {
     const sid = btn.dataset.edit; 
     const m = loadFavs();
     const f = m.find(x => x.sparkyId === sid);
-    if (f) openEditModal(f.name, f.url, f.category || 'General', (newName, newUrl, newCat) => {
+    if (f) openEditModal(f.name, f.url, f.category || 'General', f.favicon || '', (newName, newUrl, newCat, newFav) => {
       if (newName !== null) {
-        f.name = newName; f.url = newUrl; f.category = newCat;
+        f.name = newName; f.url = newUrl; f.category = newCat; f.favicon = newFav;
         saveFavs(m); renderFavs();
       }
     });
@@ -1385,6 +1468,8 @@ function renderFavs() {
     e.stopPropagation();
     handleMoveFav(btn.dataset.down, 'down');
   });
+
+  lastRenderedList = displayFavs;
 }
 
 function groupFavsByCategory(list) {
@@ -1467,6 +1552,13 @@ function renderGroupedFavs(pl) {
     `;
   }).join('');
 
+  // Update nav cache with flattened grouped list
+  lastRenderedList = [];
+  sortedCats.forEach(cat => {
+    const catFavs = groups[cat];
+    lastRenderedList.push(...catFavs);
+  });
+
   // Re-bind click handlers for cards and headers
   pl.querySelectorAll('.pl-category-header').forEach(h => h.onclick = () => {
     const group = h.parentElement;
@@ -1481,15 +1573,15 @@ function renderGroupedFavs(pl) {
   });
 
   // Re-bind station actions (same as standard list)
-  bindStationActions(pl);
+  bindStationActions(pl, favs);
 }
 
-function bindStationActions(pl) {
+function bindStationActions(pl, list) {
   pl.querySelectorAll('.pl-item').forEach(el => {
     el.onclick = (e) => {
       if (e.target.closest('button')) return;
       const sId = el.dataset.sid;
-      const target = favs.find(f => f.sparkyId === sId);
+      const target = list.find(f => f.sparkyId === sId);
       if (target) playStationObj(target);
     };
   });
@@ -1505,9 +1597,9 @@ function bindStationActions(pl) {
     const sid = btn.dataset.edit;
     const m = loadFavs();
     const f = m.find(x => x.sparkyId === sid);
-    if (f) openEditModal(f.name, f.url, f.category || 'General', (newName, newUrl, newCat) => {
+    if (f) openEditModal(f.name, f.url, f.category || 'General', f.favicon || '', (newName, newUrl, newCat, newFav) => {
       if (newName !== null) {
-        f.name = newName; f.url = newUrl; f.category = newCat;
+        f.name = newName; f.url = newUrl; f.category = newCat; f.favicon = newFav;
         saveFavs(m); renderFavs();
       }
     });
@@ -1541,45 +1633,55 @@ function triggerHaptic() {
 
 // ══ FOOTER ACTIONS (Logic defined here, bound in INIT) ════
 function handleAddStation() {
-  sparkyPrompt("Enter stream URL:", "ADD CUSTOM STATION", (url) => {
-    if (!url) return;
+  openEditModal("", "", "Select Category", "", (name, url, cat, favicon) => {
+    if (!name || !url) return;
+    
     const nUrl = norm(url);
-    const favs = loadFavs();
-    const exists = favs.some(f => norm(f.url) === nUrl);
-
-    const proceedToName = () => {
-      sparkyPrompt("Enter station name:", "STATION IDENTITY", (name) => {
-        const st = { name: name || 'Custom Station', url_resolved: url, url, bitrate: '', codec: '', countrycode: '', tags: '' };
-        stations.push(st);
-        switchTab('stations');
-      });
+    const m = loadFavs();
+    const exists = m.some(f => norm(f.url) === nUrl || norm(f.url_resolved) === nUrl);
+    
+    const proceed = () => {
+      const finalCat = (cat === 'Select Category') ? 'Undefined' : cat;
+      const st = { 
+        sparkyId: 's_' + Date.now(), 
+        name: name, 
+        url: url, 
+        url_resolved: url, 
+        category: finalCat,
+        favicon: favicon || '',
+        bitrate: '?', codec: '?', countrycode: '--', tags: 'Custom'
+      };
+      m.push(st);
+      saveFavs(m);
+      renderFavs();
+      switchTab('favs');
     };
 
     if (exists) {
-      sparkyConfirm(`<span style="color:#ff0; font-weight:bold; font-size:13px">⚠ CAUTION: DUPLICATE URL</span><br><br>This URL already exists in your Favorites. Proceed anyway?`, proceedToName, "DUPLICATE DETECTED");
+      sparkyConfirm(`URL already exists in your Favorites. Add anyway?`, proceed, "DUPLICATE DETECTED");
     } else {
-      proceedToName();
+      proceed();
     }
-  });
+  }, "ADD CUSTOM STATION", "ADD STATION");
 }
 
 function handleRemoveStation() {
-  if (currentIdx < 0) {
-    sparkyAlert("SELECT A STATION FROM THE LIST TO REMOVE", "SELECTION REQUIRED");
+  if (!currentSrc) {
+    sparkyAlert("NO STATION CURRENTLY PLAYING", "SELECTION REQUIRED");
     return;
   }
+  const f = currentSrc;
+  const sid = f.sparkyId;
+  
   if (activeTab === 'favs') {
-    const f = favs[currentIdx]; // sorted global — matches what user sees
-    if (!f) { sparkyAlert("SELECTION INVALID — PLEASE RESELECT", "SELECTION REQUIRED"); return; }
-    const sid = f.sparkyId; // sparkyId — permanent identity anchor
-    sparkyConfirm(`Remove [${f.name}] from favorites?`, () => {
-      removeFavBySparkyId(sid); stopPlayback(); renderFavs();
-    });
+      sparkyConfirm(`Remove [${f.name}] from favorites?`, () => {
+        removeFavBySparkyId(sid); stopPlayback(); renderFavs();
+      });
   } else {
-    const st = stations[currentIdx];
-    sparkyConfirm(`Remove [${st.name}] from list?`, () => {
-      stations.splice(currentIdx, 1); stopPlayback(); renderStations();
-    });
+      sparkyConfirm(`Remove [${f.name}] from list?`, () => {
+        stations = stations.filter(s => s.sparkyId !== sid); 
+        stopPlayback(); renderStations();
+      });
   }
 }
 
@@ -2010,6 +2112,9 @@ window.addEventListener('DOMContentLoaded', () => {
     audioEl.volume = sv / 100;
     updateVolFill(vs);
   }
+  
+  // Background maintenance tasks
+  healFavoritesFavicons();
   filterHiFi = false; // Standardizing to Discovery-First startup
   const bhf = document.getElementById('btnHifi');
   if (bhf) bhf.classList.toggle('active', filterHiFi);
@@ -2156,15 +2261,28 @@ window.addEventListener('DOMContentLoaded', () => {
 
   bind('btnPlayFooter', () => togglePlay());
   bind('btnNextFooter', () => {
-    const l = activeTab === 'favs' ? favs : stations;
-    if (l.length) playAtIndex((currentIdx + 1) % l.length);
+    const list = getCurrentNavigationList();
+    if (!list.length) return;
+    let idx = list.findIndex(st => 
+      (st.sparkyId && currentSrc?.sparkyId === st.sparkyId) || 
+      (st.stationuuid && currentSrc?.stationuuid === st.stationuuid) ||
+      (norm(currentSrc?.url) === norm(st.url_resolved || st.url))
+    );
+    playStationObj(list[(idx + 1) % list.length]);
   });
   bind('btnPrevFooter', () => {
-    const l = activeTab === 'favs' ? favs : stations;
-    if (l.length) playAtIndex((currentIdx - 1 + l.length) % l.length);
+    const list = getCurrentNavigationList();
+    if (!list.length) return;
+    let idx = list.findIndex(st => 
+      (st.sparkyId && currentSrc?.sparkyId === st.sparkyId) || 
+      (st.stationuuid && currentSrc?.stationuuid === st.stationuuid) ||
+      (norm(currentSrc?.url) === norm(st.url_resolved || st.url))
+    );
+    if (idx === -1) idx = 1; // Default fallback
+    playStationObj(list[(idx - 1 + list.length) % list.length]);
   });
 
-  bind('btnAdd', handleAddStation);
+  bind('btnAddVault', handleAddStation);
   bind('btnRemove', handleRemoveStation);
   bind('filterCountryTrigger', (e) => { e.stopPropagation(); document.getElementById('filterCountryOptions')?.classList.toggle('show'); });
   bind('filterLangTrigger', (e) => { e.stopPropagation(); document.getElementById('filterLangOptions')?.classList.toggle('show'); });
@@ -2346,3 +2464,40 @@ window.setEqPreset = setEqPreset;
 window.saveCustomEq = saveCustomEq;
 window.resetEqDefaults = resetEqDefaults;
 window.updateDeploymentUI = updateDeploymentUI;
+
+async function healFavoritesFavicons() {
+  const m = loadFavs();
+  // Filter for favorites missing a favicon but having a recognizable ID
+  const missing = m.filter(f => (!f.favicon || f.favicon.trim() === '') && f.id && f.id.length > 10);
+  if (missing.length === 0) return;
+  
+  console.log(`[SELF-HEAL] Found ${missing.length} favorites missing icons. Starting background rescue...`);
+  
+  let restoredCount = 0;
+  // Process up to 15 per session to stay within API courtesy limits
+  for (let i = 0; i < Math.min(missing.length, 15); i++) {
+    const f = missing[i];
+    try {
+      // Use different mirrors to avoid rate limiting
+      const mirrors = ['de1', 'at1', 'nl1'];
+      const mirror = mirrors[i % mirrors.length];
+      const url = `https://${mirror}.api.radio-browser.info/json/stations/byuuid/${f.id}`;
+      const res = await fetch(url);
+      const data = await res.json();
+      if (data && data.length > 0 && data[0].favicon) {
+        f.favicon = data[0].favicon;
+        restoredCount++;
+      }
+    } catch (e) {
+      console.warn(`[SELF-HEAL] Failed to rescue icon for ${f.name}`);
+    }
+    // Small delay between requests
+    await new Promise(r => setTimeout(r, 1000));
+  }
+
+  if (restoredCount > 0) {
+    saveFavs(m);
+    console.log(`[SELF-HEAL] Successfully restored ${restoredCount} icons. Refreshing UI...`);
+    if (activeTab === 'favs') renderFavs();
+  }
+}
