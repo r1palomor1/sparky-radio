@@ -1627,9 +1627,6 @@ body.light input[type=text] {
 }
 
 
-.filters-area.fav-mode-gap {
-  margin-top: 10px;
-}
 
 /* btn-filter-toggle removed */
 
@@ -2605,8 +2602,8 @@ body.light .btn-preset.active {
 /* ── ITEM 8: FOOTER — PREMIUM GLASS ────────────── */
 .footer {
   height: auto;
-  min-height: 70px;
-  padding: 12px;
+  min-height: 60px;
+  padding: 8px;
   /* Uniform padding for symmetry */
   padding-bottom: calc(12px + env(safe-area-inset-bottom));
 
@@ -2642,9 +2639,9 @@ body.light .footer {
 
 .btn-footer-nav,
 .btn-footer-play {
-  height: 48px;
-  /* Reduced for icon-only layout */
-  min-width: 48px;
+  height: 40px;
+  /* Tighter for compact layout */
+  min-width: 40px;
   /* Slightly tighter base */
   flex-direction: column !important;
   gap: 4px !important;
@@ -2759,8 +2756,8 @@ body.light .footer {
 }
 
 .btn-footer-play {
-  width: 50px;
-  height: 50px;
+  width: 44px;
+  height: 44px;
   background: rgba(255, 255, 255, 0.05) !important;
   border: 1px solid var(--border) !important;
   color: var(--accent);
@@ -3112,3 +3109,166 @@ body.light .footer {
     padding: 0 15px;
   }
 }
+
+/* --- DISCOVERY HUB (GRID VIEW) --- */
+.pl-discovery-filters {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 2px 0 10px 0;
+  margin-bottom: 10px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  border-bottom: 1px solid var(--border);
+}
+
+.pl-discovery-filters::-webkit-scrollbar { display: none; }
+
+.filter-chip {
+  padding: 4px 10px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  font-size: calc(9px * var(--text-scale));
+  color: var(--text);
+  opacity: 0.7;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: "Share Tech Mono", monospace;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.filter-chip:hover {
+  background: var(--panel-hover);
+  color: var(--text);
+  border-color: var(--accent);
+}
+.filter-chip.active {
+  background: var(--tab-active);
+  color: var(--accent);
+  border-color: var(--accent);
+  font-weight: 700;
+  box-shadow: var(--glow);
+  opacity: 1;
+}
+
+
+body.light .filter-chip {
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+
+.pl-discovery-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  padding-bottom: 20px;
+}
+
+@media (min-width: 481px) {
+  .pl-discovery-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.pl-discovery-card {
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  transition: border-color 0.2s ease;
+  cursor: pointer;
+  aspect-ratio: 1 / 1.25;
+}
+
+.pl-discovery-card.active {
+  border-color: var(--accent);
+  background: var(--pl-active);
+  box-shadow: var(--glow);
+}
+
+.card-favicon-wrap {
+  width: 100%;
+  aspect-ratio: 1 / 0.85;
+  background: var(--subdim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.card-favicon-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 12px;
+}
+
+.card-info {
+  padding: 6px 8px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 0;
+}
+
+.card-name {
+  font-family: "Archivo", sans-serif;
+  font-size: calc(12px * var(--text-scale));
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1.2;
+  margin-bottom: 4px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.card-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.card-tags {
+  font-size: calc(9px * var(--text-scale));
+  color: var(--dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.card-stats {
+  margin-top: 2px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.card-stat-pwr {
+  font-size: calc(9px * var(--text-scale));
+  font-weight: 800;
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.card-heart {
+  font-size: 16px !important;
+  color: var(--dim);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.card-heart.is-fav {
+  color: var(--fav);
+  font-variation-settings: "FILL" 1;
+}

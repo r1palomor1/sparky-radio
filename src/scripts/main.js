@@ -170,6 +170,8 @@ let searchQuery = '';
 let filterHiFi = false;
 let isSyncingFavs = false;
 let customCategories = JSON.parse(localStorage.getItem('sparky_custom_categories') || '[]');
+let discoveryCategoryFilter = 'ALL';
+
 
 let wasCollapsedBeforeEQ = false; // State persistence for EQ engaged mode
 let scrollPositions = { stations: 0, favs: 0 };
@@ -404,7 +406,8 @@ function switchTab(tab) {
   document.getElementById('tabStations').classList.toggle('active', tab === 'stations');
   document.getElementById('tabFavs').classList.toggle('active', tab === 'favs');
   document.getElementById('searchArea').style.display = tab === 'stations' ? '' : 'none';
-  document.querySelector('.filters-area').classList.toggle('fav-mode-gap', tab === 'favs');
+  const filtersArea = document.querySelector('.filters-area');
+  if (filtersArea) filtersArea.style.display = tab === 'stations' ? 'flex' : 'none';
 
   const hr = document.getElementById('plHeaderRight');
   if (hr) hr.style.display = tab === 'favs' ? 'flex' : 'none';
@@ -1346,6 +1349,11 @@ function renderFavs() {
     renderGroupedFavs(pl);
     return;
   }
+  if (favViewMode === 'discovery') {
+    renderDiscoveryFavs(pl);
+    return;
+  }
+
   if (favs.length > 1 && sortMode !== 'custom') {
     if (sortMode === 'power') {
       const maxC = Math.max(...favs.map(s => s.clickcount || 0), 1);
@@ -1575,6 +1583,130 @@ function renderGroupedFavs(pl) {
   // Re-bind station actions (same as standard list)
   bindStationActions(pl, favs);
 }
+
+function renderDiscoveryFavs(pl) {
+  const groups = groupFavsByCategory(favs);
+  const categories = ['ALL', ...Object.keys(groups).sort()];
+  
+  let displayFavs = [...favs];
+  if (discoveryCategoryFilter !== 'ALL') {
+    displayFavs = displayFavs.filter(f => (f.category || 'General') === discoveryCategoryFilter);
+  }
+  if (filterHiFi) {
+    displayFavs = displayFavs.filter(s => Number(s.bitrate || 0) >= 128);
+  }
+
+  // Internal Sorting
+  const mC = Math.max(...favs.map(s => s.clickcount || 0), 1);
+  const mV = Math.max(...favs.map(s => s.votes || 0), 1);
+  const mT = Math.max(...favs.map(s => s.clicktrend || 0), 1);
+  
+  const effectiveSort = (sortMode === 'vote') ? 'vote' : 'power';
+  if (effectiveSort === 'power') {
+    displayFavs.sort((a, b) => {
+      const scoreA = (((a.clickcount || 0) / mC) * 0.6) + (((a.votes || 0) / mV) * 0.3) + (((a.clicktrend || 0) / mT) * 0.1);
+      const scoreB = (((b.clickcount || 0) / mC) * 0.6) + (((b.votes || 0) / mV) * 0.3) + (((b.clicktrend || 0) / mT) * 0.1);
+      return scoreB - scoreA;
+    });
+  } else {
+    displayFavs.sort((a, b) => (b.votes || 0) - (a.votes || 0));
+  }
+
+  let html = `
+    <div class="pl-discovery-filters">
+      ${categories.map(cat => `
+        <div class="filter-chip${discoveryCategoryFilter === cat ? ' active' : ''}" data-filter="${cat}">
+          ${cat}
+        </div>
+      `).join('')}
+    </div>
+    <div class="pl-discovery-grid">
+  `;
+
+  html += displayFavs.map(st => {
+    const actv = currentSrc && (
+      (st.stationuuid && currentSrc.stationuuid === st.stationuuid) ||
+      (st.sparkyId && currentSrc.sparkyId === st.sparkyId) ||
+      (norm(currentSrc.url) === norm(st.url_resolved || st.url)) ||
+      (norm(currentSrc.url_resolved) === norm(st.url_resolved || st.url))
+    );
+    const favd = isFav(st);
+    const rank = (((st.clickcount || 0) / mC) * 0.6) + (((st.votes || 0) / mV) * 0.3) + (((st.clicktrend || 0) / mT) * 0.1);
+    const pwr = Math.min(100, Math.round(rank * 100));
+    
+    const tagArr = (st.tags || '').split(',').map(t => t.trim()).filter(t => t);
+    const finalTags = tagArr.slice(0, 2).join(' · ') || 'Radio';
+    const rescued = st.isRescued ? ' rescued' : '';
+
+    let statVal = `⚡ ${pwr}%`;
+    if (sortMode === 'vote') statVal = `👍 ${fmtK(st.votes)}`;
+
+    return `
+      <div class="pl-discovery-card${actv ? ' active' : ''}${rescued}" data-sid="${st.sparkyId}">
+        <div class="card-favicon-wrap">
+          ${renderFavicon(st)}
+        </div>
+        <div class="card-info">
+          <div class="card-name">${esc(st.name)}</div>
+          <div class="card-meta">
+            <div class="card-tags">${esc(finalTags)}</div>
+            <div class="card-stats">
+              <div class="card-stat-pwr">${statVal}</div>
+              <span class="material-symbols-outlined card-heart${favd ? ' is-fav' : ''}" data-fav="${st.sparkyId}">favorite</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  html += `</div>`;
+  pl.innerHTML = html;
+
+  // Bind Filter Chips
+  pl.querySelectorAll('.filter-chip').forEach(chip => {
+    chip.onclick = () => {
+      discoveryCategoryFilter = chip.dataset.filter;
+      renderFavs();
+      triggerHaptic();
+    };
+  });
+
+  // Bind Card Actions
+  pl.querySelectorAll('.pl-discovery-card').forEach(card => {
+    card.onclick = (e) => {
+      if (e.target.closest('.card-heart')) return;
+      const sid = card.dataset.sid;
+      const target = favs.find(f => f.sparkyId === sid);
+      if (target) {
+        if (currentSrc?.sparkyId === sid && isPlaying) {
+          stopPlayback();
+        } else {
+          playStationObj(target);
+        }
+      }
+    };
+  });
+
+  // Bind Heart Toggle
+  pl.querySelectorAll('.card-heart').forEach(heart => {
+    heart.onclick = (e) => {
+      e.stopPropagation();
+      const sid = heart.dataset.fav;
+      const m = loadFavs();
+      const f = m.find(x => x.sparkyId === sid);
+      if (f) {
+        sparkyConfirm(`Remove [${f.name}] from favorites?`, () => { 
+          removeFavBySparkyId(sid); 
+          renderFavs(); 
+        });
+      }
+    };
+  });
+
+  lastRenderedList = displayFavs;
+}
+
 
 function bindStationActions(pl, list) {
   pl.querySelectorAll('.pl-item').forEach(el => {
@@ -2379,20 +2511,24 @@ window.addEventListener('DOMContentLoaded', () => {
 
   // ── VIEW MODE BINDINGS ──
   bind('btnViewToggle', () => {
-    favViewMode = (favViewMode === 'list' ? 'grouped' : 'list');
-    localStorage.setItem('sparky_fav_view', favViewMode);
-    
-    // Auto-Collapse Feature: If entering grouped view for the first time or by choice, start all collapsed
-    if (favViewMode === 'grouped') {
+    if (favViewMode === 'list') {
+      favViewMode = 'grouped';
+      // Auto-Collapse Feature
       const groups = groupFavsByCategory(favs);
       collapsedCategories = Object.keys(groups);
       localStorage.setItem('sparky_collapsed_cats', JSON.stringify(collapsedCategories));
+    } else if (favViewMode === 'grouped') {
+      favViewMode = 'discovery';
+    } else {
+      favViewMode = 'list';
     }
-
+    
+    localStorage.setItem('sparky_fav_view', favViewMode);
     updateViewToggleUI();
     renderFavs();
     triggerHaptic();
   });
+
   
   updateViewToggleUI();
 
@@ -2427,9 +2563,23 @@ window.addEventListener('DOMContentLoaded', () => {
 function updateViewToggleUI() {
   const icon = document.getElementById('viewToggleIcon');
   if (!icon) return;
-  icon.textContent = favViewMode === 'list' ? 'grid_view' : 'format_list_bulleted';
-  icon.parentElement.title = favViewMode === 'list' ? 'Switch to Category View' : 'Switch to List View';
+
+  const nextIcons = {
+    list: 'folder',
+    grouped: 'apps',
+    discovery: 'format_list_bulleted'
+  };
+
+  const titles = {
+    list: 'Switch to Category View',
+    grouped: 'Switch to Discovery Hub',
+    discovery: 'Switch to List View'
+  };
+
+  icon.textContent = nextIcons[favViewMode] || 'folder';
+  icon.parentElement.title = titles[favViewMode];
 }
+
 
 function updateSortUI() {
   const btn = document.getElementById('btnSortMode');

@@ -1,5 +1,14 @@
 # Sparky Radio ELITE - Development Roadmap
 
+## 🔴 CRITICAL: Favicon Info Icon Refactor (RE-VISIT)
+**Issue**: The "Info" icon guide in the Station Management modal is failing to trigger. We have tried three iterations (Alert, Hardened Event, Dedicated Modal) and it still fails to appear.
+*   **Action**: Conduct a full structural audit of the Station Management modal's lifecycle to identify event shadowing or DOM detachment.
+*   **Target**: First priority for next session.
+
+## 🔵 FUTURE: Integration of Features from R1-Launch-Pad
+**Reference**: `C:\Users\palom\Vibe Coding Apps\r1-launch-pad`
+**Goal**: Analyze the source project (where our Theme Logic originated) to adapt another "very great enhancement" to Sparky Radio's industrial framework.
+
 ## 🔴 HIGH PRIORITY: The Mobile Metadata Gap
 **Issue**: Favorites saved on mobile devices as "Legacy Records" (pre-UUID system) are failing to sync live telemetry (Votes, Clicks, Momentum) even after URL-Rescue grafting.
 
