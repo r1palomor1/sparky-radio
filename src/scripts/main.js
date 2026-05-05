@@ -224,7 +224,7 @@ function loadFavs() {
     let changed = false;
     raw.forEach(f => {
       if (!f.sparkyId) { f.sparkyId = crypto.randomUUID(); changed = true; }
-      if (!f.category || f.category === 'General') {
+      if (!f.category || f.category === 'Undefined') {
         const tags = (f.tags || '').toLowerCase();
         const found = allPresets.find(p => tags.includes(p.toLowerCase()));
         f.category = found || 'Undefined';
@@ -714,8 +714,8 @@ function sparkyPrompt(msg, header, onOk) {
 
 function loadEditCategories(currentVal) {
   const customPresets = JSON.parse(localStorage.getItem('sparky_search_presets') || '[]');
-  const vaultCats = [...new Set(loadFavs().map(f => f.category || 'General'))];
-  const all = [...new Set([...defaultPresets, ...customPresets, ...customCategories, ...vaultCats, 'General'])].sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
+  const vaultCats = [...new Set(loadFavs().map(f => f.category || 'Undefined'))];
+  const all = [...new Set([...defaultPresets, ...customPresets, ...customCategories, ...vaultCats, 'Undefined'])].sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
 
   const container = document.getElementById('editCatOptions');
   const trigger = document.getElementById('editCatTrigger');
@@ -1065,7 +1065,7 @@ function jumpToStation(st) {
     switchTab('favs');
 
     if (favViewMode === 'grouped') {
-      const cat = favMatch.category || 'General';
+      const cat = favMatch.category || 'Undefined';
       collapsedCategories = collapsedCategories.filter(c => c !== cat);
       localStorage.setItem('sparky_collapsed_cats', JSON.stringify(collapsedCategories));
       renderFavs();
@@ -1371,7 +1371,7 @@ function renderFavs() {
 
   let displayFavs = [...favs];
   if (discoveryCategoryFilter !== 'ALL') {
-    displayFavs = displayFavs.filter(f => (f.category || 'General') === discoveryCategoryFilter);
+    displayFavs = displayFavs.filter(f => (f.category || 'Undefined') === discoveryCategoryFilter);
   }
   if (filterHiFi) {
     displayFavs = displayFavs.filter(s => Number(s.bitrate || 0) >= 128);
@@ -1511,7 +1511,7 @@ function renderFavs() {
     const sid = btn.dataset.edit;
     const m = loadFavs();
     const f = m.find(x => x.sparkyId === sid);
-    if (f) openEditModal(f.name, f.url, f.category || 'General', f.favicon || '', (newName, newUrl, newCat, newFav) => {
+    if (f) openEditModal(f.name, f.url, f.category || 'Undefined', f.favicon || '', (newName, newUrl, newCat, newFav) => {
       if (newName !== null) {
         f.name = newName; f.url = newUrl; f.category = newCat; f.favicon = newFav;
         saveFavs(m); renderFavs();
@@ -1554,7 +1554,7 @@ function bindListChips(pl) {
 function groupFavsByCategory(list) {
   const groups = {};
   list.forEach(f => {
-    const cat = f.category || 'General';
+    const cat = f.category || 'Undefined';
     if (!groups[cat]) groups[cat] = [];
     groups[cat].push(f);
   });
@@ -1674,7 +1674,7 @@ function renderDiscoveryFavs(pl) {
 
   let displayFavs = [...favs];
   if (discoveryCategoryFilter !== 'ALL') {
-    displayFavs = displayFavs.filter(f => (f.category || 'General') === discoveryCategoryFilter);
+    displayFavs = displayFavs.filter(f => (f.category || 'Undefined') === discoveryCategoryFilter);
   }
   if (filterHiFi) {
     displayFavs = displayFavs.filter(s => Number(s.bitrate || 0) >= 128);
@@ -1736,6 +1736,11 @@ function renderDiscoveryFavs(pl) {
             <div class="card-tags">${esc(finalTags)}</div>
             <div class="card-stats">
               <div class="card-stat-pwr">${statVal}</div>
+              ${(st.category === 'Undefined' || !st.category) ? `
+                <button class="pl-action-btn pl-edit card-edit" data-edit="${st.sparkyId}" title="Categorize Station">
+                  <span class="material-symbols-outlined">edit</span>
+                </button>
+              ` : ''}
               <button class="pl-action-btn pl-remove card-remove" data-rmfav="${st.sparkyId}" title="Remove Favorite">
                 <span class="material-symbols-outlined">delete</span>
               </button>
@@ -1801,6 +1806,24 @@ function renderDiscoveryFavs(pl) {
     };
   });
 
+  // Bind Edit Toggle (Conditional for Undefined)
+  pl.querySelectorAll('.card-edit').forEach(btn => {
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      const sid = btn.dataset.edit;
+      const m = loadFavs();
+      const f = m.find(x => x.sparkyId === sid);
+      if (f) {
+        openEditModal(f.name, f.url, f.category || 'Undefined', f.favicon || '', (newName, newUrl, newCat, newFav) => {
+          if (newName !== null) {
+            f.name = newName; f.url = newUrl; f.category = newCat; f.favicon = newFav;
+            saveFavs(m); renderFavs();
+          }
+        });
+      }
+    };
+  });
+
   lastRenderedList = displayFavs;
 }
 
@@ -1826,7 +1849,7 @@ function bindStationActions(pl, list) {
     const sid = btn.dataset.edit;
     const m = loadFavs();
     const f = m.find(x => x.sparkyId === sid);
-    if (f) openEditModal(f.name, f.url, f.category || 'General', f.favicon || '', (newName, newUrl, newCat, newFav) => {
+    if (f) openEditModal(f.name, f.url, f.category || 'Undefined', f.favicon || '', (newName, newUrl, newCat, newFav) => {
       if (newName !== null) {
         f.name = newName; f.url = newUrl; f.category = newCat; f.favicon = newFav;
         saveFavs(m); renderFavs();
