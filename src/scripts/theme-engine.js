@@ -207,7 +207,7 @@ function applyModifierToHsl([h, s, l], modifier) {
     return [newH, newS, newL];
 }
 
-function generatePaletteFromRgb(rgb, mode = 'dark', modifier = null, manualHsl = null) {
+function generatePaletteFromRgb(rgb, mode = 'dark', modifier = null, manualHsl = null, isSignatureMode = false) {
     const [r, g, b] = rgb || [0, 242, 255];
     let [h, s, l] = rgbToHsl(r, g, b);
 
@@ -223,11 +223,10 @@ function generatePaletteFromRgb(rgb, mode = 'dark', modifier = null, manualHsl =
     }
 
     // --- CHASSIS FLOOD LOGIC ---
-    // Background takes significantly more hue/saturation from the chosen color
-    const chassisSat = Math.min(0.5, tunedS * 0.6); // Flood up to 50% saturation
+    const chassisSat = Math.min(0.5, tunedS * 0.6); 
     const chassisLight = mode === 'dark' 
-        ? Math.max(0.02, tunedL * 0.15) // In dark mode, background is very dark tuned color
-        : Math.min(0.98, 0.8 + (tunedL * 0.18)); // In light mode, background is very light tuned color
+        ? Math.max(0.02, tunedL * 0.15) 
+        : Math.min(0.98, 0.8 + (tunedL * 0.18)); 
 
     let bgHsl = [tunedH, chassisSat, chassisLight];
     let bgRgb = colorNameToRgb(hslToRgb(...bgHsl));
@@ -246,11 +245,9 @@ function generatePaletteFromRgb(rgb, mode = 'dark', modifier = null, manualHsl =
     }
 
     // --- ACCENT ECOSYSTEM ---
-    // The accent (logos, viz) should always be high-vibrancy
     let primaryHsl = [tunedH, Math.max(tunedS, 0.7), tunedL];
     let primaryRgb = colorNameToRgb(hslToRgb(...primaryHsl));
     
-    // Safety check for legibility of accent
     const ACCENT_CONTRAST_RATIO = 2.0;
     while (getContrast(primaryRgb, bgRgb) < ACCENT_CONTRAST_RATIO && primaryHsl[2] < 0.9 && primaryHsl[2] > 0.1) {
         primaryHsl[2] += (mode === 'dark' ? 0.05 : -0.05);
@@ -259,7 +256,6 @@ function generatePaletteFromRgb(rgb, mode = 'dark', modifier = null, manualHsl =
     const primaryColor = hslToRgb(...primaryHsl);
     const primaryRgbStr = primaryRgb.join(',');
 
-    // Font color remains high contrast against the flooded background
     const fontHsl = [tunedH, chassisSat * 0.2, mode === 'light' ? 0.05 : 0.95];
     const buttonTextColor = getContrast(primaryRgb, [255, 255, 255]) > getContrast(primaryRgb, [0, 0, 0]) ? '#FFFFFF' : '#000000';
     
@@ -271,7 +267,7 @@ function generatePaletteFromRgb(rgb, mode = 'dark', modifier = null, manualHsl =
     const [bgR, bgG, bgB] = bgRgb;
     const gradientTop = `rgb(${Math.min(255, bgR + 10)}, ${Math.min(255, bgG + 10)}, ${Math.min(255, bgB + 15)})`;
 
-    return {
+    let palette = {
         '--bg': bgStr,
         '--bg-gradient': `radial-gradient(circle at top center, ${gradientTop} 0%, ${bgStr} 100%)`,
         '--panel': hslToRgb(tunedH, chassisSat * 1.2, bgHsl[2] + (mode === 'dark' ? 0.05 : -0.05)),
@@ -301,6 +297,20 @@ function generatePaletteFromRgb(rgb, mode = 'dark', modifier = null, manualHsl =
         '--glowfav': `0 0 10px rgba(${favoriteRgb.join(',')}, 0.4)`,
         '_hsl': { h: Math.round(primaryHsl[0] * 360), s: Math.round(primaryHsl[1] * 100), l: Math.round(primaryHsl[2] * 100) }
     };
+
+    if (isSignatureMode) {
+        const sig = (mode === 'light' ? rabbitTheme.light : rabbitTheme.dark);
+        const exclusions = ['--accent', '--green', '--pl-active', '--btn-text', '--glow', '--glow2', '_hsl'];
+        Object.keys(sig).forEach(key => {
+            if (!exclusions.includes(key)) {
+                palette[key] = sig[key];
+            }
+        });
+        // Force neutral text in signature mode for readability
+        palette['--text'] = sig['--text'];
+    }
+
+    return palette;
 }
 
 function getLuminance(rgb) {

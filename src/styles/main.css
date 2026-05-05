@@ -1375,8 +1375,8 @@ input[type=range]::-moz-range-thumb {
   letter-spacing: 1.5px;
   padding: 5px 10px;
   background: var(--panel);
-  border: 1px solid var(--border);
-  color: var(--panel-text);
+  border: 1px solid var(--accent);
+  color: var(--accent);
   font-weight: 500;
   border-radius: 2px;
   cursor: pointer;
@@ -1704,8 +1704,8 @@ body.light input[type=text] {
 .btn-hifi {
   min-width: 40px;
   background: var(--panel);
-  border: 1px solid var(--border);
-  color: var(--text);
+  border: 1px solid var(--accent);
+  color: var(--accent);
   font-family: 'Orbitron', sans-serif;
   font-weight: 900;
   font-size: 9px;
@@ -1814,8 +1814,8 @@ body.light .preset-label {
 
 .preset-trigger {
   background: var(--panel);
-  border: 1px solid var(--border);
-  color: var(--text);
+  border: 1px solid var(--accent);
+  color: var(--accent);
   height: 32px;
   padding: 0 8px;
   border-radius: 2px;
@@ -3182,7 +3182,70 @@ body.light .footer {
   background: #05070a !important; /* Solid True Black to mask scrolling cards */
 }
 
-.pl-discovery-filters::-webkit-scrollbar { display: none; }
+.modifier-chip-row {
+  display: flex !important;
+  gap: 8px !important;
+  overflow-x: auto !important;
+  padding: 8px 0 !important;
+  margin-bottom: 5px !important;
+  scrollbar-width: auto !important;
+}
+
+.modifier-chip-row::-webkit-scrollbar {
+  height: 4px !important;
+}
+
+.modifier-chip-row::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+
+.modifier-chip-row::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12) !important;
+  border-radius: 10px !important;
+  background-clip: padding-box !important;
+}
+
+.modifier-chip-row::-webkit-scrollbar-thumb:hover {
+  background: var(--accent) !important;
+}
+
+.modifier-chip {
+  padding: 4px 12px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  font-size: calc(9px * var(--text-scale));
+  color: var(--text);
+  opacity: 0.6;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: "Share Tech Mono", monospace;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.modifier-chip:hover, .modifier-chip.active {
+  opacity: 1;
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.custom-prompt-actions button {
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  opacity: 0.7;
+  background: transparent !important;
+  box-shadow: none !important; /* Eliminate Interaction Glow */
+}
+
+.custom-prompt-actions button:hover {
+  opacity: 1;
+  border-color: var(--accent) !important;
+  color: var(--accent) !important;
+  box-shadow: none !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+}
 
 .filter-chip {
   padding: 4px 10px;

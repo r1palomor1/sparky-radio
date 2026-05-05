@@ -16,6 +16,7 @@
     let studioBaseColor = null;
     let studioActiveModifier = 'bold'; // Default modifier
     let currentHsl = { h: 0, s: 0, l: 0 };
+    let isSignatureMode = localStorage.getItem('sparky_signature_mode') !== 'false'; // Default to true
 
     const CSS_COLOR_NAMES = ['AliceBlue','AntiqueWhite','Aqua','Aquamarine','Azure','Beige','Bisque','Black','BlanchedAlmond','Blue','BlueViolet','Brown','BurlyWood','CadetBlue','Chartreuse','Chocolate','Coral','CornflowerBlue','Cornsilk','Crimson','Cyan','DarkBlue','DarkCyan','DarkGoldenRod','DarkGray','DarkGreen','DarkKhaki','DarkMagenta','DarkOliveGreen','DarkOrange','DarkOrchid','DarkRed','DarkSalmon','DarkSeaGreen','DarkSlateBlue','DarkSlateGray','DarkTurquoise','DarkViolet','DeepPink','DeepSkyBlue','DimGray','DodgerBlue','FireBrick','FloralWhite','ForestGreen','Fuchsia','Gainsboro','GhostWhite','Gold','GoldenRod','Gray','Green','GreenYellow','HoneyDew','HotPink','IndianRed','Indigo','Ivory','Khaki','Lavender','LavenderBlush','LawnGreen','LemonChiffon','LightBlue','LightCoral','LightCyan','LightGoldenRodYellow','LightGray','LightGreen','LightPink','LightSalmon','LightSeaGreen','LightSkyBlue','LightSlateGray','LightSteelBlue','LightYellow','Lime','LimeGreen','Linen','Magenta','Maroon','MediumAquaMarine','MediumBlue','MediumOrchid','MediumPurple','MediumSeaGreen','MediumSlateBlue','MediumSpringGreen','MediumTurquoise','MediumVioletRed','MidnightBlue','MintCream','MistyRose','Moccasin','NavajoWhite','Navy','OldLace','Olive','OliveDrab','Orange','OrangeRed','Orchid','PaleGoldenRod','PaleGreen','PaleTurquoise','PaleVioletRed','PapayaWhip','PeachPuff','Peru','Pink','Plum','PowderBlue','Purple','RebeccaPurple','Red','RosyBrown','RoyalBlue','SaddleBrown','Salmon','SandyBrown','SeaGreen','SeaShell','Sienna','Silver','SkyBlue','SlateBlue','SlateGray','Snow','SpringGreen','SteelBlue','Tan','Teal','Thistle','Tomato','Turquoise','Violet','Wheat','White','WhiteSmoke','Yellow','YellowGreen'].sort();
     const STUDIO_MODIFIERS = ['None', 'Bold', 'Cool', 'Darker', 'Glow', 'Invert', 'Lighter', 'Metallic', 'Monochrome', 'Muted', 'Neon', 'Pastel', 'Vibrant', 'Vintage', 'Warm'];
@@ -56,7 +57,7 @@
                 error = `'${colorName}' is not a valid color.`;
             } else {
                 const activeMod = themeToApply.modifier === 'None' ? null : themeToApply.modifier;
-                themeColors = window.generatePaletteFromRgb ? window.generatePaletteFromRgb(primaryRgb, currentLuminanceMode, activeMod, manualHsl) : null;
+                themeColors = window.generatePaletteFromRgb ? window.generatePaletteFromRgb(primaryRgb, currentLuminanceMode, activeMod, manualHsl, isSignatureMode) : null;
                 if (!themeColors) {
                     error = currentLuminanceMode === 'dark' ? "This color is too dark." : "This color is too light.";
                 } else {
@@ -89,6 +90,7 @@
             currentThemeName = themeToApply.modifier ? `${themeToApply.name}:${themeToApply.modifier}` : themeToApply.name;
             localStorage.setItem('sparky_theme_name', currentThemeName);
             localStorage.setItem('sparky_luminance_mode', currentLuminanceMode);
+            localStorage.setItem('sparky_signature_mode', isSignatureMode);
             document.body.classList.toggle('light', currentLuminanceMode === 'light');
         } else {
             updateSliderUI();
@@ -139,6 +141,58 @@
         if (!themeDialogOverlay) return;
         themeDialogOverlay.style.display = 'flex';
         if (themeDialogTitle) themeDialogTitle.textContent = 'Theme Studio';
+
+        // Add Signature Mode Toggle to header if not present
+        const titleWrapper = document.querySelector('.custom-prompt-title-wrapper');
+        if (titleWrapper && !getEl('sigModeToggle')) {
+            const toggleWrap = document.createElement('div');
+            toggleWrap.id = 'sigModeToggle';
+            toggleWrap.className = 'sig-mode-header-toggle';
+            toggleWrap.style.display = 'flex';
+            toggleWrap.style.alignItems = 'center';
+            toggleWrap.style.gap = '8px';
+            toggleWrap.style.position = 'absolute';
+            toggleWrap.style.right = '12px';
+            toggleWrap.style.top = '50%';
+            toggleWrap.style.transform = 'translateY(-50%)';
+
+            const label = document.createElement('label');
+            const labelText = document.createElement('span');
+            labelText.textContent = 'SIGNATURE MODE';
+            label.appendChild(labelText);
+
+            label.style.fontSize = '8px';
+            label.style.letterSpacing = '1.5px';
+            label.style.fontWeight = '800';
+            label.style.color = isSignatureMode ? 'var(--accent)' : 'var(--dim)';
+            label.style.cursor = 'pointer';
+            label.style.display = 'flex';
+            label.style.alignItems = 'center';
+            label.style.maxWidth = '60px';
+            label.style.textAlign = 'center';
+            label.style.lineHeight = '1.1';
+            label.style.justifyContent = 'center';
+
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.checked = isSignatureMode;
+            checkbox.style.cursor = 'pointer';
+            checkbox.onchange = () => {
+                isSignatureMode = checkbox.checked;
+                label.style.color = isSignatureMode ? 'var(--accent)' : 'var(--dim)';
+                triggerHaptic();
+                if (studioBaseColor) {
+                    applyTheme({ name: `custom:${studioBaseColor}`, modifier: studioActiveModifier }, false, false, currentHsl);
+                } else {
+                    applyTheme({ name: currentThemeName });
+                }
+            };
+
+            toggleWrap.appendChild(label);
+            toggleWrap.appendChild(checkbox);
+            titleWrapper.style.position = 'relative';
+            titleWrapper.appendChild(toggleWrap);
+        }
 
         // Auto-scroll to selected color
         setTimeout(() => {
