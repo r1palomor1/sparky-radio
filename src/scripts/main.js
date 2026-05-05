@@ -1369,29 +1369,45 @@ function renderFavs() {
     return;
   }
 
-  if (favs.length > 1 && sortMode !== 'custom') {
-    const mC = Math.max(...favs.map(s => s.clickcount || 0), 1);
-    const mV = Math.max(...favs.map(s => s.votes || 0), 1);
-    const mT = Math.max(...favs.map(s => s.clicktrend || 0), 1);
+  let displayFavs = [...favs];
+  if (discoveryCategoryFilter !== 'ALL') {
+    displayFavs = displayFavs.filter(f => (f.category || 'General') === discoveryCategoryFilter);
+  }
+  if (filterHiFi) {
+    displayFavs = displayFavs.filter(s => Number(s.bitrate || 0) >= 128);
+  }
 
-    if (sortMode === 'pwr') {
-      favs.sort((a, b) => {
+  // Sorting Logic: Restricted to Power/Vote if filtered
+  const isFiltered = discoveryCategoryFilter !== 'ALL';
+  const effectiveSort = (isFiltered && sortMode === 'custom') ? 'pwr' : sortMode;
+
+  if (displayFavs.length > 1 && effectiveSort !== 'custom') {
+    const mC = Math.max(...displayFavs.map(s => s.clickcount || 0), 1);
+    const mV = Math.max(...displayFavs.map(s => s.votes || 0), 1);
+    const mT = Math.max(...displayFavs.map(s => s.clicktrend || 0), 1);
+
+    if (effectiveSort === 'pwr') {
+      displayFavs.sort((a, b) => {
         const sA = (((a.clickcount || 0) / mC) * 0.6) + (((a.votes || 0) / mV) * 0.3) + (((a.clicktrend || 0) / mT) * 0.1);
         const sB = (((b.clickcount || 0) / mC) * 0.6) + (((b.votes || 0) / mV) * 0.3) + (((b.clicktrend || 0) / mT) * 0.1);
         return sB - sA;
       });
     } else {
-      favs.sort((a, b) => (b.votes || 0) - (a.votes || 0));
+      displayFavs.sort((a, b) => (b.votes || 0) - (a.votes || 0));
     }
   }
 
-  let displayFavs = [...favs];
-  if (filterHiFi) {
-    displayFavs = displayFavs.filter(s => Number(s.bitrate || 0) >= 128);
-  }
-
   if (favs.length > 0 && !displayFavs.length) {
-    pl.innerHTML = '<div class="pl-empty"><div class="pl-empty-icon">★</div><div>No matching favorites</div></div>';
+    // We still render the chips so user can go back
+    const groups = groupFavsByCategory(favs);
+    const categories = ['ALL', ...Object.keys(groups).sort()];
+    pl.innerHTML = `
+      <div class="pl-discovery-filters list-mode-filters">
+        ${categories.map(cat => `<div class="filter-chip${discoveryCategoryFilter === cat ? ' active' : ''}" data-filter="${cat}">${cat}</div>`).join('')}
+      </div>
+      <div class="pl-empty"><div class="pl-empty-icon">★</div><div>No matching favorites</div></div>
+    `;
+    bindListChips(pl);
     return;
   }
 
@@ -1399,7 +1415,19 @@ function renderFavs() {
   const mV = Math.max(...displayFavs.map(s => s.votes || 0), 1);
   const mT = Math.max(...displayFavs.map(s => s.clicktrend || 0), 1);
 
-  pl.innerHTML = displayFavs.map((st, i) => {
+  const groups = groupFavsByCategory(favs);
+  const categories = ['ALL', ...Object.keys(groups).sort()];
+  const chipsHtml = `
+    <div class="pl-discovery-filters list-mode-filters">
+      ${categories.map(cat => `
+        <div class="filter-chip${discoveryCategoryFilter === cat ? ' active' : ''}" data-filter="${cat}">
+          ${cat}
+        </div>
+      `).join('')}
+    </div>
+  `;
+
+  pl.innerHTML = chipsHtml + displayFavs.map((st, i) => {
     const actv = currentSrc && (
       (st.stationuuid && currentSrc.stationuuid === st.stationuuid) ||
       (st.sparkyId && currentSrc.sparkyId === st.sparkyId) ||
@@ -1502,6 +1530,25 @@ function renderFavs() {
   });
 
   lastRenderedList = displayFavs;
+  bindListChips(pl);
+  scrollActiveChipIntoView(pl);
+}
+
+function bindListChips(pl) {
+  pl.querySelectorAll('.filter-chip').forEach(chip => {
+    chip.onclick = () => {
+      discoveryCategoryFilter = chip.dataset.filter;
+      // Auto-sanitize sort mode when entering a category
+      if (discoveryCategoryFilter !== 'ALL' && sortMode === 'custom') {
+        sortMode = 'pwr';
+        favSortMode = 'pwr';
+        localStorage.setItem('sparky_fav_sort_mode', 'pwr');
+        updateSortUI();
+      }
+      renderFavs();
+      triggerHaptic();
+    };
+  });
 }
 
 function groupFavsByCategory(list) {
@@ -1701,11 +1748,19 @@ function renderDiscoveryFavs(pl) {
 
   html += `</div>`;
   pl.innerHTML = html;
+  scrollActiveChipIntoView(pl);
 
   // Bind Filter Chips
   pl.querySelectorAll('.filter-chip').forEach(chip => {
     chip.onclick = () => {
       discoveryCategoryFilter = chip.dataset.filter;
+      // Auto-sanitize sort mode when entering a category
+      if (discoveryCategoryFilter !== 'ALL' && sortMode === 'custom') {
+        sortMode = 'pwr';
+        favSortMode = 'pwr';
+        localStorage.setItem('sparky_fav_sort_mode', 'pwr');
+        updateSortUI();
+      }
       renderFavs();
       triggerHaptic();
     };
@@ -1798,6 +1853,27 @@ function handleMoveFav(sid, direction) {
 function triggerHaptic() {
   if (window.navigator && window.navigator.vibrate) {
     window.navigator.vibrate(10);
+  }
+}
+
+function scrollActiveChipIntoView(container) {
+  const activeChip = container.querySelector('.filter-chip.active');
+  if (!activeChip) return;
+
+  const parent = activeChip.parentElement;
+  if (!parent) return;
+
+  // Check if already visible enough to avoid unnecessary jitter
+  const chipRect = activeChip.getBoundingClientRect();
+  const parentRect = parent.getBoundingClientRect();
+
+  const isVisible = (
+    chipRect.left >= parentRect.left &&
+    chipRect.right <= parentRect.right
+  );
+
+  if (!isVisible) {
+    activeChip.scrollIntoView({ behavior: 'auto', block: 'nearest', inline: 'center' });
   }
 }
 
@@ -2534,7 +2610,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
   // ══ SORT MODE BINDING ══
   bind('btnSortMode', () => {
-    const modes = (activeTab === 'stations' || favViewMode !== 'list') ? ['pwr', 'vote'] : ['pwr', 'vote', 'custom'];
+    const modes = (activeTab === 'stations' || favViewMode !== 'list' || discoveryCategoryFilter !== 'ALL') ? ['pwr', 'vote'] : ['pwr', 'vote', 'custom'];
     let idx = (modes.indexOf(sortMode) + 1) % modes.length;
     sortMode = modes[idx];
     if (activeTab === 'favs') {
@@ -2554,12 +2630,6 @@ window.addEventListener('DOMContentLoaded', () => {
   // ── VIEW MODE BINDINGS ──
   bind('btnViewToggle', () => {
     if (favViewMode === 'list') {
-      favViewMode = 'grouped';
-      // Auto-Collapse Feature
-      const groups = groupFavsByCategory(favs);
-      collapsedCategories = Object.keys(groups);
-      localStorage.setItem('sparky_collapsed_cats', JSON.stringify(collapsedCategories));
-    } else if (favViewMode === 'grouped') {
       favViewMode = 'discovery';
     } else {
       favViewMode = 'list';
@@ -2639,7 +2709,7 @@ function updateSortUI() {
 
   btn.innerHTML = `<span class="material-symbols-outlined">sort</span>`;
 
-  const modes = (activeTab === 'stations' || favViewMode !== 'list') ? ['pwr', 'vote'] : ['pwr', 'vote', 'custom'];
+  const modes = (activeTab === 'stations' || favViewMode !== 'list' || discoveryCategoryFilter !== 'ALL') ? ['pwr', 'vote'] : ['pwr', 'vote', 'custom'];
   const labels = { pwr: 'Power Ranking', vote: 'Vote Ranking', custom: 'Custom Order' };
   const icons = { pwr: 'bolt', vote: 'how_to_vote', custom: 'star' };
 
