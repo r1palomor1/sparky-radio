@@ -390,7 +390,7 @@ function syncFavMetadata(st) {
     let changed = false;
     if (st.votes !== undefined && favs[favIdx].votes !== st.votes) { favs[favIdx].votes = st.votes; changed = true; }
     if (st.tags !== undefined && favs[favIdx].tags !== st.tags) { favs[favIdx].tags = st.tags; changed = true; }
-    if (st.favicon !== undefined && favs[favIdx].favicon !== st.favicon) { favs[favIdx].favicon = st.favicon; changed = true; }
+    if (st.favicon !== undefined && (!favs[favIdx].favicon || favs[favIdx].favicon.trim() === '') && favs[favIdx].favicon !== st.favicon) { favs[favIdx].favicon = st.favicon; changed = true; }
     if ((st.clickcount || st.c) !== undefined && favs[favIdx].clickcount !== (st.clickcount || st.c)) { favs[favIdx].clickcount = st.clickcount || st.c; changed = true; }
     if (uuid && !favs[favIdx].id && !favs[favIdx].stationuuid) { favs[favIdx].id = uuid; changed = true; }
     if (st.isRescued !== undefined && favs[favIdx].isRescued !== st.isRescued) { favs[favIdx].isRescued = st.isRescued; changed = true; }
@@ -1070,11 +1070,14 @@ function jumpToStation(st) {
       collapsedCategories = collapsedCategories.filter(c => c !== cat);
       localStorage.setItem('sparky_collapsed_cats', JSON.stringify(collapsedCategories));
       renderFavs();
+    } else if (favViewMode === 'discovery') {
+      discoveryCategoryFilter = favMatch.category || 'Undefined';
+      renderFavs();
     }
 
     setTimeout(() => {
       const sid = favMatch.sparkyId;
-      const el = document.querySelector(`.pl-item[data-sid="${sid}"]`);
+      const el = document.querySelector(`.pl-item[data-sid="${sid}"], .pl-discovery-card[data-sid="${sid}"]`);
       if (el) {
         el.scrollIntoView({ behavior: 'smooth', block: 'center' });
         el.classList.add('jump-highlight');

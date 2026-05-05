@@ -3290,6 +3290,7 @@ body.light .filter-chip {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 12px;
+  padding-top: 5px;
   padding-bottom: 20px;
 }
 
