@@ -171,6 +171,7 @@ let filterHiFi = false;
 let isSyncingFavs = false;
 let customCategories = JSON.parse(localStorage.getItem('sparky_custom_categories') || '[]');
 let discoveryCategoryFilter = 'ALL';
+let discoveryScrollMap = {};
 
 
 let wasCollapsedBeforeEQ = false; // State persistence for EQ engaged mode
@@ -1537,6 +1538,8 @@ function renderFavs() {
 function bindListChips(pl) {
   pl.querySelectorAll('.filter-chip').forEach(chip => {
     chip.onclick = () => {
+      const favsArea = document.getElementById('playlist');
+      discoveryScrollMap[discoveryCategoryFilter] = favsArea.scrollTop;
       discoveryCategoryFilter = chip.dataset.filter;
       // Auto-sanitize sort mode when entering a category
       if (discoveryCategoryFilter !== 'ALL' && sortMode === 'custom') {
@@ -1546,6 +1549,7 @@ function bindListChips(pl) {
         updateSortUI();
       }
       renderFavs();
+      favsArea.scrollTop = discoveryScrollMap[discoveryCategoryFilter] || 0;
       triggerHaptic();
     };
   });
@@ -1758,6 +1762,8 @@ function renderDiscoveryFavs(pl) {
   // Bind Filter Chips
   pl.querySelectorAll('.filter-chip').forEach(chip => {
     chip.onclick = () => {
+      const favsArea = document.getElementById('playlist');
+      discoveryScrollMap[discoveryCategoryFilter] = favsArea.scrollTop;
       discoveryCategoryFilter = chip.dataset.filter;
       // Auto-sanitize sort mode when entering a category
       if (discoveryCategoryFilter !== 'ALL' && sortMode === 'custom') {
@@ -1767,6 +1773,7 @@ function renderDiscoveryFavs(pl) {
         updateSortUI();
       }
       renderFavs();
+      favsArea.scrollTop = discoveryScrollMap[discoveryCategoryFilter] || 0;
       triggerHaptic();
     };
   });
