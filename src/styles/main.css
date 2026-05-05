@@ -436,7 +436,7 @@ body.light .header {
 #statusText {
   font-size: calc(10px * var(--text-scale));
   letter-spacing: 2px;
-  color: var(--text);
+  color: var(--accent);
   font-weight: 500;
   transition: color 0.1s;
 }
@@ -1232,6 +1232,27 @@ input[type=range]::-moz-range-thumb {
   font-size: calc(10px * var(--text-scale));
   letter-spacing: 1.5px;
   font-weight: 500;
+}
+
+/* Unified Action Buttons (Themed) */
+.btn-action {
+  border: 1px solid var(--accent) !important;
+  color: var(--accent) !important;
+  background: rgba(255, 255, 255, 0.03) !important;
+  font-weight: 700 !important;
+  letter-spacing: 1.5px !important;
+  text-transform: uppercase !important;
+  transition: all 0.2s ease !important;
+}
+
+.btn-action:hover {
+  background: var(--accent) !important;
+  color: #000 !important;
+  box-shadow: 0 0 15px color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+.btn-action:active {
+  transform: scale(0.97);
 }
 
 /* Hidden JS-compat buttons (Shuffle, Repeat, EQ — logic preserved, UI removed) */
@@ -2081,13 +2102,13 @@ body.light .preset-label {
 .pl-view-btn {
   background: none;
   border: none;
-  color: var(--text) !important;
+  color: var(--accent) !important;
   cursor: pointer;
   padding: 4px;
   display: flex;
   align-items: center;
   transition: all 0.2s;
-  opacity: 0.6;
+  opacity: 0.9;
 }
 
 .pl-view-btn:hover, .pl-view-btn.active {
@@ -2254,13 +2275,27 @@ body.light .preset-label {
   font-size: 20px !important;
 }
 
+.pl-edit {
+  opacity: 0.4 !important;
+}
+
+.pl-edit:hover {
+  color: var(--accent) !important;
+  opacity: 1 !important;
+}
+
 .pl-heart.is-fav {
   color: var(--accent);
   font-variation-settings: 'FILL' 1;
 }
 
+.pl-remove {
+  opacity: 0.4 !important;
+}
+
 .pl-remove:hover {
-  color: var(--accent2);
+  color: var(--accent2) !important;
+  opacity: 1 !important;
 }
 
 /* REMAINING LEGACY FRAGMENTS PURGED FOR HIGH FIDELITY STABILITY */

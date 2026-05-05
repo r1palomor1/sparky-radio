@@ -27,7 +27,11 @@
 }
 
 /* ── SEMANTIC PROTECTIONS ── */
-.pl-remove, .btn-danger, .preset-del:hover {
+.btn-danger, .preset-del:hover {
+    color: var(--semantic-danger) !important;
+}
+
+.pl-remove:hover {
     color: var(--semantic-danger) !important;
 }
 
@@ -72,7 +76,7 @@
     font-weight: 800 !important;
 }
 
-.pl-action-btn, .btn-footer-nav, .btn-footer-play {
+.btn-footer-nav, .btn-footer-play {
     opacity: 1 !important;
 }
 

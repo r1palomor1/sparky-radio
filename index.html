@@ -280,7 +280,7 @@
         <input type="range" id="textScaleSlider" min="0.5" max="1.5" step="0.05" value="1.0"
           style="width: 100%; margin-bottom: 8px;">
         <div style="display: flex; justify-content: flex-end; align-items: center; gap: 15px;">
-          <button class="btn btn-sm" style="font-size: calc(8px * var(--text-scale)); padding: 2px 6px;"
+          <button class="btn btn-sm btn-action" style="font-size: calc(8px * var(--text-scale)); padding: 2px 8px;"
             id="btnResetScale">RESET TO 1x</button>
         </div>
 
@@ -313,15 +313,15 @@
         <div style="font-size: calc(10px * var(--text-scale)); color: var(--accent); letter-spacing: 1.5px; font-weight: 500; margin-bottom: 12px;">
           VAULT MANAGEMENT</div>
         <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-          <button class="btn btn-sm" style="flex: 1;" id="btnExportFavs">EXPORT VAULT</button>
-          <button class="btn btn-sm" style="flex: 1;" id="btnImportFavs">RESTORE VAULT</button>
+          <button class="btn btn-sm btn-action" style="flex: 1;" id="btnExportFavs">EXPORT VAULT</button>
+          <button class="btn btn-sm btn-action" style="flex: 1;" id="btnImportFavs">RESTORE VAULT</button>
         </div>
-        <button class="btn btn-sm" style="width: 100%; border-color: var(--accent); color: var(--accent); margin-top: 15px;" id="btnAddVault">+ ADD CUSTOM STATION</button>
+        <button class="btn btn-sm btn-action" style="width: 100%; margin-top: 15px;" id="btnAddVault">+ ADD CUSTOM STATION</button>
       </div>
 
       <div style="margin-bottom: 20px;">
-        <button class="btn"
-          style="justify-content: center; padding: 12px; width: 100%; border-color: var(--accent);"
+        <button class="btn btn-action"
+          style="justify-content: center; padding: 12px; width: 100%;"
           id="btnOpenDebug">
           <span class="material-symbols-outlined" style="font-size: calc(18px * var(--text-scale));">terminal</span>
           VIEW SYSTEM DIAGNOSTICS
@@ -338,7 +338,7 @@
         </div>
       </div>
       <div class="modal-footer" style="margin-top: 20px;">
-        <button class="btn btn-sm" id="btnSettingsClose">DISMISS</button>
+        <button class="btn btn-sm btn-action" id="btnSettingsClose">DISMISS</button>
       </div>
     </div>
   </div>

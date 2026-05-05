@@ -1310,7 +1310,7 @@ function renderStations() {
         <button class="pl-action-btn pl-heart-btn" data-fav="${i}" title="Toggle Favorite">
           <span class="material-symbols-outlined pl-heart${favd ? ' is-fav' : ''}">favorite</span>
         </button>
-        <button class="pl-action-btn pl-remove" data-rmst="${i}" title="Remove Station" style="color:var(--accent2)">
+        <button class="pl-action-btn pl-remove" data-rmst="${i}" title="Remove Station">
           <span class="material-symbols-outlined">delete</span>
         </button>
       </div>
@@ -1471,7 +1471,7 @@ function renderFavs() {
         <button class="pl-action-btn pl-edit" data-edit="${st.sparkyId}" title="Edit Favorite">
           <span class="material-symbols-outlined">edit</span>
         </button>
-        <button class="pl-action-btn pl-remove" data-rmfav="${st.sparkyId}" title="Remove Favorite" style="color:var(--accent2)">
+        <button class="pl-action-btn pl-remove" data-rmfav="${st.sparkyId}" title="Remove Favorite">
           <span class="material-symbols-outlined">delete</span>
         </button>
         ${isManual ? `
@@ -1626,7 +1626,7 @@ function renderGroupedFavs(pl) {
               </div>
               <div class="pl-actions-col">
                 <button class="pl-action-btn pl-edit" data-edit="${st.sparkyId}"><span class="material-symbols-outlined">edit</span></button>
-                <button class="pl-action-btn pl-remove" data-rmfav="${st.sparkyId}" style="color:var(--accent2)"><span class="material-symbols-outlined">delete</span></button>
+                <button class="pl-action-btn pl-remove" data-rmfav="${st.sparkyId}"><span class="material-symbols-outlined">delete</span></button>
               </div>
             </div>`;
     }).join('')}
