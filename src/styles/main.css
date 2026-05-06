@@ -3820,12 +3820,18 @@ body.light .filter-chip {
 
 .yt-search-wrap .yt-search-icon { font-size: 16px; color: var(--dim); flex-shrink: 0; }
 
-#ytSearchInput {
+.yt-input-container {
   flex: 1;
+  position: relative;
+  display: flex;
+}
+
+#ytSearchInput {
+  width: 100%;
   background: var(--bg);
   border: 1px solid var(--border);
   color: var(--text);
-  padding: 6px 10px;
+  padding: 6px 30px 6px 10px;
   font-family: 'Share Tech Mono', monospace;
   font-size: calc(11px * var(--text-scale));
   outline: none;

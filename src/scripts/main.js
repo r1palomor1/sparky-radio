@@ -3383,19 +3383,24 @@ function renderYtPlaylistResults(playlists) {
 }
 
 function attachYtCardListeners(container) {
+  const allCards = Array.from(container.querySelectorAll('.yt-card'));
+  const queue = allCards.map(c => ({
+    id:      c.dataset.id,
+    type:    c.dataset.type,
+    title:   c.dataset.title,
+    channel: c.dataset.channel,
+    thumb:   c.dataset.thumb
+  }));
+
   // Card body click → play
-  container.querySelectorAll('.yt-card').forEach(card => {
+  allCards.forEach((card, index) => {
     card.addEventListener('click', e => {
       if (e.target.closest('.yt-card-fav')) return;
-      container.querySelectorAll('.yt-card').forEach(c => c.classList.remove('active'));
-      card.classList.add('active');
-      playYtItem({
-        id:      card.dataset.id,
-        type:    card.dataset.type,
-        title:   card.dataset.title,
-        channel: card.dataset.channel,
-        thumb:   card.dataset.thumb
-      });
+      
+      sparkyYtState.currentQueue = queue;
+      sparkyYtState.queueIndex = index;
+      
+      playYtItem(queue[index]);
     });
   });
 
@@ -3424,19 +3429,22 @@ function attachYtCardListeners(container) {
   });
 }
 
+function highlightYtCard(id) {
+  document.querySelectorAll('.yt-card').forEach(c => {
+    c.classList.toggle('active', c.dataset.id === id);
+  });
+}
+
 // ── 3.2: Lazy Player Loading ─────────────────────────────────────
 function playYtItem(item) {
   pauseRadioForYt();
+  highlightYtCard(item.id);
 
   // Update NP metadata immediately
   const titleEl   = document.getElementById('ytNpTitle');
   const channelEl = document.getElementById('ytNpChannel');
   if (titleEl)   titleEl.textContent   = item.title   || 'Loading...';
   if (channelEl) channelEl.textContent = item.type === 'playlist' ? '▶ Playlist' : '▶ Video';
-
-  // Store current item for queue use in Phase 4
-  sparkyYtState.currentQueue = [item];
-  sparkyYtState.queueIndex   = 0;
 
   if (ytIframeApiReady && sparkyYtState.playerInstance) {
     // Player exists — load directly
@@ -3504,7 +3512,10 @@ function createYtPlayer(item) {
       controls:       1,
       autoplay:       1,
       rel:            0,
-      modestbranding: 1
+      modestbranding: 1,
+      fs:             0,
+      enablejsapi:    1,
+      origin:         window.location.origin
     },
     events: {
       onReady: event => {
@@ -3541,12 +3552,30 @@ function toggleYtPlay() {
 
 function playYtNext() {
   const p = sparkyYtState.playerInstance;
-  if (p) p.nextVideo();
+  if (!p) return;
+  const current = sparkyYtState.currentQueue[sparkyYtState.queueIndex];
+  if (current && current.type === 'playlist') {
+    p.nextVideo();
+  } else {
+    if (sparkyYtState.queueIndex < sparkyYtState.currentQueue.length - 1) {
+      sparkyYtState.queueIndex++;
+      playYtItem(sparkyYtState.currentQueue[sparkyYtState.queueIndex]);
+    }
+  }
 }
 
 function playYtPrev() {
   const p = sparkyYtState.playerInstance;
-  if (p) p.previousVideo();
+  if (!p) return;
+  const current = sparkyYtState.currentQueue[sparkyYtState.queueIndex];
+  if (current && current.type === 'playlist') {
+    p.previousVideo();
+  } else {
+    if (sparkyYtState.queueIndex > 0) {
+      sparkyYtState.queueIndex--;
+      playYtItem(sparkyYtState.currentQueue[sparkyYtState.queueIndex]);
+    }
+  }
 }
 
 function pauseRadioForYt() {
