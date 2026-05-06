@@ -1,0 +1,14 @@
+{
+  "functions": {
+    "api/fetchPlaylist.js": {
+      "runtime": "@vercel/node@4.0.0",
+      "memory": 512,
+      "maxDuration": 60
+    },
+    "api/searchVideos.js": {
+      "runtime": "@vercel/node@4.0.0",
+      "memory": 512,
+      "maxDuration": 60
+    }
+  }
+}

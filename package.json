@@ -9,5 +9,8 @@
   },
   "devDependencies": {
     "vite": "^5.0.0"
+  },
+  "dependencies": {
+    "youtubei.js": "^17.0.1"
   }
 }
