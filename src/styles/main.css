@@ -3514,8 +3514,8 @@ body.light .filter-chip {
   position: relative;
   transition: border-color 0.2s ease;
   cursor: pointer;
-  aspect-ratio: 1 / 1.4;
-  min-height: 120px;
+  aspect-ratio: 1 / 1.1;
+  min-height: 110px;
 }
 
 .pl-discovery-card.active {
@@ -3526,7 +3526,7 @@ body.light .filter-chip {
 
 .card-favicon-wrap {
   width: 100%;
-  aspect-ratio: 1 / 0.75;
+  aspect-ratio: 1 / 0.65;
   background: var(--subdim);
   display: flex;
   align-items: center;
