@@ -2825,9 +2825,9 @@ window.addEventListener('DOMContentLoaded', () => {
     expandFilters(); if (q) { switchTab('stations'); searchStations(q); }
   });
 
-  bind('btnPlayFooter', () => togglePlay());
-  bind('btnNextFooter', () => playNext());
-  bind('btnPrevFooter', () => playPrevious());
+  bind('btnPlayFooter', () => { if (typeof sparkyYtState !== 'undefined' && sparkyYtState.isModeActive) toggleYtPlay(); else togglePlay(); });
+  bind('btnNextFooter', () => { if (typeof sparkyYtState !== 'undefined' && sparkyYtState.isModeActive) playYtNext(); else playNext(); });
+  bind('btnPrevFooter', () => { if (typeof sparkyYtState !== 'undefined' && sparkyYtState.isModeActive) playYtPrev(); else playPrevious(); });
 
   bind('btnAddVault', handleAddStation);
   bind('btnRemove', handleRemoveStation);
@@ -3213,8 +3213,16 @@ function switchYtTab(mode) {
   if (results)    results.classList.toggle('hidden', isHub);
   if (hub)        hub.classList.toggle('hidden', !isHub);
 
-  if (isHub) renderYtHub();
-  else if (mode !== sparkyYtState.searchCache.type) clearYtResults();
+  const input = document.getElementById('ytSearchInput');
+  if (isHub) {
+    renderYtHub();
+  } else if (input && input.value.trim() && mode !== sparkyYtState.searchCache.type) {
+    runYtSearch(); // Auto-search using existing query when switching tabs
+  } else if (!input || !input.value.trim()) {
+    clearYtResults();
+  } else if (mode !== sparkyYtState.searchCache.type) {
+    clearYtResults();
+  }
 }
 
 function clearYtResults() {
@@ -3250,13 +3258,7 @@ function renderYtHub() {
     </div>
   `).join('');
 
-  hub.querySelectorAll('.yt-card-fav').forEach(btn => {
-    btn.addEventListener('click', e => {
-      e.stopPropagation();
-      removeYtFav(btn.dataset.id);
-      renderYtHub();
-    });
-  });
+  attachYtCardListeners(hub);
 }
 
 function isYtFav(id)     { return loadYtFavs().some(f => f.id === id); }
@@ -3520,9 +3522,31 @@ function createYtPlayer(item) {
 
 // ── 3.3: Audio Overlap Prevention ────────────────────────────────
 function onYtStateChange(event) {
+  const btnIcon = document.querySelector('#btnPlayFooter .material-symbols-outlined');
   if (event.data === YT.PlayerState.PLAYING) {
     pauseRadioForYt();
+    if (btnIcon && sparkyYtState.isModeActive) btnIcon.textContent = 'pause';
+  } else if (event.data === YT.PlayerState.PAUSED || event.data === YT.PlayerState.ENDED) {
+    if (btnIcon && sparkyYtState.isModeActive) btnIcon.textContent = 'play_arrow';
   }
+}
+
+function toggleYtPlay() {
+  const p = sparkyYtState.playerInstance;
+  if (!p) return;
+  const state = p.getPlayerState();
+  if (state === YT.PlayerState.PLAYING) p.pauseVideo();
+  else p.playVideo();
+}
+
+function playYtNext() {
+  const p = sparkyYtState.playerInstance;
+  if (p) p.nextVideo();
+}
+
+function playYtPrev() {
+  const p = sparkyYtState.playerInstance;
+  if (p) p.previousVideo();
 }
 
 function pauseRadioForYt() {
@@ -3534,7 +3558,27 @@ function pauseRadioForYt() {
 }
 
 // ── Search Event Wiring ───────────────────────────────────────────
+const ytSearchInput = document.getElementById('ytSearchInput');
+const btnYtSearchClear = document.getElementById('btnYtSearchClear');
+
+const toggleYtSearchClear = () => {
+  if (btnYtSearchClear && ytSearchInput) {
+    btnYtSearchClear.style.display = ytSearchInput.value ? 'flex' : 'none';
+  }
+};
+
 document.getElementById('btnYtSearch')?.addEventListener('click', runYtSearch);
-document.getElementById('ytSearchInput')?.addEventListener('keydown', e => {
+ytSearchInput?.addEventListener('keydown', e => {
   if (e.key === 'Enter') runYtSearch();
+});
+ytSearchInput?.addEventListener('input', toggleYtSearchClear);
+
+btnYtSearchClear?.addEventListener('click', () => {
+  if (ytSearchInput) {
+    ytSearchInput.value = '';
+    ytSearchInput.focus();
+    toggleYtSearchClear();
+    clearYtResults();
+    sparkyYtState.searchCache = { query: '', results: [], type: sparkyYtState.currentSubMode };
+  }
 });
