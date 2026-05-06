@@ -3120,7 +3120,162 @@ async function healFavoritesFavicons() {
 
   if (restoredCount > 0) {
     saveFavs(m);
+  if (restoredCount > 0) {
+    saveFavs(m);
     console.log(`[SELF-HEAL] Successfully restored ${restoredCount} icons. Refreshing UI...`);
     if (activeTab === 'favs') renderFavs();
   }
+}
+
+// ════════════════════════════════════════════════════════════════
+// ║  SPARKY YT MODULE — Phase 2: State Manager & DOM Toggling  ║
+// ════════════════════════════════════════════════════════════════
+
+const sparkyYtState = {
+  isModeActive: false,
+  playerInstance: null,
+  currentQueue: [],
+  queueIndex: 0,
+  currentSubMode: 'videos', // 'videos' | 'playlists' | 'hub'
+  searchCache: { query: '', results: [], type: '' }
+};
+
+const YT_FAVS_KEY    = 'sparky_yt_favorites';
+const YT_HISTORY_KEY = 'sparky_yt_history';
+
+function initYtStorage() {
+  if (!localStorage.getItem(YT_FAVS_KEY))    localStorage.setItem(YT_FAVS_KEY,    JSON.stringify([]));
+  if (!localStorage.getItem(YT_HISTORY_KEY)) localStorage.setItem(YT_HISTORY_KEY, JSON.stringify([]));
+}
+
+function loadYtFavs()    { try { return JSON.parse(localStorage.getItem(YT_FAVS_KEY))    || []; } catch { return []; } }
+function loadYtHistory() { try { return JSON.parse(localStorage.getItem(YT_HISTORY_KEY)) || []; } catch { return []; } }
+function saveYtFavs(arr) { localStorage.setItem(YT_FAVS_KEY, JSON.stringify(arr)); }
+
+// ── Core Mode Toggle ─────────────────────────────────────────────
+function toggleYtMode(activate) {
+  sparkyYtState.isModeActive = activate;
+
+  const radioView = document.getElementById('radio-view');
+  const ytView    = document.getElementById('yt-view');
+  const ytPlayer  = document.getElementById('sparky-yt-player-wrap');
+  const npBody    = document.getElementById('npJumpArea');
+  const npMeta    = document.getElementById('npMeta');
+  const eqBtn     = document.getElementById('btnEq');
+  const eqRack    = document.getElementById('eqRack');
+
+  if (radioView) radioView.classList.toggle('hidden', activate);
+  if (ytView)    ytView.classList.toggle('hidden', !activate);
+  if (npBody)    npBody.classList.toggle('hidden', activate);
+  if (npMeta)    npMeta.classList.toggle('hidden', activate);
+  if (ytPlayer)  ytPlayer.classList.toggle('hidden', !activate);
+
+  // Suppress EQ in YT mode — no audio routing needed
+  if (eqBtn)  eqBtn.style.display  = activate ? 'none' : '';
+  if (eqRack) eqRack.style.display = activate ? 'none' : '';
+
+  // Footer icon swap
+  const icon = document.getElementById('modeToggleIcon');
+  const btn  = document.getElementById('btnModeToggle');
+  if (icon) icon.textContent = activate ? 'smart_display' : 'radio';
+  if (btn) {
+    btn.title = activate ? 'Switch to Radio Mode' : 'Switch to Video Mode';
+    btn.classList.toggle('yt-mode-active', activate);
+  }
+
+  // Pause radio when entering YT mode
+  if (activate) {
+    const audio = document.getElementById('audioEl');
+    if (audio && !audio.paused) audio.pause();
+  }
+
+  // Pause YT when returning to radio
+  if (!activate && sparkyYtState.playerInstance) {
+    try { sparkyYtState.playerInstance.pauseVideo(); } catch (e) { /* player may not be ready */ }
+  }
+
+  localStorage.setItem('sparky_yt_mode_active', activate ? '1' : '0');
+  console.log(`[YT] Mode → ${activate ? 'VIDEO' : 'RADIO'}`);
+}
+
+// ── Sub-mode Tab Switching ───────────────────────────────────────
+function switchYtTab(mode) {
+  sparkyYtState.currentSubMode = mode;
+  document.querySelectorAll('.yt-tab').forEach(t => t.classList.toggle('active', t.dataset.mode === mode));
+
+  const searchWrap = document.getElementById('ytSearchWrap');
+  const results    = document.getElementById('ytResults');
+  const hub        = document.getElementById('ytHub');
+  const isHub = mode === 'hub';
+
+  if (searchWrap) searchWrap.classList.toggle('hidden', isHub);
+  if (results)    results.classList.toggle('hidden', isHub);
+  if (hub)        hub.classList.toggle('hidden', !isHub);
+
+  if (isHub) renderYtHub();
+  else if (mode !== sparkyYtState.searchCache.type) clearYtResults();
+}
+
+function clearYtResults() {
+  const el = document.getElementById('ytResults');
+  if (!el) return;
+  el.innerHTML = `<div class="pl-empty">
+    <div class="pl-empty-icon">&#9654;&#65039;</div>
+    <div>Search for ${sparkyYtState.currentSubMode === 'playlists' ? 'playlists' : 'videos'} above</div>
+  </div>`;
+}
+
+function renderYtHub() {
+  const hub = document.getElementById('ytHub');
+  if (!hub) return;
+  const favs = loadYtFavs();
+  if (!favs.length) {
+    hub.innerHTML = `<div class="pl-empty">
+      <div class="pl-empty-icon">&#128420;</div>
+      <div>No saved videos yet &mdash; heart a video to save it here</div>
+    </div>`;
+    return;
+  }
+  hub.innerHTML = favs.map(item => `
+    <div class="yt-card" data-id="${item.id}" data-type="${item.type}">
+      <img class="yt-card-thumb" src="${item.thumb}" alt="" loading="lazy">
+      <div class="yt-card-info">
+        <div class="yt-card-title">${item.title}</div>
+        <div class="yt-card-channel">${item.channel || ''}</div>
+      </div>
+      <button class="yt-card-fav active" data-id="${item.id}" title="Remove from Hub">
+        <span class="material-symbols-outlined">favorite</span>
+      </button>
+    </div>
+  `).join('');
+
+  hub.querySelectorAll('.yt-card-fav').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      removeYtFav(btn.dataset.id);
+      renderYtHub();
+    });
+  });
+}
+
+function isYtFav(id)     { return loadYtFavs().some(f => f.id === id); }
+function addYtFav(item)  { const f = loadYtFavs(); if (!isYtFav(item.id)) { f.push({ ...item, addedAt: Date.now() }); saveYtFavs(f); } }
+function removeYtFav(id) { saveYtFavs(loadYtFavs().filter(f => f.id !== id)); }
+
+// ── Boot ─────────────────────────────────────────────────────────
+initYtStorage();
+
+document.getElementById('btnModeToggle')?.addEventListener('click', () => {
+  toggleYtMode(!sparkyYtState.isModeActive);
+});
+
+['ytTabVideos', 'ytTabPlaylists', 'ytTabHub'].forEach(id => {
+  document.getElementById(id)?.addEventListener('click', e => {
+    switchYtTab(e.currentTarget.dataset.mode);
+  });
+});
+
+// Restore last mode on reload
+if (localStorage.getItem('sparky_yt_mode_active') === '1') {
+  toggleYtMode(true);
 }

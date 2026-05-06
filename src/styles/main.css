@@ -3721,3 +3721,277 @@ body.light .filter-chip {
     max-width: 1100px !important;
   }
 }
+
+/* ══════════════════════════════════════════════════════════════
+   SPARKY YT MODULE — Phase 2: View Styles
+   ══════════════════════════════════════════════════════════════ */
+
+/* Utility: hidden state (used by toggle logic) */
+.hidden { display: none !important; }
+
+/* ── Mode Toggle Button ─────────────────────────────────────── */
+.btn-mode-toggle {
+  transition: all 0.2s ease;
+  border-color: var(--border);
+  opacity: 0.7;
+}
+.btn-mode-toggle:hover {
+  opacity: 1;
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.btn-mode-toggle.yt-mode-active {
+  opacity: 1;
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: var(--glow);
+}
+
+/* ── YT View Container ──────────────────────────────────────── */
+.yt-view {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* ── YT Sub-mode Tab Row ────────────────────────────────────── */
+.yt-tab-row {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--border);
+  background: var(--panel);
+  flex-shrink: 0;
+}
+
+.yt-tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 9px 6px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--dim);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: calc(10px * var(--text-scale));
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.yt-tab .material-symbols-outlined { font-size: 16px; }
+
+.yt-tab:hover {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.yt-tab.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+  background: var(--tab-active);
+}
+
+/* ── YT Search Bar ──────────────────────────────────────────── */
+.yt-search-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.yt-search-wrap .search-icon { font-size: 16px; color: var(--dim); flex-shrink: 0; }
+
+#ytSearchInput {
+  flex: 1;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 6px 10px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: calc(11px * var(--text-scale));
+  outline: none;
+  border-radius: 2px;
+  transition: border-color 0.15s;
+}
+#ytSearchInput:focus { border-color: var(--accent); }
+
+/* ── YT Results & Hub Scroll Containers ─────────────────────── */
+.yt-results,
+.yt-hub {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+}
+
+/* ── YT Video / Playlist Card ───────────────────────────────── */
+.yt-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+  flex-shrink: 0;
+}
+
+.yt-card:hover {
+  border-color: var(--accent);
+  background: var(--pl-hover);
+}
+
+.yt-card.active {
+  border-color: var(--accent);
+  background: var(--pl-active);
+  box-shadow: var(--glow);
+}
+
+.yt-card-thumb {
+  width: 90px;
+  height: 54px;
+  object-fit: cover;
+  border-radius: 3px;
+  flex-shrink: 0;
+  background: var(--subdim);
+}
+
+.yt-card-info {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.yt-card-title {
+  font-family: 'Archivo', sans-serif;
+  font-size: calc(11px * var(--text-scale));
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.yt-card-channel {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: calc(9px * var(--text-scale));
+  color: var(--dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.yt-card-duration {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: calc(9px * var(--text-scale));
+  color: var(--accent);
+  white-space: nowrap;
+}
+
+.yt-card-fav {
+  background: none;
+  border: none;
+  color: var(--dim);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  transition: color 0.15s, transform 0.15s;
+  flex-shrink: 0;
+}
+.yt-card-fav:hover { color: var(--accent); transform: scale(1.15); }
+.yt-card-fav.active { color: #e44; }
+.yt-card-fav .material-symbols-outlined { font-size: 18px; }
+
+/* ── YT NP Player Container (inside Now Playing zone) ───────── */
+.sparky-yt-player-wrap {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  gap: 8px;
+  padding: 4px 0;
+}
+
+#sparky-yt-player {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #000;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+#sparky-yt-player iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+.yt-np-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0 2px;
+}
+
+.yt-np-title {
+  font-family: 'Archivo', sans-serif;
+  font-size: calc(12px * var(--text-scale));
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.yt-np-channel {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: calc(9px * var(--text-scale));
+  color: var(--dim);
+}
+
+/* ── Loading State ──────────────────────────────────────────── */
+.yt-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 30px;
+  color: var(--dim);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: calc(11px * var(--text-scale));
+  letter-spacing: 1px;
+  gap: 10px;
+}
+
+.yt-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: ytSpin 0.7s linear infinite;
+}
+
+@keyframes ytSpin {
+  to { transform: rotate(360deg); }
+}

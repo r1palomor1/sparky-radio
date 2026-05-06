@@ -107,9 +107,21 @@
       </div>
     </div>
 
+      <!-- SPARKY YT PLAYER WRAP (Injected into NP area, hidden in Radio Mode) -->
+      <div id="sparky-yt-player-wrap" class="sparky-yt-player-wrap hidden">
+        <div id="sparky-yt-player"></div>
+        <div class="yt-np-meta" id="ytNpMeta">
+          <div class="yt-np-title" id="ytNpTitle">No video selected</div>
+          <div class="yt-np-channel" id="ytNpChannel"></div>
+        </div>
+      </div>
 
 
 
+
+
+    <!-- ═══ RADIO VIEW (Hidden in Video Mode) ═══ -->
+    <div id="radio-view">
 
     <!-- TAB + SEARCH COMBINED ROW -->
     <div class="tab-search-row">
@@ -179,6 +191,51 @@
       </div>
     </div>
 
+    </div><!-- /#radio-view -->
+
+    <!-- ═══ YT VIEW (Hidden in Radio Mode) ═══ -->
+    <div id="yt-view" class="yt-view hidden">
+
+      <!-- YT Sub-mode Tabs -->
+      <div class="yt-tab-row">
+        <button class="yt-tab active" id="ytTabVideos" data-mode="videos">
+          <span class="material-symbols-outlined">play_circle</span>
+          Videos
+        </button>
+        <button class="yt-tab" id="ytTabPlaylists" data-mode="playlists">
+          <span class="material-symbols-outlined">queue_music</span>
+          Playlists
+        </button>
+        <button class="yt-tab" id="ytTabHub" data-mode="hub">
+          <span class="material-symbols-outlined">favorite</span>
+          Hub
+        </button>
+      </div>
+
+      <!-- YT Search Bar (hidden on Hub tab) -->
+      <div class="yt-search-wrap" id="ytSearchWrap">
+        <span class="search-icon">&#128269;</span>
+        <input type="text" id="ytSearchInput" placeholder="Search YouTube..." />
+        <button class="btn btn-search" id="btnYtSearch">Search</button>
+      </div>
+
+      <!-- Results / Hub Container -->
+      <div class="yt-results" id="ytResults">
+        <div class="pl-empty">
+          <div class="pl-empty-icon">&#9654;&#65039;</div>
+          <div>Search for videos or playlists above</div>
+        </div>
+      </div>
+
+      <div class="yt-hub hidden" id="ytHub">
+        <div class="pl-empty">
+          <div class="pl-empty-icon">&#128420;</div>
+          <div>No saved videos yet &mdash; heart a video to save it here</div>
+        </div>
+      </div>
+
+    </div><!-- /#yt-view -->
+
     <!-- FOOTER -->
     <div class="footer">
       <!-- INTEGRATED VOLUME ROW (Dynamic) -->
@@ -191,10 +248,10 @@
       </div>
 
       <div class="footer-layout">
-        <!-- BRANDING ANCHOR (Restores Center Symmetry) -->
-        <div class="btn btn-footer-nav" style="opacity: 0.4; cursor: default; border-color: transparent;">
-          <span class="material-symbols-outlined">radio</span>
-        </div>
+        <!-- MODE TOGGLE: Radio ↔ Video -->
+        <button class="btn btn-footer-nav btn-mode-toggle" id="btnModeToggle" title="Switch to Video Mode">
+          <span class="material-symbols-outlined" id="modeToggleIcon">radio</span>
+        </button>
 
 
         <button class="btn btn-footer-nav" id="btnPrevFooter" title="Previous station">
