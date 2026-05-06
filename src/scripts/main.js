@@ -249,7 +249,7 @@ function trackUsage(st) {
   if (!st) return;
   if (usagePulseTimer) clearTimeout(usagePulseTimer);
 
-  // 30-second "Meaningful Play" validation pulse
+  // 2-minute (120,000ms) "Meaningful Play" validation pulse
   usagePulseTimer = setTimeout(() => {
     // Verify we are still playing the same station
     if (!currentSrc || (st.stationuuid && currentSrc.stationuuid !== st.stationuuid)) return;
@@ -263,6 +263,8 @@ function trackUsage(st) {
     }
 
     const stats = loadUsage();
+    const now = Date.now();
+    const oneHourMs = 60 * 60 * 1000;
 
     if (!stats[id]) {
       stats[id] = {
@@ -280,9 +282,15 @@ function trackUsage(st) {
       };
     }
 
-    stats[id].count++;
+    // 1-HOUR RATE LIMIT: Only increment the play count if an hour has passed
+    if (stats[id].lastPlayed && (now - stats[id].lastPlayed) < oneHourMs) {
+      console.log(`[PULSE] 1-hour rate limit active for ${st.name}. Updating timestamp without incrementing count.`);
+    } else {
+      stats[id].count++;
+    }
+
     lastCountedId = id; // Lock this station as the "Current Active Session"
-    stats[id].lastPlayed = Date.now();
+    stats[id].lastPlayed = now;
     stats[id].name = st.name; // Keep metadata fresh
     stats[id].favicon = st.favicon || '';
     stats[id].votes = st.votes || 0;
@@ -291,7 +299,6 @@ function trackUsage(st) {
 
     // RETENTION POLICY: Top 50 stations + 30-day stale prune
     const entries = Object.entries(stats);
-    const now = Date.now();
     const thirtyDays = 30 * 24 * 60 * 60 * 1000;
 
     // Filter out stale low-usage entries
@@ -308,7 +315,7 @@ function trackUsage(st) {
 
     saveUsage(Object.fromEntries(filtered));
     console.log(`[PULSE] Usage validated for ${st.name}. Total plays: ${stats[id].count}`);
-  }, 30000);
+  }, 120000);
 }
 
 function loadFavs() {
