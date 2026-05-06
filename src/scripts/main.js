@@ -147,7 +147,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 // ══ STATE ══════════════════════════════════
 const audioEl = document.getElementById('audioEl');
 let stations = [];
-let activeTab = 'stations';
+let activeTab = 'favs';
 let sortMode = 'pwr';
 let favSortMode = localStorage.getItem('sparky_fav_sort_mode') || 'pwr';
 let favViewMode = localStorage.getItem('sparky_fav_view') || 'list';
@@ -228,7 +228,7 @@ function saveUsage(data) { localStorage.setItem(USAGE_KEY, JSON.stringify(data))
 function getRecentStations() {
   const stats = loadUsage();
   const fv = loadFavs();
-  
+
   return Object.values(stats)
     .sort((a, b) => b.count - a.count)
     .slice(0, 50) // Internal Top 50
@@ -253,17 +253,17 @@ function trackUsage(st) {
   usagePulseTimer = setTimeout(() => {
     // Verify we are still playing the same station
     if (!currentSrc || (st.stationuuid && currentSrc.stationuuid !== st.stationuuid)) return;
-    
+
     const id = st.stationuuid || st.id || `${st.name}_${st.url}`;
-    
+
     // SEQUENTIAL SESSION FILTER: Don't count back-to-back plays of the same station
     if (id === lastCountedId) {
-       console.log(`[PULSE] Session continuation detected for ${st.name}. Skipping redundant count.`);
-       return;
+      console.log(`[PULSE] Session continuation detected for ${st.name}. Skipping redundant count.`);
+      return;
     }
 
     const stats = loadUsage();
-    
+
     if (!stats[id]) {
       stats[id] = {
         count: 0,
@@ -279,7 +279,7 @@ function trackUsage(st) {
         clicktrend: st.clicktrend || 0
       };
     }
-    
+
     stats[id].count++;
     lastCountedId = id; // Lock this station as the "Current Active Session"
     stats[id].lastPlayed = Date.now();
@@ -288,24 +288,24 @@ function trackUsage(st) {
     stats[id].votes = st.votes || 0;
     stats[id].clickcount = st.clickcount || st.c || 0;
     stats[id].clicktrend = st.clicktrend || 0;
-    
+
     // RETENTION POLICY: Top 50 stations + 30-day stale prune
     const entries = Object.entries(stats);
     const now = Date.now();
     const thirtyDays = 30 * 24 * 60 * 60 * 1000;
-    
+
     // Filter out stale low-usage entries
     let filtered = entries.filter(([k, v]) => {
       if (v.count < 3 && (now - v.lastPlayed) > thirtyDays) return false;
       return true;
     });
-    
+
     // Cap at 50 most played
     if (filtered.length > 50) {
       filtered.sort((a, b) => b[1].count - a[1].count);
       filtered = filtered.slice(0, 50);
     }
-    
+
     saveUsage(Object.fromEntries(filtered));
     console.log(`[PULSE] Usage validated for ${st.name}. Total plays: ${stats[id].count}`);
   }, 30000);
@@ -1561,16 +1561,16 @@ function renderFavs() {
         </div>
       </div>
       <div class="pl-actions-col">
-        ${isRecent && !favd ? `
-          <button class="pl-action-btn pl-add-fav" title="Add to Favorites" style="color:var(--accent)">
-            <span class="material-symbols-outlined">add_circle</span>
+        ${isRecent ? `
+          <button class="pl-action-btn pl-add-fav" title="Toggle Favorite" style="color:${favd ? 'var(--fav)' : 'var(--accent)'}">
+            <span class="material-symbols-outlined pl-heart${favd ? ' is-fav' : ''}">favorite</span>
           </button>
         ` : `
           <button class="pl-action-btn pl-edit" data-edit="${st.sparkyId || ''}" title="Edit Favorite">
             <span class="material-symbols-outlined">edit</span>
           </button>
         `}
-        <button class="pl-action-btn pl-remove" data-rmfav="${st.sparkyId || ''}" data-rmrecent="${st.stationuuid || st.id || ''}" title="Remove Favorite">
+        <button class="pl-action-btn pl-remove" data-rmfav="${st.sparkyId || ''}" data-rmrecent="${st.stationuuid || st.id || `${st.name}_${st.url}`}" title="Remove from History">
           <span class="material-symbols-outlined">delete</span>
         </button>
         ${isManual ? `
@@ -1596,12 +1596,12 @@ function renderFavs() {
       const sId = el.dataset.sid;
       const uuid = el.dataset.uuid;
       const url = el.dataset.url;
-      
+
       let target;
       if (sId) target = favs.find(f => f.sparkyId === sId);
       if (!target && uuid) target = getRecentStations().find(s => s.stationuuid === uuid);
       if (!target && url) target = getRecentStations().find(s => norm(s.url) === norm(url));
-      
+
       if (target) playStationObj(target);
     };
   });
@@ -1613,29 +1613,49 @@ function renderFavs() {
     const url = item.dataset.url;
     const st = getRecentStations().find(s => s.stationuuid === uuid || norm(s.url) === norm(url));
     if (st) {
-      addFav(st);
-      renderFavs();
-      sparkyAlert(`[${st.name}] added to Favorites!`, "STATION VAULTED");
+      if (st.isFav) {
+        removeFavByUrl(st.url_resolved || st.url);
+        renderFavs();
+      } else {
+        const suggested = getSuggestedCategory(st);
+        openEditModal(st.name, st.url_resolved || st.url, suggested, st.favicon || '', (newName, newUrl, newCat, newFav) => {
+          if (newName && newUrl) {
+            addFav(st, newName, newUrl, newCat, newFav);
+            renderFavs();
+          }
+        });
+      }
     }
   });
 
-  pl.querySelectorAll('[data-rmrecent]').forEach(btn => btn.onclick = (e) => {
+  pl.querySelectorAll('.pl-remove').forEach(btn => btn.onclick = (e) => {
     e.stopPropagation();
-    const id = btn.dataset.rmrecent;
-    if (!id) return;
-    
-    // For Favorites, just reset usage. For Non-Favs, delete entry.
     const sid = btn.dataset.rmfav;
-    if (sid) {
+    const rid = btn.dataset.rmrecent;
+
+    if (discoveryCategoryFilter === 'RECENT' && rid) {
       const stats = loadUsage();
-      if (stats[id]) stats[id].count = 0;
-      saveUsage(stats);
-      renderFavs();
-    } else {
-      const stats = loadUsage();
-      delete stats[id];
-      saveUsage(stats);
-      renderFavs();
+      const stName = stats[rid] ? stats[rid].name : 'this station';
+
+      sparkyConfirm(`Remove <strong>[${stName}]</strong> from your Recent History?`, () => {
+        if (sid) {
+          if (stats[rid]) stats[rid].count = 0;
+        } else {
+          delete stats[rid];
+        }
+        saveUsage(stats);
+        renderFavs();
+      }, "PURGE HISTORY");
+    } else if (sid) {
+      // STANDARD VAULT REMOVAL
+      const fv = loadFavs();
+      const st = fv.find(f => f.sparkyId === sid);
+      if (st) {
+        sparkyConfirm(`Remove [${st.name}] from your Favorites?`, () => {
+          removeFavBySparkyId(sid);
+          renderFavs();
+        }, "DELETE FROM FAVORITES");
+      }
     }
   });
 
@@ -1700,7 +1720,7 @@ function groupFavsByCategory(list) {
   const groups = {};
   const recent = getRecentStations();
   if (recent.length > 0) groups['RECENT'] = recent;
-  
+
   list.forEach(f => {
     const cat = f.category || 'Undefined';
     if (!groups[cat]) groups[cat] = [];
@@ -1832,7 +1852,7 @@ function renderDiscoveryFavs(pl) {
 
   const recentList = getRecentStations();
   let displayFavs = [...favs];
-  
+
   if (discoveryCategoryFilter === 'RECENT') {
     displayFavs = recentList;
   } else if (discoveryCategoryFilter !== 'ALL') {
@@ -1901,16 +1921,16 @@ function renderDiscoveryFavs(pl) {
             <div class="card-tags">${esc(finalTags)}</div>
             <div class="card-stats">
               <div class="card-stat-pwr">${statVal}</div>
-              ${discoveryCategoryFilter === 'RECENT' && !st.isFav ? `
-                <button class="pl-action-btn pl-add-fav" title="Add to Favorites" style="color:var(--accent); margin-left:auto;">
-                  <span class="material-symbols-outlined">add_circle</span>
+              ${discoveryCategoryFilter === 'RECENT' ? `
+                <button class="pl-action-btn pl-add-fav" title="Toggle Favorite" style="color:${favd ? 'var(--fav)' : 'var(--accent)'}; margin-left:auto;">
+                  <span class="material-symbols-outlined pl-heart${favd ? ' is-fav' : ''}">favorite</span>
                 </button>
               ` : (st.category === 'Undefined' || !st.category) ? `
                 <button class="pl-action-btn pl-edit card-edit" data-edit="${st.sparkyId || ''}" title="Categorize Station">
                   <span class="material-symbols-outlined">edit</span>
                 </button>
               ` : ''}
-              <button class="pl-action-btn pl-remove card-remove" data-rmfav="${st.sparkyId || ''}" data-rmrecent="${st.stationuuid || st.id || ''}" title="Remove Favorite">
+              <button class="pl-action-btn pl-remove card-remove" data-rmfav="${st.sparkyId || ''}" data-rmrecent="${st.stationuuid || st.id || `${st.name}_${st.url}`}" title="Remove from History">
                 <span class="material-symbols-outlined">delete</span>
               </button>
             </div>
@@ -1952,12 +1972,12 @@ function renderDiscoveryFavs(pl) {
         const sid = card.dataset.sid;
         const uuid = card.dataset.uuid;
         const url = card.dataset.url;
-        
+
         let target;
         if (sid) target = favs.find(f => f.sparkyId === sid);
         if (!target && uuid) target = recentList.find(s => s.stationuuid === uuid);
         if (!target && url) target = recentList.find(s => norm(s.url) === norm(url));
-        
+
         if (target) {
           if (currentSrc && isPlaying && (
             (target.sparkyId && currentSrc.sparkyId === target.sparkyId) ||
@@ -1980,42 +2000,51 @@ function renderDiscoveryFavs(pl) {
     const url = item.dataset.url;
     const st = recentList.find(s => s.stationuuid === uuid || norm(s.url) === norm(url));
     if (st) {
-      addFav(st);
-      renderFavs();
-      sparkyAlert(`[${st.name}] added to Favorites!`, "STATION VAULTED");
-    }
-  });
-
-  pl.querySelectorAll('[data-rmrecent]').forEach(btn => btn.onclick = (e) => {
-    e.stopPropagation();
-    const id = btn.dataset.rmrecent;
-    if (!id) return;
-    const sid = btn.dataset.rmfav;
-    if (sid) {
-      const stats = loadUsage();
-      if (stats[id]) stats[id].count = 0;
-      saveUsage(stats);
-      renderFavs();
-    } else {
-      const stats = loadUsage();
-      delete stats[id];
-      saveUsage(stats);
-      renderFavs();
-    }
-  });
-
-  pl.querySelectorAll('.card-remove').forEach(bin => {
-    bin.onclick = (e) => {
-      e.stopPropagation();
-      const sid = bin.dataset.rmfav;
-      if (!sid) return; // Handled by rmrecent if in recent view
-      const m = loadFavs();
-      const f = m.find(x => x.sparkyId === sid);
-      if (f) {
-        sparkyConfirm(`Remove [${f.name}]?`, () => { removeFavBySparkyId(sid); renderFavs(); }, "DELETE FROM FAVORITES");
+      if (st.isFav) {
+        removeFavByUrl(st.url_resolved || st.url);
+        renderFavs();
+      } else {
+        const suggested = getSuggestedCategory(st);
+        openEditModal(st.name, st.url_resolved || st.url, suggested, st.favicon || '', (newName, newUrl, newCat, newFav) => {
+          if (newName && newUrl) {
+            addFav(st, newName, newUrl, newCat, newFav);
+            renderFavs();
+          }
+        });
       }
-    };
+    }
   });
+
+  pl.querySelectorAll('.pl-remove, .card-remove').forEach(btn => btn.onclick = (e) => {
+    e.stopPropagation();
+    const sid = btn.dataset.rmfav;
+    const rid = btn.dataset.rmrecent;
+
+    if (discoveryCategoryFilter === 'RECENT' && rid) {
+      const stats = loadUsage();
+      const stName = stats[rid] ? stats[rid].name : 'this station';
+      sparkyConfirm(`Remove <strong>[${stName}]</strong> from your Recent History?`, () => {
+        if (sid) {
+          if (stats[rid]) stats[rid].count = 0;
+        } else {
+          delete stats[rid];
+        }
+        saveUsage(stats);
+        renderFavs();
+      }, "PURGE HISTORY");
+    } else if (sid) {
+      const fv = loadFavs();
+      const st = fv.find(f => f.sparkyId === sid);
+      if (st) {
+        sparkyConfirm(`Remove [${st.name}] from your Favorites?`, () => {
+          removeFavBySparkyId(sid);
+          renderFavs();
+        }, "DELETE FROM FAVORITES");
+      }
+    }
+  });
+
+  // (Redundant Hub removal logic removed - handled by unified .pl-remove/.card-remove logic in renderFavs/renderDiscoveryFavs)
 
   // Bind Edit Toggle (Conditional for Undefined)
   pl.querySelectorAll('.card-edit').forEach(btn => {
@@ -2048,12 +2077,28 @@ function bindStationActions(pl, list) {
       if (target) playStationObj(target);
     };
   });
-  pl.querySelectorAll('[data-rmfav]').forEach(btn => btn.onclick = (e) => {
+  pl.querySelectorAll('.pl-remove').forEach(btn => btn.onclick = (e) => {
     e.stopPropagation();
     const sid = btn.dataset.rmfav;
-    const m = loadFavs();
-    const f = m.find(x => x.sparkyId === sid);
-    if (f) sparkyConfirm(`Remove [${f.name}]?`, () => { removeFavBySparkyId(sid); renderFavs(); }, "DELETE FROM FAVORITES");
+    const rid = btn.dataset.rmrecent;
+
+    if (rid) {
+      const stats = loadUsage();
+      const stName = stats[rid] ? stats[rid].name : 'this station';
+      sparkyConfirm(`Remove <strong>[${stName}]</strong> from your Recent History?`, () => {
+        if (sid) {
+          if (stats[rid]) stats[rid].count = 0;
+        } else {
+          delete stats[rid];
+        }
+        saveUsage(stats);
+        renderFavs();
+      }, "PURGE HISTORY");
+    } else if (sid) {
+      const m = loadFavs();
+      const f = m.find(x => x.sparkyId === sid);
+      if (f) sparkyConfirm(`Remove [${f.name}]?`, () => { removeFavBySparkyId(sid); renderFavs(); }, "DELETE FROM FAVORITES");
+    }
   });
   pl.querySelectorAll('[data-edit]').forEach(btn => btn.onclick = (e) => {
     e.stopPropagation();
@@ -2215,7 +2260,7 @@ async function searchStations(q, isManual = false) {
   if (q === '' && !isManual) { stations = []; renderStations(); return; } // Explicit empty = clear
   isSearching = true;
   const pl = document.getElementById('playlist');
-  if (pl) pl.innerHTML = '<div class="pl-loading"><div class="spinner"></div>SMART SCANNING...</div>';
+  if (pl && activeTab === 'stations') pl.innerHTML = '<div class="pl-loading"><div class="spinner"></div>SMART SCANNING...</div>';
 
   const parts = q.split(/\s+/);
   const required = [], excluded = [];
@@ -2744,27 +2789,8 @@ window.addEventListener('DOMContentLoaded', () => {
   });
 
   bind('btnPlayFooter', () => togglePlay());
-  bind('btnNextFooter', () => {
-    const list = getCurrentNavigationList();
-    if (!list.length) return;
-    let idx = list.findIndex(st =>
-      (st.sparkyId && currentSrc?.sparkyId === st.sparkyId) ||
-      (st.stationuuid && currentSrc?.stationuuid === st.stationuuid) ||
-      (norm(currentSrc?.url) === norm(st.url_resolved || st.url))
-    );
-    playStationObj(list[(idx + 1) % list.length]);
-  });
-  bind('btnPrevFooter', () => {
-    const list = getCurrentNavigationList();
-    if (!list.length) return;
-    let idx = list.findIndex(st =>
-      (st.sparkyId && currentSrc?.sparkyId === st.sparkyId) ||
-      (st.stationuuid && currentSrc?.stationuuid === st.stationuuid) ||
-      (norm(currentSrc?.url) === norm(st.url_resolved || st.url))
-    );
-    if (idx === -1) idx = 1; // Default fallback
-    playStationObj(list[(idx - 1 + list.length) % list.length]);
-  });
+  bind('btnNextFooter', () => playNext());
+  bind('btnPrevFooter', () => playPrevious());
 
   bind('btnAddVault', handleAddStation);
   bind('btnRemove', handleRemoveStation);
@@ -2905,10 +2931,13 @@ window.addEventListener('DOMContentLoaded', () => {
   const presetTrigger = document.getElementById('presetTrigger');
   if (presetTrigger) presetTrigger.textContent = 'Quick-Tune';
   const lastQ = localStorage.getItem('sparky_last_query');
-  if (lastQ !== null) {
+  if (lastQ !== null && lastQ.trim() !== '') {
     if (searchInput) searchInput.value = lastQ;
-    searchStations(lastQ);
-  }
+    searchStations(lastQ, false, true); // Restore query but SKIP tab switch
+  } 
+  
+  // Always default to Favorites view on clean boot
+  switchTab('favs');
 
   // Initial Theme Application
   applyPanelColor(panelColor);
@@ -2943,8 +2972,10 @@ function updateSortUI() {
   if (!btn || !tip) return;
 
   const isRecent = activeTab === 'favs' && discoveryCategoryFilter === 'RECENT';
-  btn.classList.toggle('disabled-ui', isRecent);
-  btn.title = isRecent ? "Sorting locked to Usage in Recent View" : "Change Sort Mode";
+  const isLocked = isRecent; // Explicit lock only for Recent shelf
+
+  btn.classList.toggle('disabled-ui', isLocked);
+  btn.title = isLocked ? "Sorting locked to Usage in Recent View" : "Change Sort Mode";
 
   btn.innerHTML = `<span class="material-symbols-outlined">sort</span>`;
 
@@ -2965,9 +2996,54 @@ if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => { }));
 }
 
+function playNext() {
+  const list = getCurrentNavigationList();
+  if (!list.length) return;
+  let idx = list.findIndex(st =>
+    (st.sparkyId && currentSrc?.sparkyId === st.sparkyId) ||
+    (st.stationuuid && currentSrc?.stationuuid === st.stationuuid) ||
+    (norm(currentSrc?.url) === norm(st.url_resolved || st.url))
+  );
+  playStationObj(list[(idx + 1) % list.length]);
+}
+
+function playPrevious() {
+  const list = getCurrentNavigationList();
+  if (!list.length) return;
+  let idx = list.findIndex(st =>
+    (st.sparkyId && currentSrc?.sparkyId === st.sparkyId) ||
+    (st.stationuuid && currentSrc?.stationuuid === st.stationuuid) ||
+    (norm(currentSrc?.url) === norm(st.url_resolved || st.url))
+  );
+  if (idx === -1) idx = 1;
+  playStationObj(list[(idx - 1 + list.length) % list.length]);
+}
+
 function updateMediaSession(st) {
   if (!('mediaSession' in navigator)) return;
-  navigator.mediaSession.metadata = new MediaMetadata({ title: st.name, artist: st.countrycode, album: 'SPARKY RADIO' });
+
+  const artwork = st.favicon ? [
+    { src: st.favicon, sizes: '96x96', type: 'image/png' },
+    { src: st.favicon, sizes: '128x128', type: 'image/png' },
+    { src: st.favicon, sizes: '192x192', type: 'image/png' },
+    { src: st.favicon, sizes: '256x256', type: 'image/png' },
+    { src: st.favicon, sizes: '384x384', type: 'image/png' },
+    { src: st.favicon, sizes: '512x512', type: 'image/png' },
+  ] : [];
+
+  navigator.mediaSession.metadata = new MediaMetadata({
+    title: st.name,
+    artist: st.countrycode || 'Radio',
+    album: 'SPARKY RADIO',
+    artwork: artwork
+  });
+
+  navigator.mediaSession.setActionHandler('play', () => { if (currentSrc) playStationObj(currentSrc); });
+  navigator.mediaSession.setActionHandler('pause', () => stopPlayback());
+  navigator.mediaSession.setActionHandler('previoustrack', () => playPrevious());
+  navigator.mediaSession.setActionHandler('nexttrack', () => playNext());
+
+  navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
 }
 
 window.setEqPreset = setEqPreset;
