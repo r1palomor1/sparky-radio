@@ -216,6 +216,101 @@ if (window.initThemeEngine) {
 
 // ══ FAVORITES ══════════════════════════════
 const FAV_KEY = 'sparky_favorites';
+const USAGE_KEY = 'sparky_usage_stats';
+let usagePulseTimer;
+let lastCountedId = null;
+
+function loadUsage() {
+  try { return JSON.parse(localStorage.getItem(USAGE_KEY)) || {}; } catch { return {}; }
+}
+function saveUsage(data) { localStorage.setItem(USAGE_KEY, JSON.stringify(data)); }
+
+function getRecentStations() {
+  const stats = loadUsage();
+  const fv = loadFavs();
+  
+  return Object.values(stats)
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 50) // Internal Top 50
+    .filter(st => st.count > 0) // Filter out items with 0 count (reset items)
+    .slice(0, 10) // Display Top 10
+    .map(st => {
+      const favMatch = fv.find(f => (st.stationuuid && f.stationuuid === st.stationuuid) || (f.url && st.url && norm(f.url) === norm(st.url)));
+      // DEEP MERGE: If it's a favorite, use the Vault data as the base, then overlay usage count
+      if (favMatch) {
+        return { ...favMatch, count: st.count, lastPlayed: st.lastPlayed, isRecentMemory: true, isFav: true };
+      }
+      return { ...st, isRecentMemory: true, isFav: false };
+    });
+}
+
+
+function trackUsage(st) {
+  if (!st) return;
+  if (usagePulseTimer) clearTimeout(usagePulseTimer);
+
+  // 30-second "Meaningful Play" validation pulse
+  usagePulseTimer = setTimeout(() => {
+    // Verify we are still playing the same station
+    if (!currentSrc || (st.stationuuid && currentSrc.stationuuid !== st.stationuuid)) return;
+    
+    const id = st.stationuuid || st.id || `${st.name}_${st.url}`;
+    
+    // SEQUENTIAL SESSION FILTER: Don't count back-to-back plays of the same station
+    if (id === lastCountedId) {
+       console.log(`[PULSE] Session continuation detected for ${st.name}. Skipping redundant count.`);
+       return;
+    }
+
+    const stats = loadUsage();
+    
+    if (!stats[id]) {
+      stats[id] = {
+        count: 0,
+        lastPlayed: 0,
+        name: st.name,
+        url: st.url_resolved || st.url,
+        favicon: st.favicon || '',
+        tags: st.tags || '',
+        countrycode: st.countrycode || '',
+        stationuuid: st.stationuuid || st.id || '',
+        votes: st.votes || 0,
+        clickcount: st.clickcount || st.c || 0,
+        clicktrend: st.clicktrend || 0
+      };
+    }
+    
+    stats[id].count++;
+    lastCountedId = id; // Lock this station as the "Current Active Session"
+    stats[id].lastPlayed = Date.now();
+    stats[id].name = st.name; // Keep metadata fresh
+    stats[id].favicon = st.favicon || '';
+    stats[id].votes = st.votes || 0;
+    stats[id].clickcount = st.clickcount || st.c || 0;
+    stats[id].clicktrend = st.clicktrend || 0;
+    
+    // RETENTION POLICY: Top 50 stations + 30-day stale prune
+    const entries = Object.entries(stats);
+    const now = Date.now();
+    const thirtyDays = 30 * 24 * 60 * 60 * 1000;
+    
+    // Filter out stale low-usage entries
+    let filtered = entries.filter(([k, v]) => {
+      if (v.count < 3 && (now - v.lastPlayed) > thirtyDays) return false;
+      return true;
+    });
+    
+    // Cap at 50 most played
+    if (filtered.length > 50) {
+      filtered.sort((a, b) => b[1].count - a[1].count);
+      filtered = filtered.slice(0, 50);
+    }
+    
+    saveUsage(Object.fromEntries(filtered));
+    console.log(`[PULSE] Usage validated for ${st.name}. Total plays: ${stats[id].count}`);
+  }, 30000);
+}
+
 function loadFavs() {
   try {
     const raw = JSON.parse(localStorage.getItem(FAV_KEY)) || [];
@@ -1109,6 +1204,7 @@ function playStationObj(st) {
   if (!st) return;
   syncFavMetadata(st);
   currentSrc = st;
+  trackUsage(st);
   renderCurrent(); // Instant highlighting
   if (audioCtx?.state === 'suspended') audioCtx.resume();
   initAudio();
@@ -1184,7 +1280,7 @@ function togglePlay() {
 }
 
 function scrollToActive() {
-  const activeEl = document.querySelector('.pl-item.active');
+  const activeEl = document.querySelector('.pl-item.active, .pl-discovery-card.active');
   if (!activeEl) return;
 
   // If in grouped mode, ensure parent category is expanded
@@ -1360,7 +1456,8 @@ function renderFavs() {
   if (!pl || activeTab !== 'favs') return;
   favs = loadFavs();
   refreshFavBadge();
-  if (!favs.length) {
+  const recentList = getRecentStations();
+  if (!favs.length && !recentList.length) {
     pl.innerHTML = '<div class="pl-empty"><div class="pl-empty-icon">★</div><div>No favorites yet</div></div>'; return;
   }
 
@@ -1374,53 +1471,46 @@ function renderFavs() {
   }
 
   let displayFavs = [...favs];
-  if (discoveryCategoryFilter !== 'ALL') {
+  if (discoveryCategoryFilter === 'RECENT') {
+    displayFavs = recentList;
+  } else if (discoveryCategoryFilter !== 'ALL') {
     displayFavs = displayFavs.filter(f => (f.category || 'Undefined') === discoveryCategoryFilter);
   }
   if (filterHiFi) {
     displayFavs = displayFavs.filter(s => Number(s.bitrate || 0) >= 128);
   }
 
-  // Sorting Logic: Restricted to Power/Vote if filtered
-  const isFiltered = discoveryCategoryFilter !== 'ALL';
-  const effectiveSort = (isFiltered && sortMode === 'custom') ? 'pwr' : sortMode;
+  // Sorting Logic: Restricted to Usage-First if RECENT is active
+  const isFiltered = discoveryCategoryFilter !== 'ALL' && discoveryCategoryFilter !== 'RECENT';
+  const isRecent = discoveryCategoryFilter === 'RECENT';
+  const effectiveSort = isRecent ? 'usage' : ((isFiltered && sortMode === 'custom') ? 'pwr' : sortMode);
 
   if (displayFavs.length > 1 && effectiveSort !== 'custom') {
-    const mC = Math.max(...displayFavs.map(s => s.clickcount || 0), 1);
-    const mV = Math.max(...displayFavs.map(s => s.votes || 0), 1);
-    const mT = Math.max(...displayFavs.map(s => s.clicktrend || 0), 1);
-
-    if (effectiveSort === 'pwr') {
-      displayFavs.sort((a, b) => {
-        const sA = (((a.clickcount || 0) / mC) * 0.6) + (((a.votes || 0) / mV) * 0.3) + (((a.clicktrend || 0) / mT) * 0.1);
-        const sB = (((b.clickcount || 0) / mC) * 0.6) + (((b.votes || 0) / mV) * 0.3) + (((b.clicktrend || 0) / mT) * 0.1);
-        return sB - sA;
-      });
+    if (effectiveSort === 'usage') {
+      displayFavs.sort((a, b) => (b.count || 0) - (a.count || 0));
     } else {
-      displayFavs.sort((a, b) => (b.votes || 0) - (a.votes || 0));
+      const mC = Math.max(...displayFavs.map(s => s.clickcount || 0), 1);
+      const mV = Math.max(...displayFavs.map(s => s.votes || 0), 1);
+      const mT = Math.max(...displayFavs.map(s => s.clicktrend || 0), 1);
+
+      if (effectiveSort === 'pwr') {
+        displayFavs.sort((a, b) => {
+          const sA = (((a.clickcount || 0) / mC) * 0.6) + (((a.votes || 0) / mV) * 0.3) + (((a.clicktrend || 0) / mT) * 0.1);
+          const sB = (((b.clickcount || 0) / mC) * 0.6) + (((b.votes || 0) / mV) * 0.3) + (((b.clicktrend || 0) / mT) * 0.1);
+          return sB - sA;
+        });
+      } else {
+        displayFavs.sort((a, b) => (b.votes || 0) - (a.votes || 0));
+      }
     }
   }
 
-  if (favs.length > 0 && !displayFavs.length) {
-    // We still render the chips so user can go back
-    const groups = groupFavsByCategory(favs);
-    const categories = ['ALL', ...Object.keys(groups).sort()];
-    pl.innerHTML = `
-      <div class="pl-discovery-filters list-mode-filters">
-        ${categories.map(cat => `<div class="filter-chip${discoveryCategoryFilter === cat ? ' active' : ''}" data-filter="${cat}">${cat}</div>`).join('')}
-      </div>
-      <div class="pl-empty"><div class="pl-empty-icon">★</div><div>No matching favorites</div></div>
-    `;
-    bindListChips(pl);
-    return;
-  }
-
-  const mC = Math.max(...displayFavs.map(s => s.clickcount || 0), 1);
-  const mV = Math.max(...displayFavs.map(s => s.votes || 0), 1);
-  const mT = Math.max(...displayFavs.map(s => s.clicktrend || 0), 1);
+  const mC = Math.max(...favs.map(s => s.clickcount || 0), 1);
+  const mV = Math.max(...favs.map(s => s.votes || 0), 1);
+  const mT = Math.max(...favs.map(s => s.clicktrend || 0), 1);
 
   const groups = groupFavsByCategory(favs);
-  const categories = ['ALL', ...Object.keys(groups).sort()];
+  const categories = ['ALL', 'RECENT', ...Object.keys(groups).sort().filter(c => c !== 'RECENT')];
   const chipsHtml = `
     <div class="pl-discovery-filters list-mode-filters">
       ${categories.map(cat => `
@@ -1438,13 +1528,13 @@ function renderFavs() {
       (norm(currentSrc.url) === norm(st.url_resolved || st.url)) ||
       (norm(currentSrc.url_resolved) === norm(st.url_resolved || st.url))
     );
+    const favd = st.isFav ?? isFav(st);
     const rank = (((st.clickcount || 0) / mC) * 0.6) + (((st.votes || 0) / mV) * 0.3) + (((st.clicktrend || 0) / mT) * 0.1);
     const pwr = Math.min(100, Math.round(rank * 100));
-    const isManual = sortMode === 'custom';
-
+    const isManual = sortMode === 'custom' && !isRecent;
     const trending = (st.clicktrend || 0) > 50 ? '<span class="pl-status-badge trending">Trending</span>' : '';
-    let primary = { id: 'pwr', icon: '⚡', val: `${pwr}%`, color: 'var(--accent)' };
-    if (sortMode === 'vote') { primary = { id: 'vot', icon: '👍', val: fmtK(st.votes), color: 'var(--fav)' }; }
+    let primary = { id: 'pwr', icon: '⚡', val: isRecent ? `${pwr}% · # ${st.count} plays` : `${pwr}%`, color: 'var(--accent)' };
+    if (sortMode === 'vote' && !isRecent) { primary = { id: 'vot', icon: '👍', val: fmtK(st.votes), color: 'var(--fav)' }; }
 
     const tagArr = (st.tags || '').split(',').map(t => t.trim()).filter(t => t);
     let dispTags = tagArr.slice(0, 2);
@@ -1457,7 +1547,7 @@ function renderFavs() {
     const finalTags = dispTags.slice(0, 3).join(', ') || 'Radio';
     const rescued = st.isRescued ? ' rescued' : '';
 
-    return `<div class="pl-item${actv ? ' active' : ''}${rescued}" data-sid="${st.sparkyId}">
+    return `<div class="pl-item${actv ? ' active' : ''}${rescued}" data-sid="${st.sparkyId || ''}" data-uuid="${st.stationuuid || ''}" data-url="${st.url || ''}">
       <div class="pl-favicon-col">
         ${renderFavicon(st)}
       </div>
@@ -1465,16 +1555,22 @@ function renderFavs() {
         <div class="pl-item-name">${esc(st.name)}</div>
         <div class="pl-item-meta">${esc(st.countrycode || '--')} · ${esc(finalTags)}</div>
         <div class="pl-item-stats">
-          <span class="pl-stat-power" style="color:${primary.color}">⚡ ${primary.val}</span>
+          <span class="pl-stat-power" style="color:${primary.color}">${primary.icon} ${primary.val}</span>
           ${(Number(st.bitrate || 0) >= 128) ? '<span class="hd-badge-inline">HD</span>' : ''}
           ${trending}
         </div>
       </div>
       <div class="pl-actions-col">
-        <button class="pl-action-btn pl-edit" data-edit="${st.sparkyId}" title="Edit Favorite">
-          <span class="material-symbols-outlined">edit</span>
-        </button>
-        <button class="pl-action-btn pl-remove" data-rmfav="${st.sparkyId}" title="Remove Favorite">
+        ${isRecent && !favd ? `
+          <button class="pl-action-btn pl-add-fav" title="Add to Favorites" style="color:var(--accent)">
+            <span class="material-symbols-outlined">add_circle</span>
+          </button>
+        ` : `
+          <button class="pl-action-btn pl-edit" data-edit="${st.sparkyId || ''}" title="Edit Favorite">
+            <span class="material-symbols-outlined">edit</span>
+          </button>
+        `}
+        <button class="pl-action-btn pl-remove" data-rmfav="${st.sparkyId || ''}" data-rmrecent="${st.stationuuid || st.id || ''}" title="Remove Favorite">
           <span class="material-symbols-outlined">delete</span>
         </button>
         ${isManual ? `
@@ -1489,18 +1585,60 @@ function renderFavs() {
         ` : ''}
       </div>
     </div>`;
-
   }).join('');
+
+
 
 
   pl.querySelectorAll('.pl-item').forEach(el => {
     el.onclick = (e) => {
       if (e.target.closest('button')) return;
       const sId = el.dataset.sid;
-      const target = favs.find(f => f.sparkyId === sId);
+      const uuid = el.dataset.uuid;
+      const url = el.dataset.url;
+      
+      let target;
+      if (sId) target = favs.find(f => f.sparkyId === sId);
+      if (!target && uuid) target = getRecentStations().find(s => s.stationuuid === uuid);
+      if (!target && url) target = getRecentStations().find(s => norm(s.url) === norm(url));
+      
       if (target) playStationObj(target);
     };
   });
+
+  pl.querySelectorAll('.pl-add-fav').forEach(btn => btn.onclick = (e) => {
+    e.stopPropagation();
+    const item = btn.closest('.pl-item, .pl-discovery-card');
+    const uuid = item.dataset.uuid;
+    const url = item.dataset.url;
+    const st = getRecentStations().find(s => s.stationuuid === uuid || norm(s.url) === norm(url));
+    if (st) {
+      addFav(st);
+      renderFavs();
+      sparkyAlert(`[${st.name}] added to Favorites!`, "STATION VAULTED");
+    }
+  });
+
+  pl.querySelectorAll('[data-rmrecent]').forEach(btn => btn.onclick = (e) => {
+    e.stopPropagation();
+    const id = btn.dataset.rmrecent;
+    if (!id) return;
+    
+    // For Favorites, just reset usage. For Non-Favs, delete entry.
+    const sid = btn.dataset.rmfav;
+    if (sid) {
+      const stats = loadUsage();
+      if (stats[id]) stats[id].count = 0;
+      saveUsage(stats);
+      renderFavs();
+    } else {
+      const stats = loadUsage();
+      delete stats[id];
+      saveUsage(stats);
+      renderFavs();
+    }
+  });
+
   pl.querySelectorAll('[data-rmfav]').forEach(btn => btn.onclick = (e) => {
     e.stopPropagation();
     const sid = btn.dataset.rmfav;
@@ -1560,6 +1698,9 @@ function bindListChips(pl) {
 
 function groupFavsByCategory(list) {
   const groups = {};
+  const recent = getRecentStations();
+  if (recent.length > 0) groups['RECENT'] = recent;
+  
   list.forEach(f => {
     const cat = f.category || 'Undefined';
     if (!groups[cat]) groups[cat] = [];
@@ -1567,6 +1708,7 @@ function groupFavsByCategory(list) {
   });
   return groups;
 }
+
 
 function renderGroupedFavs(pl) {
   const groups = groupFavsByCategory(favs);
@@ -1578,10 +1720,13 @@ function renderGroupedFavs(pl) {
 
   pl.innerHTML = sortedCats.map(cat => {
     const catFavs = groups[cat];
-    // Internal Sorting: Follows Power or Vote ranking (Defaults to Power if Custom is active)
-    const effectiveSort = (sortMode === 'vote') ? 'vote' : 'pwr';
+    const isRecent = cat === 'RECENT';
+    // Internal Sorting: Follows Usage if RECENT, otherwise Power or Vote
+    const effectiveSort = isRecent ? 'usage' : ((sortMode === 'vote') ? 'vote' : 'pwr');
 
-    if (effectiveSort === 'pwr') {
+    if (effectiveSort === 'usage') {
+      catFavs.sort((a, b) => (b.count || 0) - (a.count || 0));
+    } else if (effectiveSort === 'pwr') {
       catFavs.sort((a, b) => {
         const scoreA = (((a.clickcount || 0) / mC) * 0.6) + (((a.votes || 0) / mV) * 0.3) + (((a.clicktrend || 0) / mT) * 0.1);
         const scoreB = (((b.clickcount || 0) / mC) * 0.6) + (((b.votes || 0) / mV) * 0.3) + (((b.clicktrend || 0) / mT) * 0.1);
@@ -1610,26 +1755,32 @@ function renderGroupedFavs(pl) {
       const rank = (((st.clickcount || 0) / mC) * 0.6) + (((st.votes || 0) / mV) * 0.3) + (((st.clicktrend || 0) / mT) * 0.1);
       const pwr = Math.min(100, Math.round(rank * 100));
       const trending = (st.clicktrend || 0) > 50 ? '<span class="pl-status-badge trending">Trending</span>' : '';
-      let primary = { id: 'pwr', icon: '⚡', val: `${pwr}%`, color: 'var(--text)' };
-      if (sortMode === 'vote') { primary = { id: 'vot', icon: '👍', val: fmtK(st.votes), color: 'var(--text)' }; }
+      let primary = { id: 'pwr', icon: '⚡', val: isRecent ? `${st.count} plays` : `${pwr}%`, color: 'var(--text)' };
+      if (sortMode === 'vote' && !isRecent) { primary = { id: 'vot', icon: '👍', val: fmtK(st.votes), color: 'var(--text)' }; }
       const tagArr = (st.tags || '').split(',').map(t => t.trim()).filter(t => t);
       const finalTags = tagArr.slice(0, 3).join(', ') || 'Radio';
       const rescued = st.isRescued ? ' rescued' : '';
 
-      return `<div class="pl-item${actv ? ' active' : ''}${rescued}" data-sid="${st.sparkyId}">
+      return `<div class="pl-item${actv ? ' active' : ''}${rescued}" data-sid="${st.sparkyId || ''}" data-uuid="${st.stationuuid || ''}" data-url="${st.url || ''}">
               <div class="pl-favicon-col">${renderFavicon(st)}</div>
               <div class="pl-main-col">
                 <div class="pl-item-name">${esc(st.name)}</div>
                 <div class="pl-item-meta">${esc(st.countrycode || '--')} · ${esc(finalTags)}</div>
                 <div class="pl-item-stats">
-                  <span class="pl-stat-power" style="color:${primary.color}">⚡ ${primary.val}</span>
+                  <span class="pl-stat-power" style="color:${primary.color}">${primary.icon} ${primary.val}</span>
                   ${(Number(st.bitrate || 0) >= 128) ? '<span class="hd-badge-inline">HD</span>' : ''}
                   ${trending}
                 </div>
               </div>
               <div class="pl-actions-col">
-                <button class="pl-action-btn pl-edit" data-edit="${st.sparkyId}"><span class="material-symbols-outlined">edit</span></button>
-                <button class="pl-action-btn pl-remove" data-rmfav="${st.sparkyId}"><span class="material-symbols-outlined">delete</span></button>
+                ${isRecent && !isFav(st) ? `
+                  <button class="pl-action-btn pl-add-fav" title="Add to Favorites" style="color:var(--accent)">
+                    <span class="material-symbols-outlined">add_circle</span>
+                  </button>
+                ` : `
+                  <button class="pl-action-btn pl-edit" data-edit="${st.sparkyId || ''}"><span class="material-symbols-outlined">edit</span></button>
+                `}
+                <button class="pl-action-btn pl-remove" data-rmfav="${st.sparkyId || ''}" data-rmrecent="${st.stationuuid || st.id || ''}"><span class="material-symbols-outlined">delete</span></button>
               </div>
             </div>`;
     }).join('')}
@@ -1677,10 +1828,14 @@ function renderGroupedFavs(pl) {
 
 function renderDiscoveryFavs(pl) {
   const groups = groupFavsByCategory(favs);
-  const categories = ['ALL', ...Object.keys(groups).sort()];
+  const categories = ['ALL', 'RECENT', ...Object.keys(groups).sort().filter(c => c !== 'RECENT')];
 
+  const recentList = getRecentStations();
   let displayFavs = [...favs];
-  if (discoveryCategoryFilter !== 'ALL') {
+  
+  if (discoveryCategoryFilter === 'RECENT') {
+    displayFavs = recentList;
+  } else if (discoveryCategoryFilter !== 'ALL') {
     displayFavs = displayFavs.filter(f => (f.category || 'Undefined') === discoveryCategoryFilter);
   }
   if (filterHiFi) {
@@ -1692,8 +1847,10 @@ function renderDiscoveryFavs(pl) {
   const mV = Math.max(...favs.map(s => s.votes || 0), 1);
   const mT = Math.max(...favs.map(s => s.clicktrend || 0), 1);
 
-  const effectiveSort = (sortMode === 'vote') ? 'vote' : 'pwr';
-  if (effectiveSort === 'pwr') {
+  const effectiveSort = discoveryCategoryFilter === 'RECENT' ? 'usage' : ((sortMode === 'vote') ? 'vote' : 'pwr');
+  if (effectiveSort === 'usage') {
+    displayFavs.sort((a, b) => (b.count || 0) - (a.count || 0));
+  } else if (effectiveSort === 'pwr') {
     displayFavs.sort((a, b) => {
       const scoreA = (((a.clickcount || 0) / mC) * 0.6) + (((a.votes || 0) / mV) * 0.3) + (((a.clicktrend || 0) / mT) * 0.1);
       const scoreB = (((b.clickcount || 0) / mC) * 0.6) + (((b.votes || 0) / mV) * 0.3) + (((b.clicktrend || 0) / mT) * 0.1);
@@ -1730,10 +1887,11 @@ function renderDiscoveryFavs(pl) {
     const rescued = st.isRescued ? ' rescued' : '';
 
     let statVal = `⚡ ${pwr}%`;
-    if (sortMode === 'vote') statVal = `👍 ${fmtK(st.votes)}`;
+    if (discoveryCategoryFilter === 'RECENT') statVal = `⚡ ${st.count} plays`;
+    else if (sortMode === 'vote') statVal = `👍 ${fmtK(st.votes)}`;
 
     return `
-      <div class="pl-discovery-card${actv ? ' active' : ''}${rescued}" data-sid="${st.sparkyId}">
+      <div class="pl-discovery-card${actv ? ' active' : ''}${rescued}" data-sid="${st.sparkyId || ''}" data-uuid="${st.stationuuid || ''}" data-url="${st.url || ''}">
         <div class="card-favicon-wrap">
           ${renderFavicon(st)}
         </div>
@@ -1743,12 +1901,16 @@ function renderDiscoveryFavs(pl) {
             <div class="card-tags">${esc(finalTags)}</div>
             <div class="card-stats">
               <div class="card-stat-pwr">${statVal}</div>
-              ${(st.category === 'Undefined' || !st.category) ? `
-                <button class="pl-action-btn pl-edit card-edit" data-edit="${st.sparkyId}" title="Categorize Station">
+              ${discoveryCategoryFilter === 'RECENT' && !st.isFav ? `
+                <button class="pl-action-btn pl-add-fav" title="Add to Favorites" style="color:var(--accent); margin-left:auto;">
+                  <span class="material-symbols-outlined">add_circle</span>
+                </button>
+              ` : (st.category === 'Undefined' || !st.category) ? `
+                <button class="pl-action-btn pl-edit card-edit" data-edit="${st.sparkyId || ''}" title="Categorize Station">
                   <span class="material-symbols-outlined">edit</span>
                 </button>
               ` : ''}
-              <button class="pl-action-btn pl-remove card-remove" data-rmfav="${st.sparkyId}" title="Remove Favorite">
+              <button class="pl-action-btn pl-remove card-remove" data-rmfav="${st.sparkyId || ''}" data-rmrecent="${st.stationuuid || st.id || ''}" title="Remove Favorite">
                 <span class="material-symbols-outlined">delete</span>
               </button>
             </div>
@@ -1788,9 +1950,20 @@ function renderDiscoveryFavs(pl) {
       wrap.onclick = (e) => {
         e.stopPropagation();
         const sid = card.dataset.sid;
-        const target = favs.find(f => f.sparkyId === sid);
+        const uuid = card.dataset.uuid;
+        const url = card.dataset.url;
+        
+        let target;
+        if (sid) target = favs.find(f => f.sparkyId === sid);
+        if (!target && uuid) target = recentList.find(s => s.stationuuid === uuid);
+        if (!target && url) target = recentList.find(s => norm(s.url) === norm(url));
+        
         if (target) {
-          if (currentSrc?.sparkyId === sid && isPlaying) {
+          if (currentSrc && isPlaying && (
+            (target.sparkyId && currentSrc.sparkyId === target.sparkyId) ||
+            (target.stationuuid && currentSrc.stationuuid === target.stationuuid) ||
+            (norm(currentSrc.url) === norm(target.url))
+          )) {
             stopPlayback();
           } else {
             playStationObj(target);
@@ -1800,18 +1973,46 @@ function renderDiscoveryFavs(pl) {
     }
   });
 
-  // Bind Trashbin Toggle
+  pl.querySelectorAll('.pl-add-fav').forEach(btn => btn.onclick = (e) => {
+    e.stopPropagation();
+    const item = btn.closest('.pl-discovery-card');
+    const uuid = item.dataset.uuid;
+    const url = item.dataset.url;
+    const st = recentList.find(s => s.stationuuid === uuid || norm(s.url) === norm(url));
+    if (st) {
+      addFav(st);
+      renderFavs();
+      sparkyAlert(`[${st.name}] added to Favorites!`, "STATION VAULTED");
+    }
+  });
+
+  pl.querySelectorAll('[data-rmrecent]').forEach(btn => btn.onclick = (e) => {
+    e.stopPropagation();
+    const id = btn.dataset.rmrecent;
+    if (!id) return;
+    const sid = btn.dataset.rmfav;
+    if (sid) {
+      const stats = loadUsage();
+      if (stats[id]) stats[id].count = 0;
+      saveUsage(stats);
+      renderFavs();
+    } else {
+      const stats = loadUsage();
+      delete stats[id];
+      saveUsage(stats);
+      renderFavs();
+    }
+  });
+
   pl.querySelectorAll('.card-remove').forEach(bin => {
     bin.onclick = (e) => {
       e.stopPropagation();
       const sid = bin.dataset.rmfav;
+      if (!sid) return; // Handled by rmrecent if in recent view
       const m = loadFavs();
       const f = m.find(x => x.sparkyId === sid);
       if (f) {
-        sparkyConfirm(`Remove [${f.name}]?`, () => {
-          removeFavBySparkyId(sid);
-          renderFavs();
-        }, "DELETE FROM FAVORITES");
+        sparkyConfirm(`Remove [${f.name}]?`, () => { removeFavBySparkyId(sid); renderFavs(); }, "DELETE FROM FAVORITES");
       }
     };
   });
@@ -2643,7 +2844,8 @@ window.addEventListener('DOMContentLoaded', () => {
 
   // ══ SORT MODE BINDING ══
   bind('btnSortMode', () => {
-    const modes = (activeTab === 'stations' || favViewMode !== 'list' || discoveryCategoryFilter !== 'ALL') ? ['pwr', 'vote'] : ['pwr', 'vote', 'custom'];
+    if (activeTab === 'favs' && discoveryCategoryFilter === 'RECENT') return;
+    const modes = (activeTab === 'stations' || favViewMode !== 'list' || (discoveryCategoryFilter !== 'ALL' && discoveryCategoryFilter !== 'RECENT')) ? ['pwr', 'vote'] : ['pwr', 'vote', 'custom'];
     let idx = (modes.indexOf(sortMode) + 1) % modes.length;
     sortMode = modes[idx];
     if (activeTab === 'favs') {
@@ -2669,7 +2871,7 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 
     localStorage.setItem('sparky_fav_view', favViewMode);
-    
+
     // Auto-sanitize sort mode when entering grid views
     if (favViewMode !== 'list' && sortMode === 'custom') {
       sortMode = 'pwr';
@@ -2740,9 +2942,13 @@ function updateSortUI() {
   const tip = document.getElementById('plSortTooltip');
   if (!btn || !tip) return;
 
+  const isRecent = activeTab === 'favs' && discoveryCategoryFilter === 'RECENT';
+  btn.classList.toggle('disabled-ui', isRecent);
+  btn.title = isRecent ? "Sorting locked to Usage in Recent View" : "Change Sort Mode";
+
   btn.innerHTML = `<span class="material-symbols-outlined">sort</span>`;
 
-  const modes = (activeTab === 'stations' || favViewMode !== 'list' || discoveryCategoryFilter !== 'ALL') ? ['pwr', 'vote'] : ['pwr', 'vote', 'custom'];
+  const modes = (activeTab === 'stations' || favViewMode !== 'list' || (discoveryCategoryFilter !== 'ALL' && discoveryCategoryFilter !== 'RECENT')) ? ['pwr', 'vote'] : ['pwr', 'vote', 'custom'];
   const labels = { pwr: 'Power Ranking', vote: 'Vote Ranking', custom: 'Custom Order' };
   const icons = { pwr: 'bolt', vote: 'how_to_vote', custom: 'star' };
 
