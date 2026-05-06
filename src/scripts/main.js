@@ -949,7 +949,21 @@ function removeFav(st) {
 }
 
 // ══ AUDIO INIT ════════════════════════════
+const isIOS = (/iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) && !window.MSStream;
+
 function initAudio() {
+  if (isIOS) {
+    console.log("[PWA] iOS Bypass: Native Audio Engaged. Web Audio API (EQ/Viz) disabled for background play support.");
+    
+    // UI Notification for iOS users
+    const eqTitle = document.querySelector('.eq-panel-title');
+    if (eqTitle && !eqTitle.innerHTML.includes('iOS Background Active')) {
+      eqTitle.innerHTML += ' <span style="color:var(--text-dim); font-size:10px; font-weight:normal; margin-left:8px;">(iOS Background Active - EQ Off)</span>';
+    }
+    
+    return;
+  }
+
   if (audioCtx) return;
   audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
