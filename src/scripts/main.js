@@ -3160,6 +3160,7 @@ function toggleYtMode(activate) {
   const ytPlayer  = document.getElementById('sparky-yt-player-wrap');
   const npBody    = document.getElementById('npJumpArea');
   const npMeta    = document.getElementById('npMeta');
+  const npHeader  = document.querySelector('.np-header');  // folder icon + EQ btn row
   const eqBtn     = document.getElementById('btnEq');
   const eqRack    = document.getElementById('eqRack');
 
@@ -3167,6 +3168,7 @@ function toggleYtMode(activate) {
   if (ytView)    ytView.classList.toggle('hidden', !activate);
   if (npBody)    npBody.classList.toggle('hidden', activate);
   if (npMeta)    npMeta.classList.toggle('hidden', activate);
+  if (npHeader)  npHeader.classList.toggle('hidden', activate);
   if (ytPlayer)  ytPlayer.classList.toggle('hidden', !activate);
 
   // Suppress EQ in YT mode — no audio routing needed
@@ -3278,3 +3280,261 @@ document.getElementById('btnModeToggle')?.addEventListener('click', () => {
 if (localStorage.getItem('sparky_yt_mode_active') === '1') {
   toggleYtMode(true);
 }
+
+// ════════════════════════════════════════════════════════════════
+// ║  SPARKY YT MODULE — Phase 3: Search, Player & Audio Overlap ║
+// ════════════════════════════════════════════════════════════════
+
+// Auto-detect API base: relative paths work on Vercel, full URL needed for local dev
+const YT_API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+  ? 'https://sparky-radio-git-feature-youtube-in-3e6aa4-r1palomor1s-projects.vercel.app'
+  : '';
+
+let ytIframeApiLoading = false;
+let ytIframeApiReady   = false;
+let pendingPlayItem    = null;
+
+// ── 3.1: Search ──────────────────────────────────────────────────
+async function runYtSearch() {
+  const query = document.getElementById('ytSearchInput')?.value?.trim();
+  if (!query) return;
+
+  const mode = sparkyYtState.currentSubMode; // 'videos' | 'playlists'
+  const resultsEl = document.getElementById('ytResults');
+  if (!resultsEl) return;
+
+  resultsEl.innerHTML = `<div class="yt-loading"><div class="yt-spinner"></div>Searching...</div>`;
+  sparkyYtState.searchCache = { query, results: [], type: mode };
+
+  try {
+    if (mode === 'videos') {
+      const res  = await fetch(`${YT_API_BASE}/api/searchVideos?query=${encodeURIComponent(query)}`);
+      const data = await res.json();
+      if (data.video_results?.length) {
+        sparkyYtState.searchCache.results = data.video_results;
+        sparkyYtState.searchCache.type = 'videos';
+        renderYtVideoResults(data.video_results);
+      } else {
+        showYtError('No videos found — try a different search.');
+      }
+
+    } else if (mode === 'playlists') {
+      const res  = await fetch(`${YT_API_BASE}/api/fetchPlaylist?query=${encodeURIComponent(query)}`);
+      const data = await res.json();
+      if (data.playlist_results?.length) {
+        sparkyYtState.searchCache.results = data.playlist_results;
+        sparkyYtState.searchCache.type = 'playlists';
+        renderYtPlaylistResults(data.playlist_results);
+      } else {
+        showYtError('No playlists found — try a different search.');
+      }
+    }
+  } catch (err) {
+    console.error('[YT] Search error:', err);
+    showYtError('Search failed. Check your connection and try again.');
+  }
+}
+
+function showYtError(msg) {
+  const el = document.getElementById('ytResults');
+  if (el) el.innerHTML = `<div class="pl-empty"><div class="pl-empty-icon">&#9888;&#65039;</div><div>${msg}</div></div>`;
+}
+
+function renderYtVideoResults(videos) {
+  const el = document.getElementById('ytResults');
+  if (!el || !videos.length) { showYtError('No videos found.'); return; }
+
+  el.innerHTML = videos.map(v => `
+    <div class="yt-card" data-id="${v.id}" data-type="video" data-title="${v.title.replace(/"/g, '&quot;')}" data-channel="${(v.channel||'').replace(/"/g,'&quot;')}" data-thumb="${v.thumbnail}">
+      <img class="yt-card-thumb" src="${v.thumbnail}" alt="" loading="lazy">
+      <div class="yt-card-info">
+        <div class="yt-card-title">${v.title}</div>
+        <div class="yt-card-channel">${v.channel || ''}${v.duration ? ' &middot; ' + v.duration : ''}</div>
+      </div>
+      <button class="yt-card-fav${isYtFav(v.id) ? ' active' : ''}" data-id="${v.id}" data-type="video" title="${isYtFav(v.id) ? 'Remove from Hub' : 'Save to Hub'}">
+        <span class="material-symbols-outlined">favorite</span>
+      </button>
+    </div>
+  `).join('');
+
+  attachYtCardListeners(el);
+}
+
+function renderYtPlaylistResults(playlists) {
+  const el = document.getElementById('ytResults');
+  if (!el || !playlists.length) { showYtError('No playlists found.'); return; }
+
+  el.innerHTML = playlists.map(p => `
+    <div class="yt-card" data-id="${p.playlist_id}" data-type="playlist" data-title="${p.title.replace(/"/g, '&quot;')}" data-channel="Playlist" data-thumb="${p.thumbnail}">
+      <img class="yt-card-thumb" src="${p.thumbnail}" alt="" loading="lazy">
+      <div class="yt-card-info">
+        <div class="yt-card-title">${p.title}</div>
+        <div class="yt-card-channel">Playlist</div>
+      </div>
+      <button class="yt-card-fav${isYtFav(p.playlist_id) ? ' active' : ''}" data-id="${p.playlist_id}" data-type="playlist" title="${isYtFav(p.playlist_id) ? 'Remove from Hub' : 'Save to Hub'}">
+        <span class="material-symbols-outlined">favorite</span>
+      </button>
+    </div>
+  `).join('');
+
+  attachYtCardListeners(el);
+}
+
+function attachYtCardListeners(container) {
+  // Card body click → play
+  container.querySelectorAll('.yt-card').forEach(card => {
+    card.addEventListener('click', e => {
+      if (e.target.closest('.yt-card-fav')) return;
+      container.querySelectorAll('.yt-card').forEach(c => c.classList.remove('active'));
+      card.classList.add('active');
+      playYtItem({
+        id:      card.dataset.id,
+        type:    card.dataset.type,
+        title:   card.dataset.title,
+        channel: card.dataset.channel,
+        thumb:   card.dataset.thumb
+      });
+    });
+  });
+
+  // Fav button toggle (no refetch needed)
+  container.querySelectorAll('.yt-card-fav').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const card = btn.closest('.yt-card');
+      const item = {
+        id:      btn.dataset.id,
+        type:    btn.dataset.type,
+        title:   card.dataset.title,
+        thumb:   card.dataset.thumb,
+        channel: card.dataset.channel
+      };
+      if (isYtFav(item.id)) {
+        removeYtFav(item.id);
+        btn.classList.remove('active');
+        btn.title = 'Save to Hub';
+      } else {
+        addYtFav(item);
+        btn.classList.add('active');
+        btn.title = 'Remove from Hub';
+      }
+    });
+  });
+}
+
+// ── 3.2: Lazy Player Loading ─────────────────────────────────────
+function playYtItem(item) {
+  pauseRadioForYt();
+
+  // Update NP metadata immediately
+  const titleEl   = document.getElementById('ytNpTitle');
+  const channelEl = document.getElementById('ytNpChannel');
+  if (titleEl)   titleEl.textContent   = item.title   || 'Loading...';
+  if (channelEl) channelEl.textContent = item.type === 'playlist' ? '▶ Playlist' : '▶ Video';
+
+  // Store current item for queue use in Phase 4
+  sparkyYtState.currentQueue = [item];
+  sparkyYtState.queueIndex   = 0;
+
+  if (ytIframeApiReady && sparkyYtState.playerInstance) {
+    // Player exists — load directly
+    loadIntoExistingPlayer(item);
+  } else if (ytIframeApiReady && !sparkyYtState.playerInstance) {
+    // API loaded but player not created yet
+    createYtPlayer(item);
+  } else {
+    // First play — lazy-load the iframe API
+    pendingPlayItem = item;
+    loadYtIframeApi();
+  }
+
+  console.log(`[YT] Playing ${item.type}: ${item.title}`);
+}
+
+function loadIntoExistingPlayer(item) {
+  const p = sparkyYtState.playerInstance;
+  if (!p) return;
+  try {
+    if (item.type === 'playlist') {
+      p.loadPlaylist({ list: item.id, listType: 'playlist' });
+    } else {
+      p.loadVideoById(item.id);
+    }
+  } catch (e) {
+    console.error('[YT] Player load error:', e);
+    // Recreate player if it crashed
+    sparkyYtState.playerInstance = null;
+    createYtPlayer(item);
+  }
+}
+
+function loadYtIframeApi() {
+  if (ytIframeApiLoading || ytIframeApiReady) return;
+  ytIframeApiLoading = true;
+  const tag = document.createElement('script');
+  tag.src = 'https://www.youtube.com/iframe_api';
+  document.head.appendChild(tag);
+  console.log('[YT] Lazy-loading iframe API...');
+}
+
+// Global callback — YouTube API calls this when ready
+window.onYouTubeIframeAPIReady = function () {
+  ytIframeApiReady   = true;
+  ytIframeApiLoading = false;
+  console.log('[YT] iframe API ready');
+  if (pendingPlayItem) {
+    createYtPlayer(pendingPlayItem);
+    pendingPlayItem = null;
+  }
+};
+
+function createYtPlayer(item) {
+  // Reset the div in case it has stale content
+  const playerDiv = document.getElementById('sparky-yt-player');
+  if (!playerDiv) return;
+  playerDiv.innerHTML = '';
+
+  sparkyYtState.playerInstance = new YT.Player('sparky-yt-player', {
+    height: '100%',
+    width:  '100%',
+    playerVars: {
+      playsinline:    1,
+      controls:       1,
+      autoplay:       1,
+      rel:            0,
+      modestbranding: 1
+    },
+    events: {
+      onReady: event => {
+        if (item.type === 'playlist') {
+          event.target.loadPlaylist({ list: item.id, listType: 'playlist' });
+        } else {
+          event.target.loadVideoById(item.id);
+        }
+      },
+      onStateChange: onYtStateChange,
+      onError: e => console.error('[YT] Player error code:', e.data)
+    }
+  });
+}
+
+// ── 3.3: Audio Overlap Prevention ────────────────────────────────
+function onYtStateChange(event) {
+  if (event.data === YT.PlayerState.PLAYING) {
+    pauseRadioForYt();
+  }
+}
+
+function pauseRadioForYt() {
+  const audio = document.getElementById('audioEl');
+  if (audio && !audio.paused) {
+    audio.pause();
+    console.log('[YT] Radio paused — YouTube is now playing');
+  }
+}
+
+// ── Search Event Wiring ───────────────────────────────────────────
+document.getElementById('btnYtSearch')?.addEventListener('click', runYtSearch);
+document.getElementById('ytSearchInput')?.addEventListener('keydown', e => {
+  if (e.key === 'Enter') runYtSearch();
+});

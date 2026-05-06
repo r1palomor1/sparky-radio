@@ -3818,7 +3818,7 @@ body.light .filter-chip {
   flex-shrink: 0;
 }
 
-.yt-search-wrap .search-icon { font-size: 16px; color: var(--dim); flex-shrink: 0; }
+.yt-search-wrap .yt-search-icon { font-size: 16px; color: var(--dim); flex-shrink: 0; }
 
 #ytSearchInput {
   flex: 1;
