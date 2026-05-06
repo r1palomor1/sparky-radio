@@ -2383,17 +2383,22 @@ function expandFilters() {
 // ══ SETTINGS & UI ══════════════════════════
 // ══ SETTINGS & UI (Logic defined here, bound in INIT) ══
 function handleExport() {
-  const data = JSON.stringify(loadFavs(), null, 2);
+  const exportPayload = {
+    version: 2,
+    favorites: loadFavs(),
+    usageStats: loadUsage()
+  };
+  const data = JSON.stringify(exportPayload, null, 2);
   const blob = new Blob([data], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `sparky_favorites_${new Date().toISOString().split('T')[0]}.json`;
+  a.download = `sparky_backup_${new Date().toISOString().split('T')[0]}.json`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
-  sparkyAlert("Favorites Vault exported as JSON file.", "EXPORT SUCCESSFUL");
+  sparkyAlert("Favorites Vault and Recent History exported.", "EXPORT SUCCESSFUL");
 }
 
 function handleImport(e) {
@@ -2403,14 +2408,25 @@ function handleImport(e) {
   reader.onload = (re) => {
     try {
       const data = JSON.parse(re.target.result);
+      let newFavs = [];
+      let newUsage = null;
+
       if (Array.isArray(data)) {
-        sparkyConfirm(`Restore ${data.length} stations from file? This will overwrite current favorites.`, () => {
-          saveFavs(data);
-          refreshFavBadge();
-          if (activeTab === 'favs') renderFavs();
-          sparkyAlert("Vault Restored Successfully!", "RESTORE COMPLETE");
-        }, "CONFIRM RESTORE");
-      } else { throw new Error(); }
+        newFavs = data; // Legacy v1 backup
+      } else if (data && data.favorites && Array.isArray(data.favorites)) {
+        newFavs = data.favorites; // New v2 backup
+        if (data.usageStats) newUsage = data.usageStats;
+      } else {
+        throw new Error();
+      }
+
+      sparkyConfirm(`Restore ${newFavs.length} stations from file? This will overwrite current favorites${newUsage ? ' and recent history' : ''}.`, () => {
+        saveFavs(newFavs);
+        if (newUsage) saveUsage(newUsage);
+        refreshFavBadge();
+        if (activeTab === 'favs') renderFavs();
+        sparkyAlert("Vault Restored Successfully!", "RESTORE COMPLETE");
+      }, "CONFIRM RESTORE");
     } catch (err) {
       sparkyAlert("Invalid JSON file. Please use a valid Sparky Radio backup.", "RESTORE FAILED");
     }
