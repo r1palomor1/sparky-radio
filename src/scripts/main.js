@@ -3120,12 +3120,11 @@ async function healFavoritesFavicons() {
 
   if (restoredCount > 0) {
     saveFavs(m);
-  if (restoredCount > 0) {
-    saveFavs(m);
     console.log(`[SELF-HEAL] Successfully restored ${restoredCount} icons. Refreshing UI...`);
     if (activeTab === 'favs') renderFavs();
   }
 }
+
 
 // ════════════════════════════════════════════════════════════════
 // ║  SPARKY YT MODULE — Phase 2: State Manager & DOM Toggling  ║

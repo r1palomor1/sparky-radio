@@ -3726,6 +3726,15 @@ body.light .filter-chip {
    SPARKY YT MODULE — Phase 2: View Styles
    ══════════════════════════════════════════════════════════════ */
 
+/* ── Radio View Wrapper: must match lower-rack flex containment ── */
+#radio-view {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
 /* Utility: hidden state (used by toggle logic) */
 .hidden { display: none !important; }
 

@@ -114,26 +114,32 @@ The UI components will leverage DOM injection templates similar to Sparky's exis
 ## 8. Detailed Phased Execution Plan
 *This section provides a highly detailed, step-by-step roadmap. Each phase (and its sub-tasks) is designed to be executed, tested, and reviewed independently. This ensures a safe, iterative workflow and allows seamless handoff between AI agents if quota limits are reached.*
 
-### Phase 1: Environment Setup & API Foundation
+### ✅ Phase 1: Environment Setup & API Foundation — COMPLETE
 **Objective:** Secure the production environment and establish backend infrastructure.
-* **Task 1.1: Secure `main` Branch:** Run `git status`, commit any pending changes (e.g., `TODO.md`), and ensure the working directory is clean.
-* **Task 1.2: Branching:** Execute `git checkout -b feature/youtube-integration`.
-* **Task 1.3: Vercel API Expansion:** Create/update the Vercel serverless functions (`/api/fetchPlaylist` and `/api/search`). Port the `youtubei.js` logic from `r1-launch-pad` and add a new endpoint specifically to replace the Rabbit OS `PluginMessageHandler` video search.
-* **Review Gate 1:** User tests the new Vercel endpoints directly in the browser to ensure JSON responses are correctly formatted and returning YouTube data.
+* ✅ **Task 1.1: Secure `main` Branch:** Committed orphaned `TODO.md` and `Sparky-Radio-YT-Integration-PRD.md` to main, cleaned working directory.
+* ✅ **Task 1.2: Branching:** Created and pushed `feature/youtube-integration` branch. All YT work isolated here.
+* ✅ **Task 1.3: Vercel API Expansion:** Created `api/fetchPlaylist.js` (playlist search + fetch by ID) and `api/searchVideos.js` (video search, replaces `PluginMessageHandler`). Both use `youtubei.js` keyless access. Added `vercel.json` with Node runtime config.
+* ✅ **Fix: Node version pinned** to `22.x` via `engines` field in `package.json`.
+* ✅ **Fix: `"type": "module"`** added to `package.json` to resolve `FUNCTION_INVOCATION_FAILED` crash on ES module imports.
+* ✅ **Review Gate 1 PASSED:** All 3 API endpoints tested and returning correct JSON from live Vercel deployment.
 
-### Phase 2: DOM Scaffolding & State Toggling
+### ✅ Phase 2: DOM Scaffolding & State Toggling — COMPLETE
 **Objective:** Build the UI skeleton and the context-switching logic without loading the YouTube API yet.
-* **Task 2.1: DOM Injection:** Add the HTML structure for the Video Search Input, Video Results Container, Video Hub (Favorites), and the hidden YouTube Player wrapper (`sparky-yt-player`).
-* **Task 2.2: Footer Integration:** Add the Material/Google Font icon to the footer for toggling between "Radio" and "Video" modes.
-* **Task 2.3: State Manager:** Write vanilla JS functions to toggle CSS `hidden` classes between the Radio DOM and Video DOM. Ensure `localStorage` keys for Video mode (`sparky_yt_favorites`) are initialized if empty.
-* **Review Gate 2:** User clicks the footer toggle. Verifies the UI visually switches between Radio mode and an empty Video mode smoothly, and that Radio mode remains fully functional.
+* ✅ **Task 2.1: DOM Injection:** Added HTML for YT Search Input (`#ytSearchInput`), Video Results Container (`#ytResults`), Video Hub (`#ytHub`), and hidden YouTube Player wrapper (`#sparky-yt-player-wrap`) inside the now-playing zone.
+* ✅ **Task 2.2: Footer Integration:** Converted the static radio branding `div` into a live `<button id="btnModeToggle">` that toggles between `radio` and `smart_display` icons with accent glow on active state.
+* ✅ **Task 2.3: State Manager:** Implemented `sparkyYtState`, `toggleYtMode()`, `switchYtTab()`, `renderYtHub()`, and localStorage keys (`sparky_yt_favorites`, `sparky_yt_history`). Mode persists across hard refreshes.
+* ✅ **Fix: `#radio-view` flex containment** — added `flex:1; min-height:0; overflow:hidden` to prevent station list growth from pushing footer off screen.
+* ✅ **Fix: YT player wrap placement** — moved inside `.now-playing` div (was orphaned outside, breaking flex layout).
+* ✅ **Fix: JS syntax error** — removed duplicated `if (restoredCount > 0)` block that caused `npm run build` to fail.
+* ✅ **Build:** `npm run build` passes clean (`Exit code: 0`).
+* ✅ **Review Gate 2 PASSED:** Footer permanently visible. Mode toggle switches Radio ↔ Video. All 3 sub-tabs (Videos/Playlists/Hub) functional. Radio mode fully preserved.
 
-### Phase 3: Search, Player, & Audio Overlap
+### 🔵 Phase 3: Search, Player, & Audio Overlap — IN PROGRESS
 **Objective:** Connect the search UI to the API and implement the lazy-loaded player.
-* **Task 3.1: Search Implementation:** Wire the search input button to call the new `/api/search` Vercel function. Map the JSON response to DOM card elements (similar to `r1-launch-pad` render logic).
-* **Task 3.2: Lazy Player Loading:** Inject the `https://www.youtube.com/iframe_api` script *only* when the user clicks play on a video card. Instantiate `YT.Player`.
-* **Task 3.3: Audio Overlap Prevention:** Add event listeners to the `YT.Player` state changes. If `YT.PlayerState.PLAYING` fires, locate Sparky's HTML5 `<audio>` element and forcefully pause it.
-* **Review Gate 3:** User performs a search, clicks a video. Ensures the iframe loads, video plays, and if the Radio was playing, it correctly pauses.
+* ⬜ **Task 3.1: Search Implementation:** Wire the search input button to call `/api/searchVideos` (videos) or `/api/fetchPlaylist` (playlists). Map JSON response to `.yt-card` DOM elements.
+* ⬜ **Task 3.2: Lazy Player Loading:** Inject `https://www.youtube.com/iframe_api` script only when user clicks play on a card. Instantiate `YT.Player` in `#sparky-yt-player`.
+* ⬜ **Task 3.3: Audio Overlap Prevention:** On `YT.PlayerState.PLAYING`, pause the HTML5 `<audio>` element. On YT pause/stop, allow radio resume.
+* **Review Gate 3:** User performs a search, clicks a video. Ensures the iframe loads, video plays, and if Radio was playing, it correctly pauses.
 
 ### Phase 4: Playlists & Video Hub (Favorites)
 **Objective:** Port the playlist engine and finalize persistence.
