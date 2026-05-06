@@ -1,25 +1,9 @@
 # Sparky Radio ELITE - Development Roadmap
 
-## 🔴 CRITICAL: Favicon Info Icon Refactor (RE-VISIT)
-**Issue**: The "Info" icon guide in the Station Management modal is failing to trigger. We have tried three iterations (Alert, Hardened Event, Dedicated Modal) and it still fails to appear.
-*   **Action**: Conduct a full structural audit of the Station Management modal's lifecycle to identify event shadowing or DOM detachment.
-*   **Target**: First priority for next session.
-
 ## 🔵 FUTURE: Integration of Features from R1-Launch-Pad
 **Reference**: `C:\Users\palom\Vibe Coding Apps\r1-launch-pad`
 **Goal**: Analyze the source project (where our Theme Logic originated) to adapt another "very great enhancement" to Sparky Radio's industrial framework.
 
-## 🔴 HIGH PRIORITY: The Mobile Metadata Gap
-**Issue**: Favorites saved on mobile devices as "Legacy Records" (pre-UUID system) are failing to sync live telemetry (Votes, Clicks, Momentum) even after URL-Rescue grafting.
-
-### 🧪 What we have tried:
-1.  **URL-Signature Match**: Implemented `norm(url)` comparison to link legacy records to global IDs.
-2.  **ID Grafting**: Added logic to `syncFavMetadata` to write missing UUIDs into local storage records during playback or discovery.
-3.  **Hiding Bitrate**: Purged legacy DOM references that were causing `TypeErrors` and stalling playback.
-
-### 🔍 Current Theory:
-*   **CORS/API Block**: Mobile browsers may be silently blocking the metadata refresh calls during background sync.
-*   **Storage Collision**: Potential discrepancy in how mobile Safari/Chrome handles the JSON serialization of the `sparky_favorites` object.
 
 
 ---
@@ -34,3 +18,27 @@
 - [x] **Compact Player Mode**: Collapsible lower rack to optimize screen real estate.
 - [x] **Industrial-Beige**: Premium aesthetic overhaul with high-contrast palette.
 - [x] **Dynamic Deployment Signature**: Transitioned from manual `APP_VERSION` to cryptographic software fingerprinting (Build Hash + Auto-Timestamp).
+
+---
+
+## Industrial Responsive Logic (v2.33.0)
+
+### 1. Hybrid Dynamic-Proportional System
+The UI utilizes a "Gear-Shift" architecture that adapts to hardware width while maintaining proportional visual weights.
+
+### 2. Dynamic Column Tiers (Width-Driven)
+The grid automatically adjusts column counts based on the viewport width:
+*   **Mobile (<480px)**: 3 Columns. (Updated for higher density testing)
+*   **Wide Phone (481px - 699px)**: 3 Columns.
+*   **Tablet/Fold5 (700px - 999px)**: 4 Columns.
+*   **Desktop (>1000px)**: Auto-Fill Fluid Grid (Dynamic 5+ Columns).
+
+### 3. Proportional Card Multiplier (Height-Driven)
+Card height is mathematically tied to width to ensure industrial consistency:
+*   **Mobile Aspect Multiplier**: 1.5. (Stretched vertically to support 3-column text wrapping).
+*   **Desktop Aspect Multiplier**: 1.35.
+*   **Note**: Aspect ratios are strictly enforced via CSS to prevent UI ghosting or clipping during multi-line station name wraps.
+
+### 4. Vertical Flex-Grow Strategy
+*   The Discovery Hub uses flex: 1 to consume all available vertical space between the Now Playing header and the footer.
+*   Legacy height constraints (max-height: 320px) have been purged to allow full vertical immersion on tablets.

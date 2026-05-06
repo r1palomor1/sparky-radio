@@ -1,0 +1,143 @@
+# Sparky Radio YouTube Integration PRD
+
+## 1. Analysis Summary
+After a thorough review of the `r1-launch-pad` repository, we have identified the key mechanisms and architectural patterns for YouTube integration. The launch pad utilizes a hybrid approach:
+- **Playlists** are fetched via a Vercel serverless function (`/api/fetchPlaylist.js`), which relies on the `youtubei.js` library to extract playlist metadata and video items without an official API key.
+- **Videos** and searches are currently routed through native Rabbit OS hooks (`PluginMessageHandler`). **Since Sparky Radio is a standalone PWA, this native hook is a critical gap and MUST be replaced.**
+- **Player Embedding** uses the standard YouTube Iframe API (`YT.Player`) with specific `playerVars` to control playback (`playsinline: 1, modestbranding: 1, rel: 0`).
+- **State Management** heavily relies on synchronous `localStorage` updates paired with in-memory arrays (e.g., `savedPlaylists`, `currentPlaylist`).
+
+**Recommendations:**
+- **Standardize API Access:** Expand the Vercel API endpoint (or create a new Cloudflare Worker/Vercel endpoint for Sparky) to handle *both* video searches and playlist fetching, entirely removing the dependency on `PluginMessageHandler`.
+- **Decoupled Data Store:** Migrate `launchPadR1*` storage keys to `sparky_yt_*` keys to ensure Radio and Video states remain completely independent.
+- **Player Lifecycle:** Implement a lazy-loaded, single-instance YouTube iframe. When toggling back to Radio mode, the YouTube iframe should be suspended or destroyed to prevent audio overlap and conserve memory.
+
+## 2. Goals & User Flows
+The primary goal is to seamlessly integrate a dedicated "Video Mode" into Sparky Radio without disrupting the existing "Radio Mode."
+
+- **Mode Toggle:** A footer icon (using Google Fonts icons) will seamlessly toggle between Radio Mode and Video Mode.
+- **Independent Ecosystem:** Video mode has its own search logic, play queue, favorites (Video Hub), and history.
+- **Search & Play:** Users can search for Songs or Playlists. Clicking a card initiates playback via an injected YouTube iframe in the Now Playing area.
+- **Favorites Hub:** Users can save videos or playlists to their Video Favorites.
+
+## 3. Data Models & State Handling
+We will port the in-memory array structures from `r1-launch-pad` to Sparky Radio using `localStorage`.
+
+**LocalStorage Keys:**
+- `sparky_yt_favorites`: Array of saved items (`{ id, type: 'video'|'playlist', title, thumb, addedAt }`).
+- `sparky_yt_history`: Array of recently played items.
+- `sparky_yt_lastSearch`: Cached search term and results.
+
+**In-Memory State:**
+```javascript
+let sparkyYtState = {
+    isModeActive: false,
+    playerInstance: null,
+    currentQueue: [], // For playlists
+    queueIndex: 0,
+    searchCache: { query: '', results: [] }
+};
+```
+
+## 4. UI/DOM Structure
+The UI components will leverage DOM injection templates similar to Sparky's existing architecture.
+
+**Key Templates:**
+- **Mode Toggle Button:** Footer action button to switch context.
+- **Video Search/Hub View:** Replaces the Radio Stations list when in Video mode.
+- **Video Player Container:** Injected into the Now Playing area.
+
+```html
+<!-- Injected Video Container (Hidden in Radio Mode) -->
+<div id="sparky-yt-container" class="hidden">
+    <div id="sparky-yt-player"></div>
+    <div class="yt-controls">
+        <button id="yt-prev-btn" class="icon-btn">...</button>
+        <button id="yt-play-btn" class="icon-btn">...</button>
+        <button id="yt-next-btn" class="icon-btn">...</button>
+    </div>
+</div>
+```
+
+## 5. Engineering Tasks & Implementation Details
+
+### Priority 0: Safe Development Environment
+- **Task:** Create and utilize an isolated Git branch (e.g., `feature/youtube-integration`). All development must happen on this branch to ensure the `main` production environment remains untouched and stable during development.
+
+### Priority 1: Mode Switcher & DOM Scaffolding
+- **Task:** Implement the footer toggle button. When activated, hide the Radio DOM elements and reveal the Video DOM elements.
+- **Code Snippet (Context Switching):**
+  ```javascript
+  function toggleYtMode(activate) {
+      sparkyYtState.isModeActive = activate;
+      document.getElementById('radio-view').classList.toggle('hidden', activate);
+      document.getElementById('yt-view').classList.toggle('hidden', !activate);
+      if (activate && !window.YT) loadYtIframeApi();
+  }
+  ```
+
+### Priority 2: Player Integration
+- **Task:** Port the `openPlayerView` logic. Initialize `YT.Player` inside the `sparky-yt-player` div.
+- **Code Snippet (Player Setup from Repo):**
+  ```javascript
+  player = new YT.Player('sparky-yt-player', {
+      height: '100%',
+      width: '100%',
+      videoId: options.videoId,
+      playerVars: {
+          'playsinline': 1, 'controls': 1, 'autoplay': 1,
+          'rel': 0, 'modestbranding': 1, 'showinfo': 0
+      },
+      events: { 'onStateChange': onYtStateChange }
+  });
+  ```
+
+### Priority 3: API & Search Replacement
+- **Task:** **Critically important:** Replace the `PluginMessageHandler` from `r1-launch-pad` with an external `fetch()` call to a backend proxy or official YouTube Data API, since Sparky Radio operates purely in-browser.
+
+### Priority 4: Playlist Engine
+- **Task:** Implement the manual playlist queue logic (ported from `playNextVideoInList` / `loadVideoFromPlaylist`).
+
+## 6. Proposed Enhancements
+
+- **Lazy Loading Iframe:** Do not inject the YouTube API script until the user explicitly toggles to Video mode for the first time. This significantly reduces initial PWA load time.
+- **Serverless Search Proxy:** Since `r1-launch-pad` uses `PluginMessageHandler` for search, build a `/api/search` Vercel function alongside `/api/fetchPlaylist` to securely handle YouTube Data API requests without exposing keys on the frontend.
+- **Audio Overlap Prevention:** Automatically pause the HTML5 Audio element (Radio) when the YouTube iframe begins playing, and vice-versa.
+- **Offline Resilience:** While YouTube embeds cannot play offline, the Video Hub (favorites) metadata should be fully cached via the PWA service worker so the UI doesn't break when offline.
+
+## 7. Acceptance Criteria (AC) & Testing
+- **AC1 (PWA & Mobile):** The YouTube iframe must render correctly on iOS/Android, responding to CSS flex/grid rules without causing vertical scrolling overflow.
+- **AC2 (Persistence):** Favoriting a video must successfully save to `sparky_yt_favorites` in LocalStorage, surviving hard refreshes and app closure.
+- **AC3 (Separation of Concerns):** Playing a video must not alter the last played Radio station state. Toggling back to Radio should recall the exact Radio UI state.
+- **AC4 (Performance):** The addition of the YouTube API script must not negatively impact Lighthouse performance scores for users who only use Radio mode.
+
+## 8. Detailed Phased Execution Plan
+*This section provides a highly detailed, step-by-step roadmap. Each phase (and its sub-tasks) is designed to be executed, tested, and reviewed independently. This ensures a safe, iterative workflow and allows seamless handoff between AI agents if quota limits are reached.*
+
+### Phase 1: Environment Setup & API Foundation
+**Objective:** Secure the production environment and establish backend infrastructure.
+* **Task 1.1: Secure `main` Branch:** Run `git status`, commit any pending changes (e.g., `TODO.md`), and ensure the working directory is clean.
+* **Task 1.2: Branching:** Execute `git checkout -b feature/youtube-integration`.
+* **Task 1.3: Vercel API Expansion:** Create/update the Vercel serverless functions (`/api/fetchPlaylist` and `/api/search`). Port the `youtubei.js` logic from `r1-launch-pad` and add a new endpoint specifically to replace the Rabbit OS `PluginMessageHandler` video search.
+* **Review Gate 1:** User tests the new Vercel endpoints directly in the browser to ensure JSON responses are correctly formatted and returning YouTube data.
+
+### Phase 2: DOM Scaffolding & State Toggling
+**Objective:** Build the UI skeleton and the context-switching logic without loading the YouTube API yet.
+* **Task 2.1: DOM Injection:** Add the HTML structure for the Video Search Input, Video Results Container, Video Hub (Favorites), and the hidden YouTube Player wrapper (`sparky-yt-player`).
+* **Task 2.2: Footer Integration:** Add the Material/Google Font icon to the footer for toggling between "Radio" and "Video" modes.
+* **Task 2.3: State Manager:** Write vanilla JS functions to toggle CSS `hidden` classes between the Radio DOM and Video DOM. Ensure `localStorage` keys for Video mode (`sparky_yt_favorites`) are initialized if empty.
+* **Review Gate 2:** User clicks the footer toggle. Verifies the UI visually switches between Radio mode and an empty Video mode smoothly, and that Radio mode remains fully functional.
+
+### Phase 3: Search, Player, & Audio Overlap
+**Objective:** Connect the search UI to the API and implement the lazy-loaded player.
+* **Task 3.1: Search Implementation:** Wire the search input button to call the new `/api/search` Vercel function. Map the JSON response to DOM card elements (similar to `r1-launch-pad` render logic).
+* **Task 3.2: Lazy Player Loading:** Inject the `https://www.youtube.com/iframe_api` script *only* when the user clicks play on a video card. Instantiate `YT.Player`.
+* **Task 3.3: Audio Overlap Prevention:** Add event listeners to the `YT.Player` state changes. If `YT.PlayerState.PLAYING` fires, locate Sparky's HTML5 `<audio>` element and forcefully pause it.
+* **Review Gate 3:** User performs a search, clicks a video. Ensures the iframe loads, video plays, and if the Radio was playing, it correctly pauses.
+
+### Phase 4: Playlists & Video Hub (Favorites)
+**Objective:** Port the playlist engine and finalize persistence.
+* **Task 4.1: Playlist Engine:** Implement the manual array queue system (`currentPlaylist`, `queueIndex`). Wire up the "Next" and "Previous" UI buttons to cycle through the queue and call `player.loadVideoById()`.
+* **Task 4.2: Favorites Logic:** Wire up the heart icon on video cards. Implement add/remove logic targeting the `sparky_yt_favorites` array in `localStorage`.
+* **Task 4.3: Video Hub Render:** Build the view that displays saved items from `localStorage`.
+* **Review Gate 4:** User searches a playlist, plays it, and uses Next/Prev controls. User favorites a video, refreshes the page, and verifies it remains in the Video Hub. Project is complete and ready for merge.
