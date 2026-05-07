@@ -3136,7 +3136,8 @@ const sparkyYtState = {
   currentQueue: [],
   queueIndex: 0,
   currentSubMode: 'videos', // 'videos' | 'playlists' | 'hub'
-  searchCache: { query: '', results: [], type: '' }
+  searchCache: { query: '', results: [], type: '' },
+  activePlaylistId: null
 };
 
 const YT_FAVS_KEY    = 'sparky_yt_favorites';
@@ -3400,6 +3401,7 @@ function attachYtCardListeners(container) {
       const item = queue[index];
 
       if (item.type === 'playlist') {
+        sparkyYtState.activePlaylistId = item.id;
         const titleEl = document.getElementById('ytNpTitle');
         if (titleEl) titleEl.textContent = 'Loading Playlist...';
         
@@ -3424,6 +3426,7 @@ function attachYtCardListeners(container) {
           if (titleEl) titleEl.textContent = 'Network Error';
         }
       } else {
+        sparkyYtState.activePlaylistId = null;
         sparkyYtState.currentQueue = queue;
         sparkyYtState.queueIndex = index;
         playYtItem(item);
@@ -3467,7 +3470,8 @@ function attachYtCardListeners(container) {
 
 function highlightYtCard(id) {
   document.querySelectorAll('.yt-card').forEach(c => {
-    const isAct = c.dataset.id === id;
+    // Highlight if it matches the current song ID OR if it's the active parent playlist
+    const isAct = c.dataset.id === id || (sparkyYtState.activePlaylistId && c.dataset.id === sparkyYtState.activePlaylistId);
     c.classList.toggle('active', isAct);
     if (isAct) {
       c.scrollIntoView({ behavior: 'smooth', block: 'nearest' });

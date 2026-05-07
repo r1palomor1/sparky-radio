@@ -134,16 +134,16 @@ The UI components will leverage DOM injection templates similar to Sparky's exis
 * ✅ **Build:** `npm run build` passes clean (`Exit code: 0`).
 * ✅ **Review Gate 2 PASSED:** Footer permanently visible. Mode toggle switches Radio ↔ Video. All 3 sub-tabs (Videos/Playlists/Hub) functional. Radio mode fully preserved.
 
-### 🔵 Phase 3: Search, Player, & Audio Overlap — IN PROGRESS
+### ✅ Phase 3: Search, Player, & Audio Overlap — COMPLETE
 **Objective:** Connect the search UI to the API and implement the lazy-loaded player.
-* ⬜ **Task 3.1: Search Implementation:** Wire the search input button to call `/api/searchVideos` (videos) or `/api/fetchPlaylist` (playlists). Map JSON response to `.yt-card` DOM elements.
-* ⬜ **Task 3.2: Lazy Player Loading:** Inject `https://www.youtube.com/iframe_api` script only when user clicks play on a card. Instantiate `YT.Player` in `#sparky-yt-player`.
-* ⬜ **Task 3.3: Audio Overlap Prevention:** On `YT.PlayerState.PLAYING`, pause the HTML5 `<audio>` element. On YT pause/stop, allow radio resume.
-* **Review Gate 3:** User performs a search, clicks a video. Ensures the iframe loads, video plays, and if Radio was playing, it correctly pauses.
+* ✅ **Task 3.1: Search Implementation:** Wired the search input button to call `/api/searchVideos` (videos) or `/api/fetchPlaylist` (playlists). Map JSON response to `.yt-card` DOM elements.
+* ✅ **Task 3.2: Lazy Player Loading:** Implemented `loadYtIframeApi` and `createYtPlayer` triggered only when user clicks play.
+* ✅ **Task 3.3: Audio Overlap Prevention:** Implemented logic to automatically pause Radio playback when YouTube starts, and sync play/pause states across both modes.
+* ✅ **Review Gate 3 PASSED:** Search works, player loads on demand, and radio correctly yields to video audio.
 
-### Phase 4: Playlists & Video Hub (Favorites)
+### ✅ Phase 4: Playlists & Video Hub (Favorites) — COMPLETE
 **Objective:** Port the playlist engine and finalize persistence.
-* **Task 4.1: Playlist Engine:** Implement the manual array queue system (`currentPlaylist`, `queueIndex`). Wire up the "Next" and "Previous" UI buttons to cycle through the queue and call `player.loadVideoById()`.
-* **Task 4.2: Favorites Logic:** Wire up the heart icon on video cards. Implement add/remove logic targeting the `sparky_yt_favorites` array in `localStorage`.
-* **Task 4.3: Video Hub Render:** Build the view that displays saved items from `localStorage`.
-* **Review Gate 4:** User searches a playlist, plays it, and uses Next/Prev controls. User favorites a video, refreshes the page, and verifies it remains in the Video Hub. Project is complete and ready for merge.
+* ✅ **Task 4.1: Playlist Engine:** Implemented the "crack open" logic for playlists. Clicking a playlist now fetches its video array, populates a manual queue, and enables sequential autoplay/navigation with UI sync.
+* ✅ **Task 4.2: Favorites Logic:** Switched to Trashbin icon workflow for Hub management. Implemented `addYtFav`/`removeYtFav` with custom `sparkyConfirm` modal for deletions.
+* ✅ **Task 4.3: Video Hub Render:** Implemented responsive Hub rendering that persists across sessions and supports direct playback from saved items.
+* ✅ **Review Gate 4 PASSED:** Playlists sync perfectly with footer controls. Favorites persist and delete safely with custom confirmation. Project is feature-complete.
