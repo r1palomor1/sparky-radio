@@ -3700,28 +3700,35 @@ function attachYtCardListeners(container) {
         thumb: card.dataset.thumb,
         channel: card.dataset.channel
       };
-      addToYtTempQueue(item);
+      addToYtTempQueue(item, btn);
     });
   });
 }
 
-function addToYtTempQueue(item) {
+function addToYtTempQueue(item, sourceBtn = null) {
+  sparkyLog(`[YT] Request to add: ${item.title} (ID: ${item.id})`);
+  
+  if (!sparkyYtState.temporaryQueue) sparkyYtState.temporaryQueue = [];
+
   if (sparkyYtState.temporaryQueue.some(v => v.id === item.id)) {
     sparkyLog(`[YT] Already in queue: ${item.title}`);
     return;
   }
+  
   sparkyYtState.temporaryQueue.push(item);
+  
   // Cap at 15
   if (sparkyYtState.temporaryQueue.length > 15) {
     sparkyYtState.temporaryQueue.shift();
   }
+  
   saveYtTempQueue(sparkyYtState.temporaryQueue);
   syncYtQueueBtn();
   syncYtQueueBadge();
-  sparkyLog(`[YT] Added to temp queue: ${item.title}`);
+  sparkyLog(`[YT] Added to temp queue. New size: ${sparkyYtState.temporaryQueue.length}`);
   
   // Flash feedback on button
-  const btn = document.querySelector(`.yt-card-add[data-id="${item.id}"]`);
+  const btn = sourceBtn || document.querySelector(`.yt-card-add[data-id="${item.id}"]`);
   if (btn) {
     const icon = btn.querySelector('.material-symbols-outlined');
     if (icon) {
