@@ -1222,6 +1222,8 @@ function jumpToStation(st) {
 
 // ══ PLAYBACK ══════════════════════════════
 function playStationObj(st) {
+  sparkyLog(`Action: playStationObj(${st.stationuuid || st.id}) - ${st.name}`);
+  debugLayout('BEFORE-RADIO-PLAY');
   if (!st) return;
   syncFavMetadata(st);
   currentSrc = st;
@@ -1229,6 +1231,7 @@ function playStationObj(st) {
   renderCurrent(); // Instant highlighting
   if (audioCtx?.state === 'suspended') audioCtx.resume();
   initAudio();
+  setTimeout(() => debugLayout('AFTER-RADIO-PLAY'), 300);
   if (hls) { hls.destroy(); hls = null; }
   audioEl.pause();
   const url = st.url_resolved || st.url;
@@ -2654,7 +2657,39 @@ function loadSettingsOptions() {
 
 }
 // ══ APP INITIALIZATION ══════════════════════════════════
-window.addEventListener('DOMContentLoaded', () => {
+// ── FORENSIC DEBUGGING MODULE ─────────────────────────────────────
+function sparkyLog(msg) {
+  console.log(`%c[SPARKY-DEBUG] ${msg}`, 'color: #4fd1c5; font-weight: bold;');
+  const out = document.getElementById('debugOutput');
+  if (out) {
+    const d = new Date();
+    const ts = d.toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' }) + '.' + d.getMilliseconds();
+    out.innerHTML = `<div><span style="color:var(--accent)">[${ts}]</span> ${msg}</div>` + out.innerHTML;
+  }
+}
+
+function debugLayout(label) {
+  const app = document.querySelector('.app');
+  const player = document.getElementById('sparky-yt-player-wrap');
+  const results = document.getElementById('ytResults');
+  
+  sparkyLog(`L-TRACE [${label}]`);
+  sparkyLog(`  > Window: ${window.innerWidth}x${window.innerHeight}, scrollY: ${window.scrollY}`);
+  if (app) sparkyLog(`  > .app: h=${app.offsetHeight}, top=${app.offsetTop}, clientH=${app.clientHeight}`);
+  if (player) sparkyLog(`  > Player: h=${player.offsetHeight}, hidden=${player.classList.contains('hidden')}`);
+  if (results) sparkyLog(`  > Results: scrollT=${results.scrollTop}`);
+}
+
+window.addEventListener('scroll', (e) => {
+  if (window.scrollY !== 0) {
+    sparkyLog(`!! SCROLL DETECTED: window.scrollY=${window.scrollY}`);
+    // Optional: console.trace(); // Check console for origin
+  }
+}, true);
+
+// ── APP INITIALIZATION ───────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  sparkyLog('System Initialized - Forensic Mode Active');
   initEq();
   setEqPreset(activePreset);
   loadPresets();
@@ -3146,6 +3181,8 @@ function saveYtFavs(arr) { localStorage.setItem(YT_FAVS_KEY, JSON.stringify(arr)
 
 // ── Core Mode Toggle ─────────────────────────────────────────────
 function toggleYtMode(activate) {
+  sparkyLog(`Action: toggleYtMode(${activate})`);
+  debugLayout('BEFORE-TOGGLE');
   sparkyYtState.isModeActive = activate;
 
   const radioView = document.getElementById('radio-view');
@@ -3188,7 +3225,8 @@ function toggleYtMode(activate) {
   }
 
   localStorage.setItem('sparky_yt_mode_active', activate ? '1' : '0');
-  console.log(`[YT] Mode → ${activate ? 'VIDEO' : 'RADIO'}`);
+  sparkyLog(`[YT] Mode → ${activate ? 'VIDEO' : 'RADIO'}`);
+  setTimeout(() => debugLayout('AFTER-TOGGLE'), 100);
 }
 
 // ── Sub-mode Tab Switching ───────────────────────────────────────
@@ -3629,6 +3667,9 @@ function renderYtQueue() {
 
 // ── 3.2: Lazy Player Loading ─────────────────────────────────────
 function playYtItem(item) {
+  sparkyLog(`Action: playYtItem(${item.id}) - ${item.title}`);
+  debugLayout('BEFORE-PLAY');
+  
   pauseRadioForYt();
   highlightYtCard(item.id);
   
@@ -3653,7 +3694,8 @@ function playYtItem(item) {
     loadYtIframeApi();
   }
 
-  console.log(`[YT] Playing ${item.type}: ${item.title}`);
+  sparkyLog(`[YT] Playing ${item.type}: ${item.title}`);
+  setTimeout(() => debugLayout('AFTER-PLAY'), 300);
 }
 
 function loadIntoExistingPlayer(item) {
@@ -3690,6 +3732,7 @@ window.onYouTubeIframeAPIReady = function () {
 };
 
 function createYtPlayer(item) {
+  sparkyLog(`Action: createYtPlayer(${item.id})`);
   // Reset the div in case it has stale content
   const playerDiv = document.getElementById('sparky-yt-player');
   if (!playerDiv) return;
