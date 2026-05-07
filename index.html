@@ -229,8 +229,12 @@
           Videos
         </button>
         <button class="yt-tab" id="ytTabPlaylists" data-mode="playlists">
-          <span class="material-symbols-outlined">queue_music</span>
+          <span class="material-symbols-outlined">playlist_play</span>
           Playlists
+        </button>
+        <button class="yt-tab" id="ytTabQueue" data-mode="queue">
+          <span class="material-symbols-outlined">queue_music</span>
+          Queue <span class="tab-badge" id="ytQueueBadge">0</span>
         </button>
         <button class="yt-tab" id="ytTabHub" data-mode="hub">
           <span class="material-symbols-outlined">favorite</span>
@@ -256,8 +260,10 @@
         </div>
       </div>
 
-      <!-- Favs Hub Container -->
       <div class="yt-hub hidden" id="ytHub"></div>
+
+      <!-- User Queue Container -->
+      <div class="yt-results hidden" id="ytQueue"></div>
 
       <!-- YT Queue Overlay (Moved inside YT view for structural stability) -->
       <div id="ytQueueOverlay" class="yt-queue-overlay hidden">
@@ -271,6 +277,9 @@
               </button>
               <button id="btnYtRestart" class="yt-ctrl-btn" title="Restart Playlist">
                 <span class="material-symbols-outlined">replay</span>
+              </button>
+              <button id="btnYtQueueClear" class="yt-ctrl-btn" title="Clear All Queue">
+                <span class="material-symbols-outlined">delete_sweep</span>
               </button>
             </div>
           </div>

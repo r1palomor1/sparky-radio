@@ -4000,6 +4000,28 @@ body.light .filter-chip {
 .yt-card-fav.active { color: #e44; }
 .yt-card-fav .material-symbols-outlined { font-size: 18px; }
 
+.yt-card-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.yt-card-add {
+  background: none;
+  border: none;
+  color: var(--dim);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+.yt-card-add:hover { color: var(--accent); transform: scale(1.15); }
+.yt-card-add.active { color: var(--accent); }
+.yt-card-add .material-symbols-outlined { font-size: 20px; }
+
 /* ── YT NP Player Container (inside Now Playing zone) ───────── */
 .sparky-yt-player-wrap {
   display: flex;
@@ -4350,6 +4372,28 @@ body.light .filter-chip {
   color: var(--accent);
   font-size: 16px;
   animation: pulse 1.5s infinite;
+}
+
+.yt-queue-item-remove {
+  background: none !important;
+  border: none !important;
+  color: var(--dim) !important;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  transition: all 0.2s;
+  opacity: 0.7;
+}
+
+.yt-queue-item-remove:hover {
+  color: var(--accent2) !important;
+  transform: scale(1.1);
+  opacity: 1;
+}
+
+.yt-queue-item-remove .material-symbols-outlined {
+  font-size: 18px !important;
 }
 
 @keyframes pulse {

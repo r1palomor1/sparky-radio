@@ -3165,6 +3165,7 @@ const sparkyYtState = {
   playerInstance: null,
   currentQueue: [],
   originalQueue: [],
+  temporaryQueue: [], // User-built manual queue
   queueIndex: 0,
   currentSubMode: 'videos',
   videoCache: { query: '', results: [] },
@@ -3177,15 +3178,22 @@ const sparkyYtState = {
 
 const YT_FAVS_KEY = 'sparky_yt_favorites';
 const YT_HISTORY_KEY = 'sparky_yt_history';
+const YT_TEMP_QUEUE_KEY = 'sparky_yt_temp_queue';
 
 function initYtStorage() {
   if (!localStorage.getItem(YT_FAVS_KEY)) localStorage.setItem(YT_FAVS_KEY, JSON.stringify([]));
   if (!localStorage.getItem(YT_HISTORY_KEY)) localStorage.setItem(YT_HISTORY_KEY, JSON.stringify([]));
+  if (!localStorage.getItem(YT_TEMP_QUEUE_KEY)) localStorage.setItem(YT_TEMP_QUEUE_KEY, JSON.stringify([]));
+  
+  // Load initial temp queue into state
+  sparkyYtState.temporaryQueue = loadYtTempQueue();
 }
 
 function loadYtFavs() { try { return JSON.parse(localStorage.getItem(YT_FAVS_KEY)) || []; } catch { return []; } }
 function loadYtHistory() { try { return JSON.parse(localStorage.getItem(YT_HISTORY_KEY)) || []; } catch { return []; } }
+function loadYtTempQueue() { try { return JSON.parse(localStorage.getItem(YT_TEMP_QUEUE_KEY)) || []; } catch { return []; } }
 function saveYtFavs(arr) { localStorage.setItem(YT_FAVS_KEY, JSON.stringify(arr)); }
+function saveYtTempQueue(arr) { localStorage.setItem(YT_TEMP_QUEUE_KEY, JSON.stringify(arr)); }
 
 // ── Core Mode Toggle ─────────────────────────────────────────────
 function toggleYtMode(activate) {
@@ -3249,16 +3257,23 @@ function switchYtTab(mode) {
   const searchWrap = document.getElementById('ytSearchWrap');
   const results = document.getElementById('ytResults');
   const hub = document.getElementById('ytHub');
+  const queueTab = document.getElementById('ytQueue');
+  
   const isHub = mode === 'hub';
+  const isQueue = mode === 'queue';
 
-  if (searchWrap) searchWrap.classList.toggle('hidden', isHub);
-  if (results) results.classList.toggle('hidden', isHub);
+  if (searchWrap) searchWrap.classList.toggle('hidden', isHub || isQueue);
+  if (results) results.classList.toggle('hidden', isHub || isQueue);
   if (hub) hub.classList.toggle('hidden', !isHub);
+  if (queueTab) queueTab.classList.toggle('hidden', !isQueue);
 
   const input = document.getElementById('ytSearchInput');
 
   if (isHub) {
     renderYtHub();
+    if (sparkyYtState.currentItemId) highlightYtCard(sparkyYtState.currentItemId);
+  } else if (isQueue) {
+    renderYtQueueTab();
     if (sparkyYtState.currentItemId) highlightYtCard(sparkyYtState.currentItemId);
   } else {
     const cache = (mode === 'playlists') ? sparkyYtState.playlistCache : sparkyYtState.videoCache;
@@ -3322,18 +3337,69 @@ function renderYtHub() {
   attachYtCardListeners(hub);
 }
 
+function renderYtQueueTab() {
+  const container = document.getElementById('ytQueue');
+  if (!container) return;
+  
+  const queue = sparkyYtState.temporaryQueue;
+  if (!queue.length) {
+    container.innerHTML = `<div class="pl-empty">
+      <div class="pl-empty-icon">queue_music</div>
+      <div>Your queue is empty &mdash; add videos using the "+" button on cards</div>
+    </div>`;
+    return;
+  }
+
+  container.innerHTML = `
+    <div style="grid-column: 1 / -1; display:flex; justify-content:space-between; align-items:center; padding: 4px 8px; background: rgba(255,255,255,0.03); border-radius:4px; margin-bottom:8px;">
+      <div style="font-family:'Orbitron'; font-size:10px; color:var(--accent); letter-spacing:1px; text-transform:uppercase;">User Session Queue</div>
+      <button class="btn-yt-queue" onclick="clearYtTempQueue()" style="padding:4px 10px; font-size:10px;">Clear All</button>
+    </div>
+  ` + queue.map(item => `
+    <div class="yt-card" data-id="${item.id}" data-type="video" data-title="${item.title.replace(/"/g, '&quot;')}" data-channel="${(item.channel || '').replace(/"/g, '&quot;')}" data-thumb="${item.thumb}">
+      <img class="yt-card-thumb" src="${item.thumb}" alt="" loading="lazy">
+      <div class="yt-card-info">
+        <div class="yt-card-title">${item.title}</div>
+        <div class="yt-card-channel">${item.channel || ''}</div>
+      </div>
+      <div class="yt-card-actions">
+        <button class="yt-card-fav${isYtFav(item.id) ? ' active' : ''}" data-id="${item.id}" data-type="video" title="${isYtFav(item.id) ? 'Remove from Favs Hub' : 'Save to Favs Hub'}">
+          <span class="material-symbols-outlined">favorite</span>
+        </button>
+        <button class="yt-card-remove-temp" data-id="${item.id}" title="Remove from Queue">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+    </div>
+  `).join('');
+
+  // Manual Attach for removals
+  container.querySelectorAll('.yt-card-remove-temp').forEach(btn => {
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      removeFromYtTempQueue(btn.dataset.id);
+      renderYtQueueTab();
+    };
+  });
+
+  // Standard listeners (play, fav)
+  attachYtCardListeners(container);
+}
+
 function isYtFav(id) { return loadYtFavs().some(f => f.id === id); }
 function addYtFav(item) { const f = loadYtFavs(); if (!isYtFav(item.id)) { f.push({ ...item, addedAt: Date.now() }); saveYtFavs(f); } }
 function removeYtFav(id) { saveYtFavs(loadYtFavs().filter(f => f.id !== id)); }
 
 // ── Boot ─────────────────────────────────────────────────────────
 initYtStorage();
+syncYtQueueBtn();
+syncYtQueueBadge();
 
 document.getElementById('btnModeToggle')?.addEventListener('click', () => {
   toggleYtMode(!sparkyYtState.isModeActive);
 });
 
-['ytTabVideos', 'ytTabPlaylists', 'ytTabHub'].forEach(id => {
+['ytTabVideos', 'ytTabPlaylists', 'ytTabQueue', 'ytTabHub'].forEach(id => {
   document.getElementById(id)?.addEventListener('click', e => {
     switchYtTab(e.currentTarget.dataset.mode);
   });
@@ -3449,9 +3515,14 @@ function renderYtVideoResults(videos) {
         <div class="yt-card-title">${v.title}</div>
         <div class="yt-card-channel">${v.channel || ''}${v.duration ? ' &middot; ' + v.duration : ''}</div>
       </div>
-      <button class="yt-card-fav${isYtFav(v.id) ? ' active' : ''}" data-id="${v.id}" data-type="video" title="${isYtFav(v.id) ? 'Remove from Favs Hub' : 'Save to Favs Hub'}">
-        <span class="material-symbols-outlined">favorite</span>
-      </button>
+      <div class="yt-card-actions">
+        <button class="yt-card-fav${isYtFav(v.id) ? ' active' : ''}" data-id="${v.id}" data-type="video" title="${isYtFav(v.id) ? 'Remove from Favs Hub' : 'Save to Favs Hub'}">
+          <span class="material-symbols-outlined">favorite</span>
+        </button>
+        <button class="yt-card-add" data-id="${v.id}" title="Add to Temporary Queue">
+          <span class="material-symbols-outlined">add</span>
+        </button>
+      </div>
     </div>
   `).join('');
 
@@ -3491,7 +3562,7 @@ function attachYtCardListeners(container) {
   // Card body click → play
   allCards.forEach((card, index) => {
     card.addEventListener('click', async e => {
-      if (e.target.closest('.yt-card-fav')) return;
+      if (e.target.closest('.yt-card-fav') || e.target.closest('.yt-card-add')) return;
 
       const item = queue[index];
 
@@ -3616,6 +3687,101 @@ function attachYtCardListeners(container) {
       }
     });
   });
+
+  // Add to Temp Queue
+  container.querySelectorAll('.yt-card-add').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const card = btn.closest('.yt-card');
+      const item = {
+        id: btn.dataset.id,
+        type: 'video',
+        title: card.dataset.title,
+        thumb: card.dataset.thumb,
+        channel: card.dataset.channel
+      };
+      addToYtTempQueue(item);
+    });
+  });
+}
+
+function addToYtTempQueue(item) {
+  if (sparkyYtState.temporaryQueue.some(v => v.id === item.id)) {
+    sparkyLog(`[YT] Already in queue: ${item.title}`);
+    return;
+  }
+  sparkyYtState.temporaryQueue.push(item);
+  // Cap at 15
+  if (sparkyYtState.temporaryQueue.length > 15) {
+    sparkyYtState.temporaryQueue.shift();
+  }
+  saveYtTempQueue(sparkyYtState.temporaryQueue);
+  syncYtQueueBtn();
+  syncYtQueueBadge();
+  sparkyLog(`[YT] Added to temp queue: ${item.title}`);
+  
+  // Flash feedback on button
+  const btn = document.querySelector(`.yt-card-add[data-id="${item.id}"]`);
+  if (btn) {
+    const icon = btn.querySelector('.material-symbols-outlined');
+    if (icon) {
+      const oldIcon = icon.textContent;
+      icon.textContent = 'check';
+      btn.classList.add('active');
+      setTimeout(() => {
+        icon.textContent = oldIcon;
+        btn.classList.remove('active');
+      }, 1000);
+    }
+  }
+}
+
+function removeFromYtTempQueue(id) {
+  sparkyYtState.temporaryQueue = sparkyYtState.temporaryQueue.filter(v => v.id !== id);
+  saveYtTempQueue(sparkyYtState.temporaryQueue);
+  syncYtQueueBtn();
+  syncYtQueueBadge();
+  
+  // If the temp queue was the active playing queue, update it
+  if (sparkyYtState.activePlaylistId === 'temp') {
+    sparkyYtState.currentQueue = [...sparkyYtState.temporaryQueue];
+    sparkyYtState.originalQueue = [...sparkyYtState.temporaryQueue];
+  }
+  
+  renderYtQueue();
+  if (sparkyYtState.currentSubMode === 'queue') renderYtQueueTab();
+}
+
+function clearYtTempQueue() {
+  sparkyConfirm("Clear all items from your temporary queue?", () => {
+    sparkyYtState.temporaryQueue = [];
+    saveYtTempQueue([]);
+    syncYtQueueBtn();
+    syncYtQueueBadge();
+    if (sparkyYtState.activePlaylistId === 'temp') {
+      sparkyYtState.currentQueue = [];
+      sparkyYtState.originalQueue = [];
+    }
+    renderYtQueue();
+    if (sparkyYtState.currentSubMode === 'queue') renderYtQueueTab();
+    sparkyLog('[YT] Temporary queue cleared');
+  }, "CLEAR QUEUE");
+}
+
+function syncYtQueueBtn() {
+  const btn = document.getElementById('btnYtQueue');
+  if (!btn) return;
+  const hasQueue = sparkyYtState.temporaryQueue.length > 0 || sparkyYtState.activePlaylistId !== null;
+  btn.classList.toggle('hidden', !hasQueue);
+}
+
+function syncYtQueueBadge() {
+  const badge = document.getElementById('ytQueueBadge');
+  if (badge) {
+    const count = sparkyYtState.temporaryQueue.length;
+    badge.textContent = count;
+    badge.style.display = count > 0 ? 'inline-block' : 'none';
+  }
 }
 
 function highlightYtCard(id) {
@@ -3749,8 +3915,10 @@ function renderYtQueue() {
   // For simplicity, we re-render but we can optimize.
   container.innerHTML = '';
   queue.forEach((item, idx) => {
-    const isActive = idx === sparkyYtState.queueIndex;
+    const isActive = idx === sparkyYtState.queueIndex && (sparkyYtState.activePlaylistId === 'temp' || sparkyYtState.activePlaylistId !== null);
     const isFav = isYtFav(item.id);
+    const isTempQueue = sparkyYtState.activePlaylistId === 'temp';
+    
     const el = document.createElement('div');
     el.className = `yt-queue-item ${isActive ? 'active' : ''}`;
     el.innerHTML = `
@@ -3762,13 +3930,18 @@ function renderYtQueue() {
         <button class="yt-queue-item-fav${isFav ? ' active' : ''}" title="${isFav ? 'Remove from Hub' : 'Save to Hub'}">
           <span class="material-symbols-outlined">${isFav ? 'favorite' : 'favorite_border'}</span>
         </button>
+        ${isTempQueue ? `
+          <button class="yt-queue-item-remove" title="Remove from Queue">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        ` : ''}
         ${isActive ? '<span class="material-symbols-outlined yt-queue-item-active-icon">equalizer</span>' : ''}
       </div>
     `;
 
     // Play on body click
     el.onclick = (e) => {
-      if (e.target.closest('.yt-queue-item-fav')) return;
+      if (e.target.closest('.yt-queue-item-fav') || e.target.closest('.yt-queue-item-remove')) return;
       sparkyYtState.queueIndex = idx;
       playYtItem(item);
     };
@@ -3787,9 +3960,17 @@ function renderYtQueue() {
           favBtn.classList.add('active');
           favBtn.innerHTML = '<span class="material-symbols-outlined">favorite</span>';
         }
-        // Update NP heart if this is the currently playing item
         if (sparkyYtState.currentItemId === item.id) syncYtNpFav();
         if (sparkyYtState.currentSubMode === 'hub') renderYtHub();
+      };
+    }
+    
+    // Remove from Temp Queue
+    const removeBtn = el.querySelector('.yt-queue-item-remove');
+    if (removeBtn) {
+      removeBtn.onclick = (e) => {
+        e.stopPropagation();
+        removeFromYtTempQueue(item.id);
       };
     }
 
@@ -4007,6 +4188,7 @@ btnYtSearchClear?.addEventListener('click', () => {
 
 document.getElementById('btnYtQueue')?.addEventListener('click', openYtQueue);
 document.getElementById('btnYtQueueClose')?.addEventListener('click', closeYtQueue);
+document.getElementById('btnYtQueueClear')?.addEventListener('click', clearYtTempQueue);
 document.getElementById('btnYtAudioOnly')?.addEventListener('click', toggleYtAudioOnly);
 document.getElementById('btnYtShuffle')?.addEventListener('click', toggleYtShuffle);
 document.getElementById('btnYtRestart')?.addEventListener('click', restartYtQueue);
