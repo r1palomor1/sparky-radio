@@ -110,8 +110,15 @@
       <div id="sparky-yt-player-wrap" class="sparky-yt-player-wrap hidden">
         <div id="sparky-yt-player"></div>
         <div class="yt-np-meta" id="ytNpMeta">
-          <div class="yt-np-title" id="ytNpTitle">No video selected</div>
-          <div class="yt-np-channel" id="ytNpChannel"></div>
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">
+            <div style="flex:1; overflow:hidden;">
+              <div class="yt-np-title" id="ytNpTitle">No video selected</div>
+              <div class="yt-np-channel" id="ytNpChannel"></div>
+            </div>
+            <button id="btnYtQueue" class="btn-yt-queue hidden" title="View Queue">
+              <span class="material-symbols-outlined">queue_music</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -232,6 +239,22 @@
         <div class="pl-empty">
           <div class="pl-empty-icon">&#128420;</div>
           <div>No saved videos yet &mdash; heart a video to save it here</div>
+        </div>
+      </div>
+
+      <!-- YT Queue Overlay ( Drawer Style ) -->
+      <div id="ytQueueOverlay" class="yt-queue-overlay hidden">
+        <div class="yt-queue-header">
+          <div class="yt-queue-header-left">
+            <span class="material-symbols-outlined">queue_music</span>
+            <span id="ytQueueCount">Queue</span>
+          </div>
+          <button id="btnYtQueueClose" class="yt-queue-close-btn" title="Close Queue">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+        <div id="ytQueueList" class="yt-queue-list">
+          <!-- Queue items will be rendered here -->
         </div>
       </div>
 

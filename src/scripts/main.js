@@ -3172,7 +3172,6 @@ function toggleYtMode(activate) {
   if (npHeader)  npHeader.classList.toggle('hidden', activate);
   if (ytPlayer)  ytPlayer.classList.toggle('hidden', !activate);
 
-  // Suppress EQ in YT mode — no audio routing needed
   if (eqBtn)  eqBtn.style.display  = activate ? 'none' : '';
   if (eqRack) eqRack.style.display = activate ? 'none' : '';
 
@@ -3417,6 +3416,11 @@ function attachYtCardListeners(container) {
               thumb: v.thumb
             }));
             sparkyYtState.queueIndex = 0;
+            
+            // Show Queue button
+            const btnQueue = document.getElementById('btnYtQueue');
+            if (btnQueue) btnQueue.classList.remove('hidden');
+            
             playYtItem(sparkyYtState.currentQueue[0]);
           } else {
             if (titleEl) titleEl.textContent = 'Playlist Empty/Error';
@@ -3427,6 +3431,10 @@ function attachYtCardListeners(container) {
         }
       } else {
         sparkyYtState.activePlaylistId = null;
+        // Hide Queue button for single videos
+        const btnQueue = document.getElementById('btnYtQueue');
+        if (btnQueue) btnQueue.classList.add('hidden');
+        
         sparkyYtState.currentQueue = queue;
         sparkyYtState.queueIndex = index;
         playYtItem(item);
@@ -3473,8 +3481,63 @@ function highlightYtCard(id) {
     // Highlight if it matches the current song ID OR if it's the active parent playlist
     const isAct = c.dataset.id === id || (sparkyYtState.activePlaylistId && c.dataset.id === sparkyYtState.activePlaylistId);
     c.classList.toggle('active', isAct);
-    if (isAct) {
+    if (isAct && c.dataset.id === id) {
       c.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  });
+}
+
+function openYtQueue() {
+  const overlay = document.getElementById('ytQueueOverlay');
+  if (overlay) {
+    overlay.classList.remove('hidden');
+    renderYtQueue();
+  }
+}
+
+function closeYtQueue() {
+  const overlay = document.getElementById('ytQueueOverlay');
+  if (overlay) overlay.classList.add('hidden');
+}
+
+function renderYtQueue() {
+  const container = document.getElementById('ytQueueList');
+  const countEl = document.getElementById('ytQueueCount');
+  if (!container) return;
+  
+  const queue = sparkyYtState.currentQueue;
+  if (!queue || queue.length === 0) {
+    container.innerHTML = '<div class="pl-empty">Queue is empty</div>';
+    if (countEl) countEl.textContent = 'Queue';
+    return;
+  }
+  
+  if (countEl) {
+    countEl.textContent = `Queue (${sparkyYtState.queueIndex + 1} / ${queue.length})`;
+  }
+  
+  // Only re-render if count or items changed, or just update active class
+  // For simplicity, we re-render but we can optimize.
+  container.innerHTML = '';
+  queue.forEach((item, idx) => {
+    const isActive = idx === sparkyYtState.queueIndex;
+    const el = document.createElement('div');
+    el.className = `yt-queue-item ${isActive ? 'active' : ''}`;
+    el.innerHTML = `
+      <img src="${item.thumb}" class="yt-queue-item-thumb">
+      <div class="yt-queue-item-info">
+        <div class="yt-queue-item-title">${item.title}</div>
+      </div>
+      ${isActive ? '<span class="material-symbols-outlined yt-queue-item-active-icon">equalizer</span>' : ''}
+    `;
+    el.onclick = () => {
+      sparkyYtState.queueIndex = idx;
+      playYtItem(item);
+    };
+    container.appendChild(el);
+    
+    if (isActive) {
+      setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 100);
     }
   });
 }
@@ -3640,3 +3703,6 @@ btnYtSearchClear?.addEventListener('click', () => {
     sparkyYtState.searchCache = { query: '', results: [], type: sparkyYtState.currentSubMode };
   }
 });
+
+document.getElementById('btnYtQueue')?.addEventListener('click', openYtQueue);
+document.getElementById('btnYtQueueClose')?.addEventListener('click', closeYtQueue);
