@@ -114,6 +114,7 @@ html {
   body {
     padding: 0;
     align-items: stretch;
+    justify-content: flex-start; /* Stop re-centering jump */
   }
 }
 
@@ -3890,6 +3891,7 @@ body.light .filter-chip {
   grid-auto-rows: max-content;
   gap: 8px;
   min-height: 0;
+  max-height: 100%; /* Strict containment */
   align-content: start;
 }
 
