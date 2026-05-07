@@ -3503,7 +3503,7 @@ function highlightYtCard(id) {
     const isAct = c.dataset.id === id || (sparkyYtState.activePlaylistId && c.dataset.id === sparkyYtState.activePlaylistId);
     c.classList.toggle('active', isAct);
     if (isAct && c.dataset.id === id) {
-      c.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      // scrollIntoView removed to prevent global UI shift on mobile
     }
   });
 }
