@@ -113,14 +113,8 @@ html {
 @media (max-width: 480px) {
   body {
     padding: 0;
-    display: block !important; /* Force block layout to kill centering logic */
-    overflow-x: hidden;
-  }
-  .app {
-    margin: 0 auto;
-    height: 100dvh; /* Fill the screen naturally */
-    border-radius: 0; /* Clean edge-to-edge mobile look */
-    border: none;
+    align-items: stretch;
+    justify-content: flex-start;
   }
 }
 
@@ -3889,16 +3883,15 @@ body.light .filter-chip {
 /* ── YT Results & Hub Scroll Containers ─────────────────────── */
 .yt-results,
 .yt-hub {
-  flex: 1;
-  overflow-y: auto;
-  padding: 10px 12px;
+  flex: 1 1 0%; 
   display: grid;
   grid-template-columns: 1fr;
   grid-auto-rows: max-content;
+  align-content: start;
+  overflow-y: auto;
+  padding: 10px 12px;
   gap: 8px;
   min-height: 0;
-  max-height: 100%; /* Strict containment */
-  align-content: start;
 }
 
 .yt-results .pl-empty,
