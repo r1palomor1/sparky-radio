@@ -3466,7 +3466,13 @@ function attachYtCardListeners(container) {
         // The user is navigating back to it, not requesting a restart.
         // Only a genuinely different playlist triggers a fetch + play from track 1.
         if (sparkyYtState.activePlaylistId === item.id) {
-          // Just scroll the card into view as visual confirmation and bail
+          // ── Click to Play active playlist (Spotify/Apple style) ──────
+          if (sparkyYtState.playerInstance) {
+            const state = sparkyYtState.playerInstance.getPlayerState();
+            if (state !== YT.PlayerState.PLAYING) sparkyYtState.playerInstance.playVideo();
+          }
+          
+          // Still scroll into view as visual feedback
           const container = document.getElementById('ytResults');
           if (container) {
             const containerTop    = container.getBoundingClientRect().top;
@@ -3476,7 +3482,7 @@ function attachYtCardListeners(container) {
             if (cardTop < containerTop) container.scrollTop -= (containerTop - cardTop) + 8;
             else if (cardBottom > containerBottom) container.scrollTop += (cardBottom - containerBottom) + 8;
           }
-          return; // Playback continues uninterrupted
+          return;
         }
         // ── New playlist selected — load and start from track 1 ──────────────
 
@@ -3516,6 +3522,15 @@ function attachYtCardListeners(container) {
           if (titleEl) titleEl.textContent = 'Network Error';
         }
       } else {
+        if (sparkyYtState.currentItemId === item.id) {
+          // ── Click to Play active video ──────
+          if (sparkyYtState.playerInstance) {
+            const state = sparkyYtState.playerInstance.getPlayerState();
+            if (state !== YT.PlayerState.PLAYING) sparkyYtState.playerInstance.playVideo();
+          }
+          return;
+        }
+
         sparkyYtState.activePlaylistId = null;
         // Hide Queue button for single videos
         const btnQueue = document.getElementById('btnYtQueue');
