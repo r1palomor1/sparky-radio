@@ -3757,13 +3757,17 @@ body.light .filter-chip {
   box-shadow: var(--glow);
 }
 
-/* ── YT View Container ──────────────────────────────────────── */
+/* ── YT View Container (canonical single definition) ────────── */
+/* position:relative is required so the queue overlay's position:absolute
+   is contained within yt-view, not the entire .app shell. */
 .yt-view {
+  position: relative;
   display: flex;
   flex-direction: column;
   flex: 1;
   overflow: hidden;
   min-height: 0;
+  background: var(--bg);
 }
 
 /* ── YT Sub-mode Tab Row ────────────────────────────────────── */
@@ -4005,40 +4009,44 @@ body.light .filter-chip {
   padding: 4px 0;
 }
 
-#sparky-yt-player {
+/* STRUCTURAL FIX: Use fixed height instead of aspect-ratio.
+   The YouTube iframe API reinjects its own height on every createYtPlayer()
+   call (via innerHTML reset + new YT.Player). This caused non-deterministic
+   height drift (213px → 226px → 217px) that compressed the results list.
+   A locked height defeats the API's intrinsic sizing. */
+.yt-player-container-inner {
+  position: relative;
   width: 100%;
-  aspect-ratio: 16 / 9;
-  background: #000;
-  border-radius: 4px;
-  overflow: hidden;
+  height: 195px; /* Fixed: ~16:9 for 344px mobile viewport */
+  flex-shrink: 0;
+}
+
+@media (min-width: 480px) {
+  .yt-player-container-inner {
+    height: 220px;
+  }
 }
 
 @media (min-width: 700px) {
-  #sparky-yt-player {
-    width: auto;
+  .yt-player-container-inner {
     height: 300px;
+    width: auto;
     margin: 0 auto;
   }
+}
+
+#sparky-yt-player {
+  width: 100%;
+  height: 100%; /* fills the fixed-height parent — never intrinsic */
+  background: #000;
+  border-radius: 4px;
+  overflow: hidden;
 }
 
 #sparky-yt-player iframe {
   width: 100%;
   height: 100%;
   border: none;
-}
-
-.yt-player-container-inner {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 16 / 9;
-}
-
-@media (min-width: 700px) {
-  .yt-player-container-inner {
-    width: auto;
-    height: 300px;
-    margin: 0 auto;
-  }
 }
 
 .yt-audio-only-placeholder {
@@ -4126,14 +4134,7 @@ body.light .filter-chip {
 }
 .btn-yt-queue .material-symbols-outlined { font-size: 20px; }
 
-.yt-view {
-  position: relative;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  background: var(--bg);
-}
+/* Duplicate .yt-view removed — canonical definition is above in Phase 2 section */
 
 /* Global Industrial Scroller for YT Module */
 .yt-view ::-webkit-scrollbar,
@@ -4161,22 +4162,20 @@ body.light .filter-chip {
   top: 0;
   left: 0;
   width: 100%;
-  height: 100%; 
-  background: rgba(6, 12, 24, 0.99); /* Slightly more opaque to hide player */
+  height: 100%;
+  background: rgba(6, 12, 24, 0.99);
   backdrop-filter: blur(20px);
-  z-index: 2000; /* Above everything including player */
+  z-index: 2000;
   display: flex;
   flex-direction: column;
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s;
-  padding: 0 14px; /* Align with app gutters */
+  padding: 0 14px;
+  /* STRUCTURAL FIX: Overlay is removed from flex flow when hidden.
+     The .hidden utility (display:none !important) now correctly wins.
+     The old translateY animation was masking the layout bug. */
 }
 
-.yt-queue-overlay.hidden {
-  display: flex !important; 
-  transform: translateY(100%);
-  opacity: 0;
-  pointer-events: none;
-}
+/* .yt-queue-overlay.hidden — handled entirely by the global .hidden { display: none !important } rule.
+   DO NOT re-add display:flex here or the overlay will occupy flex space and compress ytResults. */
 
 .yt-queue-header {
   display: flex;
