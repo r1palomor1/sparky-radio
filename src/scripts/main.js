@@ -3134,10 +3134,13 @@ const sparkyYtState = {
   isModeActive: false,
   playerInstance: null,
   currentQueue: [],
+  originalQueue: [], // Ported from R1: Store original order
   queueIndex: 0,
-  currentSubMode: 'videos', // 'videos' | 'playlists' | 'hub'
+  currentSubMode: 'videos', 
   searchCache: { query: '', results: [], type: '' },
-  activePlaylistId: null
+  activePlaylistId: null,
+  isAudioOnly: false,
+  isShuffleActive: false // Ported from R1: Shuffle state
 };
 
 const YT_FAVS_KEY    = 'sparky_yt_favorites';
@@ -3415,7 +3418,13 @@ function attachYtCardListeners(container) {
               channel: data.title || item.title,
               thumb: v.thumb
             }));
+            sparkyYtState.originalQueue = [...sparkyYtState.currentQueue];
             sparkyYtState.queueIndex = 0;
+            sparkyYtState.isShuffleActive = false;
+            
+            // Reset UI state for shuffle button
+            const btnShuffle = document.getElementById('btnYtShuffle');
+            if (btnShuffle) btnShuffle.classList.remove('active');
             
             // Show Queue button
             const btnQueue = document.getElementById('btnYtQueue');
@@ -3500,6 +3509,70 @@ function closeYtQueue() {
   if (overlay) overlay.classList.add('hidden');
 }
 
+function toggleYtAudioOnly() {
+  sparkyYtState.isAudioOnly = !sparkyYtState.isAudioOnly;
+  const btn = document.getElementById('btnYtAudioOnly');
+  const videoEl = document.getElementById('sparky-yt-player');
+  const placeholder = document.getElementById('yt-audio-only-placeholder');
+  
+  if (btn) btn.classList.toggle('active', sparkyYtState.isAudioOnly);
+  if (videoEl) videoEl.classList.toggle('hidden', sparkyYtState.isAudioOnly);
+  if (placeholder) placeholder.classList.toggle('hidden', !sparkyYtState.isAudioOnly);
+  
+  console.log(`[YT] Audio Only Mode: ${sparkyYtState.isAudioOnly ? 'ON' : 'OFF'}`);
+}
+
+// ── Ported from R1: Playlist Engine (Shuffle & Restart) ──────────
+function restartYtQueue() {
+  if (sparkyYtState.originalQueue.length === 0) return;
+  
+  sparkyYtState.isShuffleActive = false;
+  const btnShuffle = document.getElementById('btnYtShuffle');
+  if (btnShuffle) btnShuffle.classList.remove('active');
+  
+  sparkyYtState.currentQueue = [...sparkyYtState.originalQueue];
+  sparkyYtState.queueIndex = 0;
+  playYtItem(sparkyYtState.currentQueue[0]);
+  console.log('[YT] Restarting playlist from beginning');
+}
+
+function toggleYtShuffle() {
+  if (sparkyYtState.originalQueue.length === 0) return;
+  
+  sparkyYtState.isShuffleActive = !sparkyYtState.isShuffleActive;
+  const btnShuffle = document.getElementById('btnYtShuffle');
+  if (btnShuffle) btnShuffle.classList.toggle('active', sparkyYtState.isShuffleActive);
+  
+  if (sparkyYtState.isShuffleActive) {
+    // Enable Shuffle
+    const currentItem = sparkyYtState.currentQueue[sparkyYtState.queueIndex];
+    // Filter out current item from the shuffle pool
+    const pool = sparkyYtState.originalQueue.filter(v => v.id !== currentItem.id);
+    
+    // Fisher-Yates Shuffle
+    for (let i = pool.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [pool[i], pool[j]] = [pool[j], pool[i]];
+    }
+    
+    // Put current item first in the new shuffled queue
+    sparkyYtState.currentQueue = [currentItem, ...pool];
+    sparkyYtState.queueIndex = 0;
+    console.log('[YT] Shuffle enabled');
+  } else {
+    // Disable Shuffle: Restore original order
+    const currentItem = sparkyYtState.currentQueue[sparkyYtState.queueIndex];
+    sparkyYtState.currentQueue = [...sparkyYtState.originalQueue];
+    
+    // Find current item's index in the original list to maintain position
+    const idx = sparkyYtState.currentQueue.findIndex(v => v.id === currentItem.id);
+    sparkyYtState.queueIndex = idx >= 0 ? idx : 0;
+    console.log('[YT] Shuffle disabled');
+  }
+  
+  renderYtQueue();
+}
+
 function renderYtQueue() {
   const container = document.getElementById('ytQueueList');
   const countEl = document.getElementById('ytQueueCount');
@@ -3513,7 +3586,7 @@ function renderYtQueue() {
   }
   
   if (countEl) {
-    countEl.textContent = `Queue (${sparkyYtState.queueIndex + 1} / ${queue.length})`;
+    countEl.textContent = `Videos [ ${queue.length} ]`;
   }
   
   // Only re-render if count or items changed, or just update active class
@@ -3546,6 +3619,9 @@ function renderYtQueue() {
 function playYtItem(item) {
   pauseRadioForYt();
   highlightYtCard(item.id);
+  
+  // Update Queue UI if open
+  renderYtQueue();
 
   // Update NP metadata immediately
   const titleEl   = document.getElementById('ytNpTitle');
@@ -3706,3 +3782,6 @@ btnYtSearchClear?.addEventListener('click', () => {
 
 document.getElementById('btnYtQueue')?.addEventListener('click', openYtQueue);
 document.getElementById('btnYtQueueClose')?.addEventListener('click', closeYtQueue);
+document.getElementById('btnYtAudioOnly')?.addEventListener('click', toggleYtAudioOnly);
+document.getElementById('btnYtShuffle')?.addEventListener('click', toggleYtShuffle);
+document.getElementById('btnYtRestart')?.addEventListener('click', restartYtQueue);
