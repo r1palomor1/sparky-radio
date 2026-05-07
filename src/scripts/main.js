@@ -1658,12 +1658,8 @@ function renderFavs() {
       const stats = loadUsage();
       const stName = stats[rid] ? stats[rid].name : 'this station';
 
-      sparkyConfirm(`Remove <strong>[${stName}]</strong> from your Recent History?`, () => {
-        if (sid) {
-          if (stats[rid]) stats[rid].count = 0;
-        } else {
-          delete stats[rid];
-        }
+      sparkyConfirm(`Remove <strong>[${stName}]</strong> from your Recently Listened?`, () => {
+        if (stats[rid]) stats[rid].count = 0;
         saveUsage(stats);
         renderFavs();
       }, "PURGE HISTORY");
@@ -2041,15 +2037,11 @@ function renderDiscoveryFavs(pl) {
     const sid = btn.dataset.rmfav;
     const rid = btn.dataset.rmrecent;
 
-    if (discoveryCategoryFilter === 'RECENT' && rid) {
+    if (rid && (discoveryCategoryFilter === 'RECENT' || btn.closest('.pl-category-group[data-cat="RECENT"]'))) {
       const stats = loadUsage();
       const stName = stats[rid] ? stats[rid].name : 'this station';
-      sparkyConfirm(`Remove <strong>[${stName}]</strong> from your Recent History?`, () => {
-        if (sid) {
-          if (stats[rid]) stats[rid].count = 0;
-        } else {
-          delete stats[rid];
-        }
+      sparkyConfirm(`Remove <strong>[${stName}]</strong> from your Recently Listened?`, () => {
+        if (stats[rid]) stats[rid].count = 0; // Standard reset for all Recent items
         saveUsage(stats);
         renderFavs();
       }, "PURGE HISTORY");
@@ -2103,15 +2095,11 @@ function bindStationActions(pl, list) {
     const sid = btn.dataset.rmfav;
     const rid = btn.dataset.rmrecent;
 
-    if (rid) {
+    if (rid && (discoveryCategoryFilter === 'RECENT' || btn.closest('.pl-category-group[data-cat="RECENT"]'))) {
       const stats = loadUsage();
       const stName = stats[rid] ? stats[rid].name : 'this station';
-      sparkyConfirm(`Remove <strong>[${stName}]</strong> from your Recent History?`, () => {
-        if (sid) {
-          if (stats[rid]) stats[rid].count = 0;
-        } else {
-          delete stats[rid];
-        }
+      sparkyConfirm(`Remove <strong>[${stName}]</strong> from your Recently Listened?`, () => {
+        if (stats[rid]) stats[rid].count = 0;
         saveUsage(stats);
         renderFavs();
       }, "PURGE HISTORY");
@@ -3134,13 +3122,14 @@ const sparkyYtState = {
   isModeActive: false,
   playerInstance: null,
   currentQueue: [],
-  originalQueue: [], // Ported from R1: Store original order
+  originalQueue: [], 
   queueIndex: 0,
   currentSubMode: 'videos', 
-  searchCache: { query: '', results: [], type: '' },
+  videoCache: { query: '', results: [] },
+  playlistCache: { query: '', results: [] },
   activePlaylistId: null,
   isAudioOnly: false,
-  isShuffleActive: false // Ported from R1: Shuffle state
+  isShuffleActive: false 
 };
 
 const YT_FAVS_KEY    = 'sparky_yt_favorites';
@@ -3217,23 +3206,39 @@ function switchYtTab(mode) {
   if (hub)        hub.classList.toggle('hidden', !isHub);
 
   const input = document.getElementById('ytSearchInput');
+  
   if (isHub) {
     renderYtHub();
-  } else if (input && input.value.trim() && mode !== sparkyYtState.searchCache.type) {
-    runYtSearch(); // Auto-search using existing query when switching tabs
-  } else if (!input || !input.value.trim()) {
-    clearYtResults();
-  } else if (mode !== sparkyYtState.searchCache.type) {
-    clearYtResults();
+  } else {
+    const cache = (mode === 'playlists') ? sparkyYtState.playlistCache : sparkyYtState.videoCache;
+    
+    // 1. If we ALREADY have results for this tab, just show them (instant restore)
+    if (cache.results && cache.results.length > 0) {
+      if (input) input.value = cache.query;
+      if (mode === 'playlists') renderYtPlaylistResults(cache.results);
+      else renderYtVideoResults(cache.results);
+    } 
+    // 2. If no results BUT there is a search term in the input, auto-search
+    else if (input && input.value.trim()) {
+      runYtSearch(); 
+    } 
+    // 3. Otherwise clear
+    else {
+      clearYtResults();
+    }
   }
 }
 
 function clearYtResults() {
+  const mode = sparkyYtState.currentSubMode;
+  if (mode === 'videos') sparkyYtState.videoCache = { query: '', results: [] };
+  if (mode === 'playlists') sparkyYtState.playlistCache = { query: '', results: [] };
+
   const el = document.getElementById('ytResults');
   if (!el) return;
   el.innerHTML = `<div class="pl-empty">
     <div class="pl-empty-icon">&#9654;&#65039;</div>
-    <div>Search for ${sparkyYtState.currentSubMode === 'playlists' ? 'playlists' : 'videos'} above</div>
+    <div>Search for ${mode === 'playlists' ? 'playlists' : 'videos'} above</div>
   </div>`;
 }
 
@@ -3244,7 +3249,7 @@ function renderYtHub() {
   if (!favs.length) {
     hub.innerHTML = `<div class="pl-empty">
       <div class="pl-empty-icon">&#128420;</div>
-      <div>No saved videos yet &mdash; heart a video to save it here</div>
+      <div>No saved videos yet &mdash; heart a video to save it here in your Favs Hub</div>
     </div>`;
     return;
   }
@@ -3309,15 +3314,17 @@ async function runYtSearch() {
   if (!resultsEl) return;
 
   resultsEl.innerHTML = `<div class="yt-loading"><div class="yt-spinner"></div>Searching...</div>`;
-  sparkyYtState.searchCache = { query, results: [], type: mode };
+  
+  // Set current cache target
+  const cache = (mode === 'playlists') ? sparkyYtState.playlistCache : sparkyYtState.videoCache;
+  cache.query = query;
 
   try {
     if (mode === 'videos') {
       const res  = await fetch(`${YT_API_BASE}/api/searchVideos?query=${encodeURIComponent(query)}`);
       const data = await res.json();
       if (data.video_results?.length) {
-        sparkyYtState.searchCache.results = data.video_results;
-        sparkyYtState.searchCache.type = 'videos';
+        sparkyYtState.videoCache.results = data.video_results;
         renderYtVideoResults(data.video_results);
       } else {
         showYtError('No videos found — try a different search.');
@@ -3327,8 +3334,7 @@ async function runYtSearch() {
       const res  = await fetch(`${YT_API_BASE}/api/fetchPlaylist?query=${encodeURIComponent(query)}`);
       const data = await res.json();
       if (data.playlist_results?.length) {
-        sparkyYtState.searchCache.results = data.playlist_results;
-        sparkyYtState.searchCache.type = 'playlists';
+        sparkyYtState.playlistCache.results = data.playlist_results;
         renderYtPlaylistResults(data.playlist_results);
       } else {
         showYtError('No playlists found — try a different search.');
@@ -3356,7 +3362,7 @@ function renderYtVideoResults(videos) {
         <div class="yt-card-title">${v.title}</div>
         <div class="yt-card-channel">${v.channel || ''}${v.duration ? ' &middot; ' + v.duration : ''}</div>
       </div>
-      <button class="yt-card-fav${isYtFav(v.id) ? ' active' : ''}" data-id="${v.id}" data-type="video" title="${isYtFav(v.id) ? 'Remove from Hub' : 'Save to Hub'}">
+      <button class="yt-card-fav${isYtFav(v.id) ? ' active' : ''}" data-id="${v.id}" data-type="video" title="${isYtFav(v.id) ? 'Remove from Favs Hub' : 'Save to Favs Hub'}">
         <span class="material-symbols-outlined">favorite</span>
       </button>
     </div>
@@ -3376,7 +3382,7 @@ function renderYtPlaylistResults(playlists) {
         <div class="yt-card-title">${p.title}</div>
         <div class="yt-card-channel">Playlist</div>
       </div>
-      <button class="yt-card-fav${isYtFav(p.playlist_id) ? ' active' : ''}" data-id="${p.playlist_id}" data-type="playlist" title="${isYtFav(p.playlist_id) ? 'Remove from Hub' : 'Save to Hub'}">
+      <button class="yt-card-fav${isYtFav(p.playlist_id) ? ' active' : ''}" data-id="${p.playlist_id}" data-type="playlist" title="${isYtFav(p.playlist_id) ? 'Remove from Favs Hub' : 'Save to Favs Hub'}">
         <span class="material-symbols-outlined">favorite</span>
       </button>
     </div>
@@ -3474,18 +3480,18 @@ function attachYtCardListeners(container) {
         sparkyConfirm(`Are you sure you want to remove [${item.title}] from Favorites?`, () => {
           removeYtFav(item.id);
           if (sparkyYtState.currentSubMode === 'hub') renderYtHub();
-        }, "DELETE FROM HUB");
+        }, "DELETE FROM FAVS HUB");
         return;
       }
 
       if (isYtFav(item.id)) {
         removeYtFav(item.id);
         btn.classList.remove('active');
-        btn.title = 'Save to Hub';
+        btn.title = 'Save to Favs Hub';
       } else {
         addYtFav(item);
         btn.classList.add('active');
-        btn.title = 'Remove from Hub';
+        btn.title = 'Remove from Favs Hub';
       }
     });
   });
@@ -3782,7 +3788,6 @@ btnYtSearchClear?.addEventListener('click', () => {
     ytSearchInput.focus();
     toggleYtSearchClear();
     clearYtResults();
-    sparkyYtState.searchCache = { query: '', results: [], type: sparkyYtState.currentSubMode };
   }
 });
 

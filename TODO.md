@@ -9,6 +9,10 @@
 ---
 
 ## ✅ COMPLETED: Pro-Debugger & UI Modernization
+- [ ] **Phase 5: Refinement & Bug Fixing**
+    - [ ] Debug YouTube Favorites persistence (Heart turns red but doesn't save to Hub).
+    - [ ] Recalibrate main YouTube layout (Fix vertical shifting and large whitespace gaps below the player).
+    - [ ] Finalize forensic UI polish for search and tabs.
 - [x] **Smart-Tune Pro Engine**: Multi-metric power ranking and mirror fallback.
 - [x] **Mirror Feedback**: Real-time display of active Radio Browser mirror (e.g., DE, NL).
 - [x] **Pro-Debugger Module**: Integrated console overlay with real-time log trace.
