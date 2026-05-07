@@ -2243,14 +2243,21 @@ const syncPlayBtns = () => {
     const icon = playBtnFooter.querySelector('.material-symbols-outlined');
     const label = playBtnFooter.querySelector('.btn-label');
     if (icon) {
-      icon.textContent = isP ? 'stop' : 'play_arrow';
+      if (isP) {
+        // Use 'pause' bars for Video mode (Spotify/Apple style)
+        // Use 'stop' square for Radio mode (Industrial Broadcast style)
+        icon.textContent = (typeof sparkyYtState !== 'undefined' && sparkyYtState.isModeActive) ? 'pause' : 'stop';
+      } else {
+        icon.textContent = 'play_arrow';
+      }
     }
     if (label) {
-      label.textContent = isP ? 'STOP' : 'PLAY';
+      label.textContent = isP ? (sparkyYtState.isModeActive ? 'PAUSE' : 'STOP') : 'PLAY';
     }
     // If neither icon nor label exists, but the button does, handle fallback safely
     if (!icon && !label) {
-      playBtnFooter.innerHTML = isP ? '<span class="material-symbols-outlined">stop</span>' : '<span class="material-symbols-outlined">play_arrow</span>';
+      const fallbackIcon = isP ? ((typeof sparkyYtState !== 'undefined' && sparkyYtState.isModeActive) ? 'pause' : 'stop') : 'play_arrow';
+      playBtnFooter.innerHTML = `<span class="material-symbols-outlined">${fallbackIcon}</span>`;
     }
   }
 };
@@ -3157,14 +3164,15 @@ const sparkyYtState = {
   isModeActive: false,
   playerInstance: null,
   currentQueue: [],
-  originalQueue: [], 
+  originalQueue: [],
   queueIndex: 0,
-  currentSubMode: 'videos', 
+  currentSubMode: 'videos',
   videoCache: { query: '', results: [] },
   playlistCache: { query: '', results: [] },
   activePlaylistId: null,
+  currentItemId: null,  // Tracks last played item — used to restore highlight after tab switch
   isAudioOnly: false,
-  isShuffleActive: false 
+  isShuffleActive: false
 };
 
 const YT_FAVS_KEY    = 'sparky_yt_favorites';
@@ -3216,7 +3224,11 @@ function toggleYtMode(activate) {
   // Pause radio when entering YT mode
   if (activate) {
     const audio = document.getElementById('audioEl');
-    if (audio && !audio.paused) audio.pause();
+    if (audio && !audio.paused) {
+      audio.pause();
+      isPlaying = false; // Reset global playing state so UI updates
+      syncPlayBtns();
+    }
   }
 
   // Pause YT when returning to radio
@@ -3255,6 +3267,8 @@ function switchYtTab(mode) {
       if (input) input.value = cache.query;
       if (mode === 'playlists') renderYtPlaylistResults(cache.results);
       else renderYtVideoResults(cache.results);
+      // Re-apply active highlight — render wipes innerHTML so .active class is lost
+      if (sparkyYtState.currentItemId) highlightYtCard(sparkyYtState.currentItemId);
     } 
     // 2. If no results BUT there is a search term in the input, auto-search
     else if (input && input.value.trim()) {
@@ -3447,6 +3461,25 @@ function attachYtCardListeners(container) {
       const item = queue[index];
 
       if (item.type === 'playlist') {
+
+        // ── Spotify/Apple UX: re-clicking the active playlist is a no-op ──────
+        // The user is navigating back to it, not requesting a restart.
+        // Only a genuinely different playlist triggers a fetch + play from track 1.
+        if (sparkyYtState.activePlaylistId === item.id) {
+          // Just scroll the card into view as visual confirmation and bail
+          const container = document.getElementById('ytResults');
+          if (container) {
+            const containerTop    = container.getBoundingClientRect().top;
+            const cardTop         = card.getBoundingClientRect().top;
+            const cardBottom      = card.getBoundingClientRect().bottom;
+            const containerBottom = container.getBoundingClientRect().bottom;
+            if (cardTop < containerTop) container.scrollTop -= (containerTop - cardTop) + 8;
+            else if (cardBottom > containerBottom) container.scrollTop += (cardBottom - containerBottom) + 8;
+          }
+          return; // Playback continues uninterrupted
+        }
+        // ── New playlist selected — load and start from track 1 ──────────────
+
         sparkyYtState.activePlaylistId = item.id;
         const titleEl = document.getElementById('ytNpTitle');
         if (titleEl) titleEl.textContent = 'Loading Playlist...';
@@ -3536,14 +3569,37 @@ function attachYtCardListeners(container) {
 }
 
 function highlightYtCard(id) {
+  let activeCard = null;
+
   document.querySelectorAll('.yt-card').forEach(c => {
     // Highlight if it matches the current song ID OR if it's the active parent playlist
     const isAct = c.dataset.id === id || (sparkyYtState.activePlaylistId && c.dataset.id === sparkyYtState.activePlaylistId);
     c.classList.toggle('active', isAct);
-    if (isAct && c.dataset.id === id) {
-      // scrollIntoView removed to prevent global UI shift on mobile
-    }
+    if (isAct && c.dataset.id === id) activeCard = c;
   });
+
+  // Scroll the results container so the active card is visible.
+  // We operate only on #ytResults.scrollTop — the window and .app never move.
+  if (activeCard) {
+    setTimeout(() => {
+      const container = document.getElementById('ytResults');
+      if (!container) return;
+
+      const containerTop    = container.getBoundingClientRect().top;
+      const cardTop         = activeCard.getBoundingClientRect().top;
+      const cardBottom      = activeCard.getBoundingClientRect().bottom;
+      const containerBottom = container.getBoundingClientRect().bottom;
+
+      // Only scroll if the card is partially or fully outside the visible container
+      if (cardTop < containerTop) {
+        // Card is above visible area — scroll up
+        container.scrollTop -= (containerTop - cardTop) + 8;
+      } else if (cardBottom > containerBottom) {
+        // Card is below visible area — scroll down
+        container.scrollTop += (cardBottom - containerBottom) + 8;
+      }
+    }, 80); // Small delay so the active class is painted first
+  }
 }
 
 function openYtQueue() {
@@ -3669,7 +3725,8 @@ function renderYtQueue() {
 function playYtItem(item) {
   sparkyLog(`Action: playYtItem(${item.id}) - ${item.title}`);
   debugLayout('BEFORE-PLAY');
-  
+
+  sparkyYtState.currentItemId = item.id; // Persist so highlight survives tab switches
   pauseRadioForYt();
   highlightYtCard(item.id);
   
@@ -3763,12 +3820,13 @@ function createYtPlayer(item) {
 
 // ── 3.3: Audio Overlap Prevention ────────────────────────────────
 function onYtStateChange(event) {
-  const btnIcon = document.querySelector('#btnPlayFooter .material-symbols-outlined');
   if (event.data === YT.PlayerState.PLAYING) {
     pauseRadioForYt();
-    if (btnIcon && sparkyYtState.isModeActive) btnIcon.textContent = 'pause';
+    isPlaying = true; // Update global state for UI sync
+    syncPlayBtns();
   } else if (event.data === YT.PlayerState.PAUSED || event.data === YT.PlayerState.ENDED) {
-    if (btnIcon && sparkyYtState.isModeActive) btnIcon.textContent = 'play_arrow';
+    isPlaying = false; // Update global state for UI sync
+    syncPlayBtns();
     if (event.data === YT.PlayerState.ENDED) {
       playYtNext();
     }
