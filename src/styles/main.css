@@ -3846,10 +3846,29 @@ body.light .filter-chip {
   flex: 1;
   overflow-y: auto;
   padding: 10px 12px;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-auto-rows: max-content;
   gap: 8px;
   min-height: 0;
+  align-content: start;
+}
+
+.yt-results .pl-empty,
+.yt-hub .pl-empty {
+  grid-column: 1 / -1;
+}
+
+@media (min-width: 600px) {
+  .yt-results, .yt-hub {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 900px) {
+  .yt-results, .yt-hub {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
 
 /* ── YT Video / Playlist Card ───────────────────────────────── */
@@ -3952,6 +3971,14 @@ body.light .filter-chip {
   background: #000;
   border-radius: 4px;
   overflow: hidden;
+}
+
+@media (min-width: 700px) {
+  #sparky-yt-player {
+    width: auto;
+    height: 300px;
+    margin: 0 auto;
+  }
 }
 
 #sparky-yt-player iframe {

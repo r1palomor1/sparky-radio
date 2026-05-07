@@ -3246,14 +3246,14 @@ function renderYtHub() {
     return;
   }
   hub.innerHTML = favs.map(item => `
-    <div class="yt-card" data-id="${item.id}" data-type="${item.type}">
+    <div class="yt-card" data-id="${item.id}" data-type="${item.type}" data-title="${item.title.replace(/"/g, '&quot;')}" data-channel="${(item.channel||'').replace(/"/g,'&quot;')}" data-thumb="${item.thumb}">
       <img class="yt-card-thumb" src="${item.thumb}" alt="" loading="lazy">
       <div class="yt-card-info">
         <div class="yt-card-title">${item.title}</div>
         <div class="yt-card-channel">${item.channel || ''}</div>
       </div>
-      <button class="yt-card-fav active" data-id="${item.id}" title="Remove from Hub">
-        <span class="material-symbols-outlined">favorite</span>
+      <button class="yt-card-fav yt-card-delete active" data-id="${item.id}" title="Remove from Hub">
+        <span class="material-symbols-outlined">delete</span>
       </button>
     </div>
   `).join('');
@@ -3394,13 +3394,40 @@ function attachYtCardListeners(container) {
 
   // Card body click → play
   allCards.forEach((card, index) => {
-    card.addEventListener('click', e => {
+    card.addEventListener('click', async e => {
       if (e.target.closest('.yt-card-fav')) return;
       
-      sparkyYtState.currentQueue = queue;
-      sparkyYtState.queueIndex = index;
-      
-      playYtItem(queue[index]);
+      const item = queue[index];
+
+      if (item.type === 'playlist') {
+        const titleEl = document.getElementById('ytNpTitle');
+        if (titleEl) titleEl.textContent = 'Loading Playlist...';
+        
+        try {
+          const res = await fetch(`${YT_API_BASE}/api/fetchPlaylist?id=${item.id}`);
+          const data = await res.json();
+          if (data.videos && data.videos.length > 0) {
+            sparkyYtState.currentQueue = data.videos.map(v => ({
+              id: v.id,
+              type: 'video',
+              title: v.title,
+              channel: data.title || item.title,
+              thumb: v.thumb
+            }));
+            sparkyYtState.queueIndex = 0;
+            playYtItem(sparkyYtState.currentQueue[0]);
+          } else {
+            if (titleEl) titleEl.textContent = 'Playlist Empty/Error';
+          }
+        } catch (err) {
+          console.error('[YT] Failed to fetch playlist:', err);
+          if (titleEl) titleEl.textContent = 'Network Error';
+        }
+      } else {
+        sparkyYtState.currentQueue = queue;
+        sparkyYtState.queueIndex = index;
+        playYtItem(item);
+      }
     });
   });
 
@@ -3416,6 +3443,15 @@ function attachYtCardListeners(container) {
         thumb:   card.dataset.thumb,
         channel: card.dataset.channel
       };
+
+      if (btn.classList.contains('yt-card-delete')) {
+        sparkyConfirm(`Are you sure you want to remove [${item.title}] from Favorites?`, () => {
+          removeYtFav(item.id);
+          if (sparkyYtState.currentSubMode === 'hub') renderYtHub();
+        }, "DELETE FROM HUB");
+        return;
+      }
+
       if (isYtFav(item.id)) {
         removeYtFav(item.id);
         btn.classList.remove('active');
@@ -3431,7 +3467,11 @@ function attachYtCardListeners(container) {
 
 function highlightYtCard(id) {
   document.querySelectorAll('.yt-card').forEach(c => {
-    c.classList.toggle('active', c.dataset.id === id);
+    const isAct = c.dataset.id === id;
+    c.classList.toggle('active', isAct);
+    if (isAct) {
+      c.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
   });
 }
 
@@ -3465,11 +3505,7 @@ function loadIntoExistingPlayer(item) {
   const p = sparkyYtState.playerInstance;
   if (!p) return;
   try {
-    if (item.type === 'playlist') {
-      p.loadPlaylist({ list: item.id, listType: 'playlist' });
-    } else {
-      p.loadVideoById(item.id);
-    }
+    p.loadVideoById(item.id);
   } catch (e) {
     console.error('[YT] Player load error:', e);
     // Recreate player if it crashed
@@ -3513,17 +3549,13 @@ function createYtPlayer(item) {
       autoplay:       1,
       rel:            0,
       modestbranding: 1,
-      fs:             0,
+      fs:             1,
       enablejsapi:    1,
       origin:         window.location.origin
     },
     events: {
       onReady: event => {
-        if (item.type === 'playlist') {
-          event.target.loadPlaylist({ list: item.id, listType: 'playlist' });
-        } else {
-          event.target.loadVideoById(item.id);
-        }
+        event.target.loadVideoById(item.id);
       },
       onStateChange: onYtStateChange,
       onError: e => console.error('[YT] Player error code:', e.data)
@@ -3539,6 +3571,9 @@ function onYtStateChange(event) {
     if (btnIcon && sparkyYtState.isModeActive) btnIcon.textContent = 'pause';
   } else if (event.data === YT.PlayerState.PAUSED || event.data === YT.PlayerState.ENDED) {
     if (btnIcon && sparkyYtState.isModeActive) btnIcon.textContent = 'play_arrow';
+    if (event.data === YT.PlayerState.ENDED) {
+      playYtNext();
+    }
   }
 }
 
@@ -3553,28 +3588,18 @@ function toggleYtPlay() {
 function playYtNext() {
   const p = sparkyYtState.playerInstance;
   if (!p) return;
-  const current = sparkyYtState.currentQueue[sparkyYtState.queueIndex];
-  if (current && current.type === 'playlist') {
-    p.nextVideo();
-  } else {
-    if (sparkyYtState.queueIndex < sparkyYtState.currentQueue.length - 1) {
-      sparkyYtState.queueIndex++;
-      playYtItem(sparkyYtState.currentQueue[sparkyYtState.queueIndex]);
-    }
+  if (sparkyYtState.queueIndex < sparkyYtState.currentQueue.length - 1) {
+    sparkyYtState.queueIndex++;
+    playYtItem(sparkyYtState.currentQueue[sparkyYtState.queueIndex]);
   }
 }
 
 function playYtPrev() {
   const p = sparkyYtState.playerInstance;
   if (!p) return;
-  const current = sparkyYtState.currentQueue[sparkyYtState.queueIndex];
-  if (current && current.type === 'playlist') {
-    p.previousVideo();
-  } else {
-    if (sparkyYtState.queueIndex > 0) {
-      sparkyYtState.queueIndex--;
-      playYtItem(sparkyYtState.currentQueue[sparkyYtState.queueIndex]);
-    }
+  if (sparkyYtState.queueIndex > 0) {
+    sparkyYtState.queueIndex--;
+    playYtItem(sparkyYtState.currentQueue[sparkyYtState.queueIndex]);
   }
 }
 
