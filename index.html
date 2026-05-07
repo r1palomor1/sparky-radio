@@ -248,31 +248,33 @@
 
       <!-- Favs Hub Container -->
       <div class="yt-hub hidden" id="ytHub"></div>
+
+      <!-- YT Queue Overlay (Moved inside YT view for structural stability) -->
+      <div id="ytQueueOverlay" class="yt-queue-overlay hidden">
+        <div class="yt-queue-header">
+          <div class="yt-queue-header-left">
+            <span class="material-symbols-outlined">queue_music</span>
+            <span id="ytQueueCount">Videos [ 0 ]</span>
+            <div class="yt-queue-controls">
+              <button id="btnYtShuffle" class="yt-ctrl-btn" title="Shuffle Playlist">
+                <span class="material-symbols-outlined">shuffle</span>
+              </button>
+              <button id="btnYtRestart" class="yt-ctrl-btn" title="Restart Playlist">
+                <span class="material-symbols-outlined">replay</span>
+              </button>
+            </div>
+          </div>
+          <button id="btnYtQueueClose" class="yt-queue-close-btn" title="Close Queue">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+        <div id="ytQueueList" class="yt-queue-list">
+          <!-- JS populated -->
+        </div>
+      </div>
     </div>
 
-    <!-- YT Queue Overlay (Moved to Root for full coverage) -->
-    <div id="ytQueueOverlay" class="yt-queue-overlay hidden">
-      <div class="yt-queue-header">
-        <div class="yt-queue-header-left">
-          <span class="material-symbols-outlined">queue_music</span>
-          <span id="ytQueueCount">Videos [ 0 ]</span>
-          <div class="yt-queue-controls">
-            <button id="btnYtShuffle" class="yt-ctrl-btn" title="Shuffle Playlist">
-              <span class="material-symbols-outlined">shuffle</span>
-            </button>
-            <button id="btnYtRestart" class="yt-ctrl-btn" title="Restart Playlist">
-              <span class="material-symbols-outlined">replay</span>
-            </button>
-          </div>
-        </div>
-        <button id="btnYtQueueClose" class="yt-queue-close-btn" title="Close Queue">
-          <span class="material-symbols-outlined">close</span>
-        </button>
-      </div>
-      <div id="ytQueueList" class="yt-queue-list">
-        <!-- JS populated -->
-      </div>
-    </div>
+
 
 
 

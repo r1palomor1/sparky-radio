@@ -113,8 +113,14 @@ html {
 @media (max-width: 480px) {
   body {
     padding: 0;
-    align-items: stretch;
-    justify-content: flex-start; /* Stop re-centering jump */
+    display: block !important; /* Force block layout to kill centering logic */
+    overflow-x: hidden;
+  }
+  .app {
+    margin: 0 auto;
+    height: 100dvh; /* Fill the screen naturally */
+    border-radius: 0; /* Clean edge-to-edge mobile look */
+    border: none;
   }
 }
 
