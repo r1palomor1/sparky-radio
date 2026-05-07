@@ -3359,10 +3359,25 @@ let pendingPlayItem = null;
 
 // ── 3.1: Search ──────────────────────────────────────────────────
 async function runYtSearch() {
-  const query = document.getElementById('ytSearchInput')?.value?.trim();
+  let query = document.getElementById('ytSearchInput')?.value?.trim();
   if (!query) return;
 
   const mode = sparkyYtState.currentSubMode; // 'videos' | 'playlists'
+  
+  // 1. URL PARSER: Extract ID if user pastes a full link
+  if (query.includes('youtube.com') || query.includes('youtu.be')) {
+    if (mode === 'playlists') {
+      const plMatch = query.match(/[?&]list=([^#\&\?]+)/);
+      if (plMatch) query = plMatch[1];
+    } else {
+      const vMatch = query.match(/(?:v=|youtu\.be\/|embed\/|v\/|shorts\/)([^#\&\?\n ]{11})/);
+      if (vMatch) query = vMatch[1];
+    }
+    // Update input field to show the extracted ID (visual confirmation)
+    const input = document.getElementById('ytSearchInput');
+    if (input) input.value = query;
+  }
+
   const resultsEl = document.getElementById('ytResults');
   if (!resultsEl) return;
 
@@ -3374,6 +3389,7 @@ async function runYtSearch() {
 
   try {
     if (mode === 'videos') {
+      // For videos, the proxy usually handles ID vs Search via 'query' but we'll stick to query for now
       const res = await fetch(`${YT_API_BASE}/api/searchVideos?query=${encodeURIComponent(query)}`);
       const data = await res.json();
       if (data.video_results?.length) {
@@ -3384,13 +3400,31 @@ async function runYtSearch() {
       }
 
     } else if (mode === 'playlists') {
-      const res = await fetch(`${YT_API_BASE}/api/fetchPlaylist?query=${encodeURIComponent(query)}`);
+      // 1. Detect if it's an ID (starts with PL, RD, LL, LM, etc. and is long)
+      const isId = /^(PL|RD|LL|LM|UU|FL|OL)[a-zA-Z0-9_-]+/.test(query);
+      
+      // 2. Try ID fetch if it looks like one, otherwise standard query search
+      const param = isId ? 'id' : 'query';
+      const res = await fetch(`${YT_API_BASE}/api/fetchPlaylist?${param}=${encodeURIComponent(query)}`);
       const data = await res.json();
-      if (data.playlist_results?.length) {
-        sparkyYtState.playlistCache.results = data.playlist_results;
-        renderYtPlaylistResults(data.playlist_results);
+      
+      // 3. Handle results (normalize if it's a single playlist object from 'id' fetch)
+      let results = data.playlist_results || [];
+      if (!results.length && data.id && data.title) {
+        // Direct ID fetch returned a single playlist object, wrap it
+        results = [{
+          id: data.id,
+          title: data.title,
+          thumb: data.thumb || (data.videos && data.videos[0]?.thumb),
+          type: 'playlist'
+        }];
+      }
+
+      if (results.length) {
+        sparkyYtState.playlistCache.results = results;
+        renderYtPlaylistResults(results);
       } else {
-        showYtError('No playlists found — try a different search.');
+        showYtError('No playlists found — try a different ID or search term.');
       }
     }
   } catch (err) {
