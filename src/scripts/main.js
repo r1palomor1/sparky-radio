@@ -3445,7 +3445,13 @@ function attachYtCardListeners(container) {
         if (btnQueue) btnQueue.classList.add('hidden');
         
         sparkyYtState.currentQueue = queue;
+        sparkyYtState.originalQueue = [...queue]; // Ensure shuffle works for single clicks
         sparkyYtState.queueIndex = index;
+        sparkyYtState.isShuffleActive = false;
+        
+        const btnShuffle = document.getElementById('btnYtShuffle');
+        if (btnShuffle) btnShuffle.classList.remove('active');
+        
         playYtItem(item);
       }
     });
