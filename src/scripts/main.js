@@ -3791,3 +3791,8 @@ document.getElementById('btnYtQueueClose')?.addEventListener('click', closeYtQue
 document.getElementById('btnYtAudioOnly')?.addEventListener('click', toggleYtAudioOnly);
 document.getElementById('btnYtShuffle')?.addEventListener('click', toggleYtShuffle);
 document.getElementById('btnYtRestart')?.addEventListener('click', restartYtQueue);
+
+// Tab switching
+document.querySelectorAll('.yt-tab').forEach(btn => {
+  btn.addEventListener('click', () => switchYtTab(btn.dataset.mode));
+});

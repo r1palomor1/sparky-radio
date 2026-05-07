@@ -3807,6 +3807,45 @@ body.light .filter-chip {
   background: var(--tab-active);
 }
 
+/* ── YT Sub-mode Tabs ────────────────────────────────────────── */
+.yt-tab-row {
+  display: flex;
+  background: var(--tab-bg);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.yt-tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--dim);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: calc(11px * var(--text-scale));
+  cursor: pointer;
+  transition: all 0.2s;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.yt-tab:hover {
+  color: var(--text);
+  background: var(--panel-hover);
+}
+
+.yt-tab.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+  background: var(--tab-active);
+  text-shadow: var(--glow);
+}
+
 /* ── YT Search Bar ──────────────────────────────────────────── */
 .yt-search-wrap {
   display: flex;
@@ -4088,8 +4127,10 @@ body.light .filter-chip {
 
 .yt-view {
   position: relative;
+  flex: 1;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
   background: var(--bg);
 }
 
@@ -4113,20 +4154,20 @@ body.light .filter-chip {
   background: var(--accent);
 }
 
-/* ── YT Queue Overlay (Stable Full-View) ─────────────────────── */
+/* ── YT Queue Overlay (Full App Coverage) ─────────────────────── */
 .yt-queue-overlay {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%; 
-  background: rgba(6, 12, 24, 0.98);
-  backdrop-filter: blur(15px);
-  z-index: 1000;
+  background: rgba(6, 12, 24, 0.99); /* Slightly more opaque to hide player */
+  backdrop-filter: blur(20px);
+  z-index: 2000; /* Above everything including player */
   display: flex;
   flex-direction: column;
   transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s;
-  border-top: 1px solid var(--accent);
+  padding: 0 14px; /* Align with app gutters */
 }
 
 .yt-queue-overlay.hidden {
