@@ -3715,6 +3715,7 @@ function renderYtQueue() {
   container.innerHTML = '';
   queue.forEach((item, idx) => {
     const isActive = idx === sparkyYtState.queueIndex;
+    const isFav = isYtFav(item.id);
     const el = document.createElement('div');
     el.className = `yt-queue-item ${isActive ? 'active' : ''}`;
     el.innerHTML = `
@@ -3722,18 +3723,56 @@ function renderYtQueue() {
       <div class="yt-queue-item-info">
         <div class="yt-queue-item-title">${item.title}</div>
       </div>
-      ${isActive ? '<span class="material-symbols-outlined yt-queue-item-active-icon">equalizer</span>' : ''}
+      <div style="display:flex; align-items:center; gap:8px;">
+        <button class="yt-queue-item-fav${isFav ? ' active' : ''}" title="${isFav ? 'Remove from Hub' : 'Save to Hub'}">
+          <span class="material-symbols-outlined">${isFav ? 'favorite' : 'favorite_border'}</span>
+        </button>
+        ${isActive ? '<span class="material-symbols-outlined yt-queue-item-active-icon">equalizer</span>' : ''}
+      </div>
     `;
-    el.onclick = () => {
+    
+    // Play on body click
+    el.onclick = (e) => {
+      if (e.target.closest('.yt-queue-item-fav')) return;
       sparkyYtState.queueIndex = idx;
       playYtItem(item);
     };
+
+    // Fav toggle
+    const favBtn = el.querySelector('.yt-queue-item-fav');
+    if (favBtn) {
+      favBtn.onclick = (e) => {
+        e.stopPropagation();
+        if (isYtFav(item.id)) {
+          removeYtFav(item.id);
+          favBtn.classList.remove('active');
+          favBtn.innerHTML = '<span class="material-symbols-outlined">favorite_border</span>';
+        } else {
+          addYtFav(item);
+          favBtn.classList.add('active');
+          favBtn.innerHTML = '<span class="material-symbols-outlined">favorite</span>';
+        }
+        // Update NP heart if this is the currently playing item
+        if (sparkyYtState.currentItemId === item.id) syncYtNpFav();
+        if (sparkyYtState.currentSubMode === 'hub') renderYtHub();
+      };
+    }
+
     container.appendChild(el);
     
     if (isActive) {
       setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 100);
     }
   });
+}
+
+function syncYtNpFav() {
+  const btn = document.getElementById('btnYtNpFav');
+  if (!btn || !sparkyYtState.currentItemId) return;
+  const isFav = isYtFav(sparkyYtState.currentItemId);
+  btn.classList.toggle('active', isFav);
+  btn.title = isFav ? 'Remove from Hub' : 'Save to Hub';
+  btn.innerHTML = `<span class="material-symbols-outlined">${isFav ? 'favorite' : 'favorite_border'}</span>`;
 }
 
 // ── 3.2: Lazy Player Loading ─────────────────────────────────────
@@ -3753,6 +3792,30 @@ function playYtItem(item) {
   const channelEl = document.getElementById('ytNpChannel');
   if (titleEl)   titleEl.textContent   = item.title   || 'Loading...';
   if (channelEl) channelEl.textContent = item.type === 'playlist' ? '▶ Playlist' : '▶ Video';
+
+  // Update/Inject NP heart button
+  let btnFav = document.getElementById('btnYtNpFav');
+  if (!btnFav) {
+    const container = document.querySelector('.yt-np-meta .yt-np-meta + div') || document.querySelector('.yt-np-meta > div > div:last-child');
+    if (container) {
+      btnFav = document.createElement('button');
+      btnFav.id = 'btnYtNpFav';
+      btnFav.className = 'btn-yt-queue';
+      container.insertBefore(btnFav, container.firstChild);
+      btnFav.onclick = () => {
+        const current = sparkyYtState.currentQueue[sparkyYtState.queueIndex] || item;
+        if (isYtFav(current.id)) {
+          removeYtFav(current.id);
+        } else {
+          addYtFav(current);
+        }
+        syncYtNpFav();
+        renderYtQueue();
+        if (sparkyYtState.currentSubMode === 'hub') renderYtHub();
+      };
+    }
+  }
+  syncYtNpFav();
 
   if (ytIframeApiReady && sparkyYtState.playerInstance) {
     // Player exists — load directly
