@@ -3,8 +3,8 @@
   "short_name": "SPARKY",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0a0c0f",
-  "theme_color": "#00e5ff",
+  "background_color": "#0a0c12",
+  "theme_color": "#0a0c12",
   "icons": [
     {
       "src": "icon-512.png",

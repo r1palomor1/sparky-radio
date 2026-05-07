@@ -4301,6 +4301,36 @@ body.light .filter-chip {
   background: var(--subdim);
 }
 
+/* YT Granular Favoriting Styles */
+.yt-queue-item-fav {
+  background: none !important;
+  border: none !important;
+  color: var(--dim) !important;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 10;
+  opacity: 0.8;
+}
+.yt-queue-item-fav:hover {
+  color: var(--accent) !important;
+  transform: scale(1.2);
+  opacity: 1;
+}
+.yt-queue-item-fav.active {
+  color: #ff5252 !important; /* Premium Red */
+  text-shadow: 0 0 12px rgba(255, 82, 82, 0.4);
+  opacity: 1;
+}
+.yt-queue-item-fav .material-symbols-outlined { font-size: 19px !important; }
+
+#btnYtNpFav.active {
+  color: #ff5252 !important;
+  text-shadow: 0 0 12px rgba(255, 82, 82, 0.4);
+}
+
 .yt-queue-item-info {
   flex: 1;
   overflow: hidden;

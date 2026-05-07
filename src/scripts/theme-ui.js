@@ -82,8 +82,9 @@
 
         // Update system theme color (status bar) for mobile devices
         const metaThemeColor = document.getElementById('metaThemeColor');
-        if (metaThemeColor && themeColors['--bg']) {
-            metaThemeColor.setAttribute('content', themeColors['--bg']);
+        const statusBarColor = themeColors['--panel'] || themeColors['--bg'];
+        if (metaThemeColor && statusBarColor) {
+            metaThemeColor.setAttribute('content', statusBarColor);
         }
 
         if (isConfirmation) {

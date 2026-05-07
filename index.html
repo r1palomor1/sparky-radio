@@ -14,6 +14,16 @@
   <link rel="stylesheet" href="./src/styles/theme-engine.css">
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
   <meta name="theme-color" id="metaThemeColor" content="#061021">
+  <script>
+    (function() {
+      const mode = localStorage.getItem('sparky_luminance_mode') || 'dark';
+      const theme = localStorage.getItem('sparky_theme_name') || 'rabbit';
+      let bgColor = (mode === 'light' ? '#fdfbf7' : '#0a0c12');
+      if (theme.includes('rabbit')) bgColor = (mode === 'light' ? '#fdfbf7' : '#0a0c12');
+      else if (theme.includes('sparky')) bgColor = (mode === 'light' ? '#f0faff' : '#0a0c12');
+      document.getElementById('metaThemeColor').setAttribute('content', bgColor);
+    })();
+  </script>
   <link rel="manifest" href="/manifest.json">
 </head>
 

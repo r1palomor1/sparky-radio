@@ -3259,6 +3259,7 @@ function switchYtTab(mode) {
   
   if (isHub) {
     renderYtHub();
+    if (sparkyYtState.currentItemId) highlightYtCard(sparkyYtState.currentItemId);
   } else {
     const cache = (mode === 'playlists') ? sparkyYtState.playlistCache : sparkyYtState.videoCache;
     
