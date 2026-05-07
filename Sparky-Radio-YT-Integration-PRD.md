@@ -147,3 +147,9 @@ The UI components will leverage DOM injection templates similar to Sparky's exis
 * ✅ **Task 4.2: Favorites Logic:** Switched to Trashbin icon workflow for Hub management. Implemented `addYtFav`/`removeYtFav` with custom `sparkyConfirm` modal for deletions.
 * ✅ **Task 4.3: Video Hub Render:** Implemented responsive Hub rendering that persists across sessions and supports direct playback from saved items.
 * ✅ **Review Gate 4 PASSED:** Playlists sync perfectly with footer controls. Favorites persist and delete safely with custom confirmation. Project is feature-complete.
+
+## 9. Pending Investigations & Known Issues
+- **Direct ID Fetching (Backend):** Specific playlist IDs (e.g., `PLuoCQNABdBNv1LT8jW3WM0t3uFZX9zU37`) occasionally return "No playlist found" even when correctly parsed by the frontend.
+    - **Status:** Logged for future backend proxy review (youtubei.js implementation).
+    - **Note:** The frontend parser is confirmed working (correctly extracts and displays the ID in the search field).
+
