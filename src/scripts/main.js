@@ -3331,11 +3331,11 @@ function renderYtHub() {
         <div class="yt-card-channel">${item.channel || ''}</div>
       </div>
       <div class="yt-card-actions">
-        <button class="yt-card-hub-queue" data-id="${item.id}" title="${sparkyYtState.temporaryQueue.some(v => v.id === item.id) ? 'Remove from Queue' : 'Add to Queue'}">
-          <span class="material-symbols-outlined">${sparkyYtState.temporaryQueue.some(v => v.id === item.id) ? 'remove_from_queue' : 'add_to_queue'}</span>
-        </button>
         <button class="yt-card-fav yt-card-delete active" data-id="${item.id}" title="Delete from Hub">
           <span class="material-symbols-outlined">delete</span>
+        </button>
+        <button class="yt-card-add yt-card-hub-queue" data-id="${item.id}" title="${sparkyYtState.temporaryQueue.some(v => v.id === item.id) ? 'Remove from Queue' : 'Add to Queue'}">
+          <span class="material-symbols-outlined">${sparkyYtState.temporaryQueue.some(v => v.id === item.id) ? 'remove_from_queue' : 'add_to_queue'}</span>
         </button>
       </div>
     </div>
