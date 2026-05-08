@@ -135,8 +135,8 @@
               <button id="btnYtAudioOnly" class="btn-yt-queue" title="Audio Only Mode">
                 <span class="material-symbols-outlined">headphones</span>
               </button>
-              <button id="btnYtQueue" class="btn-yt-queue hidden" title="View Queue">
-                <span class="material-symbols-outlined">queue_music</span>
+              <button id="btnYtQueue" class="btn-yt-queue hidden" title="View Temporary Queue">
+                <span class="material-symbols-outlined">music_history</span>
               </button>
             </div>
           </div>
@@ -232,10 +232,6 @@
           <span class="material-symbols-outlined">playlist_play</span>
           Playlists
         </button>
-        <button class="yt-tab" id="ytTabQueue" data-mode="queue">
-          <span class="material-symbols-outlined">queue_music</span>
-          Queue <span class="tab-badge" id="ytQueueBadge">0</span>
-        </button>
         <button class="yt-tab" id="ytTabHub" data-mode="hub">
           <span class="material-symbols-outlined">favorite</span>
           Favs Hub
@@ -261,9 +257,6 @@
       </div>
 
       <div class="yt-hub hidden" id="ytHub"></div>
-
-      <!-- User Queue Container -->
-      <div class="yt-results hidden" id="ytQueue"></div>
 
       <!-- YT Queue Overlay (Moved inside YT view for structural stability) -->
       <div id="ytQueueOverlay" class="yt-queue-overlay hidden">

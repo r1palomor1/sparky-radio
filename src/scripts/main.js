@@ -3257,23 +3257,17 @@ function switchYtTab(mode) {
   const searchWrap = document.getElementById('ytSearchWrap');
   const results = document.getElementById('ytResults');
   const hub = document.getElementById('ytHub');
-  const queueTab = document.getElementById('ytQueue');
   
   const isHub = mode === 'hub';
-  const isQueue = mode === 'queue';
 
-  if (searchWrap) searchWrap.classList.toggle('hidden', isHub || isQueue);
-  if (results) results.classList.toggle('hidden', isHub || isQueue);
+  if (searchWrap) searchWrap.classList.toggle('hidden', isHub);
+  if (results) results.classList.toggle('hidden', isHub);
   if (hub) hub.classList.toggle('hidden', !isHub);
-  if (queueTab) queueTab.classList.toggle('hidden', !isQueue);
 
   const input = document.getElementById('ytSearchInput');
 
   if (isHub) {
     renderYtHub();
-    if (sparkyYtState.currentItemId) highlightYtCard(sparkyYtState.currentItemId);
-  } else if (isQueue) {
-    renderYtQueueTab();
     if (sparkyYtState.currentItemId) highlightYtCard(sparkyYtState.currentItemId);
   } else {
     const cache = (mode === 'playlists') ? sparkyYtState.playlistCache : sparkyYtState.videoCache;
@@ -3399,7 +3393,7 @@ document.getElementById('btnModeToggle')?.addEventListener('click', () => {
   toggleYtMode(!sparkyYtState.isModeActive);
 });
 
-['ytTabVideos', 'ytTabPlaylists', 'ytTabQueue', 'ytTabHub'].forEach(id => {
+['ytTabVideos', 'ytTabPlaylists', 'ytTabHub'].forEach(id => {
   document.getElementById(id)?.addEventListener('click', e => {
     switchYtTab(e.currentTarget.dataset.mode);
   });
@@ -3520,7 +3514,7 @@ function renderYtVideoResults(videos) {
           <span class="material-symbols-outlined">favorite</span>
         </button>
         <button class="yt-card-add" data-id="${v.id}" title="Add to Temporary Queue">
-          <span class="material-symbols-outlined">add</span>
+          <span class="material-symbols-outlined">add_to_queue</span>
         </button>
       </div>
     </div>
@@ -3733,12 +3727,12 @@ function addToYtTempQueue(item, sourceBtn = null) {
     const icon = btn.querySelector('.material-symbols-outlined');
     if (icon) {
       const oldIcon = icon.textContent;
-      icon.textContent = 'check';
+      icon.textContent = 'playlist_add_check';
       btn.classList.add('active');
       setTimeout(() => {
         icon.textContent = oldIcon;
         btn.classList.remove('active');
-      }, 1000);
+      }, 1500);
     }
   }
 }
@@ -3756,7 +3750,6 @@ function removeFromYtTempQueue(id) {
   }
   
   renderYtQueue();
-  if (sparkyYtState.currentSubMode === 'queue') renderYtQueueTab();
 }
 
 function clearYtTempQueue() {
@@ -3765,12 +3758,14 @@ function clearYtTempQueue() {
     saveYtTempQueue([]);
     syncYtQueueBtn();
     syncYtQueueBadge();
+    
+    // Reset playback if we were playing the temp queue
     if (sparkyYtState.activePlaylistId === 'temp') {
       sparkyYtState.currentQueue = [];
       sparkyYtState.originalQueue = [];
     }
+    
     renderYtQueue();
-    if (sparkyYtState.currentSubMode === 'queue') renderYtQueueTab();
     sparkyLog('[YT] Temporary queue cleared');
   }, "CLEAR QUEUE");
 }
@@ -3778,17 +3773,14 @@ function clearYtTempQueue() {
 function syncYtQueueBtn() {
   const btn = document.getElementById('btnYtQueue');
   if (!btn) return;
+  // Show if user has temporary items OR is currently playing a playlist
   const hasQueue = sparkyYtState.temporaryQueue.length > 0 || sparkyYtState.activePlaylistId !== null;
   btn.classList.toggle('hidden', !hasQueue);
 }
 
 function syncYtQueueBadge() {
-  const badge = document.getElementById('ytQueueBadge');
-  if (badge) {
-    const count = sparkyYtState.temporaryQueue.length;
-    badge.textContent = count;
-    badge.style.display = count > 0 ? 'inline-block' : 'none';
-  }
+  // Obsolete: Tab badge removed in favor of dynamic NP icon
+  return;
 }
 
 function highlightYtCard(id) {
@@ -3829,6 +3821,15 @@ function openYtQueue() {
   const overlay = document.getElementById('ytQueueOverlay');
   if (overlay) {
     overlay.classList.remove('hidden');
+    
+    // IF opened via NP Music History button and no active playlist, 
+    // prioritize showing the user's manual queue.
+    if (sparkyYtState.activePlaylistId === null && sparkyYtState.temporaryQueue.length > 0) {
+      sparkyYtState.activePlaylistId = 'temp';
+      sparkyYtState.currentQueue = [...sparkyYtState.temporaryQueue];
+      sparkyYtState.originalQueue = [...sparkyYtState.temporaryQueue];
+    }
+    
     renderYtQueue();
   }
 }
@@ -3939,7 +3940,7 @@ function renderYtQueue() {
         </button>
         ${isTempQueue ? `
           <button class="yt-queue-item-remove" title="Remove from Queue">
-            <span class="material-symbols-outlined">close</span>
+            <span class="material-symbols-outlined">remove_from_queue</span>
           </button>
         ` : ''}
         ${isActive ? '<span class="material-symbols-outlined yt-queue-item-active-icon">equalizer</span>' : ''}
