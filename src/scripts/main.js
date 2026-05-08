@@ -1665,11 +1665,11 @@ function renderFavs() {
       const stats = loadUsage();
       const stName = stats[rid] ? stats[rid].name : 'this station';
 
-      sparkyConfirm(`Remove <strong>[${stName}]</strong> from your Recently Listened?`, () => {
+      sparkyConfirm(`<strong>[${stName}]</strong> from your Recently Listened?`, () => {
         if (stats[rid]) stats[rid].count = 0;
         saveUsage(stats);
         renderFavs();
-      }, "PURGE HISTORY");
+      }, "REMOVE FROM HISTORY");
     } else if (sid) {
       // STANDARD VAULT REMOVAL
       const fv = loadFavs();
@@ -1681,15 +1681,6 @@ function renderFavs() {
         }, "DELETE FROM FAVORITES");
       }
     }
-  });
-
-  pl.querySelectorAll('[data-rmfav]').forEach(btn => btn.onclick = (e) => {
-    e.stopPropagation();
-    const sid = btn.dataset.rmfav;
-    const m = loadFavs();
-    const f = m.find(x => x.sparkyId === sid);
-    if (!f) return;
-    sparkyConfirm(`Remove [${f.name}]?`, () => { removeFavBySparkyId(sid); renderFavs(); }, "DELETE FROM FAVORITES");
   });
 
   pl.querySelectorAll('[data-edit]').forEach(btn => btn.onclick = (e) => {
@@ -2047,11 +2038,11 @@ function renderDiscoveryFavs(pl) {
     if (rid && (discoveryCategoryFilter === 'RECENT' || btn.closest('.pl-category-group[data-cat="RECENT"]'))) {
       const stats = loadUsage();
       const stName = stats[rid] ? stats[rid].name : 'this station';
-      sparkyConfirm(`Remove <strong>[${stName}]</strong> from your Recently Listened?`, () => {
+      sparkyConfirm(`<strong>[${stName}]</strong> from your Recently Listened?`, () => {
         if (stats[rid]) stats[rid].count = 0; // Standard reset for all Recent items
         saveUsage(stats);
         renderFavs();
-      }, "PURGE HISTORY");
+      }, "REMOVE FROM HISTORY");
     } else if (sid) {
       const fv = loadFavs();
       const st = fv.find(f => f.sparkyId === sid);
@@ -2105,11 +2096,11 @@ function bindStationActions(pl, list) {
     if (rid && (discoveryCategoryFilter === 'RECENT' || btn.closest('.pl-category-group[data-cat="RECENT"]'))) {
       const stats = loadUsage();
       const stName = stats[rid] ? stats[rid].name : 'this station';
-      sparkyConfirm(`Remove <strong>[${stName}]</strong> from your Recently Listened?`, () => {
+      sparkyConfirm(`<strong>[${stName}]</strong> from your Recently Listened?`, () => {
         if (stats[rid]) stats[rid].count = 0;
         saveUsage(stats);
         renderFavs();
-      }, "PURGE HISTORY");
+      }, "REMOVE FROM HISTORY");
     } else if (sid) {
       const m = loadFavs();
       const f = m.find(x => x.sparkyId === sid);
@@ -3350,7 +3341,7 @@ function renderYtHub() {
       if (!item) return;
 
       if (sparkyYtState.temporaryQueue.some(v => v.id === id)) {
-        removeFromYtTempQueue(id);
+        removeFromYtTempQueue(id, true);
       } else {
         addToYtTempQueue(item);
       }
@@ -3732,7 +3723,7 @@ function attachYtCardListeners(container) {
       };
       
       if (sparkyYtState.temporaryQueue.some(v => v.id === id)) {
-        removeFromYtTempQueue(id);
+        removeFromYtTempQueue(id, true);
       } else {
         addToYtTempQueue(item, btn);
       }
@@ -3770,20 +3761,21 @@ function addToYtTempQueue(item, sourceBtn = null) {
   }
 }
 
-function removeFromYtTempQueue(id) {
-  sparkyConfirm("Remove this video from your session queue?", () => {
+function removeFromYtTempQueue(id, silent = false) {
+  const doRemove = () => {
     sparkyYtState.temporaryQueue = sparkyYtState.temporaryQueue.filter(v => v.id !== id);
     saveYtTempQueue(sparkyYtState.temporaryQueue);
-    syncYtQueueBtn();
-    syncYtQueueBadge();
     
-    // If the temp queue was the active playing queue, update it
+    // Instant Sync: If we are currently viewing/playing the 'temp' queue, update it immediately
     if (sparkyYtState.activePlaylistId === 'temp') {
       sparkyYtState.currentQueue = [...sparkyYtState.temporaryQueue];
       sparkyYtState.originalQueue = [...sparkyYtState.temporaryQueue];
+      renderYtQueue();
     }
     
-    renderYtQueue();
+    syncYtQueueBtn();
+    syncYtQueueBadge();
+    
     if (sparkyYtState.currentSubMode === 'hub') renderYtHub();
     
     // Update any visible toggle buttons in the main view
@@ -3794,7 +3786,13 @@ function removeFromYtTempQueue(id) {
     });
 
     sparkyLog(`[YT] Removed ${id} from temp queue`);
-  }, "REMOVE FROM QUEUE");
+  };
+
+  if (silent) {
+    doRemove();
+  } else {
+    sparkyConfirm("Remove this video from your session queue?", doRemove, "REMOVE FROM QUEUE");
+  }
 }
 
 function clearYtTempQueue() {
@@ -4023,7 +4021,8 @@ function renderYtQueue() {
     if (favBtn) {
       favBtn.onclick = (e) => {
         e.stopPropagation();
-        if (isYtFav(item.id)) {
+        const currentlyFav = isYtFav(item.id);
+        if (currentlyFav) {
           removeYtFav(item.id);
           favBtn.classList.remove('active');
           favBtn.innerHTML = '<span class="material-symbols-outlined">favorite_border</span>';
@@ -4034,6 +4033,8 @@ function renderYtQueue() {
           favBtn.innerHTML = '<span class="material-symbols-outlined">favorite</span>';
           favBtn.title = 'Remove from Hub';
         }
+        
+        // Instant parity with main NP area and Hub
         if (sparkyYtState.currentItemId === item.id) syncYtNpFav();
         if (sparkyYtState.currentSubMode === 'hub') renderYtHub();
       };
