@@ -3330,11 +3330,33 @@ function renderYtHub() {
         <div class="yt-card-title">${item.title}</div>
         <div class="yt-card-channel">${item.channel || ''}</div>
       </div>
-      <button class="yt-card-fav yt-card-delete active" data-id="${item.id}" title="Remove from Hub">
-        <span class="material-symbols-outlined">delete</span>
-      </button>
+      <div class="yt-card-actions">
+        <button class="yt-card-hub-queue" data-id="${item.id}" title="${sparkyYtState.temporaryQueue.some(v => v.id === item.id) ? 'Remove from Queue' : 'Add to Queue'}">
+          <span class="material-symbols-outlined">${sparkyYtState.temporaryQueue.some(v => v.id === item.id) ? 'remove_from_queue' : 'add_to_queue'}</span>
+        </button>
+        <button class="yt-card-fav yt-card-delete active" data-id="${item.id}" title="Delete from Hub">
+          <span class="material-symbols-outlined">delete</span>
+        </button>
+      </div>
     </div>
   `).join('');
+
+  // Queue toggle for Hub cards
+  hub.querySelectorAll('.yt-card-hub-queue').forEach(btn => {
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      const id = btn.dataset.id;
+      const item = favs.find(f => f.id === id);
+      if (!item) return;
+
+      if (sparkyYtState.temporaryQueue.some(v => v.id === id)) {
+        removeFromYtTempQueue(id);
+      } else {
+        addToYtTempQueue(item);
+      }
+      renderYtHub();
+    };
+  });
 
   attachYtCardListeners(hub);
 }
@@ -3746,18 +3768,22 @@ function addToYtTempQueue(item, sourceBtn = null) {
 }
 
 function removeFromYtTempQueue(id) {
-  sparkyYtState.temporaryQueue = sparkyYtState.temporaryQueue.filter(v => v.id !== id);
-  saveYtTempQueue(sparkyYtState.temporaryQueue);
-  syncYtQueueBtn();
-  syncYtQueueBadge();
-  
-  // If the temp queue was the active playing queue, update it
-  if (sparkyYtState.activePlaylistId === 'temp') {
-    sparkyYtState.currentQueue = [...sparkyYtState.temporaryQueue];
-    sparkyYtState.originalQueue = [...sparkyYtState.temporaryQueue];
-  }
-  
-  renderYtQueue();
+  sparkyConfirm("Remove this video from your session queue?", () => {
+    sparkyYtState.temporaryQueue = sparkyYtState.temporaryQueue.filter(v => v.id !== id);
+    saveYtTempQueue(sparkyYtState.temporaryQueue);
+    syncYtQueueBtn();
+    syncYtQueueBadge();
+    
+    // If the temp queue was the active playing queue, update it
+    if (sparkyYtState.activePlaylistId === 'temp') {
+      sparkyYtState.currentQueue = [...sparkyYtState.temporaryQueue];
+      sparkyYtState.originalQueue = [...sparkyYtState.temporaryQueue];
+    }
+    
+    renderYtQueue();
+    if (sparkyYtState.currentSubMode === 'hub') renderYtHub();
+    sparkyLog(`[YT] Removed ${id} from temp queue`);
+  }, "REMOVE FROM QUEUE");
 }
 
 function clearYtTempQueue() {
