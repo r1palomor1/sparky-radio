@@ -3751,6 +3751,14 @@ function addToYtTempQueue(item, sourceBtn = null) {
   
   sparkyYtState.temporaryQueue.push(item);
   saveYtTempQueue(sparkyYtState.temporaryQueue);
+  
+  // Instant Sync: If we are currently viewing/playing the 'temp' queue, update it immediately
+  if (sparkyYtState.activePlaylistId === 'temp') {
+    sparkyYtState.currentQueue = [...sparkyYtState.temporaryQueue];
+    sparkyYtState.originalQueue = [...sparkyYtState.temporaryQueue];
+    renderYtQueue();
+  }
+  
   syncYtQueueBtn();
   syncYtQueueBadge();
   
@@ -3878,9 +3886,8 @@ function toggleYtQueue() {
   } else {
     overlay.classList.remove('hidden');
     
-    // IF opened via NP Music History button and no active playlist, 
-    // prioritize showing the user's manual queue.
-    if (sparkyYtState.activePlaylistId === null && sparkyYtState.temporaryQueue.length > 0) {
+    // Force sync if active mode is 'temp'
+    if (sparkyYtState.activePlaylistId === 'temp' || (sparkyYtState.activePlaylistId === null && sparkyYtState.temporaryQueue.length > 0)) {
       sparkyYtState.activePlaylistId = 'temp';
       sparkyYtState.currentQueue = [...sparkyYtState.temporaryQueue];
       sparkyYtState.originalQueue = [...sparkyYtState.temporaryQueue];
@@ -4020,10 +4027,12 @@ function renderYtQueue() {
           removeYtFav(item.id);
           favBtn.classList.remove('active');
           favBtn.innerHTML = '<span class="material-symbols-outlined">favorite_border</span>';
+          favBtn.title = 'Save to Hub';
         } else {
           addYtFav(item);
           favBtn.classList.add('active');
           favBtn.innerHTML = '<span class="material-symbols-outlined">favorite</span>';
+          favBtn.title = 'Remove from Hub';
         }
         if (sparkyYtState.currentItemId === item.id) syncYtNpFav();
         if (sparkyYtState.currentSubMode === 'hub') renderYtHub();
