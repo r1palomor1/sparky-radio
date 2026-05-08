@@ -1235,7 +1235,11 @@ function playStationObj(st) {
   if (hls) { hls.destroy(); hls = null; }
   audioEl.pause();
   const url = st.url_resolved || st.url;
-  audioEl.volume = document.getElementById('volSlider').value / 100;
+  const vol = document.getElementById('volSlider').value;
+  audioEl.volume = vol / 100;
+  if (sparkyYtState.playerInstance && typeof sparkyYtState.playerInstance.setVolume === 'function') {
+    sparkyYtState.playerInstance.setVolume(vol);
+  }
   setStatus('buffering', 'Buffering');
   updateNowPlaying(st);
   updateMediaSession(st);
@@ -2828,6 +2832,9 @@ document.addEventListener('DOMContentLoaded', () => {
     volSlider.oninput = (e) => {
       const v = e.target.value;
       audioEl.volume = v / 100;
+      if (sparkyYtState.playerInstance && typeof sparkyYtState.playerInstance.setVolume === 'function') {
+        sparkyYtState.playerInstance.setVolume(v);
+      }
       localStorage.setItem('sparky_volume', v);
       updateVolFill(e.target);
       updateVolIcon(v);
@@ -3173,7 +3180,8 @@ const sparkyYtState = {
   activePlaylistId: null,
   currentItemId: null,  // Tracks last played item — used to restore highlight after tab switch
   isAudioOnly: false,
-  isShuffleActive: false
+  isShuffleActive: false,
+  tempQueuePlayedIds: new Set() // Track played IDs for pulsing logic
 };
 
 const YT_FAVS_KEY = 'sparky_yt_favorites';
@@ -3730,7 +3738,7 @@ function addToYtTempQueue(item, sourceBtn = null) {
       icon.textContent = 'playlist_add_check';
       btn.classList.add('active');
       setTimeout(() => {
-        icon.textContent = oldIcon;
+        icon.textContent = 'add_to_queue'; // Explicitly set back to add_to_queue
         btn.classList.remove('active');
       }, 1500);
     }
@@ -3773,9 +3781,22 @@ function clearYtTempQueue() {
 function syncYtQueueBtn() {
   const btn = document.getElementById('btnYtQueue');
   if (!btn) return;
-  // Show if user has temporary items OR is currently playing a playlist
-  const hasQueue = sparkyYtState.temporaryQueue.length > 0 || sparkyYtState.activePlaylistId !== null;
+  
+  const hasTempItems = sparkyYtState.temporaryQueue.length > 0;
+  const isPlayingPlaylist = sparkyYtState.activePlaylistId !== null;
+  const hasQueue = hasTempItems || isPlayingPlaylist;
+  
   btn.classList.toggle('hidden', !hasQueue);
+
+  // Pulse logic: if we have items in temp queue NOT played yet, pulse it (only in video tab context)
+  if (hasTempItems) {
+    const unplayed = sparkyYtState.temporaryQueue.some(v => !sparkyYtState.tempQueuePlayedIds.has(v.id));
+    // Only pulse if we are in Video mode (isModeActive) but NOT looking at the overlay
+    const isOverlayOpen = !document.getElementById('ytQueueOverlay').classList.contains('hidden');
+    btn.classList.toggle('pulse', unplayed && sparkyYtState.isModeActive && !isOverlayOpen);
+  } else {
+    btn.classList.remove('pulse');
+  }
 }
 
 function syncYtQueueBadge() {
@@ -3817,9 +3838,15 @@ function highlightYtCard(id) {
   }
 }
 
-function openYtQueue() {
+function toggleYtQueue() {
   const overlay = document.getElementById('ytQueueOverlay');
-  if (overlay) {
+  if (!overlay) return;
+
+  const isOpen = !overlay.classList.contains('hidden');
+  if (isOpen) {
+    overlay.classList.add('hidden');
+    syncYtQueueBtn(); // Update pulse logic when closing
+  } else {
     overlay.classList.remove('hidden');
     
     // IF opened via NP Music History button and no active playlist, 
@@ -3831,6 +3858,7 @@ function openYtQueue() {
     }
     
     renderYtQueue();
+    syncYtQueueBtn(); // Update pulse logic when opening
   }
 }
 
@@ -4005,6 +4033,13 @@ function playYtItem(item) {
   debugLayout('BEFORE-PLAY');
 
   sparkyYtState.currentItemId = item.id; // Persist so highlight survives tab switches
+  
+  // Track played status for temp queue pulsing logic
+  if (sparkyYtState.temporaryQueue.some(v => v.id === item.id)) {
+    sparkyYtState.tempQueuePlayedIds.add(item.id);
+    syncYtQueueBtn();
+  }
+
   pauseRadioForYt();
   highlightYtCard(item.id);
 
@@ -4194,8 +4229,7 @@ btnYtSearchClear?.addEventListener('click', () => {
   }
 });
 
-document.getElementById('btnYtQueue')?.addEventListener('click', openYtQueue);
-document.getElementById('btnYtQueueClose')?.addEventListener('click', closeYtQueue);
+document.getElementById('btnYtQueue')?.addEventListener('click', toggleYtQueue);
 document.getElementById('btnYtQueueClear')?.addEventListener('click', clearYtTempQueue);
 document.getElementById('btnYtAudioOnly')?.addEventListener('click', toggleYtAudioOnly);
 document.getElementById('btnYtShuffle')?.addEventListener('click', toggleYtShuffle);

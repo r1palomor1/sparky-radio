@@ -124,12 +124,12 @@ body.light {
 
 .app {
   width: 100%;
-  max-width: 420px;
+  max-width: 450px;
+  margin: 0 auto;
   transition: all 0.3s ease;
   height: 95dvh;
   max-height: 900px;
   background: #05070a;
-  /* Solid True Black for uniform vertical borders */
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6);
   border-radius: 12px;
@@ -138,8 +138,7 @@ body.light {
   display: flex;
   flex-direction: column;
   padding: 0 14px;
-  /* The unified vertical side gutters */
-  transition: background 0.3s, border-color 0.3s;
+  touch-action: manipulation;
 }
 
 @media (max-width: 480px) {
@@ -4114,6 +4113,7 @@ body.light .filter-chip {
   border-color: var(--accent);
   box-shadow: var(--glow);
   color: var(--accent);
+  filter: brightness(0.7);
 }
 
 .yt-np-meta {
@@ -4148,12 +4148,24 @@ body.light .filter-chip {
   transition: all 0.2s;
   box-shadow: 0 0 10px rgba(0,0,0,0.3);
 }
-.btn-yt-queue:hover {
-  background: var(--pl-hover);
+.btn-yt-queue.active {
+  filter: brightness(0.7);
   border-color: var(--accent);
   box-shadow: var(--glow);
-  transform: scale(1.05);
 }
+
+.btn-yt-queue.pulse {
+  animation: queueReminder 2s infinite ease-in-out;
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+@keyframes queueReminder {
+  0% { transform: scale(1); box-shadow: 0 0 0 rgba(0, 255, 136, 0); }
+  50% { transform: scale(1.1); box-shadow: 0 0 15px rgba(0, 255, 136, 0.4); }
+  100% { transform: scale(1); box-shadow: 0 0 0 rgba(0, 255, 136, 0); }
+}
+
 .btn-yt-queue .material-symbols-outlined { font-size: 20px; }
 
 /* Duplicate .yt-view removed — canonical definition is above in Phase 2 section */
@@ -4223,9 +4235,9 @@ body.light .filter-chip {
 .yt-queue-controls {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-left: 10px;
-  padding-left: 10px;
+  gap: 16px; /* Increased spacing */
+  margin-left: 14px;
+  padding-left: 14px;
   border-left: 1px solid var(--border);
 }
 
