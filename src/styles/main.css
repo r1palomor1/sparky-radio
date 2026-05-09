@@ -4498,22 +4498,35 @@ body.light .filter-chip {
 /* --- CINEMA WAKE ICON --- */
 .cinema-wake-zone {
   display: none;
-  background: transparent;
-  color: var(--dim);
-  border: none;
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  background: rgba(0, 0, 0, 0.6);
+  color: var(--accent);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  z-index: 1000;
+  cursor: pointer;
   align-items: center;
   justify-content: center;
+  backdrop-filter: blur(4px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  transition: all 0.2s ease;
 }
 
 .cinema-wake-zone:hover {
+  background: rgba(0, 0, 0, 0.8);
+  transform: scale(1.1);
   color: var(--accent2);
+}
+
+.cinema-wake-zone .material-symbols-outlined {
+  font-size: 24px;
 }
 
 .app.immersive-cinema-mode .cinema-wake-zone.is-cinema {
   display: flex !important;
-}
-
-.app.immersive-cinema-mode #btnModeToggle {
-  display: none !important;
 }
 
