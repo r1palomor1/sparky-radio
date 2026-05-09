@@ -3185,6 +3185,7 @@ const CINEMA_TIMEOUT_MS = 8000;
 
 function wakeFromCinemaMode() {
   document.querySelector('.app').classList.remove('immersive-cinema-mode');
+  if (document.getElementById('cinemaWakeZone')) document.getElementById('cinemaWakeZone').classList.remove('is-cinema');
   resetCinemaTimer();
 }
 
@@ -3202,6 +3203,7 @@ function resetCinemaTimer() {
       cinemaModeTimer = setTimeout(() => {
           lastCinemaTriggerTime = Date.now();
           app.classList.add('immersive-cinema-mode');
+          if (document.getElementById('cinemaWakeZone')) document.getElementById('cinemaWakeZone').classList.add('is-cinema');
       }, CINEMA_TIMEOUT_MS);
   }
 }
@@ -3213,12 +3215,18 @@ function toggleCinemaMode() {
   } else {
     lastCinemaTriggerTime = Date.now();
     app.classList.add('immersive-cinema-mode');
+    if (document.getElementById('cinemaWakeZone')) document.getElementById('cinemaWakeZone').classList.add('is-cinema');
     clearTimeout(cinemaModeTimer); // Disable auto-timer when manually forcing it
   }
 }
 
 ['click'].forEach(evt => {
   document.addEventListener(evt, (e) => {
+    // Wake Zone Explicit Tap
+    if (e.target.closest('#cinemaWakeZone')) {
+      return wakeFromCinemaMode();
+    }
+
     if (e.target.closest('#btnYtCinemaToggle') || e.target.closest('.youtube-iframe-container')) return;
     const app = document.querySelector('.app');
     
