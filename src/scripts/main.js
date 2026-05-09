@@ -3184,15 +3184,11 @@ let cinemaModeTimer = null;
 const CINEMA_TIMEOUT_MS = 8000;
 
 function wakeFromCinemaMode() {
-  console.log('[CINEMA DEBUG] 🔴 wakeFromCinemaMode called!');
-  console.trace();
   document.querySelector('.app').classList.remove('immersive-cinema-mode');
   resetCinemaTimer();
 }
 
 function resetCinemaTimer() {
-  console.log('[CINEMA DEBUG] ⏳ resetCinemaTimer called!');
-  console.trace();
   clearTimeout(cinemaModeTimer);
   if (!sparkyYtState.isModeActive) return;
   if (!sparkyYtState.playerInstance) return;
@@ -3204,29 +3200,30 @@ function resetCinemaTimer() {
                 
   if (state === YT.PlayerState.PLAYING && sparkyYtState.currentSubMode === 'videos') {
       cinemaModeTimer = setTimeout(() => {
-          console.log('[CINEMA DEBUG] 🟢 Timer Triggered: Adding class!');
+          lastCinemaTriggerTime = Date.now();
           app.classList.add('immersive-cinema-mode');
       }, CINEMA_TIMEOUT_MS);
   }
 }
 
 function toggleCinemaMode() {
-  console.log('[CINEMA DEBUG] 🟢 toggleCinemaMode called!');
-  console.trace();
   const app = document.querySelector('.app');
   if (app.classList.contains('immersive-cinema-mode')) {
     wakeFromCinemaMode();
   } else {
+    lastCinemaTriggerTime = Date.now();
     app.classList.add('immersive-cinema-mode');
     clearTimeout(cinemaModeTimer); // Disable auto-timer when manually forcing it
   }
 }
 
-['touchstart', 'click'].forEach(evt => {
+['click'].forEach(evt => {
   document.addEventListener(evt, (e) => {
-    if (e.target.closest('#btnYtCinemaToggle')) return; // Ignore the toggle button itself to prevent double-firing
+    if (e.target.closest('#btnYtCinemaToggle') || e.target.closest('.youtube-iframe-container')) return;
     const app = document.querySelector('.app');
-    if (app.classList.contains('immersive-cinema-mode')) {
+    
+    // Only wake up if the user explicitly clicked the background UI (like the footer)
+    if (app.classList.contains('immersive-cinema-mode') && !e.target.closest('#sparky-yt-player-wrap')) {
       wakeFromCinemaMode();
     } else {
       resetCinemaTimer();
@@ -4260,6 +4257,7 @@ function createYtPlayer(item) {
 }
 
 // ── 3.3: Audio Overlap Prevention ────────────────────────────────
+let lastCinemaTriggerTime = 0;
 function onYtStateChange(event) {
   if (event.data === YT.PlayerState.PLAYING) {
     pauseRadioForYt();
@@ -4269,7 +4267,9 @@ function onYtStateChange(event) {
   } else if (event.data === YT.PlayerState.PAUSED || event.data === YT.PlayerState.ENDED) {
     isPlaying = false; // Update global state for UI sync
     syncPlayBtns();
-    wakeFromCinemaMode(); // Auto-wake if paused or ended
+    if (Date.now() - lastCinemaTriggerTime > 1000) {
+      wakeFromCinemaMode(); // Auto-wake if paused or ended, ignore instantaneous layout reflow pause pings
+    }
     if (event.data === YT.PlayerState.ENDED) {
       playYtNext();
     }
