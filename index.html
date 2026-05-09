@@ -25,6 +25,44 @@
     })();
   </script>
   <link rel="manifest" href="/manifest.json">
+
+  <!-- Inject Cinema Mode CSS directly to bypass Vite Dev/CDN caching issues -->
+  <style id="sparky-cinema-styles">
+    /* --- IMMERSIVE CINEMA MODE --- */
+    .app.immersive-cinema-mode .header, 
+    .app.immersive-cinema-mode #yt-view, 
+    .app.immersive-cinema-mode .np-header, 
+    .app.immersive-cinema-mode .np-body, 
+    .app.immersive-cinema-mode .np-meta, 
+    .app.immersive-cinema-mode .yt-np-meta {
+      display: none !important;
+    }
+
+    .app.immersive-cinema-mode .now-playing {
+      flex: 1;
+      margin: 0 !important;
+      padding: 0 !important;
+      border: none !important;
+      border-radius: 0 !important;
+      background: var(--bg) !important;
+      box-shadow: none !important;
+      min-height: auto !important;
+    }
+
+    .app.immersive-cinema-mode .sparky-yt-player-wrap {
+      flex: 1;
+      display: flex;
+      padding: 0 !important;
+      margin: 0 !important;
+      height: 100% !important;
+    }
+
+    .app.immersive-cinema-mode .yt-player-container-inner {
+      height: 100% !important;
+      width: 100% !important;
+      flex: 1;
+    }
+  </style>
 </head>
 
 <body>
