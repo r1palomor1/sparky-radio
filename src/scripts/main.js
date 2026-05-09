@@ -3184,11 +3184,15 @@ let cinemaModeTimer = null;
 const CINEMA_TIMEOUT_MS = 8000;
 
 function wakeFromCinemaMode() {
+  console.log('[CINEMA DEBUG] 🔴 wakeFromCinemaMode called!');
+  console.trace();
   document.querySelector('.app').classList.remove('immersive-cinema-mode');
   resetCinemaTimer();
 }
 
 function resetCinemaTimer() {
+  console.log('[CINEMA DEBUG] ⏳ resetCinemaTimer called!');
+  console.trace();
   clearTimeout(cinemaModeTimer);
   if (!sparkyYtState.isModeActive) return;
   if (!sparkyYtState.playerInstance) return;
@@ -3200,12 +3204,15 @@ function resetCinemaTimer() {
                 
   if (state === YT.PlayerState.PLAYING && sparkyYtState.currentSubMode === 'videos') {
       cinemaModeTimer = setTimeout(() => {
+          console.log('[CINEMA DEBUG] 🟢 Timer Triggered: Adding class!');
           app.classList.add('immersive-cinema-mode');
       }, CINEMA_TIMEOUT_MS);
   }
 }
 
 function toggleCinemaMode() {
+  console.log('[CINEMA DEBUG] 🟢 toggleCinemaMode called!');
+  console.trace();
   const app = document.querySelector('.app');
   if (app.classList.contains('immersive-cinema-mode')) {
     wakeFromCinemaMode();
