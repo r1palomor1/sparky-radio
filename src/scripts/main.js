@@ -3231,7 +3231,7 @@ function toggleCinemaMode() {
   }, { passive: true });
 });
 
-['mousemove', 'scroll'].forEach(evt => {
+['scroll'].forEach(evt => {
   document.addEventListener(evt, () => {
     const app = document.querySelector('.app');
     if (!app.classList.contains('immersive-cinema-mode')) {
