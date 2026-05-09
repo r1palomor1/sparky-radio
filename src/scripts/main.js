@@ -3215,13 +3215,23 @@ function toggleCinemaMode() {
   }
 }
 
-['touchstart', 'mousemove', 'scroll', 'click'].forEach(evt => {
-  document.addEventListener(evt, () => {
+['touchstart', 'click'].forEach(evt => {
+  document.addEventListener(evt, (e) => {
+    if (e.target.closest('#btnYtCinemaToggle')) return; // Ignore the toggle button itself to prevent double-firing
     const app = document.querySelector('.app');
     if (app.classList.contains('immersive-cinema-mode')) {
       wakeFromCinemaMode();
     } else {
       resetCinemaTimer();
+    }
+  }, { passive: true });
+});
+
+['mousemove', 'scroll'].forEach(evt => {
+  document.addEventListener(evt, () => {
+    const app = document.querySelector('.app');
+    if (!app.classList.contains('immersive-cinema-mode')) {
+      resetCinemaTimer(); // Only reset the timer if not already in cinema mode. Do not wake on scroll/mouse to prevent reflow bugs.
     }
   }, { passive: true });
 });
