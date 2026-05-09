@@ -4451,4 +4451,41 @@ body.light .filter-chip {
 
 @keyframes ytSpin {
   to { transform: rotate(360deg); }
-}
+} 
+ / *   - - -   I M M E R S I V E   C I N E M A   M O D E   - - -   * /  
+ 
+/* --- IMMERSIVE CINEMA MODE --- */
+.app.immersive-cinema-mode .header, .app.immersive-cinema-mode #yt-view, .app.immersive-cinema-mode .np-header, .app.immersive-cinema-mode .np-body, .app.immersive-cinema-mode .np-meta, .app.immersive-cinema-mode .yt-np-meta {
+  opacity: 0;
+  height: 0 !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  pointer-events: none;
+  border: none !important;
+  overflow: hidden;
+}
+
+.app.immersive-cinema-mode .now-playing {
+  flex: 1;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: var(--bg);
+  box-shadow: none;
+}
+
+.app.immersive-cinema-mode .sparky-yt-player-wrap {
+  flex: 1;
+  padding: 0;
+  margin: 0;
+  height: 100%;
+}
+
+.app.immersive-cinema-mode .yt-player-container-inner {
+  height: 100% !important;
+  width: 100% !important;
+  flex: 1;
+}
+

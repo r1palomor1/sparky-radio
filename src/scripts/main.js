@@ -3179,6 +3179,53 @@ const YT_FAVS_KEY = 'sparky_yt_favorites';
 const YT_HISTORY_KEY = 'sparky_yt_history';
 const YT_TEMP_QUEUE_KEY = 'sparky_yt_temp_queue';
 
+/* --- IMMERSIVE CINEMA MODE --- */
+let cinemaModeTimer = null;
+const CINEMA_TIMEOUT_MS = 8000;
+
+function wakeFromCinemaMode() {
+  document.querySelector('.app').classList.remove('immersive-cinema-mode');
+  resetCinemaTimer();
+}
+
+function resetCinemaTimer() {
+  clearTimeout(cinemaModeTimer);
+  if (!sparkyYtState.isModeActive) return;
+  if (!sparkyYtState.playerInstance) return;
+
+  const app = document.querySelector('.app');
+  // Don't auto-rehide if user manually exited by pausing, but we handle that via paused state below.
+  const state = typeof sparkyYtState.playerInstance.getPlayerState === 'function' ? 
+                sparkyYtState.playerInstance.getPlayerState() : -1;
+                
+  if (state === YT.PlayerState.PLAYING && sparkyYtState.currentSubMode === 'videos') {
+      cinemaModeTimer = setTimeout(() => {
+          app.classList.add('immersive-cinema-mode');
+      }, CINEMA_TIMEOUT_MS);
+  }
+}
+
+function toggleCinemaMode() {
+  const app = document.querySelector('.app');
+  if (app.classList.contains('immersive-cinema-mode')) {
+    wakeFromCinemaMode();
+  } else {
+    app.classList.add('immersive-cinema-mode');
+    clearTimeout(cinemaModeTimer); // Disable auto-timer when manually forcing it
+  }
+}
+
+['touchstart', 'mousemove', 'scroll', 'click'].forEach(evt => {
+  document.addEventListener(evt, () => {
+    const app = document.querySelector('.app');
+    if (app.classList.contains('immersive-cinema-mode')) {
+      wakeFromCinemaMode();
+    } else {
+      resetCinemaTimer();
+    }
+  }, { passive: true });
+});
+
 function initYtStorage() {
   if (!localStorage.getItem(YT_FAVS_KEY)) localStorage.setItem(YT_FAVS_KEY, JSON.stringify([]));
   if (!localStorage.getItem(YT_HISTORY_KEY)) localStorage.setItem(YT_HISTORY_KEY, JSON.stringify([]));
@@ -3250,6 +3297,7 @@ function toggleYtMode(activate) {
 
 // ── Sub-mode Tab Switching ───────────────────────────────────────
 function switchYtTab(mode) {
+  wakeFromCinemaMode(); // Wake up when switching tabs
   sparkyYtState.currentSubMode = mode;
   document.querySelectorAll('.yt-tab').forEach(t => t.classList.toggle('active', t.dataset.mode === mode));
 
@@ -4200,9 +4248,11 @@ function onYtStateChange(event) {
     pauseRadioForYt();
     isPlaying = true; // Update global state for UI sync
     syncPlayBtns();
+    resetCinemaTimer(); // Start/refresh cinema timer when playback begins
   } else if (event.data === YT.PlayerState.PAUSED || event.data === YT.PlayerState.ENDED) {
     isPlaying = false; // Update global state for UI sync
     syncPlayBtns();
+    wakeFromCinemaMode(); // Auto-wake if paused or ended
     if (event.data === YT.PlayerState.ENDED) {
       playYtNext();
     }
@@ -4269,6 +4319,7 @@ btnYtSearchClear?.addEventListener('click', () => {
 });
 
 document.getElementById('btnYtQueue')?.addEventListener('click', toggleYtQueue);
+document.getElementById('btnYtCinemaToggle')?.addEventListener('click', toggleCinemaMode);
 document.getElementById('btnYtQueueClear')?.addEventListener('click', clearYtTempQueue);
 document.getElementById('btnYtAudioOnly')?.addEventListener('click', toggleYtAudioOnly);
 document.getElementById('btnYtShuffle')?.addEventListener('click', toggleYtShuffle);
