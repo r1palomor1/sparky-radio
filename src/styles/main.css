@@ -4063,9 +4063,9 @@ body.light .filter-chip {
 
 @media (min-width: 700px) {
   .yt-player-container-inner {
-    height: 300px;
-    width: auto;
-    margin: 0 auto;
+    height: 350px;
+    width: 100%;
+    margin: 0;
   }
 }
 
