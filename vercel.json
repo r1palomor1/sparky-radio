@@ -1,4 +1,7 @@
 {
+  "installCommand": "npm install",
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
   "functions": {
     "api/fetchPlaylist.js": {
       "runtime": "@vercel/node@4.0.0",

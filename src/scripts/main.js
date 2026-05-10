@@ -538,6 +538,8 @@ document.getElementById('tabFavs').addEventListener('click', () => switchTab('fa
 
 async function backgroundSyncFavs() {
   if (isSyncingFavs) return;
+  // Skip background sync in local dev to prevent console noise from failing mirrors
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') return;
   isSyncingFavs = true;
   const fv = loadFavs();
   if (!fv.length) { isSyncingFavs = false; return; }
@@ -3122,6 +3124,9 @@ async function healFavoritesFavicons() {
   const missing = m.filter(f => (!f.favicon || f.favicon.trim() === '') && f.id && f.id.length > 10);
   if (missing.length === 0) return;
 
+  // Skip background healing in local dev to prevent console noise from failing mirrors
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') return;
+
   console.log(`[SELF-HEAL] Found ${missing.length} favorites missing icons. Starting background rescue...`);
 
   let restoredCount = 0;
@@ -3166,8 +3171,22 @@ const sparkyYtState = {
   temporaryQueue: [], // User-built manual queue
   queueIndex: 0,
   currentSubMode: 'videos',
-  videoCache: { query: '', results: [] },
-  playlistCache: { query: '', results: [] },
+  videoCache: {
+    query: '',
+    results: [],
+    continuation: null,
+    hasMore: false,
+    isFetchingMore: false,
+    prefetchedPage: null
+  },
+  playlistCache: {
+    query: '',
+    results: [],
+    continuation: null,
+    hasMore: false,
+    isFetchingMore: false,
+    prefetchedPage: null
+  },
   activePlaylistId: null,
   currentItemId: null,  // Tracks last played item — used to restore highlight after tab switch
   isAudioOnly: false,
@@ -3196,15 +3215,15 @@ function resetCinemaTimer() {
 
   const app = document.querySelector('.app');
   // Don't auto-rehide if user manually exited by pausing, but we handle that via paused state below.
-  const state = typeof sparkyYtState.playerInstance.getPlayerState === 'function' ? 
-                sparkyYtState.playerInstance.getPlayerState() : -1;
-                
+  const state = typeof sparkyYtState.playerInstance.getPlayerState === 'function' ?
+    sparkyYtState.playerInstance.getPlayerState() : -1;
+
   if (state === YT.PlayerState.PLAYING && sparkyYtState.currentSubMode === 'videos') {
-      cinemaModeTimer = setTimeout(() => {
-          lastCinemaTriggerTime = Date.now();
-          app.classList.add('immersive-cinema-mode');
-          if (document.getElementById('cinemaWakeZone')) document.getElementById('cinemaWakeZone').classList.add('is-cinema');
-      }, CINEMA_TIMEOUT_MS);
+    cinemaModeTimer = setTimeout(() => {
+      lastCinemaTriggerTime = Date.now();
+      app.classList.add('immersive-cinema-mode');
+      if (document.getElementById('cinemaWakeZone')) document.getElementById('cinemaWakeZone').classList.add('is-cinema');
+    }, CINEMA_TIMEOUT_MS);
   }
 }
 
@@ -3229,7 +3248,7 @@ function toggleCinemaMode() {
 
     if (e.target.closest('#btnYtCinemaToggle') || e.target.closest('.youtube-iframe-container')) return;
     const app = document.querySelector('.app');
-    
+
     // Only wake up if the user explicitly clicked the background UI (like the footer)
     if (app.classList.contains('immersive-cinema-mode') && !e.target.closest('#sparky-yt-player-wrap')) {
       wakeFromCinemaMode();
@@ -3238,6 +3257,24 @@ function toggleCinemaMode() {
     }
   }, { passive: true });
 });
+
+// ── Infinite Scroll Listener ──────────────────────────────────────
+const ytResultsEl = document.getElementById('ytResults');
+if (ytResultsEl) {
+  ytResultsEl.addEventListener('scroll', () => {
+    if (!sparkyYtState.isModeActive || sparkyYtState.currentSubMode === 'hub') return;
+
+    const cache = (sparkyYtState.currentSubMode === 'playlists') ? sparkyYtState.playlistCache : sparkyYtState.videoCache;
+    if (!cache.hasMore || cache.isFetchingMore) return;
+
+    // Trigger when 150px from bottom
+    const threshold = 150;
+    if (ytResultsEl.scrollTop + ytResultsEl.clientHeight >= ytResultsEl.scrollHeight - threshold) {
+      console.log(`[YT] Infinite scroll trigger: fetching next page for ${sparkyYtState.currentSubMode}`);
+      fetchNextYtPage(true);
+    }
+  }, { passive: true });
+}
 
 ['scroll'].forEach(evt => {
   document.addEventListener(evt, () => {
@@ -3252,7 +3289,7 @@ function initYtStorage() {
   if (!localStorage.getItem(YT_FAVS_KEY)) localStorage.setItem(YT_FAVS_KEY, JSON.stringify([]));
   if (!localStorage.getItem(YT_HISTORY_KEY)) localStorage.setItem(YT_HISTORY_KEY, JSON.stringify([]));
   if (!localStorage.getItem(YT_TEMP_QUEUE_KEY)) localStorage.setItem(YT_TEMP_QUEUE_KEY, JSON.stringify([]));
-  
+
   // Load initial temp queue into state
   sparkyYtState.temporaryQueue = loadYtTempQueue();
 }
@@ -3326,7 +3363,7 @@ function switchYtTab(mode) {
   const searchWrap = document.getElementById('ytSearchWrap');
   const results = document.getElementById('ytResults');
   const hub = document.getElementById('ytHub');
-  
+
   const isHub = mode === 'hub';
 
   if (searchWrap) searchWrap.classList.toggle('hidden', isHub);
@@ -3425,7 +3462,7 @@ function renderYtHub() {
 function renderYtQueueTab() {
   const container = document.getElementById('ytQueue');
   if (!container) return;
-  
+
   const queue = sparkyYtState.temporaryQueue;
   if (!queue.length) {
     container.innerHTML = `<div class="pl-empty">
@@ -3499,9 +3536,9 @@ if (localStorage.getItem('sparky_yt_mode_active') === '1') {
 // ║  SPARKY YT MODULE — Phase 3: Search, Player & Audio Overlap ║
 // ════════════════════════════════════════════════════════════════
 
-// Auto-detect API base: relative paths work on Vercel, full URL needed for local dev
+// Use relative paths for API calls to support Vite proxy in dev and Vercel in production
 const YT_API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-  ? 'https://sparky-radio-git-feature-youtube-in-3e6aa4-r1palomor1s-projects.vercel.app'
+  ? (['3000', '3001'].includes(window.location.port) ? '' : 'http://localhost:3001')
   : '';
 
 let ytIframeApiLoading = false;
@@ -3514,7 +3551,7 @@ async function runYtSearch() {
   if (!query) return;
 
   const mode = sparkyYtState.currentSubMode; // 'videos' | 'playlists'
-  
+
   // 1. URL PARSER: Extract ID if user pastes a full link
   if (query.includes('youtube.com') || query.includes('youtu.be')) {
     if (mode === 'playlists') {
@@ -3532,55 +3569,168 @@ async function runYtSearch() {
   const resultsEl = document.getElementById('ytResults');
   if (!resultsEl) return;
 
+  // Clear and show loading
   resultsEl.innerHTML = `<div class="yt-loading"><div class="yt-spinner"></div>Searching...</div>`;
+  resultsEl.scrollTop = 0;
 
-  // Set current cache target
+  // Reset Cache for NEW search
   const cache = (mode === 'playlists') ? sparkyYtState.playlistCache : sparkyYtState.videoCache;
   cache.query = query;
+  cache.results = [];
+  cache.continuation = null;
+  cache.hasMore = false;
+  cache.isFetchingMore = false;
+  cache.prefetchedPage = null;
+
+  console.log(`[YT-SEARCH] Starting search for: "${query}" (Mode: ${mode})`);
+  await fetchNextYtPage(false);
+}
+
+async function fetchNextYtPage(isAppending = true) {
+  const mode = sparkyYtState.currentSubMode;
+  const cache = (mode === 'playlists') ? sparkyYtState.playlistCache : sparkyYtState.videoCache;
+
+  if (cache.isFetchingMore) return;
+
+  // PREFETCH OPTIMIZATION: If we already have the next page ready, use it immediately
+  if (isAppending && cache.prefetchedPage) {
+    console.log(`[YT] Using prefetched page for ${mode}`);
+    processYtPage(cache.prefetchedPage, true);
+    cache.prefetchedPage = null;
+
+    // Proactively prefetch the NEXT one
+    if (cache.hasMore) prefetchNextYtPage();
+    return;
+  }
+
+  cache.isFetchingMore = true;
+
+  // Show "Loading more" footer if appending
+  if (isAppending) {
+    const resultsEl = document.getElementById('ytResults');
+    if (resultsEl && !document.getElementById('ytLoadMoreIndicator')) {
+      const loader = document.createElement('div');
+      loader.id = 'ytLoadMoreIndicator';
+      loader.className = 'yt-loading';
+      loader.style.padding = '20px';
+      loader.innerHTML = `<div class="yt-spinner"></div>Loading more...`;
+      resultsEl.appendChild(loader);
+      // Smooth scroll to show loader
+      resultsEl.scrollTo({ top: resultsEl.scrollHeight, behavior: 'smooth' });
+    }
+  }
 
   try {
-    if (mode === 'videos') {
-      // For videos, the proxy usually handles ID vs Search via 'query' but we'll stick to query for now
-      const res = await fetch(`${YT_API_BASE}/api/searchVideos?query=${encodeURIComponent(query)}`);
-      const data = await res.json();
-      if (data.video_results?.length) {
-        sparkyYtState.videoCache.results = data.video_results;
-        renderYtVideoResults(data.video_results);
+    let url = '';
+    if (cache.continuation) {
+      const api = (mode === 'playlists') ? 'fetchPlaylist' : 'searchVideos';
+      url = `${YT_API_BASE}/api/${api}?continuation=${encodeURIComponent(cache.continuation)}`;
+    } else {
+      if (mode === 'videos') {
+        url = `${YT_API_BASE}/api/searchVideos?query=${encodeURIComponent(cache.query)}`;
       } else {
-        showYtError('No videos found — try a different search.');
-      }
-
-    } else if (mode === 'playlists') {
-      // 1. Detect if it's an ID (starts with PL, RD, LL, LM, etc. and is long)
-      const isId = /^(PL|RD|LL|LM|UU|FL|OL)[a-zA-Z0-9_-]+/.test(query);
-      
-      // 2. Try ID fetch if it looks like one, otherwise standard query search
-      const param = isId ? 'id' : 'query';
-      const res = await fetch(`${YT_API_BASE}/api/fetchPlaylist?${param}=${encodeURIComponent(query)}`);
-      const data = await res.json();
-      
-      // 3. Handle results (normalize if it's a single playlist object from 'id' fetch)
-      let results = data.playlist_results || [];
-      if (!results.length && data.id && data.title) {
-        // Direct ID fetch returned a single playlist object, wrap it
-        results = [{
-          id: data.id,
-          title: data.title,
-          thumb: data.thumb || (data.videos && data.videos[0]?.thumb),
-          type: 'playlist'
-        }];
-      }
-
-      if (results.length) {
-        sparkyYtState.playlistCache.results = results;
-        renderYtPlaylistResults(results);
-      } else {
-        showYtError('No playlists found — try a different ID or search term.');
+        const isId = /^(PL|RD|LL|LM|UU|FL|OL)[a-zA-Z0-9_-]+/.test(cache.query);
+        const param = isId ? 'id' : 'query';
+        url = `${YT_API_BASE}/api/fetchPlaylist?${param}=${encodeURIComponent(cache.query)}`;
       }
     }
+
+    console.log(`[YT-FETCH] Fetching URL: ${url}`);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+
+    try {
+      const res = await fetch(url, { signal: controller.signal });
+      clearTimeout(timeoutId);
+      console.log(`[YT-FETCH] Response received: ${res.status} ${res.statusText}`);
+
+      if (!res.ok) {
+        let errData = {};
+        try { errData = await res.json(); } catch (e) { console.warn('[YT-FETCH] Could not parse error JSON'); }
+        console.error('[YT-FETCH] Server error detail:', errData);
+        throw new Error(`HTTP ${res.status}: ${errData.message || errData.error || 'Unknown Error'}`);
+      }
+      const data = await res.json();
+      console.log(`[YT-FETCH] Data received. Video results: ${data.video_results?.length || 0}`);
+      
+      processYtPage(data, isAppending);
+
+      // Initial prefetch after first page loads
+      if (!isAppending && cache.hasMore) {
+        prefetchNextYtPage();
+      }
+    } finally {
+      clearTimeout(timeoutId);
+    }
+
   } catch (err) {
-    console.error('[YT] Search error:', err);
-    showYtError('Search failed. Check your connection and try again.');
+    console.error('[YT] Fetch error:', err);
+    if (!isAppending) {
+      showYtError('Search failed. Check your connection and try again.');
+    } else {
+      const loader = document.getElementById('ytLoadMoreIndicator');
+      if (loader) loader.innerHTML = `<div style="color:var(--accent2)">Retry failed — scroll to try again</div>`;
+    }
+  } finally {
+    cache.isFetchingMore = false;
+  }
+}
+
+async function prefetchNextYtPage() {
+  const mode = sparkyYtState.currentSubMode;
+  const cache = (mode === 'playlists') ? sparkyYtState.playlistCache : sparkyYtState.videoCache;
+
+  if (!cache.continuation || cache.prefetchedPage || cache.isFetchingMore) return;
+
+  console.log(`[YT] Prefetching next page for ${mode}...`);
+  try {
+    const api = (mode === 'playlists') ? 'fetchPlaylist' : 'searchVideos';
+    const url = `${YT_API_BASE}/api/${api}?continuation=${encodeURIComponent(cache.continuation)}`;
+    const res = await fetch(url);
+    if (res.ok) {
+      cache.prefetchedPage = await res.json();
+      console.log(`[YT] Prefetch successful for ${mode}`);
+    }
+  } catch (e) {
+    console.warn('[YT] Prefetch failed:', e.message);
+  }
+}
+
+function processYtPage(data, isAppending) {
+  const mode = sparkyYtState.currentSubMode;
+  const cache = (mode === 'playlists') ? sparkyYtState.playlistCache : sparkyYtState.videoCache;
+
+  const newResults = data.video_results || data.playlist_results || [];
+
+  // Handle direct ID fetch which might return a single object (normalize it)
+  let normalizedResults = newResults;
+  if (!newResults.length && data.id && data.title && mode === 'playlists') {
+    normalizedResults = [{
+      id: data.id,
+      playlist_id: data.id,
+      title: data.title,
+      thumbnail: data.thumb || (data.videos && data.videos[0]?.thumb),
+      type: 'playlist'
+    }];
+  }
+
+  if (isAppending) {
+    cache.results = [...cache.results, ...normalizedResults];
+    // Remove loader before appending new HTML
+    const loader = document.getElementById('ytLoadMoreIndicator');
+    if (loader) loader.remove();
+  } else {
+    cache.results = normalizedResults;
+  }
+
+  cache.continuation = data.continuation || null;
+  cache.hasMore = !!cache.continuation;
+
+  if (cache.results.length) {
+    if (mode === 'videos') renderYtVideoResults(cache.results, isAppending);
+    else renderYtPlaylistResults(cache.results, isAppending);
+  } else if (!isAppending) {
+    showYtError('No results found — try a different search.');
   }
 }
 
@@ -3589,12 +3739,15 @@ function showYtError(msg) {
   if (el) el.innerHTML = `<div class="pl-empty"><div class="pl-empty-icon">&#9888;&#65039;</div><div>${msg}</div></div>`;
 }
 
-function renderYtVideoResults(videos) {
+function renderYtVideoResults(videos, isAppending = false) {
   const el = document.getElementById('ytResults');
-  if (!el || !videos.length) { showYtError('No videos found.'); return; }
+  if (!el || !videos.length) {
+    if (!isAppending) showYtError('No videos found.');
+    return;
+  }
 
-  el.innerHTML = videos.map(v => `
-    <div class="yt-card" data-id="${v.id}" data-type="video" data-title="${v.title.replace(/"/g, '&quot;')}" data-channel="${(v.channel || '').replace(/"/g, '&quot;')}" data-thumb="${v.thumbnail}">
+  const html = videos.map(v => `
+    <div class="yt-card${sparkyYtState.currentItemId === v.id ? ' active' : ''}" data-id="${v.id}" data-type="video" data-title="${v.title.replace(/"/g, '&quot;')}" data-channel="${(v.channel || '').replace(/"/g, '&quot;')}" data-thumb="${v.thumbnail}">
       <img class="yt-card-thumb" src="${v.thumbnail}" alt="" loading="lazy">
       <div class="yt-card-info">
         <div class="yt-card-title">${v.title}</div>
@@ -3611,15 +3764,22 @@ function renderYtVideoResults(videos) {
     </div>
   `).join('');
 
+  // We use full results list for now to keep it simple and ensure highlight works
+  el.innerHTML = html;
+
   attachYtCardListeners(el);
+  if (sparkyYtState.currentItemId) highlightYtCard(sparkyYtState.currentItemId);
 }
 
-function renderYtPlaylistResults(playlists) {
+function renderYtPlaylistResults(playlists, isAppending = false) {
   const el = document.getElementById('ytResults');
-  if (!el || !playlists.length) { showYtError('No playlists found.'); return; }
+  if (!el || !playlists.length) {
+    if (!isAppending) showYtError('No playlists found.');
+    return;
+  }
 
-  el.innerHTML = playlists.map(p => `
-    <div class="yt-card" data-id="${p.playlist_id}" data-type="playlist" data-title="${p.title.replace(/"/g, '&quot;')}" data-channel="Playlist" data-thumb="${p.thumbnail}">
+  const html = playlists.map(p => `
+    <div class="yt-card${sparkyYtState.currentItemId === p.playlist_id ? ' active' : ''}" data-id="${p.playlist_id}" data-type="playlist" data-title="${p.title.replace(/"/g, '&quot;')}" data-channel="Playlist" data-thumb="${p.thumbnail}">
       <img class="yt-card-thumb" src="${p.thumbnail}" alt="" loading="lazy">
       <div class="yt-card-info">
         <div class="yt-card-title">${p.title}</div>
@@ -3636,7 +3796,10 @@ function renderYtPlaylistResults(playlists) {
     </div>
   `).join('');
 
+  el.innerHTML = html;
+
   attachYtCardListeners(el);
+  if (sparkyYtState.currentItemId) highlightYtCard(sparkyYtState.currentItemId);
 }
 
 function attachYtCardListeners(container) {
@@ -3791,7 +3954,7 @@ function attachYtCardListeners(container) {
         thumb: card.dataset.thumb,
         channel: card.dataset.channel
       };
-      
+
       if (sparkyYtState.temporaryQueue.some(v => v.id === id)) {
         removeFromYtTempQueue(id, true);
       } else {
@@ -3803,26 +3966,26 @@ function attachYtCardListeners(container) {
 
 function addToYtTempQueue(item, sourceBtn = null) {
   sparkyLog(`[YT] Request to add: ${item.title} (ID: ${item.id})`);
-  
+
   if (!sparkyYtState.temporaryQueue) sparkyYtState.temporaryQueue = [];
 
   if (sparkyYtState.temporaryQueue.some(v => v.id === item.id)) {
     return;
   }
-  
+
   sparkyYtState.temporaryQueue.push(item);
   saveYtTempQueue(sparkyYtState.temporaryQueue);
-  
+
   // Instant Sync: If we are currently viewing/playing the 'temp' queue, update it immediately
   if (sparkyYtState.activePlaylistId === 'temp') {
     sparkyYtState.currentQueue = [...sparkyYtState.temporaryQueue];
     sparkyYtState.originalQueue = [...sparkyYtState.temporaryQueue];
     renderYtQueue();
   }
-  
+
   syncYtQueueBtn();
   syncYtQueueBadge();
-  
+
   // Update icon state globally if button provided
   if (sourceBtn) {
     sourceBtn.classList.add('active');
@@ -3835,19 +3998,19 @@ function removeFromYtTempQueue(id, silent = false) {
   const doRemove = () => {
     sparkyYtState.temporaryQueue = sparkyYtState.temporaryQueue.filter(v => v.id !== id);
     saveYtTempQueue(sparkyYtState.temporaryQueue);
-    
+
     // Instant Sync: If we are currently viewing/playing the 'temp' queue, update it immediately
     if (sparkyYtState.activePlaylistId === 'temp') {
       sparkyYtState.currentQueue = [...sparkyYtState.temporaryQueue];
       sparkyYtState.originalQueue = [...sparkyYtState.temporaryQueue];
       renderYtQueue();
     }
-    
+
     syncYtQueueBtn();
     syncYtQueueBadge();
-    
+
     if (sparkyYtState.currentSubMode === 'hub') renderYtHub();
-    
+
     // Update any visible toggle buttons in the main view
     document.querySelectorAll(`.yt-card-add[data-id="${id}"]`).forEach(btn => {
       btn.classList.remove('active');
@@ -3871,13 +4034,13 @@ function clearYtTempQueue() {
     saveYtTempQueue([]);
     syncYtQueueBtn();
     syncYtQueueBadge();
-    
+
     // Reset playback if we were playing the temp queue
     if (sparkyYtState.activePlaylistId === 'temp') {
       sparkyYtState.currentQueue = [];
       sparkyYtState.originalQueue = [];
     }
-    
+
     renderYtQueue();
     sparkyLog('[YT] Temporary queue cleared');
   }, "CLEAR QUEUE");
@@ -3886,11 +4049,11 @@ function clearYtTempQueue() {
 function syncYtQueueBtn() {
   const btn = document.getElementById('btnYtQueue');
   if (!btn) return;
-  
+
   const hasTempItems = sparkyYtState.temporaryQueue.length > 0;
   const isPlayingPlaylist = sparkyYtState.activePlaylistId !== null;
   const hasQueue = hasTempItems || isPlayingPlaylist;
-  
+
   btn.classList.toggle('hidden', !hasQueue);
 
   // Pulse logic: if we have items in temp queue NOT played yet, pulse it (only in video tab context)
@@ -3953,14 +4116,14 @@ function toggleYtQueue() {
     syncYtQueueBtn(); // Update pulse logic when closing
   } else {
     overlay.classList.remove('hidden');
-    
+
     // Force sync if active mode is 'temp'
     if (sparkyYtState.activePlaylistId === 'temp' || (sparkyYtState.activePlaylistId === null && sparkyYtState.temporaryQueue.length > 0)) {
       sparkyYtState.activePlaylistId = 'temp';
       sparkyYtState.currentQueue = [...sparkyYtState.temporaryQueue];
       sparkyYtState.originalQueue = [...sparkyYtState.temporaryQueue];
     }
-    
+
     renderYtQueue();
     syncYtQueueBtn(); // Update pulse logic when opening
   }
@@ -4058,7 +4221,7 @@ function renderYtQueue() {
     const isActive = idx === sparkyYtState.queueIndex && (sparkyYtState.activePlaylistId === 'temp' || sparkyYtState.activePlaylistId !== null);
     const isFav = isYtFav(item.id);
     const isTempQueue = sparkyYtState.activePlaylistId === 'temp';
-    
+
     const el = document.createElement('div');
     el.className = `yt-queue-item ${isActive ? 'active' : ''}`;
     el.innerHTML = `
@@ -4103,13 +4266,13 @@ function renderYtQueue() {
           favBtn.innerHTML = '<span class="material-symbols-outlined">favorite</span>';
           favBtn.title = 'Remove from Hub';
         }
-        
+
         // Instant parity with main NP area and Hub
         if (sparkyYtState.currentItemId === item.id) syncYtNpFav();
         if (sparkyYtState.currentSubMode === 'hub') renderYtHub();
       };
     }
-    
+
     // Remove from Temp Queue
     const removeBtn = el.querySelector('.yt-queue-item-remove');
     if (removeBtn) {
@@ -4142,7 +4305,7 @@ function playYtItem(item) {
   debugLayout('BEFORE-PLAY');
 
   sparkyYtState.currentItemId = item.id; // Persist so highlight survives tab switches
-  
+
   // Track played status for temp queue pulsing logic
   if (sparkyYtState.temporaryQueue.some(v => v.id === item.id)) {
     sparkyYtState.tempQueuePlayedIds.add(item.id);
