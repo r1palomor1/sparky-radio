@@ -3764,8 +3764,18 @@ function renderYtVideoResults(videos, isAppending = false) {
     </div>
   `).join('');
 
-  // We use full results list for now to keep it simple and ensure highlight works
   el.innerHTML = html;
+
+  // Restore "Load More" physical button bridge
+  if (sparkyYtState.videoCache.hasMore) {
+    const loadMoreBtn = document.createElement('div');
+    loadMoreBtn.id = 'ytLoadMoreBtn';
+    loadMoreBtn.className = 'yt-load-more';
+    loadMoreBtn.innerHTML = 'Load More';
+    loadMoreBtn.onclick = () => fetchNextYtPage(true);
+    el.appendChild(loadMoreBtn);
+    console.log('[YT-UI] Load More button injected');
+  }
 
   attachYtCardListeners(el);
   if (sparkyYtState.currentItemId) highlightYtCard(sparkyYtState.currentItemId);
@@ -3797,6 +3807,17 @@ function renderYtPlaylistResults(playlists, isAppending = false) {
   `).join('');
 
   el.innerHTML = html;
+
+  // Restore "Load More" physical button bridge for playlists
+  if (sparkyYtState.playlistCache.hasMore) {
+    const loadMoreBtn = document.createElement('div');
+    loadMoreBtn.id = 'ytLoadMoreBtn';
+    loadMoreBtn.className = 'yt-load-more';
+    loadMoreBtn.innerHTML = 'Load More';
+    loadMoreBtn.onclick = () => fetchNextYtPage(true);
+    el.appendChild(loadMoreBtn);
+    console.log('[YT-UI] Load More (Playlist) button injected');
+  }
 
   attachYtCardListeners(el);
   if (sparkyYtState.currentItemId) highlightYtCard(sparkyYtState.currentItemId);

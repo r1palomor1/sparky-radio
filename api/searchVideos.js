@@ -1,5 +1,29 @@
 import { Innertube } from 'youtubei.js';
 
+// Recursive helper to find continuation token in nested Innertube response
+function findToken(obj) {
+    if (!obj || typeof obj !== 'object') return null;
+    if (obj.continuation) return obj.continuation;
+    if (obj.token && typeof obj.token === 'string' && obj.token.length > 20) return obj.token;
+    
+    // Check specific arrays where tokens are known to hide in v17
+    if (Array.isArray(obj.on_response_received_commands)) {
+        for (const cmd of obj.on_response_received_commands) {
+            const token = findToken(cmd);
+            if (token) return token;
+        }
+    }
+    
+    // Recursive search for everything else
+    for (const key in obj) {
+        if (Object.prototype.hasOwnProperty.call(obj, key)) {
+            const token = findToken(obj[key]);
+            if (token) return token;
+        }
+    }
+    return null;
+}
+
 // Helper: map Innertube video search results to clean Sparky YT format
 function formatVideoResults(data) {
     const results = data.results?.map(item => {
@@ -16,9 +40,12 @@ function formatVideoResults(data) {
         return null;
     }).filter(Boolean);
 
+    const token = findToken(data);
+    if (token) console.log(`[YT-BACKEND] Found continuation token: ${token.substring(0, 15)}...`);
+
     return {
         video_results: results || [],
-        continuation: data.continuation || null
+        continuation: token || null
     };
 }
 
@@ -33,14 +60,11 @@ export default async function handler(req, res) {
 
     try {
         const { query, continuation } = req.query;
-        console.log('[YT API] Initializing Innertube...');
         const youtube = await Innertube.create();
-        console.log('[YT API] Innertube initialized.');
 
         if (query) {
             console.log(`[YT API] Searching for: ${query}`);
             const searchResults = await youtube.search(query, { type: 'video' });
-            console.log('[YT API] Search successful.');
             return res.status(200).json(formatVideoResults(searchResults));
 
         } else if (continuation) {
@@ -48,12 +72,10 @@ export default async function handler(req, res) {
             // In v17, try using getContinuation directly if it exists, otherwise actions.execute
             let nextPage;
             if (typeof youtube.getContinuation === 'function') {
-                nextPage = await youtube.getContinuation(continuation);
+                nextPage = await youtube.getContinuation({ token: continuation });
             } else {
-                // Fallback for different v17 subversions
                 nextPage = await youtube.actions.execute('/search', { continuation: continuation, parse: true });
             }
-            console.log('[YT API] Continuation fetch successful.');
             return res.status(200).json(formatVideoResults(nextPage));
 
         } else {
@@ -64,8 +86,7 @@ export default async function handler(req, res) {
         console.error('[YT API] CRITICAL ERROR:', error);
         res.status(500).json({ 
             error: 'Failed to search YouTube', 
-            message: error.message,
-            stack: error.stack 
+            message: error.message
         });
     }
 }

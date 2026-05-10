@@ -1,23 +1,46 @@
 import { Innertube } from 'youtubei.js';
 
-// Helper: format playlist search results from Innertube response
-function formatPlaylistResults(data) {
-    const results = data.results?.map(item => {
-        if (item.type === 'Playlist') {
-            return {
-                playlist_id: item.id,
-                title: item.title?.toString() || item.title?.text || 'Unknown Playlist',
-                thumbnail: item.thumbnails?.[0]?.url || item.thumbnail?.[0]?.url,
-                channel: item.author?.name || item.author?.text || 'Playlist',
-                type: 'playlist'
-            };
+// Recursive helper to find continuation token in nested Innertube response
+function findToken(obj) {
+    if (!obj || typeof obj !== 'object') return null;
+    if (obj.continuation) return obj.continuation;
+    if (obj.token && typeof obj.token === 'string' && obj.token.length > 20) return obj.token;
+    
+    // Check specific arrays where tokens are known to hide in v17
+    if (Array.isArray(obj.on_response_received_commands)) {
+        for (const cmd of obj.on_response_received_commands) {
+            const token = findToken(cmd);
+            if (token) return token;
         }
-        return null;
-    }).filter(Boolean);
+    }
+    
+    // Recursive search for everything else
+    for (const key in obj) {
+        if (Object.prototype.hasOwnProperty.call(obj, key)) {
+            const token = findToken(obj[key]);
+            if (token) return token;
+        }
+    }
+    return null;
+}
+
+// Helper: map Innertube playlist results to clean Sparky YT format
+function formatPlaylistResults(data) {
+    const results = data.videos?.map(v => ({
+        id: v.id,
+        title: v.title?.toString() || v.title?.text || 'Unknown Title',
+        thumbnail: v.thumbnails?.[0]?.url || v.thumbnail?.[0]?.url,
+        channel: v.author?.name || v.author?.text || 'Unknown Channel',
+        duration: v.duration?.text || v.duration?.label || '',
+        type: 'video'
+    })) || [];
+
+    const token = findToken(data);
+    if (token) console.log(`[YT-BACKEND] Found playlist continuation token: ${token.substring(0, 15)}...`);
 
     return {
-        playlist_results: results || [],
-        continuation: data.continuation || null
+        video_results: results,
+        continuation: token || null
     };
 }
 
@@ -28,56 +51,34 @@ export default async function handler(req, res) {
 
     if (req.method === 'OPTIONS') return res.status(200).end();
 
-    console.log(`[YT API PL] Request: ${JSON.stringify(req.query)}`);
-
     try {
         const { id, query, continuation } = req.query;
-        console.log('[YT API PL] Initializing Innertube...');
         const youtube = await Innertube.create();
-        console.log('[YT API PL] Innertube initialized.');
 
-        if (id) {
-            console.log(`[YT API PL] Fetching playlist ID: ${id}`);
-            const playlist = await youtube.getPlaylist(id);
-            if (!playlist.videos) {
-                return res.status(404).json({ error: 'Playlist not found or is empty' });
-            }
-            const videos = playlist.videos.map(video => ({
-                id: video.id,
-                title: video.title?.text || 'Unknown',
-                thumb: video.thumbnails?.[video.thumbnails.length - 1]?.url || '',
-            }));
-            const playlistTitle = playlist.info?.title || playlist.title?.text || 'YouTube Playlist';
-            console.log('[YT API PL] Playlist fetch successful.');
-            return res.status(200).json({ title: playlistTitle, videos });
-
-        } else if (query) {
-            console.log(`[YT API PL] Searching for playlists: ${query}`);
-            const searchResults = await youtube.search(query, { type: 'playlist' });
-            console.log('[YT API PL] Search successful.');
-            return res.status(200).json(formatPlaylistResults(searchResults));
-
-        } else if (continuation) {
-            console.log(`[YT API PL] Fetching continuation: ${continuation}`);
-            let nextPage;
-            if (typeof youtube.getContinuation === 'function') {
-                nextPage = await youtube.getContinuation(continuation);
-            } else {
-                nextPage = await youtube.actions.execute('/search', { continuation: continuation, parse: true });
-            }
-            console.log('[YT API PL] Continuation fetch successful.');
+        if (continuation) {
+            console.log(`[YT API] Fetching playlist continuation: ${continuation}`);
+            const nextPage = await youtube.actions.execute('/browse', { continuation: continuation, parse: true });
             return res.status(200).json(formatPlaylistResults(nextPage));
-
-        } else {
-            return res.status(400).json({ error: 'A query, id, or continuation token is required.' });
         }
 
+        let playlist;
+        if (id) {
+            console.log(`[YT API] Fetching playlist by ID: ${id}`);
+            playlist = await youtube.getPlaylist(id);
+        } else if (query) {
+            console.log(`[YT API] Searching for playlist: ${query}`);
+            const search = await youtube.search(query, { type: 'playlist' });
+            const firstPlaylist = search.playlists?.[0];
+            if (!firstPlaylist) return res.status(404).json({ error: 'No playlist found' });
+            playlist = await youtube.getPlaylist(firstPlaylist.id);
+        } else {
+            return res.status(400).json({ error: 'Playlist ID or query required' });
+        }
+
+        return res.status(200).json(formatPlaylistResults(playlist));
+
     } catch (error) {
-        console.error('[YT API PL] CRITICAL ERROR:', error);
-        res.status(500).json({ 
-            error: 'Failed to fetch data from YouTube', 
-            message: error.message,
-            stack: error.stack 
-        });
+        console.error('[YT API] Playlist Error:', error);
+        res.status(500).json({ error: 'Failed to fetch playlist', message: error.message });
     }
 }
