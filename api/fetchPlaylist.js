@@ -6,7 +6,6 @@ function findToken(obj) {
     if (obj.continuation) return obj.continuation;
     if (obj.token && typeof obj.token === 'string' && obj.token.length > 20) return obj.token;
     
-    // Check specific arrays where tokens are known to hide in v17
     if (Array.isArray(obj.on_response_received_commands)) {
         for (const cmd of obj.on_response_received_commands) {
             const token = findToken(cmd);
@@ -14,7 +13,6 @@ function findToken(obj) {
         }
     }
     
-    // Recursive search for everything else
     for (const key in obj) {
         if (Object.prototype.hasOwnProperty.call(obj, key)) {
             const token = findToken(obj[key]);
@@ -24,19 +22,41 @@ function findToken(obj) {
     return null;
 }
 
+// Recursive helper to find ALL video objects in the response
+function findVideos(obj, results = []) {
+    if (!obj || typeof obj !== 'object') return results;
+    
+    if (obj.type === 'Video') {
+        results.push({
+            id: obj.id,
+            title: obj.title?.toString() || obj.title?.text || 'Unknown Title',
+            thumbnail: obj.thumbnails?.[0]?.url || obj.thumbnail?.[0]?.url,
+            channel: obj.author?.name || obj.author?.text || 'Unknown Channel',
+            duration: obj.duration?.text || obj.duration?.label || '',
+            type: 'video'
+        });
+        return results;
+    }
+
+    if (Array.isArray(obj)) {
+        for (const item of obj) findVideos(item, results);
+    } else {
+        for (const key in obj) {
+            if (Object.prototype.hasOwnProperty.call(obj, key)) {
+                findVideos(obj[key], results);
+            }
+        }
+    }
+    return results;
+}
+
 // Helper: map Innertube playlist results to clean Sparky YT format
 function formatPlaylistResults(data) {
-    const results = data.videos?.map(v => ({
-        id: v.id,
-        title: v.title?.toString() || v.title?.text || 'Unknown Title',
-        thumbnail: v.thumbnails?.[0]?.url || v.thumbnail?.[0]?.url,
-        channel: v.author?.name || v.author?.text || 'Unknown Channel',
-        duration: v.duration?.text || v.duration?.label || '',
-        type: 'video'
-    })) || [];
-
+    console.log('[YT-BACKEND] Deep-scanning playlist for videos...');
+    const results = findVideos(data);
     const token = findToken(data);
-    if (token) console.log(`[YT-BACKEND] Found playlist continuation token: ${token.substring(0, 15)}...`);
+    
+    console.log(`[YT-BACKEND] Results: ${results.length} videos, Token: ${token ? 'Found' : 'Missing'}`);
 
     return {
         video_results: results,
@@ -56,7 +76,7 @@ export default async function handler(req, res) {
         const youtube = await Innertube.create();
 
         if (continuation) {
-            console.log(`[YT API] Fetching playlist continuation: ${continuation}`);
+            console.log(`[YT API] Fetching playlist continuation: ${continuation.substring(0, 20)}...`);
             const nextPage = await youtube.actions.execute('/browse', { continuation: continuation, parse: true });
             return res.status(200).json(formatPlaylistResults(nextPage));
         }
