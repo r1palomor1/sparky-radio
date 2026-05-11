@@ -95,7 +95,7 @@ body.light {
   --pl-stripe: rgba(0, 0, 0, 0.03);
 }
 
-/* ── ITEM 1: AMBIENT GRADIENT ───────────── */
+/* â”€â”€ ITEM 1: AMBIENT GRADIENT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 body {
   background: var(--bg-gradient);
   background-attachment: fixed;
@@ -165,7 +165,7 @@ body.light .app {
   /* Translucent cream for light mode glass visibility */
 }
 
-/* ── RESPONSIVE ─────────────────────────── */
+/* â”€â”€ RESPONSIVE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 /* Tablet: fill height, wider card */
 @media (min-width: 600px) and (max-width: 1023px) {
   body {
@@ -366,7 +366,7 @@ body.light .header {
   color: var(--accent);
 }
 
-/* ── ITEM 2: STATUS DOT — PULSE RING ────── */
+/* â”€â”€ ITEM 2: STATUS DOT â€” PULSE RING â”€â”€â”€â”€â”€â”€ */
 .dot {
   width: 7px;
   height: 7px;
@@ -467,7 +467,7 @@ body.light .header {
   /* Glow bloom */
 }
 
-/* ── PANEL THEME PICKER ────────────────── */
+/* â”€â”€ PANEL THEME PICKER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 #panelColorPicker::-webkit-color-swatch-wrapper {
   padding: 0;
@@ -559,7 +559,7 @@ body.light .header {
   border-top: none;
 }
 
-/* ── EQ MASKING LOGIC ── */
+/* â”€â”€ EQ MASKING LOGIC â”€â”€ */
 .now-playing.eq-open .np-side-favicon-wrap,
 .now-playing.eq-open .np-ticker,
 .now-playing.eq-open .np-viz-container,
@@ -887,7 +887,7 @@ body.light .eq-rack {
   margin-bottom: 20px;
 }
 
-/* ── EQ FOCUS MODE (Zero Distractions) ── */
+/* â”€â”€ EQ FOCUS MODE (Zero Distractions) â”€â”€ */
 .app.eq-mode .np-ticker,
 .app.eq-mode .np-viz-container,
 .app.eq-mode .np-meta,
@@ -907,7 +907,7 @@ body.light .eq-rack {
   min-height: 400px;
 }
 
-/* ── THEME REACTIVITY OVERRIDES ── */
+/* â”€â”€ THEME REACTIVITY OVERRIDES â”€â”€ */
 body.light .np-label,
 body.light .btn-eq-toggle {
   color: color-mix(in srgb, var(--accent) 70%, black) !important;
@@ -952,7 +952,7 @@ body.light .np-meta-badge {
   margin-top: 10px;
 }
 
-/* ── ITEM 15: COMPACT MODE VISIBILITY ───── */
+/* â”€â”€ ITEM 15: COMPACT MODE VISIBILITY â”€â”€â”€â”€â”€ */
 .app.stats-compact .np-meta-secondary {
   display: none !important;
 }
@@ -976,7 +976,7 @@ body.light .np-meta-badge {
   color: #fff;
 }
 
-/* ── ITEM 6: TRENDING BADGE — PILL STYLE ── */
+/* â”€â”€ ITEM 6: TRENDING BADGE â€” PILL STYLE â”€â”€ */
 .pl-status-badge.trending {
   background: transparent;
   color: var(--panel-text);
@@ -1138,7 +1138,7 @@ body.light .pl-status-badge.trending {
 }
 
 
-/* ── ITEM 10: PREMIUM VOLUME SLIDER ────── */
+/* â”€â”€ ITEM 10: PREMIUM VOLUME SLIDER â”€â”€â”€â”€â”€â”€ */
 .volume-bar {
   padding: 12px 14px;
   background: var(--np-bg);
@@ -1276,12 +1276,12 @@ input[type=range]::-moz-range-thumb {
   transform: scale(0.97);
 }
 
-/* Hidden JS-compat buttons (Shuffle, Repeat, EQ — logic preserved, UI removed) */
+/* Hidden JS-compat buttons (Shuffle, Repeat, EQ â€” logic preserved, UI removed) */
 .toggle-group {
   display: none !important;
 }
 
-/* ── TAB + SEARCH COMBINED ROW ──────────── */
+/* â”€â”€ TAB + SEARCH COMBINED ROW â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .tab-search-row {
   display: flex;
   flex-direction: column;
@@ -1504,7 +1504,7 @@ body.light input[type=text] {
   text-transform: none;
 }
 
-/* ── PLAYLIST HEADER ────────────────────── */
+/* â”€â”€ PLAYLIST HEADER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .playlist-header {
   background: #05070a !important;
   /* Solid True Black to mask cards */
@@ -1813,7 +1813,7 @@ body.light .preset-label {
   }
 }
 
-/* ── CUSTOM SELECT ─────────────────────── */
+/* â”€â”€ CUSTOM SELECT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .preset-dropdown-wrap {
   position: relative;
   min-width: 50px;
@@ -1859,7 +1859,7 @@ body.light .preset-label {
 
 
 .preset-trigger::after {
-  content: '▼';
+  content: 'â–¼';
   font-size: 8px;
   color: var(--dim);
 }
@@ -2123,7 +2123,7 @@ body.light .preset-label {
   z-index: 5;
 }
 
-/* ── CATEGORY VIEW COMPONENTS ── */
+/* â”€â”€ CATEGORY VIEW COMPONENTS â”€â”€ */
 .pl-header-right {
   display: flex;
   align-items: center;
@@ -2447,7 +2447,7 @@ body.light .preset-label {
   }
 }
 
-/* ── EQ RACK ────────────────────────────── */
+/* â”€â”€ EQ RACK â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 
 .eq-row {
@@ -2648,7 +2648,7 @@ body.light .btn-preset.active {
   }
 }
 
-/* ── MODALS ─────────────────────────────── */
+/* â”€â”€ MODALS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -2701,7 +2701,7 @@ body.light .btn-preset.active {
   margin-top: 15px;
 }
 
-/* ── ITEM 8: FOOTER — PREMIUM GLASS ────────────── */
+/* â”€â”€ ITEM 8: FOOTER â€” PREMIUM GLASS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .footer {
   height: auto;
   min-height: 60px;
@@ -2887,7 +2887,7 @@ body.light .footer {
 }
 
 
-/* ── STATION CARD ───────────────────────── */
+/* â”€â”€ STATION CARD â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .station-card {
   min-height: 86px;
   background: var(--viz-bg);
@@ -3010,7 +3010,7 @@ body.light .footer {
   color: var(--accent);
 }
 
-/* ── DIAGNOSTIC HUB ─────────────────────── */
+/* â”€â”€ DIAGNOSTIC HUB â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .mirror-indicator {
   position: absolute;
   right: 32px;
@@ -3075,7 +3075,7 @@ body.light .footer {
 }
 
 /* Removed duplicate footer block */
-/* ── MOBILE RESPONSIVENESS ──────────────── */
+/* â”€â”€ MOBILE RESPONSIVENESS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 @media (max-width: 380px) {
   .eq-rack.open {
     max-height: 600px;
@@ -3099,7 +3099,7 @@ body.light .footer {
   }
 }
 
-/* ── PRIORITIZED MOBILE OVERRIDES ────────── */
+/* â”€â”€ PRIORITIZED MOBILE OVERRIDES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 @media (max-width: 599px) {
   .pl-main {
     padding-top: 12px !important;
@@ -3112,7 +3112,7 @@ body.light .footer {
   }
 }
 
-/* ── VOLUME POPOVER (FOOTER) ────────────────── */
+/* â”€â”€ VOLUME POPOVER (FOOTER) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .footer-volume-ctrl {
   position: relative;
   display: flex;
@@ -3144,7 +3144,7 @@ body.light .footer {
 
 }
 
-/* ── INTEGRATED FOOTER VOLUME ROW (Overlay Mode) ── */
+/* â”€â”€ INTEGRATED FOOTER VOLUME ROW (Overlay Mode) â”€â”€ */
 .footer-volume-row {
   display: none;
   position: absolute;
@@ -3324,7 +3324,7 @@ body.light .footer {
   }
 }
 
-/* ── VOLUME POPOVER (FOOTER) ────────────────── */
+/* â”€â”€ VOLUME POPOVER (FOOTER) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .footer-volume-ctrl {
   position: relative;
   display: flex;
@@ -3356,7 +3356,7 @@ body.light .footer {
 
 }
 
-/* ── INTEGRATED FOOTER VOLUME ROW (Overlay Mode) ── */
+/* â”€â”€ INTEGRATED FOOTER VOLUME ROW (Overlay Mode) â”€â”€ */
 .footer-volume-row {
   display: none;
   position: absolute;
@@ -3732,11 +3732,11 @@ body.light .filter-chip {
   }
 }
 
-/* ══════════════════════════════════════════════════════════════
-   SPARKY YT MODULE — Phase 2: View Styles
-   ══════════════════════════════════════════════════════════════ */
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   SPARKY YT MODULE â€” Phase 2: View Styles
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
-/* ── Radio View Wrapper: must match lower-rack flex containment ── */
+/* â”€â”€ Radio View Wrapper: must match lower-rack flex containment â”€â”€ */
 #radio-view {
   display: flex;
   flex-direction: column;
@@ -3748,7 +3748,7 @@ body.light .filter-chip {
 /* Utility: hidden state (used by toggle logic) */
 .hidden { display: none !important; }
 
-/* ── Mode Toggle Button ─────────────────────────────────────── */
+/* â”€â”€ Mode Toggle Button â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .btn-mode-toggle {
   transition: all 0.2s ease;
   border-color: var(--border);
@@ -3766,7 +3766,7 @@ body.light .filter-chip {
   box-shadow: var(--glow);
 }
 
-/* ── YT View Container (canonical single definition) ────────── */
+/* â”€â”€ YT View Container (canonical single definition) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 /* position:relative is required so the queue overlay's position:absolute
    is contained within yt-view, not the entire .app shell. */
 .yt-view {
@@ -3779,7 +3779,7 @@ body.light .filter-chip {
   background: var(--bg);
 }
 
-/* ── YT Sub-mode Tab Row ────────────────────────────────────── */
+/* â”€â”€ YT Sub-mode Tab Row â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .yt-tab-row {
   display: flex;
   gap: 0;
@@ -3821,7 +3821,7 @@ body.light .filter-chip {
   background: var(--tab-active);
 }
 
-/* ── YT Sub-mode Tabs ────────────────────────────────────────── */
+/* â”€â”€ YT Sub-mode Tabs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .yt-tab-row {
   display: flex;
   background: var(--tab-bg);
@@ -3860,7 +3860,7 @@ body.light .filter-chip {
   text-shadow: var(--glow);
 }
 
-/* ── YT Search Bar ──────────────────────────────────────────── */
+/* â”€â”€ YT Search Bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .yt-search-wrap {
   display: flex;
   align-items: center;
@@ -3893,7 +3893,7 @@ body.light .filter-chip {
 }
 #ytSearchInput:focus { border-color: var(--accent); }
 
-/* ── YT Results & Hub Scroll Containers ─────────────────────── */
+/* â”€â”€ YT Results & Hub Scroll Containers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .yt-results,
 .yt-hub {
   flex: 1 1 0%; 
@@ -3924,7 +3924,7 @@ body.light .filter-chip {
   }
 }
 
-/* ── YT Video / Playlist Card ───────────────────────────────── */
+/* â”€â”€ YT Video / Playlist Card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .yt-card {
   display: flex;
   align-items: center;
@@ -4034,7 +4034,7 @@ body.light .filter-chip {
 .yt-card-add.active { color: var(--accent); }
 .yt-card-add .material-symbols-outlined { font-size: 20px; }
 
-/* ── YT NP Player Container (inside Now Playing zone) ───────── */
+/* â”€â”€ YT NP Player Container (inside Now Playing zone) â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .sparky-yt-player-wrap {
   display: flex;
   flex-direction: column;
@@ -4180,7 +4180,7 @@ body.light .filter-chip {
 
 .btn-yt-queue .material-symbols-outlined { font-size: 20px; }
 
-/* Duplicate .yt-view removed — canonical definition is above in Phase 2 section */
+/* Duplicate .yt-view removed â€” canonical definition is above in Phase 2 section */
 
 /* Global Industrial Scroller for YT Module */
 .yt-view ::-webkit-scrollbar,
@@ -4202,7 +4202,7 @@ body.light .filter-chip {
   background: var(--accent);
 }
 
-/* ── YT Queue Overlay (Full App Coverage) ─────────────────────── */
+/* â”€â”€ YT Queue Overlay (Full App Coverage) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .yt-queue-overlay {
   position: absolute;
   top: 0;
@@ -4220,7 +4220,7 @@ body.light .filter-chip {
      The old translateY animation was masking the layout bug. */
 }
 
-/* .yt-queue-overlay.hidden — handled entirely by the global .hidden { display: none !important } rule.
+/* .yt-queue-overlay.hidden â€” handled entirely by the global .hidden { display: none !important } rule.
    DO NOT re-add display:flex here or the overlay will occupy flex space and compress ytResults. */
 
 .yt-queue-header {
@@ -4429,7 +4429,7 @@ body.light .filter-chip {
   color: var(--dim);
 }
 
-/* ── Loading State ──────────────────────────────────────────── */
+/* â”€â”€ Loading State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .yt-loading {
   display: flex;
   align-items: center;
@@ -4593,4 +4593,9 @@ body.light .filter-chip {
   font-size: 10px;
   letter-spacing: 2px;
   text-transform: uppercase;
+}
+@media (max-width: 480px) {
+  .desktop-only {
+    display: none;
+  }
 }

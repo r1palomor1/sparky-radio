@@ -3651,7 +3651,7 @@ async function fetchNextYtPage(isAppending = true) {
         throw new Error(`HTTP ${res.status}: ${errData.message || errData.error || 'Unknown Error'}`);
       }
       const data = await res.json();
-      console.log(`[YT-FETCH] Data received. Video results: ${data.video_results?.length || 0}`);
+      console.log(`[YT-FETCH] Data received. Results length: ${(data.video_results || data.playlist_results || []).length}`);
       
       processYtPage(data, isAppending);
 
@@ -3762,7 +3762,11 @@ function renderYtVideoResults(videos, isAppending = false) {
       <img class="yt-card-thumb" src="${v.thumbnail}" alt="" loading="lazy">
       <div class="yt-card-info">
         <div class="yt-card-title">${v.title}</div>
-        <div class="yt-card-channel">${v.channel || ''}${v.duration ? ' &middot; ' + v.duration : ''}</div>
+        <div class="yt-card-channel">
+            <span class="desktop-only">${v.channel || ''}${v.duration ? ' &middot; ' + v.duration : ''}</span>
+            <span class="desktop-only">&nbsp;&middot;&nbsp;</span>
+            <span class="mobile-stats">${v.views || ''}${v.published ? ' &middot; ' + v.published : ''}</span>
+        </div>
       </div>
       <div class="yt-card-actions">
         <button class="yt-card-fav${isYtFav(v.id) ? ' active' : ''}" data-id="${v.id}" data-type="video" title="${isYtFav(v.id) ? 'Remove from Favs Hub' : 'Save to Favs Hub'}">

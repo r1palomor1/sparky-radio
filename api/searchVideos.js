@@ -41,6 +41,8 @@ function findVideos(obj, results = []) {
             thumbnail: obj.thumbnails?.[0]?.url || obj.thumbnail?.[0]?.url,
             channel: obj.author?.name || obj.author?.text || 'Unknown Channel',
             duration: obj.duration?.text || obj.duration?.label || '',
+            views: obj.view_count?.text || obj.short_view_count?.text || '',
+            published: obj.published?.text || '',
             type: 'video'
         });
         return results;

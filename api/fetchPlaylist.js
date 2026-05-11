@@ -69,31 +69,51 @@ function formatPlaylistResults(data) {
     }
 
     // Try continuation lockupViewModel (Page 2+)
-    if (results.length === 0 && data.on_response_received_commands) {
-        for (const cmd of data.on_response_received_commands) {
-            const items = cmd.appendContinuationItemsAction?.continuationItems;
-            if (items) {
-                // Find old playlistRenderer OR new lockupViewModel
-                const parsed = items.map(item => {
-                    if (item.playlistRenderer) {
-                        return parsePlaylistRenderer(item);
-                    } else if (item.lockupViewModel?.contentType === 'LOCKUP_CONTENT_TYPE_PLAYLIST') {
-                        const luv = item.lockupViewModel;
-                        return {
-                            playlist_id: luv.contentId,
-                            title: luv.metadata?.lockupMetadataViewModel?.title?.content || 'N/A',
-                            thumbnail: luv.contentImage?.collectionThumbnailViewModel?.primaryThumbnail?.thumbnailViewModel?.image?.sources?.[0]?.url || 'N/A',
-                            video_count: 'N/A' // Not readily available in lockupViewModel
-                        };
-                    }
-                    return null;
-                }).filter(Boolean);
-                
-                if (parsed.length > 0) {
-                    results = parsed;
-                    break;
-                }
+    if (results.length === 0) {
+        console.log(`[YT-API-DEBUG] Page 2+ Parsing Data Keys:`, Object.keys(data));
+        let items = null;
+        
+        if (data.on_response_received_commands) {
+            for (const cmd of data.on_response_received_commands) {
+                items = cmd.appendContinuationItemsAction?.continuationItems;
+                if (items) break;
             }
+        } else if (data.continuationContents) {
+            const cc = data.continuationContents;
+            items = cc.sectionListContinuation?.contents || cc.itemSectionContinuation?.contents || cc.twoColumnSearchResultsRenderer?.contents;
+        }
+
+        console.log(`[YT-API-DEBUG] Continuation Items Blocks Found:`, items ? items.length : 0);
+
+        if (items) {
+            // Find old playlistRenderer OR new lockupViewModel
+            const parsed = items.map(item => {
+                // If it's wrapped inside itemSectionRenderer
+                const realItem = item.itemSectionRenderer?.contents?.[0] || item;
+
+                if (realItem.playlistRenderer) {
+                    return parsePlaylistRenderer(realItem);
+                } else if (realItem.lockupViewModel?.contentType === 'LOCKUP_CONTENT_TYPE_PLAYLIST') {
+                    const luv = realItem.lockupViewModel;
+                    return {
+                        playlist_id: luv.contentId,
+                        title: luv.metadata?.lockupMetadataViewModel?.title?.content || 'N/A',
+                        thumbnail: luv.contentImage?.collectionThumbnailViewModel?.primaryThumbnail?.thumbnailViewModel?.image?.sources?.[0]?.url || 'N/A',
+                        video_count: 'N/A' // Not readily available in lockupViewModel
+                    };
+                }
+                return null;
+            }).filter(Boolean);
+            
+            console.log(`[YT-API-DEBUG] Extracted Playlists:`, parsed.length);
+            
+            if (parsed.length > 0) {
+                results = parsed;
+            } else {
+                console.log(`[YT-API-DEBUG] Items mapped to 0 playlists. First item dump:`, JSON.stringify(items[0] || {}).substring(0, 300));
+            }
+        } else {
+            console.log(`[YT-API-DEBUG] Unrecognized Page 2 format. Data snippet:`, JSON.stringify(data).substring(0, 300));
         }
     }
 
