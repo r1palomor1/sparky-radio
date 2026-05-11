@@ -3729,6 +3729,17 @@ function processYtPage(data, isAppending) {
   if (cache.results.length) {
     if (mode === 'videos') renderYtVideoResults(cache.results, isAppending);
     else renderYtPlaylistResults(cache.results, isAppending);
+    
+    // Final check for end of results
+    if (!cache.hasMore) {
+      const el = document.getElementById('ytResults');
+      if (el) {
+        const endMsg = document.createElement('div');
+        endMsg.className = 'yt-end-results';
+        endMsg.innerHTML = '— End of results —';
+        el.appendChild(endMsg);
+      }
+    }
   } else if (!isAppending) {
     showYtError('No results found — try a different search.');
   }
@@ -3766,17 +3777,6 @@ function renderYtVideoResults(videos, isAppending = false) {
 
   el.innerHTML = html;
 
-  // Restore "Load More" physical button bridge
-  if (sparkyYtState.videoCache.hasMore) {
-    const loadMoreBtn = document.createElement('div');
-    loadMoreBtn.id = 'ytLoadMoreBtn';
-    loadMoreBtn.className = 'yt-load-more';
-    loadMoreBtn.innerHTML = 'Load More';
-    loadMoreBtn.onclick = () => fetchNextYtPage(true);
-    el.appendChild(loadMoreBtn);
-    console.log('[YT-UI] Load More button injected');
-  }
-
   attachYtCardListeners(el);
   if (sparkyYtState.currentItemId) highlightYtCard(sparkyYtState.currentItemId);
 }
@@ -3807,17 +3807,6 @@ function renderYtPlaylistResults(playlists, isAppending = false) {
   `).join('');
 
   el.innerHTML = html;
-
-  // Restore "Load More" physical button bridge for playlists
-  if (sparkyYtState.playlistCache.hasMore) {
-    const loadMoreBtn = document.createElement('div');
-    loadMoreBtn.id = 'ytLoadMoreBtn';
-    loadMoreBtn.className = 'yt-load-more';
-    loadMoreBtn.innerHTML = 'Load More';
-    loadMoreBtn.onclick = () => fetchNextYtPage(true);
-    el.appendChild(loadMoreBtn);
-    console.log('[YT-UI] Load More (Playlist) button injected');
-  }
 
   attachYtCardListeners(el);
   if (sparkyYtState.currentItemId) highlightYtCard(sparkyYtState.currentItemId);

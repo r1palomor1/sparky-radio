@@ -4584,4 +4584,13 @@ body.light .filter-chip {
   transform: translateY(0);
   background: rgba(var(--accent-rgb), 0.2);
 }
-$css
+
+.yt-end-results {
+  padding: 30px;
+  text-align: center;
+  color: rgba(255,255,255,0.3);
+  font-family: 'Orbitron', sans-serif;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}

@@ -1,31 +1,31 @@
 import { Innertube } from 'youtubei.js';
 
-// Recursive helper to find continuation token in nested Innertube response
-function findToken(obj) {
+// TARGETED TOKEN HUNTER (Based on raw_search_results research)
+function findTargetedToken(obj) {
     if (!obj || typeof obj !== 'object') return null;
-    if (obj.continuation) return obj.continuation;
-    if (obj.token && typeof obj.token === 'string' && obj.token.length > 20) return obj.token;
     
-    if (Array.isArray(obj.on_response_received_commands)) {
-        for (const cmd of obj.on_response_received_commands) {
-            const token = findToken(cmd);
-            if (token) return token;
+    // Exact match based on the research: continuationCommand.payload.token
+    if (obj.continuationCommand?.payload?.token) {
+        const token = obj.continuationCommand.payload.token;
+        if (typeof token === 'string' && token.length > 20) {
+            console.log(`[YT-TOKEN-FOUND] Targeted hunter found token: ${token.substring(0, 20)}...`);
+            return token;
         }
     }
     
+    // Fallback: search deeper if nested
     for (const key in obj) {
         if (Object.prototype.hasOwnProperty.call(obj, key)) {
-            const token = findToken(obj[key]);
-            if (token) return token;
+            const result = findTargetedToken(obj[key]);
+            if (result) return result;
         }
     }
     return null;
 }
 
-// Recursive helper to find ALL video objects in the response
+// Deep crawler for videos
 function findVideos(obj, results = []) {
     if (!obj || typeof obj !== 'object') return results;
-    
     if (obj.type === 'Video') {
         results.push({
             id: obj.id,
@@ -35,34 +35,16 @@ function findVideos(obj, results = []) {
             duration: obj.duration?.text || obj.duration?.label || '',
             type: 'video'
         });
-        // We found a video, don't need to look deeper into THIS object
         return results;
     }
-
     if (Array.isArray(obj)) {
         for (const item of obj) findVideos(item, results);
     } else {
         for (const key in obj) {
-            if (Object.prototype.hasOwnProperty.call(obj, key)) {
-                findVideos(obj[key], results);
-            }
+            if (Object.prototype.hasOwnProperty.call(obj, key)) findVideos(obj[key], results);
         }
     }
     return results;
-}
-
-// Helper: map Innertube video search results to clean Sparky YT format
-function formatVideoResults(data) {
-    console.log('[YT-BACKEND] Deep-scanning response for videos...');
-    const results = findVideos(data);
-    const token = findToken(data);
-    
-    console.log(`[YT-BACKEND] Results: ${results.length} videos, Token: ${token ? 'Found' : 'Missing'}`);
-
-    return {
-        video_results: results,
-        continuation: token || null
-    };
 }
 
 export default async function handler(req, res) {
@@ -77,22 +59,24 @@ export default async function handler(req, res) {
         const youtube = await Innertube.create();
 
         if (query) {
-            console.log(`[YT API] Initial search for: ${query}`);
+            console.log(`[YT API] Video search: ${query}`);
             const searchResults = await youtube.search(query, { type: 'video' });
-            return res.status(200).json(formatVideoResults(searchResults));
+            const videos = findVideos(searchResults);
+            const token = findTargetedToken(searchResults);
+            return res.status(200).json({ video_results: videos, continuation: token });
 
         } else if (continuation) {
-            console.log(`[YT API] Fetching continuation token: ${continuation.substring(0, 20)}...`);
-            // Use actions.execute for raw tokens in v17
+            console.log(`[YT API] Video continuation: ${continuation.substring(0, 20)}...`);
             const nextPage = await youtube.actions.execute('/search', { continuation: continuation, parse: true });
-            return res.status(200).json(formatVideoResults(nextPage));
-
-        } else {
-            return res.status(400).json({ error: 'A query or continuation token is required.' });
+            const videos = findVideos(nextPage);
+            const token = findTargetedToken(nextPage);
+            return res.status(200).json({ video_results: videos, continuation: token });
         }
 
+        return res.status(400).json({ error: 'Query or continuation required' });
+
     } catch (error) {
-        console.error('[YT API] CRITICAL ERROR:', error);
+        console.error('[YT API] Error:', error);
         res.status(500).json({ error: 'Failed to search YouTube', message: error.message });
     }
 }
