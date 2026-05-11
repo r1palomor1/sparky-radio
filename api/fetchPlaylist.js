@@ -1,19 +1,8 @@
 import { Innertube } from 'youtubei.js';
 
-// SEMANTIC TOKEN HUNTER (Matches your screenshot exactly)
 function findTargetedToken(obj) {
     if (!obj || typeof obj !== 'object') return null;
-    
-    // Check if this object has the "name": "continuationCommand" property
-    if (obj.name === 'continuationCommand' && obj.payload?.token) {
-        const token = obj.payload.token;
-        if (typeof token === 'string' && token.length > 20) {
-            console.log(`[YT-TOKEN-FOUND] Hunter found semantic token: ${token.substring(0, 20)}...`);
-            return token;
-        }
-    }
-    
-    // Recursive search to find the object in chips, endpoints, etc.
+    if (obj.name === 'continuationCommand' && obj.payload?.token) return obj.payload.token;
     for (const key in obj) {
         if (Object.prototype.hasOwnProperty.call(obj, key)) {
             const token = findTargetedToken(obj[key]);
@@ -23,30 +12,47 @@ function findTargetedToken(obj) {
     return null;
 }
 
-// PORTED FROM r1-launch-pad (Exact property mapping)
+function parsePlaylistRenderer(item) {
+    // Some items might be wrapped in playlistRenderer
+    const renderer = item.playlistRenderer || (item.type === 'Playlist' ? item : null);
+    if (!renderer) return null;
+    
+    try {
+        return {
+            playlist_id: renderer.playlistId || renderer.id,
+            title: renderer.title?.simpleText || renderer.title?.runs?.[0]?.text || renderer.title?.text || renderer.title?.toString(),
+            thumbnail: renderer.thumbnails?.[0]?.thumbnails?.[0]?.url || renderer.thumbnails?.[0]?.url || renderer.thumbnail?.[0]?.url,
+            video_count: renderer.videoCount || renderer.videoCountText?.runs?.[0]?.text || renderer.video_count?.text || 'N/A'
+        };
+    } catch (e) { return null; }
+}
+
 function formatPlaylistResults(data) {
-    const results = data.results?.map(item => {
+    // 1. Try standard results (Page 1)
+    let results = data.results?.map(item => {
         if (item.content_type !== 'PLAYLIST' && item.type !== 'Playlist') return null;
-
         try {
-            const playlist_id = item.content_id || item.id;
-            const title = item.metadata?.title?.text || item.title?.text || item.title?.toString();
-            const thumbnail = item.content_image?.primary_thumbnail?.image?.[0]?.url || item.thumbnails?.[0]?.url || item.thumbnail?.[0]?.url;
-            const video_count = item.content_image?.overlays?.[0]?.badges?.[0]?.text || item.video_count?.text || item.video_count?.toString() || 'N/A';
-
-            if (playlist_id && title && thumbnail) {
-                return { playlist_id, title, thumbnail, video_count };
-            }
+            return {
+                playlist_id: item.content_id || item.id,
+                title: item.metadata?.title?.text || item.title?.text || item.title?.toString(),
+                thumbnail: item.content_image?.primary_thumbnail?.image?.[0]?.url || item.thumbnails?.[0]?.url || item.thumbnail?.[0]?.url,
+                video_count: item.content_image?.overlays?.[0]?.badges?.[0]?.text || item.video_count?.text || 'N/A'
+            };
         } catch (e) { return null; }
-        return null;
-    }).filter(Boolean);
+    }).filter(Boolean) || [];
 
-    // HUNT FOR SEMANTIC TOKEN (Value-based search)
-    const token = findTargetedToken(data);
+    // 2. Try continuation commands (Page 2+)
+    if (results.length === 0 && data.on_response_received_commands) {
+        const cmd = data.on_response_received_commands.find(c => c.appendContinuationItemsAction);
+        const items = cmd?.appendContinuationItemsAction?.continuationItems;
+        if (items) {
+            results = items.map(parsePlaylistRenderer).filter(Boolean);
+        }
+    }
 
     return {
-        playlist_results: results || [],
-        continuation: token
+        playlist_results: results,
+        continuation: findTargetedToken(data)
     };
 }
 
@@ -54,7 +60,6 @@ export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
     if (req.method === 'OPTIONS') return res.status(200).end();
 
     try {
@@ -63,7 +68,6 @@ export default async function handler(req, res) {
 
         if (id) {
             const playlist = await youtube.getPlaylist(id);
-            if (!playlist.videos) return res.status(404).json({ error: 'Empty' });
             const videos = playlist.videos.map(v => ({
                 id: v.id,
                 title: v.title?.text || v.title?.toString(),
@@ -72,12 +76,10 @@ export default async function handler(req, res) {
             return res.status(200).json({ title: playlist.info?.title || 'Playlist', video_results: videos });
 
         } else if (query) {
-            console.log(`[YT API] Playlist search: ${query}`);
             const searchResults = await youtube.search(query, { type: 'playlist' });
             return res.status(200).json(formatPlaylistResults(searchResults));
 
         } else if (continuation) {
-            console.log(`[YT API] Continuation: ${continuation.substring(0, 20)}...`);
             const nextPage = await youtube.actions.execute('/search', { continuation: continuation, parse: true });
             return res.status(200).json(formatPlaylistResults(nextPage));
         }
