@@ -16,6 +16,6 @@
     "vite": "^5.0.0"
   },
   "dependencies": {
-    "youtubei.js": "^17.0.1"
+    "youtubei.js": "^16.0.1"
   }
 }
