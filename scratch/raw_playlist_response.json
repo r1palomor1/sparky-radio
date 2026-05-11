@@ -19,7 +19,7 @@
               "token": "EvcFEgliYWQgYnVubnka5gVFcVVFa2dHaEJEcVhBUktRQVNoaElIbHZkWFIxWW1WZmMyaHZjblJ6WDJSbFptbHVhWFJwYjI0Z09uUjVjR1U2Y2lBb2JpQjViM1YwZFdKbFgyWnNZV2RmYUdGelgzQnlaVzFwWlhKbFgzWnBaR1Z2WDIxbGRHRmtZWFJoUFRFZ09uUjVjR1U2Y2lrZ0tHNGdlVzkxZEhWaVpWOW1iR0ZuWDJoaGMxOXNhWFpsWDNOMGNtVmhiVjl0WlhSaFpHRjBZVDB4SURwMGVYQmxPbklwS1RnQllCcEtoQU1LR1FvSlltRmtJR0oxYm01NThnRUZDZ05CYkd6WUFnRzRBMkVLcFFIeUFRZ0tCbE5vYjNKMGM4SUNrQUVvWVNCNWIzVjBkV0psWDNOb2IzSjBjMTlrWldacGJtbDBhVzl1SURwMGVYQmxPbklnS0c0Z2VXOTFkSFZpWlY5bWJHRm5YMmhoYzE5d2NtVnRhV1Z5WlY5MmFXUmxiMTl0WlhSaFpHRjBZVDB4SURwMGVYQmxPbklwSUNodUlIbHZkWFIxWW1WZlpteGhaMTlvWVhOZmJHbDJaVjl6ZEhKbFlXMWZiV1YwWVdSaGRHRTlNU0E2ZEhsd1pUcHlLU240QWdHNEF4b0tGdklCQ3dvSlZXNTNZWFJqYUdWa3lnSUNHQUc0QXh3S0ZQSUJDUW9IVjJGMFkyaGxaTW9DQWhnQ3VBTktDanJ5QVFnS0JsWnBaR1Z2YzhJQ0dubHZkWFIxWW1WZmRtbGtaVzlmY0dGblpTQTZkSGx3WlRweTZBSUJxQU1CdUFOSXdBTUJ5QU1CMEFNQkNodGdCX0lCRXdvUlVtVmpaVzUwYkhrZ2RYQnNiMkZrWldTNEF3Y0tOdklCQmdvRVRHbDJaY0lDSjNsdmRYUjFZbVZmYkdsMlpWOWljbTloWkdOaGMzUmZjM1JoZEhWelBUQWdPblI1Y0dVNmNyZ0RCQmdMZUFBJTNEkAEBGIHg6BgiC3NlYXJjaC1wYWdl",
               "request": "CONTINUATION_REQUEST_TYPE_SEARCH",
               "command": {
-                "clickTrackingParams": "CDoQ7OYFGAEiEwiphM_tgbCUAxXqjuUHHcJVDs7KAQSbejfs",
+                "clickTrackingParams": "CDoQ7OYFGAEiEwiV1bqSkrCUAxX9XBIBHewuIXnKAQQcPiyp",
                 "showReloadUiCommand": {
                   "targetId": "search-page"
                 }
@@ -45,7 +45,7 @@
               "token": "ErEEEgliYWQgYnVubnkaoARFcE1Ea2dHUEF6b0dHZ0lZQVdBY1NvUURDaGtLQ1dKaFpDQmlkVzV1ZWZJQkJRb0RRV3hzMkFJQnVBTmhDcVVCOGdFSUNnWlRhRzl5ZEhQQ0FwQUJLR0VnZVc5MWRIVmlaVjl6YUc5eWRITmZaR1ZtYVc1cGRHbHZiaUE2ZEhsd1pUcHlJQ2h1SUhsdmRYUjFZbVZmWm14aFoxOW9ZWE5mY0hKbGJXbGxjbVZmZG1sa1pXOWZiV1YwWVdSaGRHRTlNU0E2ZEhsd1pUcHlLU0FvYmlCNWIzVjBkV0psWDJac1lXZGZhR0Z6WDJ4cGRtVmZjM1J5WldGdFgyMWxkR0ZrWVhSaFBURWdPblI1Y0dVNmNpa3AtQUlCdUFNYUNoYnlBUXNLQ1ZWdWQyRjBZMmhsWk1vQ0FoZ0J1QU1jQ2hUeUFRa0tCMWRoZEdOb1pXVEtBZ0lZQXJnRFNnbzY4Z0VJQ2daV2FXUmxiM1BDQWhwNWIzVjBkV0psWDNacFpHVnZYM0JoWjJVZ09uUjVjR1U2Y3VnQ0FhZ0RBYmdEU01BREFjZ0RBZEFEQVFvYllBZnlBUk1LRVZKbFkyVnVkR3g1SUhWd2JHOWhaR1ZrdUFNSENqYnlBUVlLQkV4cGRtWENBaWQ1YjNWMGRXSmxYMnhwZG1WZlluSnZZV1JqWVhOMFgzTjBZWFIxY3owd0lEcDBlWEJsT25LNEF3UVlDM2dBkAEBGIHg6BgiC3NlYXJjaC1wYWdl",
               "request": "CONTINUATION_REQUEST_TYPE_SEARCH",
               "command": {
-                "clickTrackingParams": "CDkQ7OYFGAIiEwiphM_tgbCUAxXqjuUHHcJVDs7KAQSbejfs",
+                "clickTrackingParams": "CDkQ7OYFGAIiEwiV1bqSkrCUAxX9XBIBHewuIXnKAQQcPiyp",
                 "showReloadUiCommand": {
                   "targetId": "search-page"
                 }
@@ -71,7 +71,7 @@
               "token": "ErEEEgliYWQgYnVubnkaoARFcE1Ea2dHUEF6b0dHZ0lZQW1CS1NvUURDaGtLQ1dKaFpDQmlkVzV1ZWZJQkJRb0RRV3hzMkFJQnVBTmhDcVVCOGdFSUNnWlRhRzl5ZEhQQ0FwQUJLR0VnZVc5MWRIVmlaVjl6YUc5eWRITmZaR1ZtYVc1cGRHbHZiaUE2ZEhsd1pUcHlJQ2h1SUhsdmRYUjFZbVZmWm14aFoxOW9ZWE5mY0hKbGJXbGxjbVZmZG1sa1pXOWZiV1YwWVdSaGRHRTlNU0E2ZEhsd1pUcHlLU0FvYmlCNWIzVjBkV0psWDJac1lXZGZhR0Z6WDJ4cGRtVmZjM1J5WldGdFgyMWxkR0ZrWVhSaFBURWdPblI1Y0dVNmNpa3AtQUlCdUFNYUNoYnlBUXNLQ1ZWdWQyRjBZMmhsWk1vQ0FoZ0J1QU1jQ2hUeUFRa0tCMWRoZEdOb1pXVEtBZ0lZQXJnRFNnbzY4Z0VJQ2daV2FXUmxiM1BDQWhwNWIzVjBkV0psWDNacFpHVnZYM0JoWjJVZ09uUjVjR1U2Y3VnQ0FhZ0RBYmdEU01BREFjZ0RBZEFEQVFvYllBZnlBUk1LRVZKbFkyVnVkR3g1SUhWd2JHOWhaR1ZrdUFNSENqYnlBUVlLQkV4cGRtWENBaWQ1YjNWMGRXSmxYMnhwZG1WZlluSnZZV1JqWVhOMFgzTjBZWFIxY3owd0lEcDBlWEJsT25LNEF3UVlDM2dBkAEBGIHg6BgiC3NlYXJjaC1wYWdl",
               "request": "CONTINUATION_REQUEST_TYPE_SEARCH",
               "command": {
-                "clickTrackingParams": "CDgQ7OYFGAMiEwiphM_tgbCUAxXqjuUHHcJVDs7KAQSbejfs",
+                "clickTrackingParams": "CDgQ7OYFGAMiEwiV1bqSkrCUAxX9XBIBHewuIXnKAQQcPiyp",
                 "showReloadUiCommand": {
                   "targetId": "search-page"
                 }
@@ -97,7 +97,7 @@
               "token": "EuUEEgliYWQgYnVubnka1ARFclVEa2dHeEF6b29FaHA1YjNWMGRXSmxYM1pwWkdWdlgzQmhaMlVnT25SNWNHVTZjaWdCVUFGZ1NHZ0JjQUY0QVVxRUF3b1pDZ2xpWVdRZ1luVnVibm55QVFVS0EwRnNiTmdDQWJnRFlRcWxBZklCQ0FvR1UyaHZjblJ6d2dLUUFTaGhJSGx2ZFhSMVltVmZjMmh2Y25SelgyUmxabWx1YVhScGIyNGdPblI1Y0dVNmNpQW9iaUI1YjNWMGRXSmxYMlpzWVdkZmFHRnpYM0J5WlcxcFpYSmxYM1pwWkdWdlgyMWxkR0ZrWVhSaFBURWdPblI1Y0dVNmNpa2dLRzRnZVc5MWRIVmlaVjltYkdGblgyaGhjMTlzYVhabFgzTjBjbVZoYlY5dFpYUmhaR0YwWVQweElEcDBlWEJsT25JcEtmZ0NBYmdER2dvVzhnRUxDZ2xWYm5kaGRHTm9aV1RLQWdJWUFiZ0RIQW9VOGdFSkNnZFhZWFJqYUdWa3lnSUNHQUs0QTBvS092SUJDQW9HVm1sa1pXOXp3Z0lhZVc5MWRIVmlaVjkyYVdSbGIxOXdZV2RsSURwMGVYQmxPbkxvQWdHb0F3RzRBMGpBQXdISUF3SFFBd0VLRzJBSDhnRVRDaEZTWldObGJuUnNlU0IxY0d4dllXUmxaTGdEQndvMjhnRUdDZ1JNYVhabHdnSW5lVzkxZEhWaVpWOXNhWFpsWDJKeWIyRmtZMkZ6ZEY5emRHRjBkWE05TUNBNmRIbHdaVHB5dUFNRUdBdDRBQSUzRCUzRJABARiB4OgYIgtzZWFyY2gtcGFnZQ%3D%3D",
               "request": "CONTINUATION_REQUEST_TYPE_SEARCH",
               "command": {
-                "clickTrackingParams": "CDcQ7OYFGAQiEwiphM_tgbCUAxXqjuUHHcJVDs7KAQSbejfs",
+                "clickTrackingParams": "CDcQ7OYFGAQiEwiV1bqSkrCUAxX9XBIBHewuIXnKAQQcPiyp",
                 "showReloadUiCommand": {
                   "targetId": "search-page"
                 }
@@ -123,7 +123,7 @@
               "token": "ErUEEgliYWQgYnVubnkapARFcEVEa2dHTkF6b0VJQWRnQjBxRUF3b1pDZ2xpWVdRZ1luVnVibm55QVFVS0EwRnNiTmdDQWJnRFlRcWxBZklCQ0FvR1UyaHZjblJ6d2dLUUFTaGhJSGx2ZFhSMVltVmZjMmh2Y25SelgyUmxabWx1YVhScGIyNGdPblI1Y0dVNmNpQW9iaUI1YjNWMGRXSmxYMlpzWVdkZmFHRnpYM0J5WlcxcFpYSmxYM1pwWkdWdlgyMWxkR0ZrWVhSaFBURWdPblI1Y0dVNmNpa2dLRzRnZVc5MWRIVmlaVjltYkdGblgyaGhjMTlzYVhabFgzTjBjbVZoYlY5dFpYUmhaR0YwWVQweElEcDBlWEJsT25JcEtmZ0NBYmdER2dvVzhnRUxDZ2xWYm5kaGRHTm9aV1RLQWdJWUFiZ0RIQW9VOGdFSkNnZFhZWFJqYUdWa3lnSUNHQUs0QTBvS092SUJDQW9HVm1sa1pXOXp3Z0lhZVc5MWRIVmlaVjkyYVdSbGIxOXdZV2RsSURwMGVYQmxPbkxvQWdHb0F3RzRBMGpBQXdISUF3SFFBd0VLRzJBSDhnRVRDaEZTWldObGJuUnNlU0IxY0d4dllXUmxaTGdEQndvMjhnRUdDZ1JNYVhabHdnSW5lVzkxZEhWaVpWOXNhWFpsWDJKeWIyRmtZMkZ6ZEY5emRHRjBkWE05TUNBNmRIbHdaVHB5dUFNRUdBdDRBQSUzRCUzRJABARiB4OgYIgtzZWFyY2gtcGFnZQ%3D%3D",
               "request": "CONTINUATION_REQUEST_TYPE_SEARCH",
               "command": {
-                "clickTrackingParams": "CDYQ7OYFGAUiEwiphM_tgbCUAxXqjuUHHcJVDs7KAQSbejfs",
+                "clickTrackingParams": "CDYQ7OYFGAUiEwiV1bqSkrCUAxX9XBIBHewuIXnKAQQcPiyp",
                 "showReloadUiCommand": {
                   "targetId": "search-page"
                 }
@@ -149,7 +149,7 @@
               "token": "EukEEgliYWQgYnVubnka2ARFcmdEa2dHMEF6b3JFaWQ1YjNWMGRXSmxYMnhwZG1WZlluSnZZV1JqWVhOMFgzTjBZWFIxY3owd0lEcDBlWEJsT25KZ0JFcUVBd29aQ2dsaVlXUWdZblZ1Ym5ueUFRVUtBMEZzYk5nQ0FiZ0RZUXFsQWZJQkNBb0dVMmh2Y25SendnS1FBU2hoSUhsdmRYUjFZbVZmYzJodmNuUnpYMlJsWm1sdWFYUnBiMjRnT25SNWNHVTZjaUFvYmlCNWIzVjBkV0psWDJac1lXZGZhR0Z6WDNCeVpXMXBaWEpsWDNacFpHVnZYMjFsZEdGa1lYUmhQVEVnT25SNWNHVTZjaWtnS0c0Z2VXOTFkSFZpWlY5bWJHRm5YMmhoYzE5c2FYWmxYM04wY21WaGJWOXRaWFJoWkdGMFlUMHhJRHAwZVhCbE9uSXBLZmdDQWJnREdnb1c4Z0VMQ2dsVmJuZGhkR05vWldUS0FnSVlBYmdESEFvVThnRUpDZ2RYWVhSamFHVmt5Z0lDR0FLNEEwb0tPdklCQ0FvR1ZtbGtaVzl6d2dJYWVXOTFkSFZpWlY5MmFXUmxiMTl3WVdkbElEcDBlWEJsT25Mb0FnR29Bd0c0QTBqQUF3SElBd0hRQXdFS0cyQUg4Z0VUQ2hGU1pXTmxiblJzZVNCMWNHeHZZV1JsWkxnREJ3bzI4Z0VHQ2dSTWFYWmx3Z0luZVc5MWRIVmlaVjlzYVhabFgySnliMkZrWTJGemRGOXpkR0YwZFhNOU1DQTZkSGx3WlRweXVBTUVHQXQ0QUElM0QlM0SQAQEYgeDoGCILc2VhcmNoLXBhZ2U%3D",
               "request": "CONTINUATION_REQUEST_TYPE_SEARCH",
               "command": {
-                "clickTrackingParams": "CDUQ7OYFGAYiEwiphM_tgbCUAxXqjuUHHcJVDs7KAQSbejfs",
+                "clickTrackingParams": "CDUQ7OYFGAYiEwiV1bqSkrCUAxX9XBIBHewuIXnKAQQcPiyp",
                 "showReloadUiCommand": {
                   "targetId": "search-page"
                 }
@@ -1357,7 +1357,7 @@
           "name": "signInEndpoint",
           "payload": {
             "nextEndpoint": {
-              "clickTrackingParams": "CFQQ8FsiEwiphM_tgbCUAxXqjuUHHcJVDs7KAQSbejfs",
+              "clickTrackingParams": "CFQQ8FsiEwiV1bqSkrCUAxX9XBIBHewuIXnKAQQcPiyp",
               "commandMetadata": {
                 "webCommandMetadata": {
                   "url": "/results?search_query=bad+bunny&sp=EgIQAw%253D%253D",
@@ -1370,7 +1370,7 @@
                 "params": "EgIQAw%3D%3D"
               }
             },
-            "continueAction": "QUFFLUhqbDM3MlhReGVkRkFmdnpmeVNnSVMwa19ZTHFNUXxBQ3Jtc0trd1pmNngxY3l5RU1RWmZMRGNNSnRQMXBhZFRZWmhkdTc0aGdGeTZzTUVpVEpxZTM5WHJidXd0S1BDWHRFWVN5X2VqbDdMUkV6WU96eXB0N09NSUk5cFdfN0VIZVRESWhYZUk1REhHaE5iSDkwdWNzUVlwOXcxSExCeXNsYlZHd2VwXzAxRTBxaVFvMXZVYW5Wb2dOWWZWNVpjZEMtLVYtUUMtZmEwWkFDTmR2MlVRQ1lMUW9qN0hhRUVOOGIxQ09OMTFjcDE"
+            "continueAction": "QUFFLUhqbkdJYXRVWnp0ZXMtcDgtNk5HQ0RHSjVtQjZvZ3xBQ3Jtc0tuUWR2bllwaW4xSDhVMl9zNlFCckNfeFZHazRqZWF0MlRiaHVSUlhDLWlSWnBzMVpCN0hFVHhhZG82SGU0MkFQcl9WdWIwRE9OQS1CYTg0WXJMcXZHQUE0VDFfVVZmWVJEZlhqelZ4djZXRURGZ1JwNzM4YjdSRV9vNmxnOEZPMDlIWERNSWdYWlJvUDVXYy1valRTMk90Si0tTUJ1RlVCSzBMWUVab2VvX3RISDJuYjRtNVFvOTJvYzZON2xxbTdDTDByOGY"
           },
           "next_endpoint": {
             "type": "NavigationEndpoint",
@@ -1389,7 +1389,7 @@
             }
           },
           "metadata": {
-            "url": "https://accounts.google.com/ServiceLogin?service=youtube&uilel=3&passive=true&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Faction_handle_signin%3Dtrue%26app%3Ddesktop%26hl%3Den%26next%3D%252Fresults%253Fsearch_query%253Dbad%252Bbunny%2526sp%253DEgIQAw%2525253D%2525253D%26continue_action%3DQUFFLUhqbDM3MlhReGVkRkFmdnpmeVNnSVMwa19ZTHFNUXxBQ3Jtc0trd1pmNngxY3l5RU1RWmZMRGNNSnRQMXBhZFRZWmhkdTc0aGdGeTZzTUVpVEpxZTM5WHJidXd0S1BDWHRFWVN5X2VqbDdMUkV6WU96eXB0N09NSUk5cFdfN0VIZVRESWhYZUk1REhHaE5iSDkwdWNzUVlwOXcxSExCeXNsYlZHd2VwXzAxRTBxaVFvMXZVYW5Wb2dOWWZWNVpjZEMtLVYtUUMtZmEwWkFDTmR2MlVRQ1lMUW9qN0hhRUVOOGIxQ09OMTFjcDE&hl=en",
+            "url": "https://accounts.google.com/ServiceLogin?service=youtube&uilel=3&passive=true&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Faction_handle_signin%3Dtrue%26app%3Ddesktop%26hl%3Den%26next%3D%252Fresults%253Fsearch_query%253Dbad%252Bbunny%2526sp%253DEgIQAw%2525253D%2525253D%26continue_action%3DQUFFLUhqbkdJYXRVWnp0ZXMtcDgtNk5HQ0RHSjVtQjZvZ3xBQ3Jtc0tuUWR2bllwaW4xSDhVMl9zNlFCckNfeFZHazRqZWF0MlRiaHVSUlhDLWlSWnBzMVpCN0hFVHhhZG82SGU0MkFQcl9WdWIwRE9OQS1CYTg0WXJMcXZHQUE0VDFfVVZmWVJEZlhqelZ4djZXRURGZ1JwNzM4YjdSRV9vNmxnOEZPMDlIWERNSWdYWlJvUDVXYy1valRTMk90Si0tTUJ1RlVCSzBMWUVab2VvX3RISDJuYjRtNVFvOTJvYzZON2xxbTdDTDByOGY&hl=en",
             "page_type": "WEB_PAGE_TYPE_UNKNOWN"
           }
         }
@@ -1748,13 +1748,358 @@
               "watchEndpointSupportedOnesieConfig": {
                 "html5PlaybackOnesieConfig": {
                   "commonConfig": {
-                    "url": "https://rr4---sn-uhvcpax0n5-50ns.googlevideo.com/initplayback?source=youtube&oeis=1&c=WEB&oad=3200&ovd=3200&oaad=11000&oavd=11000&ocs=700&oewis=1&oputc=1&ofpcc=1&msp=1&odepv=1&id=b17709e55ab30938&ip=172.56.8.91&initcwndbps=2028750&mt=1778460054&oweuc="
+                    "url": "https://rr4---sn-uhvcpax0n5-50ns.googlevideo.com/initplayback?source=youtube&oeis=1&c=WEB&oad=3200&ovd=3200&oaad=11000&oavd=11000&ocs=700&oewis=1&oputc=1&ofpcc=1&msp=1&odepv=1&id=b17709e55ab30938&ip=172.56.8.91&initcwndbps=1990000&mt=1778464366&oweuc="
                   }
                 }
               }
             },
             "metadata": {
               "url": "/watch?v=sXcJ5VqzCTg&list=PLDOAlJmk0HiE8rmTSb6E2ca-XeFsmhPzZ",
+              "page_type": "WEB_PAGE_TYPE_WATCH",
+              "api_url": "/player"
+            },
+            "command": {
+              "type": "WatchEndpoint"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "LockupView",
+      "content_image": {
+        "type": "CollectionThumbnailView",
+        "primary_thumbnail": {
+          "type": "ThumbnailView",
+          "image": [
+            {
+              "url": "https://i.ytimg.com/vi/WdSGEvDGZAo/hq720.jpg?sqp=-oaymwEXCNAFEJQDSFryq4qpAwkIARUAAIhCGAE=&rs=AOn4CLCDUtFyP4KWNeoLM60YHXZ_U9kkOw",
+              "width": 720,
+              "height": 404
+            },
+            {
+              "url": "https://i.ytimg.com/vi/WdSGEvDGZAo/hq720.jpg?sqp=-oaymwEXCOgCEMoBSFryq4qpAwkIARUAAIhCGAE=&rs=AOn4CLC_5MV3JxgcxpGfkkpmV2D6aNFb0g",
+              "width": 360,
+              "height": 202
+            }
+          ],
+          "overlays": [
+            {
+              "type": "ThumbnailOverlayBadgeView",
+              "badges": [
+                {
+                  "type": "ThumbnailBadgeView",
+                  "text": "17 videos",
+                  "badge_style": "THUMBNAIL_OVERLAY_BADGE_STYLE_DEFAULT",
+                  "background_color": {
+                    "light_theme": 1910284,
+                    "dark_theme": 1910284
+                  }
+                }
+              ],
+              "position": "THUMBNAIL_OVERLAY_BADGE_POSITION_BOTTOM_END"
+            },
+            {
+              "type": "ThumbnailHoverOverlayView",
+              "icon_name": "PLAY_ALL",
+              "text": {
+                "text": "Play all",
+                "runs": [
+                  {
+                    "text": "Play all",
+                    "bold": false,
+                    "bracket": false,
+                    "deemphasize": false,
+                    "italics": false,
+                    "strikethrough": false,
+                    "error_underline": false,
+                    "underline": false
+                  }
+                ],
+                "rtl": false
+              },
+              "style": "THUMBNAIL_HOVER_OVERLAY_STYLE_COVER"
+            }
+          ],
+          "background_color": {
+            "light_theme": 3161877,
+            "dark_theme": 3161877
+          }
+        },
+        "stack_color": {
+          "light_theme": 8952171,
+          "dark_theme": 8555632
+        }
+      },
+      "metadata": {
+        "type": "LockupMetadataView",
+        "title": {
+          "text": "bad bunny new album 2025",
+          "runs": [
+            {
+              "text": "bad bunny new album 2025",
+              "bold": false,
+              "bracket": false,
+              "deemphasize": false,
+              "italics": false,
+              "strikethrough": false,
+              "error_underline": false,
+              "underline": false
+            }
+          ],
+          "rtl": false
+        },
+        "metadata": {
+          "type": "ContentMetadataView",
+          "metadata_rows": [
+            {
+              "metadata_parts": [
+                {
+                  "text": {
+                    "text": "Milli Cardona",
+                    "runs": [
+                      {
+                        "text": "Milli Cardona",
+                        "endpoint": {
+                          "type": "NavigationEndpoint",
+                          "name": "browseEndpoint",
+                          "payload": {
+                            "browseId": "UCRBaWqLZzPO0OWbu6M-xSAw",
+                            "canonicalBaseUrl": "/@millicardona3383"
+                          },
+                          "metadata": {
+                            "url": "/@millicardona3383",
+                            "page_type": "WEB_PAGE_TYPE_CHANNEL",
+                            "api_url": "browse"
+                          },
+                          "command": {
+                            "type": "BrowseEndpoint"
+                          }
+                        },
+                        "bold": false,
+                        "bracket": false,
+                        "deemphasize": false,
+                        "italics": false,
+                        "strikethrough": false,
+                        "error_underline": false,
+                        "underline": false
+                      }
+                    ],
+                    "endpoint": {
+                      "type": "NavigationEndpoint",
+                      "name": "browseEndpoint",
+                      "payload": {
+                        "browseId": "UCRBaWqLZzPO0OWbu6M-xSAw",
+                        "canonicalBaseUrl": "/@millicardona3383"
+                      },
+                      "metadata": {
+                        "url": "/@millicardona3383",
+                        "page_type": "WEB_PAGE_TYPE_CHANNEL",
+                        "api_url": "browse"
+                      },
+                      "command": {
+                        "type": "BrowseEndpoint"
+                      }
+                    },
+                    "rtl": false
+                  },
+                  "avatar_stack": null
+                },
+                {
+                  "text": {
+                    "text": "Playlist",
+                    "runs": [
+                      {
+                        "text": "Playlist",
+                        "endpoint": {
+                          "type": "NavigationEndpoint",
+                          "name": "browseEndpoint",
+                          "payload": {
+                            "browseId": "UCRBaWqLZzPO0OWbu6M-xSAw",
+                            "canonicalBaseUrl": "/@millicardona3383"
+                          },
+                          "metadata": {
+                            "url": "/@millicardona3383",
+                            "page_type": "WEB_PAGE_TYPE_CHANNEL",
+                            "api_url": "browse"
+                          },
+                          "command": {
+                            "type": "BrowseEndpoint"
+                          }
+                        },
+                        "bold": false,
+                        "bracket": false,
+                        "deemphasize": false,
+                        "italics": false,
+                        "strikethrough": false,
+                        "error_underline": false,
+                        "underline": false
+                      }
+                    ],
+                    "endpoint": {
+                      "type": "NavigationEndpoint",
+                      "name": "browseEndpoint",
+                      "payload": {
+                        "browseId": "UCRBaWqLZzPO0OWbu6M-xSAw",
+                        "canonicalBaseUrl": "/@millicardona3383"
+                      },
+                      "metadata": {
+                        "url": "/@millicardona3383",
+                        "page_type": "WEB_PAGE_TYPE_CHANNEL",
+                        "api_url": "browse"
+                      },
+                      "command": {
+                        "type": "BrowseEndpoint"
+                      }
+                    },
+                    "rtl": false
+                  },
+                  "avatar_stack": null
+                }
+              ],
+              "badges": []
+            },
+            {
+              "badges": []
+            },
+            {
+              "metadata_parts": [
+                {
+                  "text": {
+                    "text": "NUEVAYoL · 3:04",
+                    "runs": [
+                      {
+                        "text": "NUEVAYoL · 3:04",
+                        "bold": false,
+                        "bracket": false,
+                        "deemphasize": false,
+                        "italics": false,
+                        "strikethrough": false,
+                        "error_underline": false,
+                        "underline": false
+                      }
+                    ],
+                    "rtl": false
+                  },
+                  "avatar_stack": null
+                }
+              ],
+              "badges": []
+            },
+            {
+              "metadata_parts": [
+                {
+                  "text": {
+                    "text": "VOY A LLeVARTE PA PR · 2:37",
+                    "runs": [
+                      {
+                        "text": "VOY A LLeVARTE PA PR · 2:37",
+                        "bold": false,
+                        "bracket": false,
+                        "deemphasize": false,
+                        "italics": false,
+                        "strikethrough": false,
+                        "error_underline": false,
+                        "underline": false
+                      }
+                    ],
+                    "rtl": false
+                  },
+                  "avatar_stack": null
+                }
+              ],
+              "badges": []
+            },
+            {
+              "badges": []
+            },
+            {
+              "metadata_parts": [
+                {
+                  "text": {
+                    "text": "View full playlist",
+                    "runs": [
+                      {
+                        "text": "View full playlist",
+                        "endpoint": {
+                          "type": "NavigationEndpoint",
+                          "name": "browseEndpoint",
+                          "payload": {
+                            "browseId": "VLPLy0tzzdIA_JBPQre0idTQwyxb4sUZJgj5"
+                          },
+                          "metadata": {
+                            "url": "/playlist?list=PLy0tzzdIA_JBPQre0idTQwyxb4sUZJgj5",
+                            "page_type": "WEB_PAGE_TYPE_PLAYLIST",
+                            "api_url": "browse"
+                          },
+                          "command": {
+                            "type": "BrowseEndpoint"
+                          }
+                        },
+                        "bold": true,
+                        "bracket": false,
+                        "deemphasize": false,
+                        "italics": false,
+                        "strikethrough": false,
+                        "error_underline": false,
+                        "underline": false
+                      }
+                    ],
+                    "endpoint": {
+                      "type": "NavigationEndpoint",
+                      "name": "browseEndpoint",
+                      "payload": {
+                        "browseId": "VLPLy0tzzdIA_JBPQre0idTQwyxb4sUZJgj5"
+                      },
+                      "metadata": {
+                        "url": "/playlist?list=PLy0tzzdIA_JBPQre0idTQwyxb4sUZJgj5",
+                        "page_type": "WEB_PAGE_TYPE_PLAYLIST",
+                        "api_url": "browse"
+                      },
+                      "command": {
+                        "type": "BrowseEndpoint"
+                      }
+                    },
+                    "rtl": false
+                  },
+                  "avatar_stack": null
+                }
+              ],
+              "badges": []
+            }
+          ],
+          "delimiter": " • "
+        },
+        "image": null,
+        "menu_button": null
+      },
+      "content_id": "PLy0tzzdIA_JBPQre0idTQwyxb4sUZJgj5",
+      "content_type": "PLAYLIST",
+      "renderer_context": {
+        "command_context": {
+          "on_tap": {
+            "type": "NavigationEndpoint",
+            "name": "watchEndpoint",
+            "payload": {
+              "videoId": "WdSGEvDGZAo",
+              "playlistId": "PLy0tzzdIA_JBPQre0idTQwyxb4sUZJgj5",
+              "params": "OAI%3D",
+              "playerParams": "0gcJCcsEOCosWNin",
+              "loggingContext": {
+                "vssLoggingContext": {
+                  "serializedContextData": "GiJQTHkwdHp6ZElBX0pCUFFyZTBpZFRRd3l4YjRzVVpKZ2o1"
+                }
+              },
+              "watchEndpointSupportedOnesieConfig": {
+                "html5PlaybackOnesieConfig": {
+                  "commonConfig": {
+                    "url": "https://rr5---sn-uhvcpax0n5-50ns.googlevideo.com/initplayback?source=youtube&oeis=1&c=WEB&oad=3200&ovd=3200&oaad=11000&oavd=11000&ocs=700&oewis=1&oputc=1&ofpcc=1&msp=1&odepv=1&id=59d48612f0c6640a&ip=172.56.8.91&initcwndbps=1990000&mt=1778464366&oweuc="
+                  }
+                }
+              }
+            },
+            "metadata": {
+              "url": "/watch?v=WdSGEvDGZAo&list=PLy0tzzdIA_JBPQre0idTQwyxb4sUZJgj5&pp=0gcJCcsEOCosWNin",
               "page_type": "WEB_PAGE_TYPE_WATCH",
               "api_url": "/player"
             },
@@ -2092,357 +2437,13 @@
               "watchEndpointSupportedOnesieConfig": {
                 "html5PlaybackOnesieConfig": {
                   "commonConfig": {
-                    "url": "https://rr1---sn-uhvcpax0n5-50ns.googlevideo.com/initplayback?source=youtube&oeis=1&c=WEB&oad=3200&ovd=3200&oaad=11000&oavd=11000&ocs=700&oewis=1&oputc=1&ofpcc=1&msp=1&odepv=1&id=341821863b8c34a3&ip=172.56.8.91&initcwndbps=2028750&mt=1778460054&oweuc="
+                    "url": "https://rr1---sn-uhvcpax0n5-50ns.googlevideo.com/initplayback?source=youtube&oeis=1&c=WEB&oad=3200&ovd=3200&oaad=11000&oavd=11000&ocs=700&oewis=1&oputc=1&ofpcc=1&msp=1&odepv=1&id=341821863b8c34a3&ip=172.56.8.91&initcwndbps=1990000&mt=1778464366&oweuc="
                   }
                 }
               }
             },
             "metadata": {
               "url": "/watch?v=NBghhjuMNKM&list=PLfiMjLyNWxeabq4TEuVRiB125TbgShi55",
-              "page_type": "WEB_PAGE_TYPE_WATCH",
-              "api_url": "/player"
-            },
-            "command": {
-              "type": "WatchEndpoint"
-            }
-          }
-        }
-      }
-    },
-    {
-      "type": "LockupView",
-      "content_image": {
-        "type": "CollectionThumbnailView",
-        "primary_thumbnail": {
-          "type": "ThumbnailView",
-          "image": [
-            {
-              "url": "https://i.ytimg.com/vi/WdSGEvDGZAo/hq720.jpg?sqp=-oaymwEXCNAFEJQDSFryq4qpAwkIARUAAIhCGAE=&rs=AOn4CLCDUtFyP4KWNeoLM60YHXZ_U9kkOw",
-              "width": 720,
-              "height": 404
-            },
-            {
-              "url": "https://i.ytimg.com/vi/WdSGEvDGZAo/hq720.jpg?sqp=-oaymwEXCOgCEMoBSFryq4qpAwkIARUAAIhCGAE=&rs=AOn4CLC_5MV3JxgcxpGfkkpmV2D6aNFb0g",
-              "width": 360,
-              "height": 202
-            }
-          ],
-          "overlays": [
-            {
-              "type": "ThumbnailOverlayBadgeView",
-              "badges": [
-                {
-                  "type": "ThumbnailBadgeView",
-                  "text": "17 videos",
-                  "badge_style": "THUMBNAIL_OVERLAY_BADGE_STYLE_DEFAULT",
-                  "background_color": {
-                    "light_theme": 1910284,
-                    "dark_theme": 1910284
-                  }
-                }
-              ],
-              "position": "THUMBNAIL_OVERLAY_BADGE_POSITION_BOTTOM_END"
-            },
-            {
-              "type": "ThumbnailHoverOverlayView",
-              "icon_name": "PLAY_ALL",
-              "text": {
-                "text": "Play all",
-                "runs": [
-                  {
-                    "text": "Play all",
-                    "bold": false,
-                    "bracket": false,
-                    "deemphasize": false,
-                    "italics": false,
-                    "strikethrough": false,
-                    "error_underline": false,
-                    "underline": false
-                  }
-                ],
-                "rtl": false
-              },
-              "style": "THUMBNAIL_HOVER_OVERLAY_STYLE_COVER"
-            }
-          ],
-          "background_color": {
-            "light_theme": 3161877,
-            "dark_theme": 3161877
-          }
-        },
-        "stack_color": {
-          "light_theme": 8952171,
-          "dark_theme": 8555632
-        }
-      },
-      "metadata": {
-        "type": "LockupMetadataView",
-        "title": {
-          "text": "bad bunny new album 2025",
-          "runs": [
-            {
-              "text": "bad bunny new album 2025",
-              "bold": false,
-              "bracket": false,
-              "deemphasize": false,
-              "italics": false,
-              "strikethrough": false,
-              "error_underline": false,
-              "underline": false
-            }
-          ],
-          "rtl": false
-        },
-        "metadata": {
-          "type": "ContentMetadataView",
-          "metadata_rows": [
-            {
-              "metadata_parts": [
-                {
-                  "text": {
-                    "text": "Milli Cardona",
-                    "runs": [
-                      {
-                        "text": "Milli Cardona",
-                        "endpoint": {
-                          "type": "NavigationEndpoint",
-                          "name": "browseEndpoint",
-                          "payload": {
-                            "browseId": "UCRBaWqLZzPO0OWbu6M-xSAw",
-                            "canonicalBaseUrl": "/@millicardona3383"
-                          },
-                          "metadata": {
-                            "url": "/@millicardona3383",
-                            "page_type": "WEB_PAGE_TYPE_CHANNEL",
-                            "api_url": "browse"
-                          },
-                          "command": {
-                            "type": "BrowseEndpoint"
-                          }
-                        },
-                        "bold": false,
-                        "bracket": false,
-                        "deemphasize": false,
-                        "italics": false,
-                        "strikethrough": false,
-                        "error_underline": false,
-                        "underline": false
-                      }
-                    ],
-                    "endpoint": {
-                      "type": "NavigationEndpoint",
-                      "name": "browseEndpoint",
-                      "payload": {
-                        "browseId": "UCRBaWqLZzPO0OWbu6M-xSAw",
-                        "canonicalBaseUrl": "/@millicardona3383"
-                      },
-                      "metadata": {
-                        "url": "/@millicardona3383",
-                        "page_type": "WEB_PAGE_TYPE_CHANNEL",
-                        "api_url": "browse"
-                      },
-                      "command": {
-                        "type": "BrowseEndpoint"
-                      }
-                    },
-                    "rtl": false
-                  },
-                  "avatar_stack": null
-                },
-                {
-                  "text": {
-                    "text": "Playlist",
-                    "runs": [
-                      {
-                        "text": "Playlist",
-                        "endpoint": {
-                          "type": "NavigationEndpoint",
-                          "name": "browseEndpoint",
-                          "payload": {
-                            "browseId": "UCRBaWqLZzPO0OWbu6M-xSAw",
-                            "canonicalBaseUrl": "/@millicardona3383"
-                          },
-                          "metadata": {
-                            "url": "/@millicardona3383",
-                            "page_type": "WEB_PAGE_TYPE_CHANNEL",
-                            "api_url": "browse"
-                          },
-                          "command": {
-                            "type": "BrowseEndpoint"
-                          }
-                        },
-                        "bold": false,
-                        "bracket": false,
-                        "deemphasize": false,
-                        "italics": false,
-                        "strikethrough": false,
-                        "error_underline": false,
-                        "underline": false
-                      }
-                    ],
-                    "endpoint": {
-                      "type": "NavigationEndpoint",
-                      "name": "browseEndpoint",
-                      "payload": {
-                        "browseId": "UCRBaWqLZzPO0OWbu6M-xSAw",
-                        "canonicalBaseUrl": "/@millicardona3383"
-                      },
-                      "metadata": {
-                        "url": "/@millicardona3383",
-                        "page_type": "WEB_PAGE_TYPE_CHANNEL",
-                        "api_url": "browse"
-                      },
-                      "command": {
-                        "type": "BrowseEndpoint"
-                      }
-                    },
-                    "rtl": false
-                  },
-                  "avatar_stack": null
-                }
-              ],
-              "badges": []
-            },
-            {
-              "badges": []
-            },
-            {
-              "metadata_parts": [
-                {
-                  "text": {
-                    "text": "NUEVAYoL · 3:04",
-                    "runs": [
-                      {
-                        "text": "NUEVAYoL · 3:04",
-                        "bold": false,
-                        "bracket": false,
-                        "deemphasize": false,
-                        "italics": false,
-                        "strikethrough": false,
-                        "error_underline": false,
-                        "underline": false
-                      }
-                    ],
-                    "rtl": false
-                  },
-                  "avatar_stack": null
-                }
-              ],
-              "badges": []
-            },
-            {
-              "metadata_parts": [
-                {
-                  "text": {
-                    "text": "VOY A LLeVARTE PA PR · 2:37",
-                    "runs": [
-                      {
-                        "text": "VOY A LLeVARTE PA PR · 2:37",
-                        "bold": false,
-                        "bracket": false,
-                        "deemphasize": false,
-                        "italics": false,
-                        "strikethrough": false,
-                        "error_underline": false,
-                        "underline": false
-                      }
-                    ],
-                    "rtl": false
-                  },
-                  "avatar_stack": null
-                }
-              ],
-              "badges": []
-            },
-            {
-              "badges": []
-            },
-            {
-              "metadata_parts": [
-                {
-                  "text": {
-                    "text": "View full playlist",
-                    "runs": [
-                      {
-                        "text": "View full playlist",
-                        "endpoint": {
-                          "type": "NavigationEndpoint",
-                          "name": "browseEndpoint",
-                          "payload": {
-                            "browseId": "VLPLy0tzzdIA_JBPQre0idTQwyxb4sUZJgj5"
-                          },
-                          "metadata": {
-                            "url": "/playlist?list=PLy0tzzdIA_JBPQre0idTQwyxb4sUZJgj5",
-                            "page_type": "WEB_PAGE_TYPE_PLAYLIST",
-                            "api_url": "browse"
-                          },
-                          "command": {
-                            "type": "BrowseEndpoint"
-                          }
-                        },
-                        "bold": true,
-                        "bracket": false,
-                        "deemphasize": false,
-                        "italics": false,
-                        "strikethrough": false,
-                        "error_underline": false,
-                        "underline": false
-                      }
-                    ],
-                    "endpoint": {
-                      "type": "NavigationEndpoint",
-                      "name": "browseEndpoint",
-                      "payload": {
-                        "browseId": "VLPLy0tzzdIA_JBPQre0idTQwyxb4sUZJgj5"
-                      },
-                      "metadata": {
-                        "url": "/playlist?list=PLy0tzzdIA_JBPQre0idTQwyxb4sUZJgj5",
-                        "page_type": "WEB_PAGE_TYPE_PLAYLIST",
-                        "api_url": "browse"
-                      },
-                      "command": {
-                        "type": "BrowseEndpoint"
-                      }
-                    },
-                    "rtl": false
-                  },
-                  "avatar_stack": null
-                }
-              ],
-              "badges": []
-            }
-          ],
-          "delimiter": " • "
-        },
-        "image": null,
-        "menu_button": null
-      },
-      "content_id": "PLy0tzzdIA_JBPQre0idTQwyxb4sUZJgj5",
-      "content_type": "PLAYLIST",
-      "renderer_context": {
-        "command_context": {
-          "on_tap": {
-            "type": "NavigationEndpoint",
-            "name": "watchEndpoint",
-            "payload": {
-              "videoId": "WdSGEvDGZAo",
-              "playlistId": "PLy0tzzdIA_JBPQre0idTQwyxb4sUZJgj5",
-              "params": "OAI%3D",
-              "loggingContext": {
-                "vssLoggingContext": {
-                  "serializedContextData": "GiJQTHkwdHp6ZElBX0pCUFFyZTBpZFRRd3l4YjRzVVpKZ2o1"
-                }
-              },
-              "watchEndpointSupportedOnesieConfig": {
-                "html5PlaybackOnesieConfig": {
-                  "commonConfig": {
-                    "url": "https://rr5---sn-uhvcpax0n5-50ns.googlevideo.com/initplayback?source=youtube&oeis=1&c=WEB&oad=3200&ovd=3200&oaad=11000&oavd=11000&ocs=700&oewis=1&oputc=1&ofpcc=1&msp=1&odepv=1&id=59d48612f0c6640a&ip=172.56.8.91&initcwndbps=2028750&mt=1778460054&oweuc="
-                  }
-                }
-              }
-            },
-            "metadata": {
-              "url": "/watch?v=WdSGEvDGZAo&list=PLy0tzzdIA_JBPQre0idTQwyxb4sUZJgj5",
               "page_type": "WEB_PAGE_TYPE_WATCH",
               "api_url": "/player"
             },
@@ -2780,7 +2781,7 @@
               "watchEndpointSupportedOnesieConfig": {
                 "html5PlaybackOnesieConfig": {
                   "commonConfig": {
-                    "url": "https://rr4---sn-uhvcpax0n5-50ns.googlevideo.com/initplayback?source=youtube&oeis=1&c=WEB&oad=3200&ovd=3200&oaad=11000&oavd=11000&ocs=700&oewis=1&oputc=1&ofpcc=1&msp=1&odepv=1&id=69c10e012622a066&ip=172.56.8.91&initcwndbps=2028750&mt=1778460054&oweuc="
+                    "url": "https://rr4---sn-uhvcpax0n5-50ns.googlevideo.com/initplayback?source=youtube&oeis=1&c=WEB&oad=3200&ovd=3200&oaad=11000&oavd=11000&ocs=700&oewis=1&oputc=1&ofpcc=1&msp=1&odepv=1&id=69c10e012622a066&ip=172.56.8.91&initcwndbps=1990000&mt=1778464366&oweuc="
                   }
                 }
               }
@@ -3124,7 +3125,7 @@
               "watchEndpointSupportedOnesieConfig": {
                 "html5PlaybackOnesieConfig": {
                   "commonConfig": {
-                    "url": "https://rr5---sn-uhvcpax0n5-50ns.googlevideo.com/initplayback?source=youtube&oeis=1&c=WEB&oad=3200&ovd=3200&oaad=11000&oavd=11000&ocs=700&oewis=1&oputc=1&ofpcc=1&msp=1&odepv=1&id=59d48612f0c6640a&ip=172.56.8.91&initcwndbps=2028750&mt=1778460054&oweuc="
+                    "url": "https://rr5---sn-uhvcpax0n5-50ns.googlevideo.com/initplayback?source=youtube&oeis=1&c=WEB&oad=3200&ovd=3200&oaad=11000&oavd=11000&ocs=700&oewis=1&oputc=1&ofpcc=1&msp=1&odepv=1&id=59d48612f0c6640a&ip=172.56.8.91&initcwndbps=1990000&mt=1778464366&oweuc="
                   }
                 }
               }
@@ -3508,7 +3509,7 @@
               "watchEndpointSupportedOnesieConfig": {
                 "html5PlaybackOnesieConfig": {
                   "commonConfig": {
-                    "url": "https://rr2---sn-uhvcpax0n5-p5ir.googlevideo.com/initplayback?source=youtube&oeis=1&c=WEB&oad=3200&ovd=3200&oaad=11000&oavd=11000&ocs=700&oewis=1&oputc=1&ofpcc=1&msp=1&odepv=1&id=a962fb232ee384a7&ip=172.56.8.91&initcwndbps=2313750&mt=1778460054&oweuc="
+                    "url": "https://rr2---sn-uhvcpax0n5-p5ir.googlevideo.com/initplayback?source=youtube&oeis=1&c=WEB&oad=3200&ovd=3200&oaad=11000&oavd=11000&ocs=700&oewis=1&oputc=1&ofpcc=1&msp=1&odepv=1&id=a962fb232ee384a7&ip=172.56.8.91&initcwndbps=2152500&mt=1778464366&oweuc="
                   }
                 }
               }
@@ -3852,7 +3853,7 @@
               "watchEndpointSupportedOnesieConfig": {
                 "html5PlaybackOnesieConfig": {
                   "commonConfig": {
-                    "url": "https://rr3---sn-uhvcpax0n5-p5ir.googlevideo.com/initplayback?source=youtube&oeis=1&c=WEB&oad=3200&ovd=3200&oaad=11000&oavd=11000&ocs=700&oewis=1&oputc=1&ofpcc=1&msp=1&odepv=1&id=2b2c33788338e450&ip=172.56.8.91&initcwndbps=2313750&mt=1778460054&oweuc="
+                    "url": "https://rr3---sn-uhvcpax0n5-p5ir.googlevideo.com/initplayback?source=youtube&oeis=1&c=WEB&oad=3200&ovd=3200&oaad=11000&oavd=11000&ocs=700&oewis=1&oputc=1&ofpcc=1&msp=1&odepv=1&id=2b2c33788338e450&ip=172.56.8.91&initcwndbps=2152500&mt=1778464366&oweuc="
                   }
                 }
               }
@@ -4236,357 +4237,13 @@
               "watchEndpointSupportedOnesieConfig": {
                 "html5PlaybackOnesieConfig": {
                   "commonConfig": {
-                    "url": "https://rr3---sn-uhvcpax0n5-50ns.googlevideo.com/initplayback?source=youtube&oeis=1&c=WEB&oad=3200&ovd=3200&oaad=11000&oavd=11000&ocs=700&oewis=1&oputc=1&ofpcc=1&msp=1&odepv=1&id=7f9a2663c8d5ad23&ip=172.56.8.91&initcwndbps=2028750&mt=1778460054&oweuc="
+                    "url": "https://rr3---sn-uhvcpax0n5-50ns.googlevideo.com/initplayback?source=youtube&oeis=1&c=WEB&oad=3200&ovd=3200&oaad=11000&oavd=11000&ocs=700&oewis=1&oputc=1&ofpcc=1&msp=1&odepv=1&id=7f9a2663c8d5ad23&ip=172.56.8.91&initcwndbps=1990000&mt=1778464366&oweuc="
                   }
                 }
               }
             },
             "metadata": {
               "url": "/watch?v=f5omY8jVrSM&list=PLRW7iEDD9RDQBBft2zmdpdcznIOyDw_n2",
-              "page_type": "WEB_PAGE_TYPE_WATCH",
-              "api_url": "/player"
-            },
-            "command": {
-              "type": "WatchEndpoint"
-            }
-          }
-        }
-      }
-    },
-    {
-      "type": "LockupView",
-      "content_image": {
-        "type": "CollectionThumbnailView",
-        "primary_thumbnail": {
-          "type": "ThumbnailView",
-          "image": [
-            {
-              "url": "https://i.ytimg.com/vi/bef8QLNHubw/hq720.jpg?sqp=-oaymwEXCNAFEJQDSFryq4qpAwkIARUAAIhCGAE=&rs=AOn4CLD6JHzSbgtX94Mi0sqK_8RLZgxVqg",
-              "width": 720,
-              "height": 404
-            },
-            {
-              "url": "https://i.ytimg.com/vi/bef8QLNHubw/hq720.jpg?sqp=-oaymwEXCOgCEMoBSFryq4qpAwkIARUAAIhCGAE=&rs=AOn4CLAUHsyWTILgPA9woUf9Mo2SF8s5Rw",
-              "width": 360,
-              "height": 202
-            }
-          ],
-          "overlays": [
-            {
-              "type": "ThumbnailOverlayBadgeView",
-              "badges": [
-                {
-                  "type": "ThumbnailBadgeView",
-                  "text": "20 videos",
-                  "badge_style": "THUMBNAIL_OVERLAY_BADGE_STYLE_DEFAULT",
-                  "background_color": {
-                    "light_theme": 3353124,
-                    "dark_theme": 3353124
-                  }
-                }
-              ],
-              "position": "THUMBNAIL_OVERLAY_BADGE_POSITION_BOTTOM_END"
-            },
-            {
-              "type": "ThumbnailHoverOverlayView",
-              "icon_name": "PLAY_ALL",
-              "text": {
-                "text": "Play all",
-                "runs": [
-                  {
-                    "text": "Play all",
-                    "bold": false,
-                    "bracket": false,
-                    "deemphasize": false,
-                    "italics": false,
-                    "strikethrough": false,
-                    "error_underline": false,
-                    "underline": false
-                  }
-                ],
-                "rtl": false
-              },
-              "style": "THUMBNAIL_HOVER_OVERLAY_STYLE_COVER"
-            }
-          ],
-          "background_color": {
-            "light_theme": 4142125,
-            "dark_theme": 4142125
-          }
-        },
-        "stack_color": {
-          "light_theme": 10059373,
-          "dark_theme": 9667190
-        }
-      },
-      "metadata": {
-        "type": "LockupMetadataView",
-        "title": {
-          "text": "Best of Bad Bunny",
-          "runs": [
-            {
-              "text": "Best of Bad Bunny",
-              "bold": false,
-              "bracket": false,
-              "deemphasize": false,
-              "italics": false,
-              "strikethrough": false,
-              "error_underline": false,
-              "underline": false
-            }
-          ],
-          "rtl": false
-        },
-        "metadata": {
-          "type": "ContentMetadataView",
-          "metadata_rows": [
-            {
-              "metadata_parts": [
-                {
-                  "text": {
-                    "text": "Diogo Forte",
-                    "runs": [
-                      {
-                        "text": "Diogo Forte",
-                        "endpoint": {
-                          "type": "NavigationEndpoint",
-                          "name": "browseEndpoint",
-                          "payload": {
-                            "browseId": "UCoWeq2yWSmrSAwOzdDSyJUQ",
-                            "canonicalBaseUrl": "/@diogoforte5481"
-                          },
-                          "metadata": {
-                            "url": "/@diogoforte5481",
-                            "page_type": "WEB_PAGE_TYPE_CHANNEL",
-                            "api_url": "browse"
-                          },
-                          "command": {
-                            "type": "BrowseEndpoint"
-                          }
-                        },
-                        "bold": false,
-                        "bracket": false,
-                        "deemphasize": false,
-                        "italics": false,
-                        "strikethrough": false,
-                        "error_underline": false,
-                        "underline": false
-                      }
-                    ],
-                    "endpoint": {
-                      "type": "NavigationEndpoint",
-                      "name": "browseEndpoint",
-                      "payload": {
-                        "browseId": "UCoWeq2yWSmrSAwOzdDSyJUQ",
-                        "canonicalBaseUrl": "/@diogoforte5481"
-                      },
-                      "metadata": {
-                        "url": "/@diogoforte5481",
-                        "page_type": "WEB_PAGE_TYPE_CHANNEL",
-                        "api_url": "browse"
-                      },
-                      "command": {
-                        "type": "BrowseEndpoint"
-                      }
-                    },
-                    "rtl": false
-                  },
-                  "avatar_stack": null
-                },
-                {
-                  "text": {
-                    "text": "Playlist",
-                    "runs": [
-                      {
-                        "text": "Playlist",
-                        "endpoint": {
-                          "type": "NavigationEndpoint",
-                          "name": "browseEndpoint",
-                          "payload": {
-                            "browseId": "UCoWeq2yWSmrSAwOzdDSyJUQ",
-                            "canonicalBaseUrl": "/@diogoforte5481"
-                          },
-                          "metadata": {
-                            "url": "/@diogoforte5481",
-                            "page_type": "WEB_PAGE_TYPE_CHANNEL",
-                            "api_url": "browse"
-                          },
-                          "command": {
-                            "type": "BrowseEndpoint"
-                          }
-                        },
-                        "bold": false,
-                        "bracket": false,
-                        "deemphasize": false,
-                        "italics": false,
-                        "strikethrough": false,
-                        "error_underline": false,
-                        "underline": false
-                      }
-                    ],
-                    "endpoint": {
-                      "type": "NavigationEndpoint",
-                      "name": "browseEndpoint",
-                      "payload": {
-                        "browseId": "UCoWeq2yWSmrSAwOzdDSyJUQ",
-                        "canonicalBaseUrl": "/@diogoforte5481"
-                      },
-                      "metadata": {
-                        "url": "/@diogoforte5481",
-                        "page_type": "WEB_PAGE_TYPE_CHANNEL",
-                        "api_url": "browse"
-                      },
-                      "command": {
-                        "type": "BrowseEndpoint"
-                      }
-                    },
-                    "rtl": false
-                  },
-                  "avatar_stack": null
-                }
-              ],
-              "badges": []
-            },
-            {
-              "badges": []
-            },
-            {
-              "metadata_parts": [
-                {
-                  "text": {
-                    "text": "Bad Bunny - WHERE SHE GOES (Video Oficial) · 4:32",
-                    "runs": [
-                      {
-                        "text": "Bad Bunny - WHERE SHE GOES (Video Oficial) · 4:32",
-                        "bold": false,
-                        "bracket": false,
-                        "deemphasize": false,
-                        "italics": false,
-                        "strikethrough": false,
-                        "error_underline": false,
-                        "underline": false
-                      }
-                    ],
-                    "rtl": false
-                  },
-                  "avatar_stack": null
-                }
-              ],
-              "badges": []
-            },
-            {
-              "metadata_parts": [
-                {
-                  "text": {
-                    "text": "Bad Bunny - Yonaguni (Video Oficial) · 3:31",
-                    "runs": [
-                      {
-                        "text": "Bad Bunny - Yonaguni (Video Oficial) · 3:31",
-                        "bold": false,
-                        "bracket": false,
-                        "deemphasize": false,
-                        "italics": false,
-                        "strikethrough": false,
-                        "error_underline": false,
-                        "underline": false
-                      }
-                    ],
-                    "rtl": false
-                  },
-                  "avatar_stack": null
-                }
-              ],
-              "badges": []
-            },
-            {
-              "badges": []
-            },
-            {
-              "metadata_parts": [
-                {
-                  "text": {
-                    "text": "View full playlist",
-                    "runs": [
-                      {
-                        "text": "View full playlist",
-                        "endpoint": {
-                          "type": "NavigationEndpoint",
-                          "name": "browseEndpoint",
-                          "payload": {
-                            "browseId": "VLPLOnQdGMmldKcg26XLeLt8csbhn0YGMF42"
-                          },
-                          "metadata": {
-                            "url": "/playlist?list=PLOnQdGMmldKcg26XLeLt8csbhn0YGMF42",
-                            "page_type": "WEB_PAGE_TYPE_PLAYLIST",
-                            "api_url": "browse"
-                          },
-                          "command": {
-                            "type": "BrowseEndpoint"
-                          }
-                        },
-                        "bold": true,
-                        "bracket": false,
-                        "deemphasize": false,
-                        "italics": false,
-                        "strikethrough": false,
-                        "error_underline": false,
-                        "underline": false
-                      }
-                    ],
-                    "endpoint": {
-                      "type": "NavigationEndpoint",
-                      "name": "browseEndpoint",
-                      "payload": {
-                        "browseId": "VLPLOnQdGMmldKcg26XLeLt8csbhn0YGMF42"
-                      },
-                      "metadata": {
-                        "url": "/playlist?list=PLOnQdGMmldKcg26XLeLt8csbhn0YGMF42",
-                        "page_type": "WEB_PAGE_TYPE_PLAYLIST",
-                        "api_url": "browse"
-                      },
-                      "command": {
-                        "type": "BrowseEndpoint"
-                      }
-                    },
-                    "rtl": false
-                  },
-                  "avatar_stack": null
-                }
-              ],
-              "badges": []
-            }
-          ],
-          "delimiter": " • "
-        },
-        "image": null,
-        "menu_button": null
-      },
-      "content_id": "PLOnQdGMmldKcg26XLeLt8csbhn0YGMF42",
-      "content_type": "PLAYLIST",
-      "renderer_context": {
-        "command_context": {
-          "on_tap": {
-            "type": "NavigationEndpoint",
-            "name": "watchEndpoint",
-            "payload": {
-              "videoId": "bef8QLNHubw",
-              "playlistId": "PLOnQdGMmldKcg26XLeLt8csbhn0YGMF42",
-              "params": "OAI%3D",
-              "loggingContext": {
-                "vssLoggingContext": {
-                  "serializedContextData": "GiJQTE9uUWRHTW1sZEtjZzI2WExlTHQ4Y3NiaG4wWUdNRjQy"
-                }
-              },
-              "watchEndpointSupportedOnesieConfig": {
-                "html5PlaybackOnesieConfig": {
-                  "commonConfig": {
-                    "url": "https://rr5---sn-uhvcpax0n5-50ns.googlevideo.com/initplayback?source=youtube&oeis=1&c=WEB&oad=3200&ovd=3200&oaad=11000&oavd=11000&ocs=700&oewis=1&oputc=1&ofpcc=1&msp=1&odepv=1&id=6de7fc40b347b9bc&ip=172.56.8.91&initcwndbps=2028750&mt=1778460054&oweuc="
-                  }
-                }
-              }
-            },
-            "metadata": {
-              "url": "/watch?v=bef8QLNHubw&list=PLOnQdGMmldKcg26XLeLt8csbhn0YGMF42",
               "page_type": "WEB_PAGE_TYPE_WATCH",
               "api_url": "/player"
             },
@@ -4924,13 +4581,357 @@
               "watchEndpointSupportedOnesieConfig": {
                 "html5PlaybackOnesieConfig": {
                   "commonConfig": {
-                    "url": "https://rr2---sn-uhvcpax0n5-50ns.googlevideo.com/initplayback?source=youtube&oeis=1&c=WEB&oad=3200&ovd=3200&oaad=11000&oavd=11000&ocs=700&oewis=1&oputc=1&ofpcc=1&msp=1&odepv=1&id=c8ef97478a979b59&ip=172.56.8.91&initcwndbps=2028750&mt=1778460054&oweuc="
+                    "url": "https://rr2---sn-uhvcpax0n5-50ns.googlevideo.com/initplayback?source=youtube&oeis=1&c=WEB&oad=3200&ovd=3200&oaad=11000&oavd=11000&ocs=700&oewis=1&oputc=1&ofpcc=1&msp=1&odepv=1&id=c8ef97478a979b59&ip=172.56.8.91&initcwndbps=1990000&mt=1778464366&oweuc="
                   }
                 }
               }
             },
             "metadata": {
               "url": "/watch?v=yO-XR4qXm1k&list=PLGEDXbCC7A4izqC4kTtV1h_LeKejJv_lo",
+              "page_type": "WEB_PAGE_TYPE_WATCH",
+              "api_url": "/player"
+            },
+            "command": {
+              "type": "WatchEndpoint"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "LockupView",
+      "content_image": {
+        "type": "CollectionThumbnailView",
+        "primary_thumbnail": {
+          "type": "ThumbnailView",
+          "image": [
+            {
+              "url": "https://i.ytimg.com/vi/bef8QLNHubw/hq720.jpg?sqp=-oaymwEXCNAFEJQDSFryq4qpAwkIARUAAIhCGAE=&rs=AOn4CLD6JHzSbgtX94Mi0sqK_8RLZgxVqg",
+              "width": 720,
+              "height": 404
+            },
+            {
+              "url": "https://i.ytimg.com/vi/bef8QLNHubw/hq720.jpg?sqp=-oaymwEXCOgCEMoBSFryq4qpAwkIARUAAIhCGAE=&rs=AOn4CLAUHsyWTILgPA9woUf9Mo2SF8s5Rw",
+              "width": 360,
+              "height": 202
+            }
+          ],
+          "overlays": [
+            {
+              "type": "ThumbnailOverlayBadgeView",
+              "badges": [
+                {
+                  "type": "ThumbnailBadgeView",
+                  "text": "20 videos",
+                  "badge_style": "THUMBNAIL_OVERLAY_BADGE_STYLE_DEFAULT",
+                  "background_color": {
+                    "light_theme": 3353124,
+                    "dark_theme": 3353124
+                  }
+                }
+              ],
+              "position": "THUMBNAIL_OVERLAY_BADGE_POSITION_BOTTOM_END"
+            },
+            {
+              "type": "ThumbnailHoverOverlayView",
+              "icon_name": "PLAY_ALL",
+              "text": {
+                "text": "Play all",
+                "runs": [
+                  {
+                    "text": "Play all",
+                    "bold": false,
+                    "bracket": false,
+                    "deemphasize": false,
+                    "italics": false,
+                    "strikethrough": false,
+                    "error_underline": false,
+                    "underline": false
+                  }
+                ],
+                "rtl": false
+              },
+              "style": "THUMBNAIL_HOVER_OVERLAY_STYLE_COVER"
+            }
+          ],
+          "background_color": {
+            "light_theme": 4142125,
+            "dark_theme": 4142125
+          }
+        },
+        "stack_color": {
+          "light_theme": 10059373,
+          "dark_theme": 9667190
+        }
+      },
+      "metadata": {
+        "type": "LockupMetadataView",
+        "title": {
+          "text": "Best of Bad Bunny",
+          "runs": [
+            {
+              "text": "Best of Bad Bunny",
+              "bold": false,
+              "bracket": false,
+              "deemphasize": false,
+              "italics": false,
+              "strikethrough": false,
+              "error_underline": false,
+              "underline": false
+            }
+          ],
+          "rtl": false
+        },
+        "metadata": {
+          "type": "ContentMetadataView",
+          "metadata_rows": [
+            {
+              "metadata_parts": [
+                {
+                  "text": {
+                    "text": "Diogo Forte",
+                    "runs": [
+                      {
+                        "text": "Diogo Forte",
+                        "endpoint": {
+                          "type": "NavigationEndpoint",
+                          "name": "browseEndpoint",
+                          "payload": {
+                            "browseId": "UCoWeq2yWSmrSAwOzdDSyJUQ",
+                            "canonicalBaseUrl": "/@diogoforte5481"
+                          },
+                          "metadata": {
+                            "url": "/@diogoforte5481",
+                            "page_type": "WEB_PAGE_TYPE_CHANNEL",
+                            "api_url": "browse"
+                          },
+                          "command": {
+                            "type": "BrowseEndpoint"
+                          }
+                        },
+                        "bold": false,
+                        "bracket": false,
+                        "deemphasize": false,
+                        "italics": false,
+                        "strikethrough": false,
+                        "error_underline": false,
+                        "underline": false
+                      }
+                    ],
+                    "endpoint": {
+                      "type": "NavigationEndpoint",
+                      "name": "browseEndpoint",
+                      "payload": {
+                        "browseId": "UCoWeq2yWSmrSAwOzdDSyJUQ",
+                        "canonicalBaseUrl": "/@diogoforte5481"
+                      },
+                      "metadata": {
+                        "url": "/@diogoforte5481",
+                        "page_type": "WEB_PAGE_TYPE_CHANNEL",
+                        "api_url": "browse"
+                      },
+                      "command": {
+                        "type": "BrowseEndpoint"
+                      }
+                    },
+                    "rtl": false
+                  },
+                  "avatar_stack": null
+                },
+                {
+                  "text": {
+                    "text": "Playlist",
+                    "runs": [
+                      {
+                        "text": "Playlist",
+                        "endpoint": {
+                          "type": "NavigationEndpoint",
+                          "name": "browseEndpoint",
+                          "payload": {
+                            "browseId": "UCoWeq2yWSmrSAwOzdDSyJUQ",
+                            "canonicalBaseUrl": "/@diogoforte5481"
+                          },
+                          "metadata": {
+                            "url": "/@diogoforte5481",
+                            "page_type": "WEB_PAGE_TYPE_CHANNEL",
+                            "api_url": "browse"
+                          },
+                          "command": {
+                            "type": "BrowseEndpoint"
+                          }
+                        },
+                        "bold": false,
+                        "bracket": false,
+                        "deemphasize": false,
+                        "italics": false,
+                        "strikethrough": false,
+                        "error_underline": false,
+                        "underline": false
+                      }
+                    ],
+                    "endpoint": {
+                      "type": "NavigationEndpoint",
+                      "name": "browseEndpoint",
+                      "payload": {
+                        "browseId": "UCoWeq2yWSmrSAwOzdDSyJUQ",
+                        "canonicalBaseUrl": "/@diogoforte5481"
+                      },
+                      "metadata": {
+                        "url": "/@diogoforte5481",
+                        "page_type": "WEB_PAGE_TYPE_CHANNEL",
+                        "api_url": "browse"
+                      },
+                      "command": {
+                        "type": "BrowseEndpoint"
+                      }
+                    },
+                    "rtl": false
+                  },
+                  "avatar_stack": null
+                }
+              ],
+              "badges": []
+            },
+            {
+              "badges": []
+            },
+            {
+              "metadata_parts": [
+                {
+                  "text": {
+                    "text": "Bad Bunny - WHERE SHE GOES (Video Oficial) · 4:32",
+                    "runs": [
+                      {
+                        "text": "Bad Bunny - WHERE SHE GOES (Video Oficial) · 4:32",
+                        "bold": false,
+                        "bracket": false,
+                        "deemphasize": false,
+                        "italics": false,
+                        "strikethrough": false,
+                        "error_underline": false,
+                        "underline": false
+                      }
+                    ],
+                    "rtl": false
+                  },
+                  "avatar_stack": null
+                }
+              ],
+              "badges": []
+            },
+            {
+              "metadata_parts": [
+                {
+                  "text": {
+                    "text": "Bad Bunny - Yonaguni (Video Oficial) · 3:31",
+                    "runs": [
+                      {
+                        "text": "Bad Bunny - Yonaguni (Video Oficial) · 3:31",
+                        "bold": false,
+                        "bracket": false,
+                        "deemphasize": false,
+                        "italics": false,
+                        "strikethrough": false,
+                        "error_underline": false,
+                        "underline": false
+                      }
+                    ],
+                    "rtl": false
+                  },
+                  "avatar_stack": null
+                }
+              ],
+              "badges": []
+            },
+            {
+              "badges": []
+            },
+            {
+              "metadata_parts": [
+                {
+                  "text": {
+                    "text": "View full playlist",
+                    "runs": [
+                      {
+                        "text": "View full playlist",
+                        "endpoint": {
+                          "type": "NavigationEndpoint",
+                          "name": "browseEndpoint",
+                          "payload": {
+                            "browseId": "VLPLOnQdGMmldKcg26XLeLt8csbhn0YGMF42"
+                          },
+                          "metadata": {
+                            "url": "/playlist?list=PLOnQdGMmldKcg26XLeLt8csbhn0YGMF42",
+                            "page_type": "WEB_PAGE_TYPE_PLAYLIST",
+                            "api_url": "browse"
+                          },
+                          "command": {
+                            "type": "BrowseEndpoint"
+                          }
+                        },
+                        "bold": true,
+                        "bracket": false,
+                        "deemphasize": false,
+                        "italics": false,
+                        "strikethrough": false,
+                        "error_underline": false,
+                        "underline": false
+                      }
+                    ],
+                    "endpoint": {
+                      "type": "NavigationEndpoint",
+                      "name": "browseEndpoint",
+                      "payload": {
+                        "browseId": "VLPLOnQdGMmldKcg26XLeLt8csbhn0YGMF42"
+                      },
+                      "metadata": {
+                        "url": "/playlist?list=PLOnQdGMmldKcg26XLeLt8csbhn0YGMF42",
+                        "page_type": "WEB_PAGE_TYPE_PLAYLIST",
+                        "api_url": "browse"
+                      },
+                      "command": {
+                        "type": "BrowseEndpoint"
+                      }
+                    },
+                    "rtl": false
+                  },
+                  "avatar_stack": null
+                }
+              ],
+              "badges": []
+            }
+          ],
+          "delimiter": " • "
+        },
+        "image": null,
+        "menu_button": null
+      },
+      "content_id": "PLOnQdGMmldKcg26XLeLt8csbhn0YGMF42",
+      "content_type": "PLAYLIST",
+      "renderer_context": {
+        "command_context": {
+          "on_tap": {
+            "type": "NavigationEndpoint",
+            "name": "watchEndpoint",
+            "payload": {
+              "videoId": "bef8QLNHubw",
+              "playlistId": "PLOnQdGMmldKcg26XLeLt8csbhn0YGMF42",
+              "params": "OAI%3D",
+              "loggingContext": {
+                "vssLoggingContext": {
+                  "serializedContextData": "GiJQTE9uUWRHTW1sZEtjZzI2WExlTHQ4Y3NiaG4wWUdNRjQy"
+                }
+              },
+              "watchEndpointSupportedOnesieConfig": {
+                "html5PlaybackOnesieConfig": {
+                  "commonConfig": {
+                    "url": "https://rr5---sn-uhvcpax0n5-50ns.googlevideo.com/initplayback?source=youtube&oeis=1&c=WEB&oad=3200&ovd=3200&oaad=11000&oavd=11000&ocs=700&oewis=1&oputc=1&ofpcc=1&msp=1&odepv=1&id=6de7fc40b347b9bc&ip=172.56.8.91&initcwndbps=1990000&mt=1778464366&oweuc="
+                  }
+                }
+              }
+            },
+            "metadata": {
+              "url": "/watch?v=bef8QLNHubw&list=PLOnQdGMmldKcg26XLeLt8csbhn0YGMF42",
               "page_type": "WEB_PAGE_TYPE_WATCH",
               "api_url": "/player"
             },
@@ -5308,7 +5309,7 @@
               "watchEndpointSupportedOnesieConfig": {
                 "html5PlaybackOnesieConfig": {
                   "commonConfig": {
-                    "url": "https://rr5---sn-uhvcpax0n5-50ns.googlevideo.com/initplayback?source=youtube&oeis=1&c=WEB&oad=3200&ovd=3200&oaad=11000&oavd=11000&ocs=700&oewis=1&oputc=1&ofpcc=1&msp=1&odepv=1&id=59d48612f0c6640a&ip=172.56.8.91&initcwndbps=2028750&mt=1778460054&oweuc="
+                    "url": "https://rr5---sn-uhvcpax0n5-50ns.googlevideo.com/initplayback?source=youtube&oeis=1&c=WEB&oad=3200&ovd=3200&oaad=11000&oavd=11000&ocs=700&oewis=1&oputc=1&ofpcc=1&msp=1&odepv=1&id=59d48612f0c6640a&ip=172.56.8.91&initcwndbps=1990000&mt=1778464366&oweuc="
                   }
                 }
               }
@@ -5652,7 +5653,7 @@
               "watchEndpointSupportedOnesieConfig": {
                 "html5PlaybackOnesieConfig": {
                   "commonConfig": {
-                    "url": "https://rr4---sn-uhvcpax0n5-50ns.googlevideo.com/initplayback?source=youtube&oeis=1&c=WEB&oad=3200&ovd=3200&oaad=11000&oavd=11000&ocs=700&oewis=1&oputc=1&ofpcc=1&msp=1&odepv=1&id=6b7f787561efb110&ip=172.56.8.91&initcwndbps=2028750&mt=1778460054&oweuc="
+                    "url": "https://rr4---sn-uhvcpax0n5-50ns.googlevideo.com/initplayback?source=youtube&oeis=1&c=WEB&oad=3200&ovd=3200&oaad=11000&oavd=11000&ocs=700&oewis=1&oputc=1&ofpcc=1&msp=1&odepv=1&id=6b7f787561efb110&ip=172.56.8.91&initcwndbps=1990000&mt=1778464366&oweuc="
                   }
                 }
               }
@@ -5996,13 +5997,357 @@
               "watchEndpointSupportedOnesieConfig": {
                 "html5PlaybackOnesieConfig": {
                   "commonConfig": {
-                    "url": "https://rr3---sn-uhvcpax0n5-50ns.googlevideo.com/initplayback?source=youtube&oeis=1&c=WEB&oad=3200&ovd=3200&oaad=11000&oavd=11000&ocs=700&oewis=1&oputc=1&ofpcc=1&msp=1&odepv=1&id=39a9a9379857a805&ip=172.56.8.91&initcwndbps=2028750&mt=1778460054&oweuc="
+                    "url": "https://rr3---sn-uhvcpax0n5-50ns.googlevideo.com/initplayback?source=youtube&oeis=1&c=WEB&oad=3200&ovd=3200&oaad=11000&oavd=11000&ocs=700&oewis=1&oputc=1&ofpcc=1&msp=1&odepv=1&id=39a9a9379857a805&ip=172.56.8.91&initcwndbps=1990000&mt=1778464366&oweuc="
                   }
                 }
               }
             },
             "metadata": {
               "url": "/watch?v=OampN5hXqAU&list=PLel3XlnGZ-mbRwQB0Bff0KXPWt6n3_H1l",
+              "page_type": "WEB_PAGE_TYPE_WATCH",
+              "api_url": "/player"
+            },
+            "command": {
+              "type": "WatchEndpoint"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "LockupView",
+      "content_image": {
+        "type": "CollectionThumbnailView",
+        "primary_thumbnail": {
+          "type": "ThumbnailView",
+          "image": [
+            {
+              "url": "https://i.ytimg.com/vi/TlFlP2BQmew/hq720.jpg?sqp=-oaymwEdCNAFEJQDSFryq4qpAw8IARUAAIhCGAHtAWZmZkI=&rs=AOn4CLBsM6BGD4ysUSznkWY8tgrgyOmTfQ",
+              "width": 720,
+              "height": 404
+            },
+            {
+              "url": "https://i.ytimg.com/vi/TlFlP2BQmew/hq720.jpg?sqp=-oaymwEdCOgCEMoBSFryq4qpAw8IARUAAIhCGAHtAWZm5kE=&rs=AOn4CLAGDw3EmEwKb6Au7aHf_u3IHk-moA",
+              "width": 360,
+              "height": 202
+            }
+          ],
+          "overlays": [
+            {
+              "type": "ThumbnailOverlayBadgeView",
+              "badges": [
+                {
+                  "type": "ThumbnailBadgeView",
+                  "text": "16 videos",
+                  "badge_style": "THUMBNAIL_OVERLAY_BADGE_STYLE_DEFAULT",
+                  "background_color": {
+                    "light_theme": 3349009,
+                    "dark_theme": 3349009
+                  }
+                }
+              ],
+              "position": "THUMBNAIL_OVERLAY_BADGE_POSITION_BOTTOM_END"
+            },
+            {
+              "type": "ThumbnailHoverOverlayView",
+              "icon_name": "PLAY_ALL",
+              "text": {
+                "text": "Play all",
+                "runs": [
+                  {
+                    "text": "Play all",
+                    "bold": false,
+                    "bracket": false,
+                    "deemphasize": false,
+                    "italics": false,
+                    "strikethrough": false,
+                    "error_underline": false,
+                    "underline": false
+                  }
+                ],
+                "rtl": false
+              },
+              "style": "THUMBNAIL_HOVER_OVERLAY_STYLE_COVER"
+            }
+          ],
+          "background_color": {
+            "light_theme": 5844511,
+            "dark_theme": 5844511
+          }
+        },
+        "stack_color": {
+          "light_theme": 10057579,
+          "dark_theme": 9666166
+        }
+      },
+      "metadata": {
+        "type": "LockupMetadataView",
+        "title": {
+          "text": "Bad Bunny Álbum Completo X100PRE",
+          "runs": [
+            {
+              "text": "Bad Bunny Álbum Completo X100PRE",
+              "bold": false,
+              "bracket": false,
+              "deemphasize": false,
+              "italics": false,
+              "strikethrough": false,
+              "error_underline": false,
+              "underline": false
+            }
+          ],
+          "rtl": false
+        },
+        "metadata": {
+          "type": "ContentMetadataView",
+          "metadata_rows": [
+            {
+              "metadata_parts": [
+                {
+                  "text": {
+                    "text": "Arkturus",
+                    "runs": [
+                      {
+                        "text": "Arkturus",
+                        "endpoint": {
+                          "type": "NavigationEndpoint",
+                          "name": "browseEndpoint",
+                          "payload": {
+                            "browseId": "UCiT25lwcSBwXxnq0mYI2Zgw",
+                            "canonicalBaseUrl": "/@ArkturusYT"
+                          },
+                          "metadata": {
+                            "url": "/@ArkturusYT",
+                            "page_type": "WEB_PAGE_TYPE_CHANNEL",
+                            "api_url": "browse"
+                          },
+                          "command": {
+                            "type": "BrowseEndpoint"
+                          }
+                        },
+                        "bold": false,
+                        "bracket": false,
+                        "deemphasize": false,
+                        "italics": false,
+                        "strikethrough": false,
+                        "error_underline": false,
+                        "underline": false
+                      }
+                    ],
+                    "endpoint": {
+                      "type": "NavigationEndpoint",
+                      "name": "browseEndpoint",
+                      "payload": {
+                        "browseId": "UCiT25lwcSBwXxnq0mYI2Zgw",
+                        "canonicalBaseUrl": "/@ArkturusYT"
+                      },
+                      "metadata": {
+                        "url": "/@ArkturusYT",
+                        "page_type": "WEB_PAGE_TYPE_CHANNEL",
+                        "api_url": "browse"
+                      },
+                      "command": {
+                        "type": "BrowseEndpoint"
+                      }
+                    },
+                    "rtl": false
+                  },
+                  "avatar_stack": null
+                },
+                {
+                  "text": {
+                    "text": "Playlist",
+                    "runs": [
+                      {
+                        "text": "Playlist",
+                        "endpoint": {
+                          "type": "NavigationEndpoint",
+                          "name": "browseEndpoint",
+                          "payload": {
+                            "browseId": "UCiT25lwcSBwXxnq0mYI2Zgw",
+                            "canonicalBaseUrl": "/@ArkturusYT"
+                          },
+                          "metadata": {
+                            "url": "/@ArkturusYT",
+                            "page_type": "WEB_PAGE_TYPE_CHANNEL",
+                            "api_url": "browse"
+                          },
+                          "command": {
+                            "type": "BrowseEndpoint"
+                          }
+                        },
+                        "bold": false,
+                        "bracket": false,
+                        "deemphasize": false,
+                        "italics": false,
+                        "strikethrough": false,
+                        "error_underline": false,
+                        "underline": false
+                      }
+                    ],
+                    "endpoint": {
+                      "type": "NavigationEndpoint",
+                      "name": "browseEndpoint",
+                      "payload": {
+                        "browseId": "UCiT25lwcSBwXxnq0mYI2Zgw",
+                        "canonicalBaseUrl": "/@ArkturusYT"
+                      },
+                      "metadata": {
+                        "url": "/@ArkturusYT",
+                        "page_type": "WEB_PAGE_TYPE_CHANNEL",
+                        "api_url": "browse"
+                      },
+                      "command": {
+                        "type": "BrowseEndpoint"
+                      }
+                    },
+                    "rtl": false
+                  },
+                  "avatar_stack": null
+                }
+              ],
+              "badges": []
+            },
+            {
+              "badges": []
+            },
+            {
+              "metadata_parts": [
+                {
+                  "text": {
+                    "text": "NI BIEN NI MAL · 3:57",
+                    "runs": [
+                      {
+                        "text": "NI BIEN NI MAL · 3:57",
+                        "bold": false,
+                        "bracket": false,
+                        "deemphasize": false,
+                        "italics": false,
+                        "strikethrough": false,
+                        "error_underline": false,
+                        "underline": false
+                      }
+                    ],
+                    "rtl": false
+                  },
+                  "avatar_stack": null
+                }
+              ],
+              "badges": []
+            },
+            {
+              "metadata_parts": [
+                {
+                  "text": {
+                    "text": "Si Estuviésemos Juntos Juntos · 2:50",
+                    "runs": [
+                      {
+                        "text": "Si Estuviésemos Juntos Juntos · 2:50",
+                        "bold": false,
+                        "bracket": false,
+                        "deemphasize": false,
+                        "italics": false,
+                        "strikethrough": false,
+                        "error_underline": false,
+                        "underline": false
+                      }
+                    ],
+                    "rtl": false
+                  },
+                  "avatar_stack": null
+                }
+              ],
+              "badges": []
+            },
+            {
+              "badges": []
+            },
+            {
+              "metadata_parts": [
+                {
+                  "text": {
+                    "text": "View full playlist",
+                    "runs": [
+                      {
+                        "text": "View full playlist",
+                        "endpoint": {
+                          "type": "NavigationEndpoint",
+                          "name": "browseEndpoint",
+                          "payload": {
+                            "browseId": "VLPLzoUNPFg0yEONgIwPf4W5HKRZHRJLST0m"
+                          },
+                          "metadata": {
+                            "url": "/playlist?list=PLzoUNPFg0yEONgIwPf4W5HKRZHRJLST0m",
+                            "page_type": "WEB_PAGE_TYPE_PLAYLIST",
+                            "api_url": "browse"
+                          },
+                          "command": {
+                            "type": "BrowseEndpoint"
+                          }
+                        },
+                        "bold": true,
+                        "bracket": false,
+                        "deemphasize": false,
+                        "italics": false,
+                        "strikethrough": false,
+                        "error_underline": false,
+                        "underline": false
+                      }
+                    ],
+                    "endpoint": {
+                      "type": "NavigationEndpoint",
+                      "name": "browseEndpoint",
+                      "payload": {
+                        "browseId": "VLPLzoUNPFg0yEONgIwPf4W5HKRZHRJLST0m"
+                      },
+                      "metadata": {
+                        "url": "/playlist?list=PLzoUNPFg0yEONgIwPf4W5HKRZHRJLST0m",
+                        "page_type": "WEB_PAGE_TYPE_PLAYLIST",
+                        "api_url": "browse"
+                      },
+                      "command": {
+                        "type": "BrowseEndpoint"
+                      }
+                    },
+                    "rtl": false
+                  },
+                  "avatar_stack": null
+                }
+              ],
+              "badges": []
+            }
+          ],
+          "delimiter": " • "
+        },
+        "image": null,
+        "menu_button": null
+      },
+      "content_id": "PLzoUNPFg0yEONgIwPf4W5HKRZHRJLST0m",
+      "content_type": "PLAYLIST",
+      "renderer_context": {
+        "command_context": {
+          "on_tap": {
+            "type": "NavigationEndpoint",
+            "name": "watchEndpoint",
+            "payload": {
+              "videoId": "TlFlP2BQmew",
+              "playlistId": "PLzoUNPFg0yEONgIwPf4W5HKRZHRJLST0m",
+              "params": "OAI%3D",
+              "loggingContext": {
+                "vssLoggingContext": {
+                  "serializedContextData": "GiJQTHpvVU5QRmcweUVPTmdJd1BmNFc1SEtSWkhSSkxTVDBt"
+                }
+              },
+              "watchEndpointSupportedOnesieConfig": {
+                "html5PlaybackOnesieConfig": {
+                  "commonConfig": {
+                    "url": "https://rr4---sn-uhvcpax0n5-50ns.googlevideo.com/initplayback?source=youtube&oeis=1&c=WEB&oad=3200&ovd=3200&oaad=11000&oavd=11000&ocs=700&oewis=1&oputc=1&ofpcc=1&msp=1&odepv=1&id=4e51653f605099ec&ip=172.56.8.91&initcwndbps=1990000&mt=1778464366&oweuc="
+                  }
+                }
+              }
+            },
+            "metadata": {
+              "url": "/watch?v=TlFlP2BQmew&list=PLzoUNPFg0yEONgIwPf4W5HKRZHRJLST0m",
               "page_type": "WEB_PAGE_TYPE_WATCH",
               "api_url": "/player"
             },
@@ -6380,701 +6725,13 @@
               "watchEndpointSupportedOnesieConfig": {
                 "html5PlaybackOnesieConfig": {
                   "commonConfig": {
-                    "url": "https://rr1---sn-uhvcpax0n5-50ns.googlevideo.com/initplayback?source=youtube&oeis=1&c=WEB&oad=3200&ovd=3200&oaad=11000&oavd=11000&ocs=700&oewis=1&oputc=1&ofpcc=1&msp=1&odepv=1&id=341821863b8c34a3&ip=172.56.8.91&initcwndbps=2028750&mt=1778460054&oweuc="
+                    "url": "https://rr1---sn-uhvcpax0n5-50ns.googlevideo.com/initplayback?source=youtube&oeis=1&c=WEB&oad=3200&ovd=3200&oaad=11000&oavd=11000&ocs=700&oewis=1&oputc=1&ofpcc=1&msp=1&odepv=1&id=341821863b8c34a3&ip=172.56.8.91&initcwndbps=1990000&mt=1778464366&oweuc="
                   }
                 }
               }
             },
             "metadata": {
               "url": "/watch?v=NBghhjuMNKM&list=PLxA687tYuMWgId_28nlq1Z_kx_LCLEuez",
-              "page_type": "WEB_PAGE_TYPE_WATCH",
-              "api_url": "/player"
-            },
-            "command": {
-              "type": "WatchEndpoint"
-            }
-          }
-        }
-      }
-    },
-    {
-      "type": "LockupView",
-      "content_image": {
-        "type": "CollectionThumbnailView",
-        "primary_thumbnail": {
-          "type": "ThumbnailView",
-          "image": [
-            {
-              "url": "https://i.ytimg.com/vi/TlFlP2BQmew/hq720.jpg?sqp=-oaymwEdCNAFEJQDSFryq4qpAw8IARUAAIhCGAHtAWZmZkI=&rs=AOn4CLBsM6BGD4ysUSznkWY8tgrgyOmTfQ",
-              "width": 720,
-              "height": 404
-            },
-            {
-              "url": "https://i.ytimg.com/vi/TlFlP2BQmew/hq720.jpg?sqp=-oaymwEdCOgCEMoBSFryq4qpAw8IARUAAIhCGAHtAWZm5kE=&rs=AOn4CLAGDw3EmEwKb6Au7aHf_u3IHk-moA",
-              "width": 360,
-              "height": 202
-            }
-          ],
-          "overlays": [
-            {
-              "type": "ThumbnailOverlayBadgeView",
-              "badges": [
-                {
-                  "type": "ThumbnailBadgeView",
-                  "text": "16 videos",
-                  "badge_style": "THUMBNAIL_OVERLAY_BADGE_STYLE_DEFAULT",
-                  "background_color": {
-                    "light_theme": 3349009,
-                    "dark_theme": 3349009
-                  }
-                }
-              ],
-              "position": "THUMBNAIL_OVERLAY_BADGE_POSITION_BOTTOM_END"
-            },
-            {
-              "type": "ThumbnailHoverOverlayView",
-              "icon_name": "PLAY_ALL",
-              "text": {
-                "text": "Play all",
-                "runs": [
-                  {
-                    "text": "Play all",
-                    "bold": false,
-                    "bracket": false,
-                    "deemphasize": false,
-                    "italics": false,
-                    "strikethrough": false,
-                    "error_underline": false,
-                    "underline": false
-                  }
-                ],
-                "rtl": false
-              },
-              "style": "THUMBNAIL_HOVER_OVERLAY_STYLE_COVER"
-            }
-          ],
-          "background_color": {
-            "light_theme": 5844511,
-            "dark_theme": 5844511
-          }
-        },
-        "stack_color": {
-          "light_theme": 10057579,
-          "dark_theme": 9666166
-        }
-      },
-      "metadata": {
-        "type": "LockupMetadataView",
-        "title": {
-          "text": "Bad Bunny Álbum Completo X100PRE",
-          "runs": [
-            {
-              "text": "Bad Bunny Álbum Completo X100PRE",
-              "bold": false,
-              "bracket": false,
-              "deemphasize": false,
-              "italics": false,
-              "strikethrough": false,
-              "error_underline": false,
-              "underline": false
-            }
-          ],
-          "rtl": false
-        },
-        "metadata": {
-          "type": "ContentMetadataView",
-          "metadata_rows": [
-            {
-              "metadata_parts": [
-                {
-                  "text": {
-                    "text": "Arkturus",
-                    "runs": [
-                      {
-                        "text": "Arkturus",
-                        "endpoint": {
-                          "type": "NavigationEndpoint",
-                          "name": "browseEndpoint",
-                          "payload": {
-                            "browseId": "UCiT25lwcSBwXxnq0mYI2Zgw",
-                            "canonicalBaseUrl": "/@ArkturusYT"
-                          },
-                          "metadata": {
-                            "url": "/@ArkturusYT",
-                            "page_type": "WEB_PAGE_TYPE_CHANNEL",
-                            "api_url": "browse"
-                          },
-                          "command": {
-                            "type": "BrowseEndpoint"
-                          }
-                        },
-                        "bold": false,
-                        "bracket": false,
-                        "deemphasize": false,
-                        "italics": false,
-                        "strikethrough": false,
-                        "error_underline": false,
-                        "underline": false
-                      }
-                    ],
-                    "endpoint": {
-                      "type": "NavigationEndpoint",
-                      "name": "browseEndpoint",
-                      "payload": {
-                        "browseId": "UCiT25lwcSBwXxnq0mYI2Zgw",
-                        "canonicalBaseUrl": "/@ArkturusYT"
-                      },
-                      "metadata": {
-                        "url": "/@ArkturusYT",
-                        "page_type": "WEB_PAGE_TYPE_CHANNEL",
-                        "api_url": "browse"
-                      },
-                      "command": {
-                        "type": "BrowseEndpoint"
-                      }
-                    },
-                    "rtl": false
-                  },
-                  "avatar_stack": null
-                },
-                {
-                  "text": {
-                    "text": "Playlist",
-                    "runs": [
-                      {
-                        "text": "Playlist",
-                        "endpoint": {
-                          "type": "NavigationEndpoint",
-                          "name": "browseEndpoint",
-                          "payload": {
-                            "browseId": "UCiT25lwcSBwXxnq0mYI2Zgw",
-                            "canonicalBaseUrl": "/@ArkturusYT"
-                          },
-                          "metadata": {
-                            "url": "/@ArkturusYT",
-                            "page_type": "WEB_PAGE_TYPE_CHANNEL",
-                            "api_url": "browse"
-                          },
-                          "command": {
-                            "type": "BrowseEndpoint"
-                          }
-                        },
-                        "bold": false,
-                        "bracket": false,
-                        "deemphasize": false,
-                        "italics": false,
-                        "strikethrough": false,
-                        "error_underline": false,
-                        "underline": false
-                      }
-                    ],
-                    "endpoint": {
-                      "type": "NavigationEndpoint",
-                      "name": "browseEndpoint",
-                      "payload": {
-                        "browseId": "UCiT25lwcSBwXxnq0mYI2Zgw",
-                        "canonicalBaseUrl": "/@ArkturusYT"
-                      },
-                      "metadata": {
-                        "url": "/@ArkturusYT",
-                        "page_type": "WEB_PAGE_TYPE_CHANNEL",
-                        "api_url": "browse"
-                      },
-                      "command": {
-                        "type": "BrowseEndpoint"
-                      }
-                    },
-                    "rtl": false
-                  },
-                  "avatar_stack": null
-                }
-              ],
-              "badges": []
-            },
-            {
-              "badges": []
-            },
-            {
-              "metadata_parts": [
-                {
-                  "text": {
-                    "text": "NI BIEN NI MAL · 3:57",
-                    "runs": [
-                      {
-                        "text": "NI BIEN NI MAL · 3:57",
-                        "bold": false,
-                        "bracket": false,
-                        "deemphasize": false,
-                        "italics": false,
-                        "strikethrough": false,
-                        "error_underline": false,
-                        "underline": false
-                      }
-                    ],
-                    "rtl": false
-                  },
-                  "avatar_stack": null
-                }
-              ],
-              "badges": []
-            },
-            {
-              "metadata_parts": [
-                {
-                  "text": {
-                    "text": "Si Estuviésemos Juntos Juntos · 2:50",
-                    "runs": [
-                      {
-                        "text": "Si Estuviésemos Juntos Juntos · 2:50",
-                        "bold": false,
-                        "bracket": false,
-                        "deemphasize": false,
-                        "italics": false,
-                        "strikethrough": false,
-                        "error_underline": false,
-                        "underline": false
-                      }
-                    ],
-                    "rtl": false
-                  },
-                  "avatar_stack": null
-                }
-              ],
-              "badges": []
-            },
-            {
-              "badges": []
-            },
-            {
-              "metadata_parts": [
-                {
-                  "text": {
-                    "text": "View full playlist",
-                    "runs": [
-                      {
-                        "text": "View full playlist",
-                        "endpoint": {
-                          "type": "NavigationEndpoint",
-                          "name": "browseEndpoint",
-                          "payload": {
-                            "browseId": "VLPLzoUNPFg0yEONgIwPf4W5HKRZHRJLST0m"
-                          },
-                          "metadata": {
-                            "url": "/playlist?list=PLzoUNPFg0yEONgIwPf4W5HKRZHRJLST0m",
-                            "page_type": "WEB_PAGE_TYPE_PLAYLIST",
-                            "api_url": "browse"
-                          },
-                          "command": {
-                            "type": "BrowseEndpoint"
-                          }
-                        },
-                        "bold": true,
-                        "bracket": false,
-                        "deemphasize": false,
-                        "italics": false,
-                        "strikethrough": false,
-                        "error_underline": false,
-                        "underline": false
-                      }
-                    ],
-                    "endpoint": {
-                      "type": "NavigationEndpoint",
-                      "name": "browseEndpoint",
-                      "payload": {
-                        "browseId": "VLPLzoUNPFg0yEONgIwPf4W5HKRZHRJLST0m"
-                      },
-                      "metadata": {
-                        "url": "/playlist?list=PLzoUNPFg0yEONgIwPf4W5HKRZHRJLST0m",
-                        "page_type": "WEB_PAGE_TYPE_PLAYLIST",
-                        "api_url": "browse"
-                      },
-                      "command": {
-                        "type": "BrowseEndpoint"
-                      }
-                    },
-                    "rtl": false
-                  },
-                  "avatar_stack": null
-                }
-              ],
-              "badges": []
-            }
-          ],
-          "delimiter": " • "
-        },
-        "image": null,
-        "menu_button": null
-      },
-      "content_id": "PLzoUNPFg0yEONgIwPf4W5HKRZHRJLST0m",
-      "content_type": "PLAYLIST",
-      "renderer_context": {
-        "command_context": {
-          "on_tap": {
-            "type": "NavigationEndpoint",
-            "name": "watchEndpoint",
-            "payload": {
-              "videoId": "TlFlP2BQmew",
-              "playlistId": "PLzoUNPFg0yEONgIwPf4W5HKRZHRJLST0m",
-              "params": "OAI%3D",
-              "loggingContext": {
-                "vssLoggingContext": {
-                  "serializedContextData": "GiJQTHpvVU5QRmcweUVPTmdJd1BmNFc1SEtSWkhSSkxTVDBt"
-                }
-              },
-              "watchEndpointSupportedOnesieConfig": {
-                "html5PlaybackOnesieConfig": {
-                  "commonConfig": {
-                    "url": "https://rr4---sn-uhvcpax0n5-50ns.googlevideo.com/initplayback?source=youtube&oeis=1&c=WEB&oad=3200&ovd=3200&oaad=11000&oavd=11000&ocs=700&oewis=1&oputc=1&ofpcc=1&msp=1&odepv=1&id=4e51653f605099ec&ip=172.56.8.91&initcwndbps=2028750&mt=1778460054&oweuc="
-                  }
-                }
-              }
-            },
-            "metadata": {
-              "url": "/watch?v=TlFlP2BQmew&list=PLzoUNPFg0yEONgIwPf4W5HKRZHRJLST0m",
-              "page_type": "WEB_PAGE_TYPE_WATCH",
-              "api_url": "/player"
-            },
-            "command": {
-              "type": "WatchEndpoint"
-            }
-          }
-        }
-      }
-    },
-    {
-      "type": "LockupView",
-      "content_image": {
-        "type": "CollectionThumbnailView",
-        "primary_thumbnail": {
-          "type": "ThumbnailView",
-          "image": [
-            {
-              "url": "https://i.ytimg.com/vi/nBD8zUdg6II/hq720.jpg?sqp=-oaymwExCNAFEJQDSFryq4qpAyMIARUAAIhCGAHwAQH4Af4JgALKBYoCDAgAEAEYJCBYKHIwDw==&rs=AOn4CLC537I5KRgtM03okxJZZtujN7E1SA",
-              "width": 720,
-              "height": 404
-            },
-            {
-              "url": "https://i.ytimg.com/vi/nBD8zUdg6II/hq720.jpg?sqp=-oaymwExCOgCEMoBSFryq4qpAyMIARUAAIhCGAHwAQH4Af4JgALKBYoCDAgAEAEYJCBYKHIwDw==&rs=AOn4CLA4acDD37bzKVxG1g4URBRPHLxHpQ",
-              "width": 360,
-              "height": 202
-            }
-          ],
-          "overlays": [
-            {
-              "type": "ThumbnailOverlayBadgeView",
-              "badges": [
-                {
-                  "type": "ThumbnailBadgeView",
-                  "text": "28 videos",
-                  "badge_style": "THUMBNAIL_OVERLAY_BADGE_STYLE_DEFAULT",
-                  "background_color": {
-                    "light_theme": 1058611,
-                    "dark_theme": 1058611
-                  }
-                }
-              ],
-              "position": "THUMBNAIL_OVERLAY_BADGE_POSITION_BOTTOM_END"
-            },
-            {
-              "type": "ThumbnailHoverOverlayView",
-              "icon_name": "PLAY_ALL",
-              "text": {
-                "text": "Play all",
-                "runs": [
-                  {
-                    "text": "Play all",
-                    "bold": false,
-                    "bracket": false,
-                    "deemphasize": false,
-                    "italics": false,
-                    "strikethrough": false,
-                    "error_underline": false,
-                    "underline": false
-                  }
-                ],
-                "rtl": false
-              },
-              "style": "THUMBNAIL_HOVER_OVERLAY_STYLE_COVER"
-            }
-          ],
-          "background_color": {
-            "light_theme": 1587788,
-            "dark_theme": 1587788
-          }
-        },
-        "stack_color": {
-          "light_theme": 7047577,
-          "dark_theme": 7768467
-        }
-      },
-      "metadata": {
-        "type": "LockupMetadataView",
-        "title": {
-          "text": "Bad bunny clean",
-          "runs": [
-            {
-              "text": "Bad bunny clean",
-              "bold": false,
-              "bracket": false,
-              "deemphasize": false,
-              "italics": false,
-              "strikethrough": false,
-              "error_underline": false,
-              "underline": false
-            }
-          ],
-          "rtl": false
-        },
-        "metadata": {
-          "type": "ContentMetadataView",
-          "metadata_rows": [
-            {
-              "metadata_parts": [
-                {
-                  "text": {
-                    "text": "Cathyrn Quinones",
-                    "runs": [
-                      {
-                        "text": "Cathyrn Quinones",
-                        "endpoint": {
-                          "type": "NavigationEndpoint",
-                          "name": "browseEndpoint",
-                          "payload": {
-                            "browseId": "UC42h4SdB8LDY04TLd0QpSOw",
-                            "canonicalBaseUrl": "/@CathyrnQuinones"
-                          },
-                          "metadata": {
-                            "url": "/@CathyrnQuinones",
-                            "page_type": "WEB_PAGE_TYPE_CHANNEL",
-                            "api_url": "browse"
-                          },
-                          "command": {
-                            "type": "BrowseEndpoint"
-                          }
-                        },
-                        "bold": false,
-                        "bracket": false,
-                        "deemphasize": false,
-                        "italics": false,
-                        "strikethrough": false,
-                        "error_underline": false,
-                        "underline": false
-                      }
-                    ],
-                    "endpoint": {
-                      "type": "NavigationEndpoint",
-                      "name": "browseEndpoint",
-                      "payload": {
-                        "browseId": "UC42h4SdB8LDY04TLd0QpSOw",
-                        "canonicalBaseUrl": "/@CathyrnQuinones"
-                      },
-                      "metadata": {
-                        "url": "/@CathyrnQuinones",
-                        "page_type": "WEB_PAGE_TYPE_CHANNEL",
-                        "api_url": "browse"
-                      },
-                      "command": {
-                        "type": "BrowseEndpoint"
-                      }
-                    },
-                    "rtl": false
-                  },
-                  "avatar_stack": null
-                },
-                {
-                  "text": {
-                    "text": "Playlist",
-                    "runs": [
-                      {
-                        "text": "Playlist",
-                        "endpoint": {
-                          "type": "NavigationEndpoint",
-                          "name": "browseEndpoint",
-                          "payload": {
-                            "browseId": "UC42h4SdB8LDY04TLd0QpSOw",
-                            "canonicalBaseUrl": "/@CathyrnQuinones"
-                          },
-                          "metadata": {
-                            "url": "/@CathyrnQuinones",
-                            "page_type": "WEB_PAGE_TYPE_CHANNEL",
-                            "api_url": "browse"
-                          },
-                          "command": {
-                            "type": "BrowseEndpoint"
-                          }
-                        },
-                        "bold": false,
-                        "bracket": false,
-                        "deemphasize": false,
-                        "italics": false,
-                        "strikethrough": false,
-                        "error_underline": false,
-                        "underline": false
-                      }
-                    ],
-                    "endpoint": {
-                      "type": "NavigationEndpoint",
-                      "name": "browseEndpoint",
-                      "payload": {
-                        "browseId": "UC42h4SdB8LDY04TLd0QpSOw",
-                        "canonicalBaseUrl": "/@CathyrnQuinones"
-                      },
-                      "metadata": {
-                        "url": "/@CathyrnQuinones",
-                        "page_type": "WEB_PAGE_TYPE_CHANNEL",
-                        "api_url": "browse"
-                      },
-                      "command": {
-                        "type": "BrowseEndpoint"
-                      }
-                    },
-                    "rtl": false
-                  },
-                  "avatar_stack": null
-                }
-              ],
-              "badges": []
-            },
-            {
-              "badges": []
-            },
-            {
-              "metadata_parts": [
-                {
-                  "text": {
-                    "text": "BAD BUNNY - DtMF (Clean Version) | DeBí TiRAR Más FOToS · 3:58",
-                    "runs": [
-                      {
-                        "text": "BAD BUNNY - DtMF (Clean Version) | DeBí TiRAR Más FOToS · 3:58",
-                        "bold": false,
-                        "bracket": false,
-                        "deemphasize": false,
-                        "italics": false,
-                        "strikethrough": false,
-                        "error_underline": false,
-                        "underline": false
-                      }
-                    ],
-                    "rtl": false
-                  },
-                  "avatar_stack": null
-                }
-              ],
-              "badges": []
-            },
-            {
-              "metadata_parts": [
-                {
-                  "text": {
-                    "text": "Bad Bunny - NUEVAYoL (Clean Version) | DeBÍ TiRAR MáS FOToS · 3:04",
-                    "runs": [
-                      {
-                        "text": "Bad Bunny - NUEVAYoL (Clean Version) | DeBÍ TiRAR MáS FOToS · 3:04",
-                        "bold": false,
-                        "bracket": false,
-                        "deemphasize": false,
-                        "italics": false,
-                        "strikethrough": false,
-                        "error_underline": false,
-                        "underline": false
-                      }
-                    ],
-                    "rtl": false
-                  },
-                  "avatar_stack": null
-                }
-              ],
-              "badges": []
-            },
-            {
-              "badges": []
-            },
-            {
-              "metadata_parts": [
-                {
-                  "text": {
-                    "text": "View full playlist",
-                    "runs": [
-                      {
-                        "text": "View full playlist",
-                        "endpoint": {
-                          "type": "NavigationEndpoint",
-                          "name": "browseEndpoint",
-                          "payload": {
-                            "browseId": "VLPLzRo5ms7sOU-gu3q7W1_XAirfFmBDJ9Di"
-                          },
-                          "metadata": {
-                            "url": "/playlist?list=PLzRo5ms7sOU-gu3q7W1_XAirfFmBDJ9Di",
-                            "page_type": "WEB_PAGE_TYPE_PLAYLIST",
-                            "api_url": "browse"
-                          },
-                          "command": {
-                            "type": "BrowseEndpoint"
-                          }
-                        },
-                        "bold": true,
-                        "bracket": false,
-                        "deemphasize": false,
-                        "italics": false,
-                        "strikethrough": false,
-                        "error_underline": false,
-                        "underline": false
-                      }
-                    ],
-                    "endpoint": {
-                      "type": "NavigationEndpoint",
-                      "name": "browseEndpoint",
-                      "payload": {
-                        "browseId": "VLPLzRo5ms7sOU-gu3q7W1_XAirfFmBDJ9Di"
-                      },
-                      "metadata": {
-                        "url": "/playlist?list=PLzRo5ms7sOU-gu3q7W1_XAirfFmBDJ9Di",
-                        "page_type": "WEB_PAGE_TYPE_PLAYLIST",
-                        "api_url": "browse"
-                      },
-                      "command": {
-                        "type": "BrowseEndpoint"
-                      }
-                    },
-                    "rtl": false
-                  },
-                  "avatar_stack": null
-                }
-              ],
-              "badges": []
-            }
-          ],
-          "delimiter": " • "
-        },
-        "image": null,
-        "menu_button": null
-      },
-      "content_id": "PLzRo5ms7sOU-gu3q7W1_XAirfFmBDJ9Di",
-      "content_type": "PLAYLIST",
-      "renderer_context": {
-        "command_context": {
-          "on_tap": {
-            "type": "NavigationEndpoint",
-            "name": "watchEndpoint",
-            "payload": {
-              "videoId": "nBD8zUdg6II",
-              "playlistId": "PLzRo5ms7sOU-gu3q7W1_XAirfFmBDJ9Di",
-              "params": "OAI%3D",
-              "loggingContext": {
-                "vssLoggingContext": {
-                  "serializedContextData": "GiJQTHpSbzVtczdzT1UtZ3UzcTdXMV9YQWlyZkZtQkRKOURp"
-                }
-              },
-              "watchEndpointSupportedOnesieConfig": {
-                "html5PlaybackOnesieConfig": {
-                  "commonConfig": {
-                    "url": "https://rr3---sn-uhvcpax0n5-50ns.googlevideo.com/initplayback?source=youtube&oeis=1&c=WEB&oad=3200&ovd=3200&oaad=11000&oavd=11000&ocs=700&oewis=1&oputc=1&ofpcc=1&msp=1&odepv=1&id=9c10fccd4760e882&ip=172.56.8.91&initcwndbps=2028750&mt=1778460054&oweuc="
-                  }
-                }
-              }
-            },
-            "metadata": {
-              "url": "/watch?v=nBD8zUdg6II&list=PLzRo5ms7sOU-gu3q7W1_XAirfFmBDJ9Di",
               "page_type": "WEB_PAGE_TYPE_WATCH",
               "api_url": "/player"
             },
@@ -7412,13 +7069,701 @@
               "watchEndpointSupportedOnesieConfig": {
                 "html5PlaybackOnesieConfig": {
                   "commonConfig": {
-                    "url": "https://rr3---sn-uhvcpax0n5-50ns.googlevideo.com/initplayback?source=youtube&oeis=1&c=WEB&oad=3200&ovd=3200&oaad=11000&oavd=11000&ocs=700&oewis=1&oputc=1&ofpcc=1&msp=1&odepv=1&id=b387ed11d5b6c1da&ip=172.56.8.91&initcwndbps=2028750&mt=1778460054&oweuc="
+                    "url": "https://rr3---sn-uhvcpax0n5-50ns.googlevideo.com/initplayback?source=youtube&oeis=1&c=WEB&oad=3200&ovd=3200&oaad=11000&oavd=11000&ocs=700&oewis=1&oputc=1&ofpcc=1&msp=1&odepv=1&id=b387ed11d5b6c1da&ip=172.56.8.91&initcwndbps=1990000&mt=1778464366&oweuc="
                   }
                 }
               }
             },
             "metadata": {
               "url": "/watch?v=s4ftEdW2wdo&list=PLQNbmXKgn09CjEVkUWDS5VVXj7E4J3yPG",
+              "page_type": "WEB_PAGE_TYPE_WATCH",
+              "api_url": "/player"
+            },
+            "command": {
+              "type": "WatchEndpoint"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "LockupView",
+      "content_image": {
+        "type": "CollectionThumbnailView",
+        "primary_thumbnail": {
+          "type": "ThumbnailView",
+          "image": [
+            {
+              "url": "https://i.ytimg.com/vi/nBD8zUdg6II/hq720.jpg?sqp=-oaymwExCNAFEJQDSFryq4qpAyMIARUAAIhCGAHwAQH4Af4JgALKBYoCDAgAEAEYJCBYKHIwDw==&rs=AOn4CLC537I5KRgtM03okxJZZtujN7E1SA",
+              "width": 720,
+              "height": 404
+            },
+            {
+              "url": "https://i.ytimg.com/vi/nBD8zUdg6II/hq720.jpg?sqp=-oaymwExCOgCEMoBSFryq4qpAyMIARUAAIhCGAHwAQH4Af4JgALKBYoCDAgAEAEYJCBYKHIwDw==&rs=AOn4CLA4acDD37bzKVxG1g4URBRPHLxHpQ",
+              "width": 360,
+              "height": 202
+            }
+          ],
+          "overlays": [
+            {
+              "type": "ThumbnailOverlayBadgeView",
+              "badges": [
+                {
+                  "type": "ThumbnailBadgeView",
+                  "text": "28 videos",
+                  "badge_style": "THUMBNAIL_OVERLAY_BADGE_STYLE_DEFAULT",
+                  "background_color": {
+                    "light_theme": 1058611,
+                    "dark_theme": 1058611
+                  }
+                }
+              ],
+              "position": "THUMBNAIL_OVERLAY_BADGE_POSITION_BOTTOM_END"
+            },
+            {
+              "type": "ThumbnailHoverOverlayView",
+              "icon_name": "PLAY_ALL",
+              "text": {
+                "text": "Play all",
+                "runs": [
+                  {
+                    "text": "Play all",
+                    "bold": false,
+                    "bracket": false,
+                    "deemphasize": false,
+                    "italics": false,
+                    "strikethrough": false,
+                    "error_underline": false,
+                    "underline": false
+                  }
+                ],
+                "rtl": false
+              },
+              "style": "THUMBNAIL_HOVER_OVERLAY_STYLE_COVER"
+            }
+          ],
+          "background_color": {
+            "light_theme": 1587788,
+            "dark_theme": 1587788
+          }
+        },
+        "stack_color": {
+          "light_theme": 7047577,
+          "dark_theme": 7768467
+        }
+      },
+      "metadata": {
+        "type": "LockupMetadataView",
+        "title": {
+          "text": "Bad bunny clean",
+          "runs": [
+            {
+              "text": "Bad bunny clean",
+              "bold": false,
+              "bracket": false,
+              "deemphasize": false,
+              "italics": false,
+              "strikethrough": false,
+              "error_underline": false,
+              "underline": false
+            }
+          ],
+          "rtl": false
+        },
+        "metadata": {
+          "type": "ContentMetadataView",
+          "metadata_rows": [
+            {
+              "metadata_parts": [
+                {
+                  "text": {
+                    "text": "Cathyrn Quinones",
+                    "runs": [
+                      {
+                        "text": "Cathyrn Quinones",
+                        "endpoint": {
+                          "type": "NavigationEndpoint",
+                          "name": "browseEndpoint",
+                          "payload": {
+                            "browseId": "UC42h4SdB8LDY04TLd0QpSOw",
+                            "canonicalBaseUrl": "/@CathyrnQuinones"
+                          },
+                          "metadata": {
+                            "url": "/@CathyrnQuinones",
+                            "page_type": "WEB_PAGE_TYPE_CHANNEL",
+                            "api_url": "browse"
+                          },
+                          "command": {
+                            "type": "BrowseEndpoint"
+                          }
+                        },
+                        "bold": false,
+                        "bracket": false,
+                        "deemphasize": false,
+                        "italics": false,
+                        "strikethrough": false,
+                        "error_underline": false,
+                        "underline": false
+                      }
+                    ],
+                    "endpoint": {
+                      "type": "NavigationEndpoint",
+                      "name": "browseEndpoint",
+                      "payload": {
+                        "browseId": "UC42h4SdB8LDY04TLd0QpSOw",
+                        "canonicalBaseUrl": "/@CathyrnQuinones"
+                      },
+                      "metadata": {
+                        "url": "/@CathyrnQuinones",
+                        "page_type": "WEB_PAGE_TYPE_CHANNEL",
+                        "api_url": "browse"
+                      },
+                      "command": {
+                        "type": "BrowseEndpoint"
+                      }
+                    },
+                    "rtl": false
+                  },
+                  "avatar_stack": null
+                },
+                {
+                  "text": {
+                    "text": "Playlist",
+                    "runs": [
+                      {
+                        "text": "Playlist",
+                        "endpoint": {
+                          "type": "NavigationEndpoint",
+                          "name": "browseEndpoint",
+                          "payload": {
+                            "browseId": "UC42h4SdB8LDY04TLd0QpSOw",
+                            "canonicalBaseUrl": "/@CathyrnQuinones"
+                          },
+                          "metadata": {
+                            "url": "/@CathyrnQuinones",
+                            "page_type": "WEB_PAGE_TYPE_CHANNEL",
+                            "api_url": "browse"
+                          },
+                          "command": {
+                            "type": "BrowseEndpoint"
+                          }
+                        },
+                        "bold": false,
+                        "bracket": false,
+                        "deemphasize": false,
+                        "italics": false,
+                        "strikethrough": false,
+                        "error_underline": false,
+                        "underline": false
+                      }
+                    ],
+                    "endpoint": {
+                      "type": "NavigationEndpoint",
+                      "name": "browseEndpoint",
+                      "payload": {
+                        "browseId": "UC42h4SdB8LDY04TLd0QpSOw",
+                        "canonicalBaseUrl": "/@CathyrnQuinones"
+                      },
+                      "metadata": {
+                        "url": "/@CathyrnQuinones",
+                        "page_type": "WEB_PAGE_TYPE_CHANNEL",
+                        "api_url": "browse"
+                      },
+                      "command": {
+                        "type": "BrowseEndpoint"
+                      }
+                    },
+                    "rtl": false
+                  },
+                  "avatar_stack": null
+                }
+              ],
+              "badges": []
+            },
+            {
+              "badges": []
+            },
+            {
+              "metadata_parts": [
+                {
+                  "text": {
+                    "text": "BAD BUNNY - DtMF (Clean Version) | DeBí TiRAR Más FOToS · 3:58",
+                    "runs": [
+                      {
+                        "text": "BAD BUNNY - DtMF (Clean Version) | DeBí TiRAR Más FOToS · 3:58",
+                        "bold": false,
+                        "bracket": false,
+                        "deemphasize": false,
+                        "italics": false,
+                        "strikethrough": false,
+                        "error_underline": false,
+                        "underline": false
+                      }
+                    ],
+                    "rtl": false
+                  },
+                  "avatar_stack": null
+                }
+              ],
+              "badges": []
+            },
+            {
+              "metadata_parts": [
+                {
+                  "text": {
+                    "text": "Bad Bunny - NUEVAYoL (Clean Version) | DeBÍ TiRAR MáS FOToS · 3:04",
+                    "runs": [
+                      {
+                        "text": "Bad Bunny - NUEVAYoL (Clean Version) | DeBÍ TiRAR MáS FOToS · 3:04",
+                        "bold": false,
+                        "bracket": false,
+                        "deemphasize": false,
+                        "italics": false,
+                        "strikethrough": false,
+                        "error_underline": false,
+                        "underline": false
+                      }
+                    ],
+                    "rtl": false
+                  },
+                  "avatar_stack": null
+                }
+              ],
+              "badges": []
+            },
+            {
+              "badges": []
+            },
+            {
+              "metadata_parts": [
+                {
+                  "text": {
+                    "text": "View full playlist",
+                    "runs": [
+                      {
+                        "text": "View full playlist",
+                        "endpoint": {
+                          "type": "NavigationEndpoint",
+                          "name": "browseEndpoint",
+                          "payload": {
+                            "browseId": "VLPLzRo5ms7sOU-gu3q7W1_XAirfFmBDJ9Di"
+                          },
+                          "metadata": {
+                            "url": "/playlist?list=PLzRo5ms7sOU-gu3q7W1_XAirfFmBDJ9Di",
+                            "page_type": "WEB_PAGE_TYPE_PLAYLIST",
+                            "api_url": "browse"
+                          },
+                          "command": {
+                            "type": "BrowseEndpoint"
+                          }
+                        },
+                        "bold": true,
+                        "bracket": false,
+                        "deemphasize": false,
+                        "italics": false,
+                        "strikethrough": false,
+                        "error_underline": false,
+                        "underline": false
+                      }
+                    ],
+                    "endpoint": {
+                      "type": "NavigationEndpoint",
+                      "name": "browseEndpoint",
+                      "payload": {
+                        "browseId": "VLPLzRo5ms7sOU-gu3q7W1_XAirfFmBDJ9Di"
+                      },
+                      "metadata": {
+                        "url": "/playlist?list=PLzRo5ms7sOU-gu3q7W1_XAirfFmBDJ9Di",
+                        "page_type": "WEB_PAGE_TYPE_PLAYLIST",
+                        "api_url": "browse"
+                      },
+                      "command": {
+                        "type": "BrowseEndpoint"
+                      }
+                    },
+                    "rtl": false
+                  },
+                  "avatar_stack": null
+                }
+              ],
+              "badges": []
+            }
+          ],
+          "delimiter": " • "
+        },
+        "image": null,
+        "menu_button": null
+      },
+      "content_id": "PLzRo5ms7sOU-gu3q7W1_XAirfFmBDJ9Di",
+      "content_type": "PLAYLIST",
+      "renderer_context": {
+        "command_context": {
+          "on_tap": {
+            "type": "NavigationEndpoint",
+            "name": "watchEndpoint",
+            "payload": {
+              "videoId": "nBD8zUdg6II",
+              "playlistId": "PLzRo5ms7sOU-gu3q7W1_XAirfFmBDJ9Di",
+              "params": "OAI%3D",
+              "loggingContext": {
+                "vssLoggingContext": {
+                  "serializedContextData": "GiJQTHpSbzVtczdzT1UtZ3UzcTdXMV9YQWlyZkZtQkRKOURp"
+                }
+              },
+              "watchEndpointSupportedOnesieConfig": {
+                "html5PlaybackOnesieConfig": {
+                  "commonConfig": {
+                    "url": "https://rr3---sn-uhvcpax0n5-50ns.googlevideo.com/initplayback?source=youtube&oeis=1&c=WEB&oad=3200&ovd=3200&oaad=11000&oavd=11000&ocs=700&oewis=1&oputc=1&ofpcc=1&msp=1&odepv=1&id=9c10fccd4760e882&ip=172.56.8.91&initcwndbps=1990000&mt=1778464366&oweuc="
+                  }
+                }
+              }
+            },
+            "metadata": {
+              "url": "/watch?v=nBD8zUdg6II&list=PLzRo5ms7sOU-gu3q7W1_XAirfFmBDJ9Di",
+              "page_type": "WEB_PAGE_TYPE_WATCH",
+              "api_url": "/player"
+            },
+            "command": {
+              "type": "WatchEndpoint"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "LockupView",
+      "content_image": {
+        "type": "CollectionThumbnailView",
+        "primary_thumbnail": {
+          "type": "ThumbnailView",
+          "image": [
+            {
+              "url": "https://i.ytimg.com/vi/juRFjpB5Ppg/hq720.jpg?sqp=-oaymwEXCNAFEJQDSFryq4qpAwkIARUAAIhCGAE=&rs=AOn4CLB4qOzH2aIZ5XwEwNXSS-eZMLB5CA",
+              "width": 720,
+              "height": 404
+            },
+            {
+              "url": "https://i.ytimg.com/vi/juRFjpB5Ppg/hq720.jpg?sqp=-oaymwEXCOgCEMoBSFryq4qpAwkIARUAAIhCGAE=&rs=AOn4CLAnkhUgvGsYbRcnv9ZcGeO03XEqLw",
+              "width": 360,
+              "height": 202
+            }
+          ],
+          "overlays": [
+            {
+              "type": "ThumbnailOverlayBadgeView",
+              "badges": [
+                {
+                  "type": "ThumbnailBadgeView",
+                  "text": "11 videos",
+                  "badge_style": "THUMBNAIL_OVERLAY_BADGE_STYLE_DEFAULT",
+                  "background_color": {
+                    "light_theme": 3346951,
+                    "dark_theme": 3346951
+                  }
+                }
+              ],
+              "position": "THUMBNAIL_OVERLAY_BADGE_POSITION_BOTTOM_END"
+            },
+            {
+              "type": "ThumbnailHoverOverlayView",
+              "icon_name": "PLAY_ALL",
+              "text": {
+                "text": "Play all",
+                "runs": [
+                  {
+                    "text": "Play all",
+                    "bold": false,
+                    "bracket": false,
+                    "deemphasize": false,
+                    "italics": false,
+                    "strikethrough": false,
+                    "error_underline": false,
+                    "underline": false
+                  }
+                ],
+                "rtl": false
+              },
+              "style": "THUMBNAIL_HOVER_OVERLAY_STYLE_COVER"
+            }
+          ],
+          "background_color": {
+            "light_theme": 5840909,
+            "dark_theme": 5840909
+          }
+        },
+        "stack_color": {
+          "light_theme": 10057323,
+          "dark_theme": 9665910
+        }
+      },
+      "metadata": {
+        "type": "LockupMetadataView",
+        "title": {
+          "text": "Bad Bunny Super Bowl Playlist",
+          "runs": [
+            {
+              "text": "Bad Bunny Super Bowl Playlist",
+              "bold": false,
+              "bracket": false,
+              "deemphasize": false,
+              "italics": false,
+              "strikethrough": false,
+              "error_underline": false,
+              "underline": false
+            }
+          ],
+          "rtl": false
+        },
+        "metadata": {
+          "type": "ContentMetadataView",
+          "metadata_rows": [
+            {
+              "metadata_parts": [
+                {
+                  "text": {
+                    "text": "Dennis Keim",
+                    "runs": [
+                      {
+                        "text": "Dennis Keim",
+                        "endpoint": {
+                          "type": "NavigationEndpoint",
+                          "name": "browseEndpoint",
+                          "payload": {
+                            "browseId": "UCu-Qr0EigBSK5B9JurTbRxw",
+                            "canonicalBaseUrl": "/@denniskeim9541"
+                          },
+                          "metadata": {
+                            "url": "/@denniskeim9541",
+                            "page_type": "WEB_PAGE_TYPE_CHANNEL",
+                            "api_url": "browse"
+                          },
+                          "command": {
+                            "type": "BrowseEndpoint"
+                          }
+                        },
+                        "bold": false,
+                        "bracket": false,
+                        "deemphasize": false,
+                        "italics": false,
+                        "strikethrough": false,
+                        "error_underline": false,
+                        "underline": false
+                      }
+                    ],
+                    "endpoint": {
+                      "type": "NavigationEndpoint",
+                      "name": "browseEndpoint",
+                      "payload": {
+                        "browseId": "UCu-Qr0EigBSK5B9JurTbRxw",
+                        "canonicalBaseUrl": "/@denniskeim9541"
+                      },
+                      "metadata": {
+                        "url": "/@denniskeim9541",
+                        "page_type": "WEB_PAGE_TYPE_CHANNEL",
+                        "api_url": "browse"
+                      },
+                      "command": {
+                        "type": "BrowseEndpoint"
+                      }
+                    },
+                    "rtl": false
+                  },
+                  "avatar_stack": null
+                },
+                {
+                  "text": {
+                    "text": "Playlist",
+                    "runs": [
+                      {
+                        "text": "Playlist",
+                        "endpoint": {
+                          "type": "NavigationEndpoint",
+                          "name": "browseEndpoint",
+                          "payload": {
+                            "browseId": "UCu-Qr0EigBSK5B9JurTbRxw",
+                            "canonicalBaseUrl": "/@denniskeim9541"
+                          },
+                          "metadata": {
+                            "url": "/@denniskeim9541",
+                            "page_type": "WEB_PAGE_TYPE_CHANNEL",
+                            "api_url": "browse"
+                          },
+                          "command": {
+                            "type": "BrowseEndpoint"
+                          }
+                        },
+                        "bold": false,
+                        "bracket": false,
+                        "deemphasize": false,
+                        "italics": false,
+                        "strikethrough": false,
+                        "error_underline": false,
+                        "underline": false
+                      }
+                    ],
+                    "endpoint": {
+                      "type": "NavigationEndpoint",
+                      "name": "browseEndpoint",
+                      "payload": {
+                        "browseId": "UCu-Qr0EigBSK5B9JurTbRxw",
+                        "canonicalBaseUrl": "/@denniskeim9541"
+                      },
+                      "metadata": {
+                        "url": "/@denniskeim9541",
+                        "page_type": "WEB_PAGE_TYPE_CHANNEL",
+                        "api_url": "browse"
+                      },
+                      "command": {
+                        "type": "BrowseEndpoint"
+                      }
+                    },
+                    "rtl": false
+                  },
+                  "avatar_stack": null
+                }
+              ],
+              "badges": []
+            },
+            {
+              "badges": []
+            },
+            {
+              "metadata_parts": [
+                {
+                  "text": {
+                    "text": "Tití Me Preguntó · 4:04",
+                    "runs": [
+                      {
+                        "text": "Tití Me Preguntó · 4:04",
+                        "bold": false,
+                        "bracket": false,
+                        "deemphasize": false,
+                        "italics": false,
+                        "strikethrough": false,
+                        "error_underline": false,
+                        "underline": false
+                      }
+                    ],
+                    "rtl": false
+                  },
+                  "avatar_stack": null
+                }
+              ],
+              "badges": []
+            },
+            {
+              "metadata_parts": [
+                {
+                  "text": {
+                    "text": "Yo Perreo Sola · 2:53",
+                    "runs": [
+                      {
+                        "text": "Yo Perreo Sola · 2:53",
+                        "bold": false,
+                        "bracket": false,
+                        "deemphasize": false,
+                        "italics": false,
+                        "strikethrough": false,
+                        "error_underline": false,
+                        "underline": false
+                      }
+                    ],
+                    "rtl": false
+                  },
+                  "avatar_stack": null
+                }
+              ],
+              "badges": []
+            },
+            {
+              "badges": []
+            },
+            {
+              "metadata_parts": [
+                {
+                  "text": {
+                    "text": "View full playlist",
+                    "runs": [
+                      {
+                        "text": "View full playlist",
+                        "endpoint": {
+                          "type": "NavigationEndpoint",
+                          "name": "browseEndpoint",
+                          "payload": {
+                            "browseId": "VLPLPnIBCc3x6kMl4VmL9nFd2BAydQF9DWAH"
+                          },
+                          "metadata": {
+                            "url": "/playlist?list=PLPnIBCc3x6kMl4VmL9nFd2BAydQF9DWAH",
+                            "page_type": "WEB_PAGE_TYPE_PLAYLIST",
+                            "api_url": "browse"
+                          },
+                          "command": {
+                            "type": "BrowseEndpoint"
+                          }
+                        },
+                        "bold": true,
+                        "bracket": false,
+                        "deemphasize": false,
+                        "italics": false,
+                        "strikethrough": false,
+                        "error_underline": false,
+                        "underline": false
+                      }
+                    ],
+                    "endpoint": {
+                      "type": "NavigationEndpoint",
+                      "name": "browseEndpoint",
+                      "payload": {
+                        "browseId": "VLPLPnIBCc3x6kMl4VmL9nFd2BAydQF9DWAH"
+                      },
+                      "metadata": {
+                        "url": "/playlist?list=PLPnIBCc3x6kMl4VmL9nFd2BAydQF9DWAH",
+                        "page_type": "WEB_PAGE_TYPE_PLAYLIST",
+                        "api_url": "browse"
+                      },
+                      "command": {
+                        "type": "BrowseEndpoint"
+                      }
+                    },
+                    "rtl": false
+                  },
+                  "avatar_stack": null
+                }
+              ],
+              "badges": []
+            }
+          ],
+          "delimiter": " • "
+        },
+        "image": null,
+        "menu_button": null
+      },
+      "content_id": "PLPnIBCc3x6kMl4VmL9nFd2BAydQF9DWAH",
+      "content_type": "PLAYLIST",
+      "renderer_context": {
+        "command_context": {
+          "on_tap": {
+            "type": "NavigationEndpoint",
+            "name": "watchEndpoint",
+            "payload": {
+              "videoId": "juRFjpB5Ppg",
+              "playlistId": "PLPnIBCc3x6kMl4VmL9nFd2BAydQF9DWAH",
+              "params": "OAI%3D",
+              "loggingContext": {
+                "vssLoggingContext": {
+                  "serializedContextData": "GiJQTFBuSUJDYzN4NmtNbDRWbUw5bkZkMkJBeWRRRjlEV0FI"
+                }
+              },
+              "watchEndpointSupportedOnesieConfig": {
+                "html5PlaybackOnesieConfig": {
+                  "commonConfig": {
+                    "url": "https://rr2---sn-uhvcpax0n5-p5ir.googlevideo.com/initplayback?source=youtube&oeis=1&c=WEB&oad=3200&ovd=3200&oaad=11000&oavd=11000&ocs=700&oewis=1&oputc=1&ofpcc=1&msp=1&odepv=1&id=8ee4458e90793e98&ip=172.56.8.91&initcwndbps=2152500&mt=1778464366&oweuc="
+                  }
+                }
+              }
+            },
+            "metadata": {
+              "url": "/watch?v=juRFjpB5Ppg&list=PLPnIBCc3x6kMl4VmL9nFd2BAydQF9DWAH",
               "page_type": "WEB_PAGE_TYPE_WATCH",
               "api_url": "/player"
             },
@@ -7775,7 +8120,7 @@
               "watchEndpointSupportedOnesieConfig": {
                 "html5PlaybackOnesieConfig": {
                   "commonConfig": {
-                    "url": "https://rr4---sn-uhvcpax0n5-50ns.googlevideo.com/initplayback?source=youtube&oeis=1&c=WEB&oad=3200&ovd=3200&oaad=11000&oavd=11000&ocs=700&oewis=1&oputc=1&ofpcc=1&msp=1&odepv=1&id=4e51653f605099ec&ip=172.56.8.91&initcwndbps=2028750&mt=1778460054&oweuc="
+                    "url": "https://rr4---sn-uhvcpax0n5-50ns.googlevideo.com/initplayback?source=youtube&oeis=1&c=WEB&oad=3200&ovd=3200&oaad=11000&oavd=11000&ocs=700&oewis=1&oputc=1&ofpcc=1&msp=1&odepv=1&id=4e51653f605099ec&ip=172.56.8.91&initcwndbps=1990000&mt=1778464366&oweuc="
                   }
                 }
               }
@@ -7791,354 +8136,10 @@
           }
         }
       }
-    },
-    {
-      "type": "LockupView",
-      "content_image": {
-        "type": "CollectionThumbnailView",
-        "primary_thumbnail": {
-          "type": "ThumbnailView",
-          "image": [
-            {
-              "url": "https://i.ytimg.com/vi/juRFjpB5Ppg/hq720.jpg?sqp=-oaymwEXCNAFEJQDSFryq4qpAwkIARUAAIhCGAE=&rs=AOn4CLB4qOzH2aIZ5XwEwNXSS-eZMLB5CA",
-              "width": 720,
-              "height": 404
-            },
-            {
-              "url": "https://i.ytimg.com/vi/juRFjpB5Ppg/hq720.jpg?sqp=-oaymwEXCOgCEMoBSFryq4qpAwkIARUAAIhCGAE=&rs=AOn4CLAnkhUgvGsYbRcnv9ZcGeO03XEqLw",
-              "width": 360,
-              "height": 202
-            }
-          ],
-          "overlays": [
-            {
-              "type": "ThumbnailOverlayBadgeView",
-              "badges": [
-                {
-                  "type": "ThumbnailBadgeView",
-                  "text": "11 videos",
-                  "badge_style": "THUMBNAIL_OVERLAY_BADGE_STYLE_DEFAULT",
-                  "background_color": {
-                    "light_theme": 3346951,
-                    "dark_theme": 3346951
-                  }
-                }
-              ],
-              "position": "THUMBNAIL_OVERLAY_BADGE_POSITION_BOTTOM_END"
-            },
-            {
-              "type": "ThumbnailHoverOverlayView",
-              "icon_name": "PLAY_ALL",
-              "text": {
-                "text": "Play all",
-                "runs": [
-                  {
-                    "text": "Play all",
-                    "bold": false,
-                    "bracket": false,
-                    "deemphasize": false,
-                    "italics": false,
-                    "strikethrough": false,
-                    "error_underline": false,
-                    "underline": false
-                  }
-                ],
-                "rtl": false
-              },
-              "style": "THUMBNAIL_HOVER_OVERLAY_STYLE_COVER"
-            }
-          ],
-          "background_color": {
-            "light_theme": 5840909,
-            "dark_theme": 5840909
-          }
-        },
-        "stack_color": {
-          "light_theme": 10057323,
-          "dark_theme": 9665910
-        }
-      },
-      "metadata": {
-        "type": "LockupMetadataView",
-        "title": {
-          "text": "Bad Bunny Super Bowl Playlist",
-          "runs": [
-            {
-              "text": "Bad Bunny Super Bowl Playlist",
-              "bold": false,
-              "bracket": false,
-              "deemphasize": false,
-              "italics": false,
-              "strikethrough": false,
-              "error_underline": false,
-              "underline": false
-            }
-          ],
-          "rtl": false
-        },
-        "metadata": {
-          "type": "ContentMetadataView",
-          "metadata_rows": [
-            {
-              "metadata_parts": [
-                {
-                  "text": {
-                    "text": "Dennis Keim",
-                    "runs": [
-                      {
-                        "text": "Dennis Keim",
-                        "endpoint": {
-                          "type": "NavigationEndpoint",
-                          "name": "browseEndpoint",
-                          "payload": {
-                            "browseId": "UCu-Qr0EigBSK5B9JurTbRxw",
-                            "canonicalBaseUrl": "/@denniskeim9541"
-                          },
-                          "metadata": {
-                            "url": "/@denniskeim9541",
-                            "page_type": "WEB_PAGE_TYPE_CHANNEL",
-                            "api_url": "browse"
-                          },
-                          "command": {
-                            "type": "BrowseEndpoint"
-                          }
-                        },
-                        "bold": false,
-                        "bracket": false,
-                        "deemphasize": false,
-                        "italics": false,
-                        "strikethrough": false,
-                        "error_underline": false,
-                        "underline": false
-                      }
-                    ],
-                    "endpoint": {
-                      "type": "NavigationEndpoint",
-                      "name": "browseEndpoint",
-                      "payload": {
-                        "browseId": "UCu-Qr0EigBSK5B9JurTbRxw",
-                        "canonicalBaseUrl": "/@denniskeim9541"
-                      },
-                      "metadata": {
-                        "url": "/@denniskeim9541",
-                        "page_type": "WEB_PAGE_TYPE_CHANNEL",
-                        "api_url": "browse"
-                      },
-                      "command": {
-                        "type": "BrowseEndpoint"
-                      }
-                    },
-                    "rtl": false
-                  },
-                  "avatar_stack": null
-                },
-                {
-                  "text": {
-                    "text": "Playlist",
-                    "runs": [
-                      {
-                        "text": "Playlist",
-                        "endpoint": {
-                          "type": "NavigationEndpoint",
-                          "name": "browseEndpoint",
-                          "payload": {
-                            "browseId": "UCu-Qr0EigBSK5B9JurTbRxw",
-                            "canonicalBaseUrl": "/@denniskeim9541"
-                          },
-                          "metadata": {
-                            "url": "/@denniskeim9541",
-                            "page_type": "WEB_PAGE_TYPE_CHANNEL",
-                            "api_url": "browse"
-                          },
-                          "command": {
-                            "type": "BrowseEndpoint"
-                          }
-                        },
-                        "bold": false,
-                        "bracket": false,
-                        "deemphasize": false,
-                        "italics": false,
-                        "strikethrough": false,
-                        "error_underline": false,
-                        "underline": false
-                      }
-                    ],
-                    "endpoint": {
-                      "type": "NavigationEndpoint",
-                      "name": "browseEndpoint",
-                      "payload": {
-                        "browseId": "UCu-Qr0EigBSK5B9JurTbRxw",
-                        "canonicalBaseUrl": "/@denniskeim9541"
-                      },
-                      "metadata": {
-                        "url": "/@denniskeim9541",
-                        "page_type": "WEB_PAGE_TYPE_CHANNEL",
-                        "api_url": "browse"
-                      },
-                      "command": {
-                        "type": "BrowseEndpoint"
-                      }
-                    },
-                    "rtl": false
-                  },
-                  "avatar_stack": null
-                }
-              ],
-              "badges": []
-            },
-            {
-              "badges": []
-            },
-            {
-              "metadata_parts": [
-                {
-                  "text": {
-                    "text": "Tití Me Preguntó · 4:04",
-                    "runs": [
-                      {
-                        "text": "Tití Me Preguntó · 4:04",
-                        "bold": false,
-                        "bracket": false,
-                        "deemphasize": false,
-                        "italics": false,
-                        "strikethrough": false,
-                        "error_underline": false,
-                        "underline": false
-                      }
-                    ],
-                    "rtl": false
-                  },
-                  "avatar_stack": null
-                }
-              ],
-              "badges": []
-            },
-            {
-              "metadata_parts": [
-                {
-                  "text": {
-                    "text": "Yo Perreo Sola · 2:53",
-                    "runs": [
-                      {
-                        "text": "Yo Perreo Sola · 2:53",
-                        "bold": false,
-                        "bracket": false,
-                        "deemphasize": false,
-                        "italics": false,
-                        "strikethrough": false,
-                        "error_underline": false,
-                        "underline": false
-                      }
-                    ],
-                    "rtl": false
-                  },
-                  "avatar_stack": null
-                }
-              ],
-              "badges": []
-            },
-            {
-              "badges": []
-            },
-            {
-              "metadata_parts": [
-                {
-                  "text": {
-                    "text": "View full playlist",
-                    "runs": [
-                      {
-                        "text": "View full playlist",
-                        "endpoint": {
-                          "type": "NavigationEndpoint",
-                          "name": "browseEndpoint",
-                          "payload": {
-                            "browseId": "VLPLPnIBCc3x6kMl4VmL9nFd2BAydQF9DWAH"
-                          },
-                          "metadata": {
-                            "url": "/playlist?list=PLPnIBCc3x6kMl4VmL9nFd2BAydQF9DWAH",
-                            "page_type": "WEB_PAGE_TYPE_PLAYLIST",
-                            "api_url": "browse"
-                          },
-                          "command": {
-                            "type": "BrowseEndpoint"
-                          }
-                        },
-                        "bold": true,
-                        "bracket": false,
-                        "deemphasize": false,
-                        "italics": false,
-                        "strikethrough": false,
-                        "error_underline": false,
-                        "underline": false
-                      }
-                    ],
-                    "endpoint": {
-                      "type": "NavigationEndpoint",
-                      "name": "browseEndpoint",
-                      "payload": {
-                        "browseId": "VLPLPnIBCc3x6kMl4VmL9nFd2BAydQF9DWAH"
-                      },
-                      "metadata": {
-                        "url": "/playlist?list=PLPnIBCc3x6kMl4VmL9nFd2BAydQF9DWAH",
-                        "page_type": "WEB_PAGE_TYPE_PLAYLIST",
-                        "api_url": "browse"
-                      },
-                      "command": {
-                        "type": "BrowseEndpoint"
-                      }
-                    },
-                    "rtl": false
-                  },
-                  "avatar_stack": null
-                }
-              ],
-              "badges": []
-            }
-          ],
-          "delimiter": " • "
-        },
-        "image": null,
-        "menu_button": null
-      },
-      "content_id": "PLPnIBCc3x6kMl4VmL9nFd2BAydQF9DWAH",
-      "content_type": "PLAYLIST",
-      "renderer_context": {
-        "command_context": {
-          "on_tap": {
-            "type": "NavigationEndpoint",
-            "name": "watchEndpoint",
-            "payload": {
-              "videoId": "juRFjpB5Ppg",
-              "playlistId": "PLPnIBCc3x6kMl4VmL9nFd2BAydQF9DWAH",
-              "params": "OAI%3D",
-              "loggingContext": {
-                "vssLoggingContext": {
-                  "serializedContextData": "GiJQTFBuSUJDYzN4NmtNbDRWbUw5bkZkMkJBeWRRRjlEV0FI"
-                }
-              },
-              "watchEndpointSupportedOnesieConfig": {
-                "html5PlaybackOnesieConfig": {
-                  "commonConfig": {
-                    "url": "https://rr2---sn-uhvcpax0n5-p5ir.googlevideo.com/initplayback?source=youtube&oeis=1&c=WEB&oad=3200&ovd=3200&oaad=11000&oavd=11000&ocs=700&oewis=1&oputc=1&ofpcc=1&msp=1&odepv=1&id=8ee4458e90793e98&ip=172.56.8.91&initcwndbps=2313750&mt=1778460054&oweuc="
-                  }
-                }
-              }
-            },
-            "metadata": {
-              "url": "/watch?v=juRFjpB5Ppg&list=PLPnIBCc3x6kMl4VmL9nFd2BAydQF9DWAH",
-              "page_type": "WEB_PAGE_TYPE_WATCH",
-              "api_url": "/player"
-            },
-            "command": {
-              "type": "WatchEndpoint"
-            }
-          }
-        }
-      }
     }
   ],
   "refinements": [],
-  "estimated_results": 29042,
+  "estimated_results": 29029,
   "sub_menu": {
     "type": "SearchSubMenu"
   }

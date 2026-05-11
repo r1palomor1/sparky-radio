@@ -1,0 +1,20 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "run-test2",
+			"type": "shell",
+			"command": "node scratch/test2.js"
+		},
+		{
+			"label": "run-multi-page",
+			"type": "shell",
+			"command": "node scratch/live_multi_page_test.js > scratch/output.txt"
+		},
+		{
+			"label": "run-runnable-test",
+			"type": "shell",
+			"command": "node scratch/runnable_test.cjs"
+		}
+	]
+}

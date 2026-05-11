@@ -51,25 +51,49 @@ function parsePlaylistRenderer(item) {
 }
 
 function formatPlaylistResults(data) {
-    // 1. Try standard results (Page 1)
-    let results = data.results?.map(item => {
-        if (item.content_type !== 'PLAYLIST' && item.type !== 'Playlist') return null;
-        try {
-            return {
-                playlist_id: item.content_id || item.id,
-                title: item.metadata?.title?.text || item.title?.text || item.title?.toString(),
-                thumbnail: item.content_image?.primary_thumbnail?.image?.[0]?.url || item.thumbnails?.[0]?.url || item.thumbnail?.[0]?.url,
-                video_count: item.content_image?.overlays?.[0]?.badges?.[0]?.text || item.video_count?.text || 'N/A'
-            };
-        } catch (e) { return null; }
-    }).filter(Boolean) || [];
+    let results = [];
 
-    // 2. Try continuation commands (Page 2+)
+    // Try standard results (Page 1)
+    if (data.results) {
+        results = data.results?.map(item => {
+            if (item.content_type !== 'PLAYLIST' && item.type !== 'Playlist') return null;
+            try {
+                return {
+                    playlist_id: item.content_id || item.id,
+                    title: item.metadata?.title?.text || item.title?.text || item.title?.toString(),
+                    thumbnail: item.content_image?.primary_thumbnail?.image?.[0]?.url || item.thumbnails?.[0]?.url || item.thumbnail?.[0]?.url,
+                    video_count: item.content_image?.overlays?.[0]?.badges?.[0]?.text || item.video_count?.text || 'N/A'
+                };
+            } catch (e) { return null; }
+        }).filter(Boolean) || [];
+    }
+
+    // Try continuation lockupViewModel (Page 2+)
     if (results.length === 0 && data.on_response_received_commands) {
-        const cmd = data.on_response_received_commands.find(c => c.appendContinuationItemsAction);
-        const items = cmd?.appendContinuationItemsAction?.continuationItems;
-        if (items) {
-            results = items.map(parsePlaylistRenderer).filter(Boolean);
+        for (const cmd of data.on_response_received_commands) {
+            const items = cmd.appendContinuationItemsAction?.continuationItems;
+            if (items) {
+                // Find old playlistRenderer OR new lockupViewModel
+                const parsed = items.map(item => {
+                    if (item.playlistRenderer) {
+                        return parsePlaylistRenderer(item);
+                    } else if (item.lockupViewModel?.contentType === 'LOCKUP_CONTENT_TYPE_PLAYLIST') {
+                        const luv = item.lockupViewModel;
+                        return {
+                            playlist_id: luv.contentId,
+                            title: luv.metadata?.lockupMetadataViewModel?.title?.content || 'N/A',
+                            thumbnail: luv.contentImage?.collectionThumbnailViewModel?.primaryThumbnail?.thumbnailViewModel?.image?.sources?.[0]?.url || 'N/A',
+                            video_count: 'N/A' // Not readily available in lockupViewModel
+                        };
+                    }
+                    return null;
+                }).filter(Boolean);
+                
+                if (parsed.length > 0) {
+                    results = parsed;
+                    break;
+                }
+            }
         }
     }
 
@@ -124,18 +148,12 @@ export default async function handler(req, res) {
                 client: youtube.session.context.client.clientName
             });
 
-            // Find all playlists no matter how deeply nested they are
-            const rawPlaylists = deepFindPlaylists(response.data);
-            
-            // Map standard entries to our format
-            let results = rawPlaylists.map(parsePlaylistRenderer).filter(Boolean);
-
-            // Extract the next token from anywhere in the response
-            let pageToken = findTargetedToken(response.data);
+            // Use the updated formatter that understands `lockupViewModel`
+            let formatted = formatPlaylistResults(response.data);
 
             return res.status(200).json({
-                playlist_results: results,
-                continuation: pageToken
+                playlist_results: formatted.playlist_results,
+                continuation: formatted.continuation
             });
         }
         return res.status(400).json({ error: 'Missing params' });
