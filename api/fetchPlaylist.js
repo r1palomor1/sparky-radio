@@ -4,17 +4,14 @@ import { Innertube } from 'youtubei.js';
 function findToken(obj) {
     if (!obj || typeof obj !== 'object') return null;
     
-    // PRIORITY 1: Targeted research path (continuationCommand.payload.token)
     if (obj.continuationCommand?.payload?.token) {
         const token = obj.continuationCommand.payload.token;
         if (typeof token === 'string' && token.length > 20) return token;
     }
 
-    // PRIORITY 2: Standard v17 properties
     if (obj.continuation) return obj.continuation;
     if (obj.token && typeof obj.token === 'string' && obj.token.length > 20) return obj.token;
     
-    // PRIORITY 3: Deep exhaustive crawl
     if (Array.isArray(obj.on_response_received_commands)) {
         for (const cmd of obj.on_response_received_commands) {
             const token = findToken(cmd);
@@ -91,14 +88,17 @@ export default async function handler(req, res) {
 
         } else if (continuation) {
             console.log(`[YT API] Playlist continuation: ${continuation.substring(0, 20)}...`);
-            const nextPage = await youtube.getContinuation(continuation);
+            
+            // FIX: Switching to actions.execute('/browse') which is proven stable for continuation
+            const nextPage = await youtube.actions.execute('/browse', { continuation: continuation, parse: true });
+            
             return res.status(200).json(formatPlaylistResults(nextPage));
         }
 
         return res.status(400).json({ error: 'Query or continuation required' });
 
     } catch (error) {
-        console.error('[YT API] Error:', error.message);
+        console.error('[YT API] Playlist Error:', error.message);
         res.status(500).json({ error: 'Failed', details: error.message });
     }
 }
