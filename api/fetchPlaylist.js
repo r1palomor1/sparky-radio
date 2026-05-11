@@ -1,104 +1,110 @@
 import { Innertube } from 'youtubei.js';
 
-// MULTI-STAGE TOKEN HUNTER (Broad + Targeted)
-function findToken(obj) {
-    if (!obj || typeof obj !== 'object') return null;
-    
-    if (obj.continuationCommand?.payload?.token) {
-        const token = obj.continuationCommand.payload.token;
-        if (typeof token === 'string' && token.length > 20) return token;
-    }
-
-    if (obj.continuation) return obj.continuation;
-    if (obj.token && typeof obj.token === 'string' && obj.token.length > 20) return obj.token;
-    
-    if (Array.isArray(obj.on_response_received_commands)) {
-        for (const cmd of obj.on_response_received_commands) {
-            const token = findToken(cmd);
-            if (token) return token;
-        }
-    }
-    
-    for (const key in obj) {
-        if (Object.prototype.hasOwnProperty.call(obj, key)) {
-            const token = findToken(obj[key]);
-            if (token) return token;
-        }
-    }
-    return null;
-}
-
-// PORTED FROM r1-launch-pad (Exact property mapping)
+// Helper function to format playlist search results for the frontend
 function formatPlaylistResults(data) {
+    // 1. Get the array of results from the correct property
     const results = data.results?.map(item => {
-        if (item.content_type !== 'PLAYLIST' && item.type !== 'Playlist') return null;
+        
+        // 2. We only care about items that are Playlists
+        if (item.content_type !== 'PLAYLIST') return null;
 
+        // 3. Extract the data using the exact paths, but with MAXIMUM safety
         try {
-            const playlist_id = item.content_id || item.id;
-            const title = item.metadata?.title?.text || item.title?.text || item.title?.toString();
-            const thumbnail = item.content_image?.primary_thumbnail?.image?.[0]?.url || item.thumbnails?.[0]?.url || item.thumbnail?.[0]?.url;
-            const video_count = item.content_image?.overlays?.[0]?.badges?.[0]?.text || item.video_count?.text || item.video_count?.toString() || 'N/A';
+            const playlist_id = item.content_id;
+            const title = item.metadata?.title?.text;
 
+            // --- THIS IS THE FIX ---
+            // We add more '?' to safely handle empty or null arrays
+            const thumbnail = item.content_image?.primary_thumbnail?.image?.[0]?.url;
+            const video_count = item.content_image?.overlays?.[0]?.badges?.[0]?.text || 'N/A';
+            // --- END OF FIX ---
+
+            // 4. If we have the essentials, return the object
             if (playlist_id && title && thumbnail) {
-                return { playlist_id, title, thumbnail, video_count };
+                return {
+                    playlist_id: playlist_id,
+                    title: title,
+                    thumbnail: thumbnail,
+                    video_count: video_count
+                };
             }
-        } catch (e) { return null; }
+        } catch (e) {
+            // Log any other weird errors but don't crash
+            console.error("Failed to parse an item:", e.message);
+            return null;
+        }
+        
         return null;
-    }).filter(Boolean);
-
-    const token = findToken(data);
+    }).filter(Boolean); // 5. Filter out all the nulls (videos, bad items)
 
     return {
         playlist_results: results || [],
-        continuation: token || null
+        // 6. The continuation token is at the root of the data object
+        continuation: data.continuation || null
     };
 }
 
 export default async function handler(req, res) {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  // Set CORS headers for all responses
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-    if (req.method === 'OPTIONS') return res.status(200).end();
+  // Handle preflight OPTIONS requests
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
 
-    try {
-        const { id, query, continuation } = req.query;
-        const youtube = await Innertube.create();
+  try {
+    const { id, query, continuation } = req.query;
+    const youtube = await Innertube.create();
 
-        if (id) {
-            console.log(`[YT API] Playlist ID: ${id}`);
-            const playlist = await youtube.getPlaylist(id);
-            if (!playlist.videos) return res.status(404).json({ error: 'Empty playlist' });
-            
-            const videos = playlist.videos.map(v => ({
-                id: v.id,
-                title: v.title?.text || v.title?.toString(),
-                thumb: v.thumbnails?.[v.thumbnails.length - 1]?.url || v.thumbnail?.[0]?.url,
-            }));
+    // === LOGIC 1: Fetch a specific playlist (Existing "is.gd" & Overlay Logic) ===
+    if (id) {
+        const playlist = await youtube.getPlaylist(id);
 
-            return res.status(200).json({
-                title: playlist.info?.title || 'Playlist',
-                video_results: videos
-            });
-
-        } else if (query) {
-            console.log(`[YT API] Playlist search: ${query}`);
-            const searchResults = await youtube.search(query, { type: 'playlist' });
-            return res.status(200).json(formatPlaylistResults(searchResults));
-
-        } else if (continuation) {
-            console.log(`[YT API] Playlist continuation: ${continuation.substring(0, 20)}...`);
-            
-            // FIX: Switching to actions.execute('/browse') which is proven stable for continuation
-            const nextPage = await youtube.actions.execute('/browse', { continuation: continuation, parse: true });
-            
-            return res.status(200).json(formatPlaylistResults(nextPage));
+        if (!playlist.videos) {
+            return res.status(404).json({ error: 'Playlist not found or is empty' });
         }
 
-        return res.status(400).json({ error: 'Query or continuation required' });
+        const baseVideos = playlist.videos.map(video => ({
+            id: video.id,
+            title: video.title.text,
+            thumb: video.thumbnails[video.thumbnails.length - 1].url,
+        }));
 
-    } catch (error) {
-        console.error('[YT API] Playlist Error:', error.message);
-        res.status(500).json({ error: 'Failed', details: error.message });
+        const playlistTitle = playlist.info?.title || playlist.title?.text || 'YouTube Playlist';
+
+        return res.status(200).json({
+            title: playlistTitle,
+            videos: baseVideos
+        });
+    
+    // === LOGIC 2: Search for playlists (New "Playlists" Mode Logic) ===
+    } else if (query) {
+        const searchResults = await youtube.search(query, {
+            type: 'playlist' // This is the key change
+        });
+        
+        // This function will now correctly parse the 'searchResults' object
+        const formattedData = formatPlaylistResults(searchResults);
+        return res.status(200).json(formattedData);
+
+    // === LOGIC 3: Get next page of search results (New Pagination Logic) ===
+    } else if (continuation) {
+        // This logic was already correct
+        const nextPage = await youtube.getContinuation(continuation);
+        
+        const formattedData = formatPlaylistResults(nextPage);
+        return res.status(200).json(formattedData);
+    
+    // === LOGIC 4: No valid parameter provided ===
+    } else {
+      return res.status(400).json({ error: 'A query, id, or continuation token is required' });
     }
+
+  } catch (error) {
+    console.error('Vercel API Error:', error.message);
+    res.status(500).json({ error: 'Failed to fetch data from YouTube', details: error.message });
+  }
 }
