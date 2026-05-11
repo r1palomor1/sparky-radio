@@ -3,6 +3,7 @@ import { Innertube } from 'youtubei.js';
 function findTargetedToken(obj) {
     if (!obj || typeof obj !== 'object') return null;
     if (obj.name === 'continuationCommand' && obj.payload?.token) return obj.payload.token;
+    if (obj.continuationCommand && obj.continuationCommand.token) return obj.continuationCommand.token;
     for (const key in obj) {
         if (Object.prototype.hasOwnProperty.call(obj, key)) {
             const token = findTargetedToken(obj[key]);
@@ -10,6 +11,28 @@ function findTargetedToken(obj) {
         }
     }
     return null;
+}
+
+function deepFindPlaylists(obj, results = []) {
+    if (!obj || typeof obj !== 'object') return results;
+    
+    // Prevent infinite loops on cyclic structures just in case
+    if (obj.__visited) return results;
+    Object.defineProperty(obj, '__visited', { value: true, enumerable: false });
+
+    // Check if current object represents a playlist
+    const isPlaylist = obj.type === 'Playlist' || obj.playlistRenderer || (typeof obj.playlistId === 'string' && obj.title);
+    if (isPlaylist) {
+        results.push(obj);
+    } else {
+        // Traverse down
+        for (const key in obj) {
+            if (Object.prototype.hasOwnProperty.call(obj, key) && typeof obj[key] === 'object') {
+                deepFindPlaylists(obj[key], results);
+            }
+        }
+    }
+    return results;
 }
 
 function parsePlaylistRenderer(item) {
@@ -101,24 +124,14 @@ export default async function handler(req, res) {
                 client: youtube.session.context.client.clientName
             });
 
-            // Parse response commands
-            const parsedData = response.data;
-            let newItems = [];
-            try {
-                newItems = parsedData.onResponseReceivedCommands[0].appendContinuationItemsAction.continuationItems;
-            } catch (e) {
-                console.error("Failed to parse continuation items tree:", e);
-            }
-
+            // Find all playlists no matter how deeply nested they are
+            const rawPlaylists = deepFindPlaylists(response.data);
+            
             // Map standard entries to our format
-            let results = newItems.map(parsePlaylistRenderer).filter(Boolean);
+            let results = rawPlaylists.map(parsePlaylistRenderer).filter(Boolean);
 
-            // Extract token for the NEXT page (found at end of items array)
-            let pageToken = null;
-            const lastItem = newItems[newItems.length - 1];
-            if (lastItem && lastItem.continuationItemRenderer) {
-                pageToken = lastItem.continuationItemRenderer.continuationEndpoint?.continuationCommand?.token;
-            }
+            // Extract the next token from anywhere in the response
+            let pageToken = findTargetedToken(response.data);
 
             return res.status(200).json({
                 playlist_results: results,
