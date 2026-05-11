@@ -1,22 +1,31 @@
 import { Innertube } from 'youtubei.js';
 
-// TARGETED TOKEN HUNTER (Based on raw_search_results research)
-function findTargetedToken(obj) {
+// MULTI-STAGE TOKEN HUNTER (Broad + Targeted)
+function findToken(obj) {
     if (!obj || typeof obj !== 'object') return null;
     
-    // Path: continuationCommand.payload.token
+    // PRIORITY 1: Targeted research path (continuationCommand.payload.token)
     if (obj.continuationCommand?.payload?.token) {
         const token = obj.continuationCommand.payload.token;
-        if (typeof token === 'string' && token.length > 20) {
-            console.log(`[YT-TOKEN-FOUND] Targeted hunter found token: ${token.substring(0, 20)}...`);
-            return token;
+        if (typeof token === 'string' && token.length > 20) return token;
+    }
+
+    // PRIORITY 2: Standard v17 properties
+    if (obj.continuation) return obj.continuation;
+    if (obj.token && typeof obj.token === 'string' && obj.token.length > 20) return obj.token;
+    
+    // PRIORITY 3: Deep exhaustive crawl
+    if (Array.isArray(obj.on_response_received_commands)) {
+        for (const cmd of obj.on_response_received_commands) {
+            const token = findToken(cmd);
+            if (token) return token;
         }
     }
     
     for (const key in obj) {
         if (Object.prototype.hasOwnProperty.call(obj, key)) {
-            const result = findTargetedToken(obj[key]);
-            if (result) return result;
+            const token = findToken(obj[key]);
+            if (token) return token;
         }
     }
     return null;
@@ -25,7 +34,6 @@ function findTargetedToken(obj) {
 // PORTED FROM r1-launch-pad (Exact property mapping)
 function formatPlaylistResults(data) {
     const results = data.results?.map(item => {
-        // Checking for Playlist types (v17 uses item.type)
         if (item.content_type !== 'PLAYLIST' && item.type !== 'Playlist') return null;
 
         try {
@@ -41,8 +49,7 @@ function formatPlaylistResults(data) {
         return null;
     }).filter(Boolean);
 
-    // KEY: Use the Hunter for the token to bypass Filter Chip distractions
-    const token = findTargetedToken(data);
+    const token = findToken(data);
 
     return {
         playlist_results: results || [],
