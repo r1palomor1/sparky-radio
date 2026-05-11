@@ -77,11 +77,53 @@ export default async function handler(req, res) {
 
         } else if (query) {
             const searchResults = await youtube.search(query, { type: 'playlist' });
-            return res.status(200).json(formatPlaylistResults(searchResults));
+            
+            // Extract the infinite-scroll token
+            let nextPageToken = null;
+            const contItems = searchResults.memo.get("ContinuationItem");
+
+            if (contItems && contItems.length > 0) {
+                // The first ContinuationItem in the memo is typically the bottom-of-page scroll trigger
+                nextPageToken = contItems[0].endpoint?.payload?.token;
+            }
+
+            const formatted = formatPlaylistResults(searchResults);
+            if (nextPageToken) {
+                formatted.continuation = nextPageToken;
+            }
+
+            return res.status(200).json(formatted);
 
         } else if (continuation) {
-            const nextPage = await youtube.actions.execute('/search', { continuation: continuation, parse: true });
-            return res.status(200).json(formatPlaylistResults(nextPage));
+            // Fetch next page via raw execute
+            const response = await youtube.actions.execute('/search', {
+                continuation: continuation,
+                client: youtube.session.context.client.clientName
+            });
+
+            // Parse response commands
+            const parsedData = response.data;
+            let newItems = [];
+            try {
+                newItems = parsedData.onResponseReceivedCommands[0].appendContinuationItemsAction.continuationItems;
+            } catch (e) {
+                console.error("Failed to parse continuation items tree:", e);
+            }
+
+            // Map standard entries to our format
+            let results = newItems.map(parsePlaylistRenderer).filter(Boolean);
+
+            // Extract token for the NEXT page (found at end of items array)
+            let pageToken = null;
+            const lastItem = newItems[newItems.length - 1];
+            if (lastItem && lastItem.continuationItemRenderer) {
+                pageToken = lastItem.continuationItemRenderer.continuationEndpoint?.continuationCommand?.token;
+            }
+
+            return res.status(200).json({
+                playlist_results: results,
+                continuation: pageToken
+            });
         }
         return res.status(400).json({ error: 'Missing params' });
     } catch (error) {
