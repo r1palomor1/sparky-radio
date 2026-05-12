@@ -1374,7 +1374,68 @@ input[type=range]::-moz-range-thumb {
   gap: 6px;
 }
 
+.yt-recent-searches {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  overflow: hidden;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+}
 
+.yt-recent-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.2s;
+}
+
+.yt-recent-item:last-child {
+  border-bottom: none;
+}
+
+.yt-recent-item:hover {
+  background: var(--panel-hover);
+}
+
+.yt-recent-text {
+  flex: 1;
+  font-size: 13px;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: 'Share Tech Mono', monospace;
+}
+
+.yt-recent-remove {
+  color: var(--dim);
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s;
+  margin-left: 8px;
+  font-size: 16px;
+  line-height: 1;
+}
+
+.yt-recent-remove:hover {
+  color: var(--accent2);
+  background: rgba(255, 255, 255, 0.05);
+}
 
 /* Consolidated at L784 */
 
@@ -3775,6 +3836,7 @@ body.light .filter-chip {
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
   gap: 8px;
+  position: relative;
 }
 
 .yt-search-main {
@@ -3786,31 +3848,7 @@ body.light .filter-chip {
 
 .yt-search-main .yt-search-icon { font-size: 16px; color: var(--dim); flex-shrink: 0; }
 
-.yt-recent-searches {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  padding: 2px 0 4px 24px;
-}
 
-.yt-recent-chip {
-  font-family: 'Share Tech Mono', monospace;
-  font-size: calc(9px * var(--text-scale));
-  color: var(--dim);
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid var(--border);
-  padding: 3px 8px;
-  border-radius: 12px;
-  cursor: pointer;
-  transition: all 0.2s;
-  white-space: nowrap;
-}
-
-.yt-recent-chip:hover {
-  color: var(--accent);
-  border-color: var(--accent);
-  background: rgba(255, 255, 255, 0.08);
-}
 
 /* position:relative is required so the queue overlay's position:absolute
    is contained within yt-view, not the entire .app shell. */
@@ -3906,15 +3944,6 @@ body.light .filter-chip {
 }
 
 /* â”€â”€ YT Search Bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
-.yt-search-wrap {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  background: var(--panel);
-  border-bottom: 1px solid var(--border);
-  flex-shrink: 0;
-}
 
 .yt-search-wrap .yt-search-icon { font-size: 16px; color: var(--dim); flex-shrink: 0; }
 
@@ -4121,7 +4150,6 @@ body.light .filter-chip {
   background: #000;
   border-radius: 4px;
   overflow: hidden;
-}
 }
 
 #sparky-yt-player iframe {

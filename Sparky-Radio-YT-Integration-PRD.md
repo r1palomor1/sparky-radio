@@ -6,7 +6,7 @@ After a thorough review of the `r1-launch-pad` repository, we have identified th
 - **Videos** and searches are currently routed through native Rabbit OS hooks (`PluginMessageHandler`). **Since Sparky Radio is a standalone PWA, this native hook is a critical gap and MUST be replaced.**
 - **Player Embedding** uses the standard YouTube Iframe API (`YT.Player`) with specific `playerVars` to control playback (`playsinline: 1, modestbranding: 1, rel: 0`).
 - **State Management** heavily relies on synchronous `localStorage` updates paired with in-memory arrays (e.g., `savedPlaylists`, `currentPlaylist`).
-
+v
 **Recommendations:**
 - **Standardize API Access:** Expand the Vercel API endpoint (or create a new Cloudflare Worker/Vercel endpoint for Sparky) to handle *both* video searches and playlist fetching, entirely removing the dependency on `PluginMessageHandler`.
 - **Decoupled Data Store:** Migrate `launchPadR1*` storage keys to `sparky_yt_*` keys to ensure Radio and Video states remain completely independent.

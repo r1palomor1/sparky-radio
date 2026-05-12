@@ -3564,6 +3564,13 @@ function saveYtRecentSearch(query) {
   localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(searches));
 }
 
+function removeYtRecentSearch(query) {
+  let searches = loadYtRecentSearches();
+  searches = searches.filter(s => s !== query);
+  localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(searches));
+  renderYtRecentSearches();
+}
+
 function renderYtRecentSearches() {
   const container = document.getElementById('ytRecentSearches');
   if (!container) return;
@@ -3574,14 +3581,41 @@ function renderYtRecentSearches() {
     return;
   }
   
-  // Show only if input has focus (managed by listeners)
-  container.innerHTML = searches.map(s => `<div class="yt-recent-chip" data-query="${s.replace(/"/g, '&quot;')}">${s}</div>`).join('');
+  container.innerHTML = searches.map(s => `
+    <div class="yt-recent-item" data-query="${s.replace(/"/g, '&quot;')}">
+      <span class="yt-recent-text">${s}</span>
+      <span class="yt-recent-remove" title="Remove">&times;</span>
+    </div>
+  `).join('');
   
-  container.querySelectorAll('.yt-recent-chip').forEach(chip => {
-    chip.onclick = () => {
+  container.querySelectorAll('.yt-recent-item').forEach(item => {
+    // Click on text to search
+    const textEl = item.querySelector('.yt-recent-text');
+    textEl.onclick = (e) => {
+      e.stopPropagation();
       const input = document.getElementById('ytSearchInput');
       if (input) {
-        input.value = chip.dataset.query;
+        input.value = item.dataset.query;
+        toggleYtSearchClear(); // Show the 'X' button
+        runYtSearch();
+        container.classList.add('hidden');
+      }
+    };
+    
+    // Click on X to remove
+    const removeBtn = item.querySelector('.yt-recent-remove');
+    removeBtn.onclick = (e) => {
+      e.stopPropagation();
+      removeYtRecentSearch(item.dataset.query);
+    };
+
+    // Full item click fallback (excluding remove btn)
+    item.onclick = (e) => {
+      if (e.target.classList.contains('yt-recent-remove')) return;
+      const input = document.getElementById('ytSearchInput');
+      if (input) {
+        input.value = item.dataset.query;
+        toggleYtSearchClear(); // Show the 'X' button
         runYtSearch();
         container.classList.add('hidden');
       }
@@ -4555,13 +4589,30 @@ document.getElementById('btnYtSearch')?.addEventListener('click', runYtSearch);
 ytSearchInput?.addEventListener('keydown', e => {
   if (e.key === 'Enter') runYtSearch();
 });
-ytSearchInput?.addEventListener('input', toggleYtSearchClear);
+ytSearchInput?.addEventListener('input', () => {
+  toggleYtSearchClear();
+  if (ytSearchInput.value.trim() === '') {
+    renderYtRecentSearches();
+    document.getElementById('ytRecentSearches')?.classList.remove('hidden');
+  } else {
+    document.getElementById('ytRecentSearches')?.classList.add('hidden');
+  }
+});
+
+ytSearchInput?.addEventListener('click', () => {
+  if (ytSearchInput.value.trim() === '') {
+    renderYtRecentSearches();
+    document.getElementById('ytRecentSearches')?.classList.remove('hidden');
+  }
+});
 
 btnYtSearchClear?.addEventListener('click', () => {
   if (ytSearchInput) {
     ytSearchInput.value = '';
-    ytSearchInput.focus();
     toggleYtSearchClear();
+    renderYtRecentSearches();
+    document.getElementById('ytRecentSearches')?.classList.remove('hidden');
+    ytSearchInput.focus();
     clearYtResults();
   }
 });
