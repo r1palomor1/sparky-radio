@@ -159,7 +159,7 @@ export default async function handler(req, res) {
                 published: shortenMetadata(extractString(v.published)),
                 type: 'video'
             }));
-            return res.status(200).json({ title: extractString(playlist.info?.title) || 'Playlist', video_results: videos });
+            return res.status(200).json({ title: extractString(playlist.info?.title) || 'Playlist', videos: videos });
 
         } else if (query) {
             const response = await youtube.actions.execute('/search', { query, params: 'EgIQAw%3D%3D', parse: false });

@@ -3218,7 +3218,7 @@ function resetCinemaTimer() {
   const state = typeof sparkyYtState.playerInstance.getPlayerState === 'function' ?
     sparkyYtState.playerInstance.getPlayerState() : -1;
 
-  if (state === YT.PlayerState.PLAYING && sparkyYtState.currentSubMode === 'videos') {
+  if (state === YT.PlayerState.PLAYING) {
     cinemaModeTimer = setTimeout(() => {
       lastCinemaTriggerTime = Date.now();
       app.classList.add('immersive-cinema-mode');
@@ -3239,13 +3239,23 @@ function toggleCinemaMode() {
   }
 }
 
+// ── Wake Button Isolated Logic ────────────────────────────────────
+const wakeZone = document.getElementById('cinemaWakeZone');
+if (wakeZone) {
+  ['click', 'touchstart'].forEach(evt => {
+    wakeZone.addEventListener(evt, (e) => {
+      // Prevent bleed to elements behind the wake button
+      e.preventDefault();
+      e.stopPropagation();
+      wakeFromCinemaMode();
+    }, { passive: false });
+  });
+}
+
+// ── General Idle Detection (Reset Timer) ──────────────────────────
 ['click', 'touchstart'].forEach(evt => {
   document.addEventListener(evt, (e) => {
-    // Wake Zone Explicit Tap
-    if (e.target.closest('#cinemaWakeZone')) {
-      return wakeFromCinemaMode();
-    }
-
+    // If the wake button handled it above, this won't trigger for the button
     if (e.target.closest('#btnYtCinemaToggle') || e.target.closest('.youtube-iframe-container')) return;
     const app = document.querySelector('.app');
 
@@ -3277,12 +3287,13 @@ if (ytResultsEl) {
 }
 
 ['scroll', 'mousemove', 'touchmove', 'keydown'].forEach(evt => {
+  // Use capturing for scroll because element scrolls do not bubble
   document.addEventListener(evt, () => {
     const app = document.querySelector('.app');
     if (!app.classList.contains('immersive-cinema-mode')) {
       resetCinemaTimer(); // Only reset the timer if not already in cinema mode. Do not wake on scroll/mouse to prevent reflow bugs.
     }
-  }, { passive: true });
+  }, { passive: true, capture: evt === 'scroll' });
 });
 
 function initYtStorage() {
@@ -3439,23 +3450,7 @@ function renderYtHub() {
     </div>
   `).join('');
 
-  // Queue toggle for Hub cards
-  hub.querySelectorAll('.yt-card-hub-queue').forEach(btn => {
-    btn.onclick = (e) => {
-      e.stopPropagation();
-      const id = btn.dataset.id;
-      const item = favs.find(f => f.id === id);
-      if (!item) return;
-
-      if (sparkyYtState.temporaryQueue.some(v => v.id === id)) {
-        removeFromYtTempQueue(id, true);
-      } else {
-        addToYtTempQueue(item);
-      }
-      renderYtHub();
-    };
-  });
-
+  // Standard listeners (play, fav, add) handle the Hub interactions via delegation in attachYtCardListeners
   attachYtCardListeners(hub);
 }
 
@@ -3807,8 +3802,8 @@ function processYtPage(data, isAppending) {
   cache.hasMore = !!cache.continuation;
 
   if (cache.results.length) {
-    if (mode === 'videos') renderYtVideoResults(cache.results, isAppending);
-    else renderYtPlaylistResults(cache.results, isAppending);
+    if (mode === 'videos') renderYtVideoResults(isAppending ? normalizedResults : cache.results, isAppending);
+    else renderYtPlaylistResults(isAppending ? normalizedResults : cache.results, isAppending);
     
     // Final check for end of results
     if (!cache.hasMore) {
@@ -3859,7 +3854,11 @@ function renderYtVideoResults(videos, isAppending = false) {
     </div>
   `).join('');
 
-  el.innerHTML = html;
+  if (isAppending) {
+    el.insertAdjacentHTML('beforeend', html);
+  } else {
+    el.innerHTML = html;
+  }
 
   attachYtCardListeners(el);
   if (sparkyYtState.currentItemId) highlightYtCard(sparkyYtState.currentItemId);
@@ -3890,43 +3889,44 @@ function renderYtPlaylistResults(playlists, isAppending = false) {
     </div>
   `).join('');
 
-  el.innerHTML = html;
+  if (isAppending) {
+    el.insertAdjacentHTML('beforeend', html);
+  } else {
+    el.innerHTML = html;
+  }
 
   attachYtCardListeners(el);
   if (sparkyYtState.currentItemId) highlightYtCard(sparkyYtState.currentItemId);
 }
 
 function attachYtCardListeners(container) {
-  const allCards = Array.from(container.querySelectorAll('.yt-card'));
-  const queue = allCards.map(c => ({
-    id: c.dataset.id,
-    type: c.dataset.type,
-    title: c.dataset.title,
-    channel: c.dataset.channel,
-    thumb: c.dataset.thumb
-  }));
+  const newCards = Array.from(container.querySelectorAll('.yt-card:not([data-bound])'));
 
-  // Card body click → play
-  allCards.forEach((card, index) => {
+  newCards.forEach((card) => {
+    card.setAttribute('data-bound', 'true');
+
+    // Card body click → play
     card.addEventListener('click', async e => {
       if (e.target.closest('.yt-card-fav') || e.target.closest('.yt-card-add')) return;
 
+      // Resolve full queue from container at click-time to support pagination
+      const allCards = Array.from(container.querySelectorAll('.yt-card'));
+      const queue = allCards.map(c => ({
+        id: c.dataset.id,
+        type: c.dataset.type,
+        title: c.dataset.title,
+        channel: c.dataset.channel,
+        thumb: c.dataset.thumb
+      }));
+      const index = allCards.indexOf(card);
       const item = queue[index];
 
       if (item.type === 'playlist') {
-
-        // ── Spotify/Apple UX: re-clicking the active playlist is a no-op ──────
-        // The user is navigating back to it, not requesting a restart.
-        // Only a genuinely different playlist triggers a fetch + play from track 1.
         if (sparkyYtState.activePlaylistId === item.id) {
-          // ── Click to Play active playlist (Spotify/Apple style) ──────
           if (sparkyYtState.playerInstance) {
             const state = sparkyYtState.playerInstance.getPlayerState();
             if (state !== YT.PlayerState.PLAYING) sparkyYtState.playerInstance.playVideo();
           }
-
-          // Still scroll into view as visual feedback
-          const container = document.getElementById('ytResults');
           if (container) {
             const containerTop = container.getBoundingClientRect().top;
             const cardTop = card.getBoundingClientRect().top;
@@ -3937,7 +3937,6 @@ function attachYtCardListeners(container) {
           }
           return;
         }
-        // ── New playlist selected — load and start from track 1 ──────────────
 
         sparkyYtState.activePlaylistId = item.id;
         const titleEl = document.getElementById('ytNpTitle');
@@ -3946,8 +3945,9 @@ function attachYtCardListeners(container) {
         try {
           const res = await fetch(`${YT_API_BASE}/api/fetchPlaylist?id=${item.id}`);
           const data = await res.json();
-          if (data.videos && data.videos.length > 0) {
-            sparkyYtState.currentQueue = data.videos.map(v => ({
+          const playlistVideos = data.videos || data.video_results || []; // Safety for both schemas
+          if (playlistVideos.length > 0) {
+            sparkyYtState.currentQueue = playlistVideos.map(v => ({
               id: v.id,
               type: 'video',
               title: v.title,
@@ -3958,11 +3958,8 @@ function attachYtCardListeners(container) {
             sparkyYtState.queueIndex = 0;
             sparkyYtState.isShuffleActive = false;
 
-            // Reset UI state for shuffle button
             const btnShuffle = document.getElementById('btnYtShuffle');
             if (btnShuffle) btnShuffle.classList.remove('active');
-
-            // Show Queue button
             const btnQueue = document.getElementById('btnYtQueue');
             if (btnQueue) btnQueue.classList.remove('hidden');
 
@@ -3976,7 +3973,6 @@ function attachYtCardListeners(container) {
         }
       } else {
         if (sparkyYtState.currentItemId === item.id) {
-          // ── Click to Play active video ──────
           if (sparkyYtState.playerInstance) {
             const state = sparkyYtState.playerInstance.getPlayerState();
             if (state !== YT.PlayerState.PLAYING) sparkyYtState.playerInstance.playVideo();
@@ -3985,12 +3981,11 @@ function attachYtCardListeners(container) {
         }
 
         sparkyYtState.activePlaylistId = null;
-        // Hide Queue button for single videos
         const btnQueue = document.getElementById('btnYtQueue');
         if (btnQueue) btnQueue.classList.add('hidden');
 
         sparkyYtState.currentQueue = queue;
-        sparkyYtState.originalQueue = [...queue]; // Ensure shuffle works for single clicks
+        sparkyYtState.originalQueue = [...queue];
         sparkyYtState.queueIndex = index;
         sparkyYtState.isShuffleActive = false;
 
@@ -4000,61 +3995,61 @@ function attachYtCardListeners(container) {
         playYtItem(item);
       }
     });
-  });
 
-  // Fav button toggle (no refetch needed)
-  container.querySelectorAll('.yt-card-fav').forEach(btn => {
-    btn.addEventListener('click', e => {
-      e.stopPropagation();
-      const card = btn.closest('.yt-card');
-      const item = {
-        id: btn.dataset.id,
-        type: btn.dataset.type,
-        title: card.dataset.title,
-        thumb: card.dataset.thumb,
-        channel: card.dataset.channel
-      };
+    // Fav button toggle
+    const favBtn = card.querySelector('.yt-card-fav');
+    if (favBtn) {
+      favBtn.addEventListener('click', e => {
+        e.stopPropagation();
+        const item = {
+          id: favBtn.dataset.id,
+          type: favBtn.dataset.type,
+          title: card.dataset.title,
+          thumb: card.dataset.thumb,
+          channel: card.dataset.channel
+        };
 
-      if (btn.classList.contains('yt-card-delete')) {
-        sparkyConfirm(`Are you sure you want to remove [${item.title}] from Favorites?`, () => {
+        if (favBtn.classList.contains('yt-card-delete')) {
+          sparkyConfirm(`Are you sure you want to remove [${item.title}] from Favorites?`, () => {
+            removeYtFav(item.id);
+            if (sparkyYtState.currentSubMode === 'hub') renderYtHub();
+          }, "DELETE FROM FAVS HUB");
+          return;
+        }
+
+        if (isYtFav(item.id)) {
           removeYtFav(item.id);
-          if (sparkyYtState.currentSubMode === 'hub') renderYtHub();
-        }, "DELETE FROM FAVS HUB");
-        return;
-      }
+          favBtn.classList.remove('active');
+          favBtn.title = 'Save to Favs Hub';
+        } else {
+          addYtFav(item);
+          favBtn.classList.add('active');
+          favBtn.title = 'Remove from Favs Hub';
+        }
+      });
+    }
 
-      if (isYtFav(item.id)) {
-        removeYtFav(item.id);
-        btn.classList.remove('active');
-        btn.title = 'Save to Favs Hub';
-      } else {
-        addYtFav(item);
-        btn.classList.add('active');
-        btn.title = 'Remove from Favs Hub';
-      }
-    });
-  });
+    // Add to Temp Queue
+    const addBtn = card.querySelector('.yt-card-add');
+    if (addBtn) {
+      addBtn.addEventListener('click', e => {
+        e.stopPropagation();
+        const id = addBtn.dataset.id;
+        const item = {
+          id: id,
+          type: card.dataset.type || 'video',
+          title: card.dataset.title,
+          thumb: card.dataset.thumb,
+          channel: card.dataset.channel
+        };
 
-  // Add/Remove from Temp Queue Toggle
-  container.querySelectorAll('.yt-card-add').forEach(btn => {
-    btn.onclick = (e) => {
-      e.stopPropagation();
-      const id = btn.dataset.id;
-      const card = btn.closest('.yt-card');
-      const item = {
-        id: id,
-        type: card.dataset.type || 'video',
-        title: card.dataset.title,
-        thumb: card.dataset.thumb,
-        channel: card.dataset.channel
-      };
-
-      if (sparkyYtState.temporaryQueue.some(v => v.id === id)) {
-        removeFromYtTempQueue(id, true);
-      } else {
-        addToYtTempQueue(item, btn);
-      }
-    };
+        if (sparkyYtState.temporaryQueue.some(v => v.id === id)) {
+          removeFromYtTempQueue(id, true);
+        } else {
+          addToYtTempQueue(item, addBtn);
+        }
+      });
+    }
   });
 }
 
@@ -4166,7 +4161,7 @@ function syncYtQueueBadge() {
   return;
 }
 
-function highlightYtCard(id) {
+function highlightYtCard(id, shouldScroll = false) {
   let activeCard = null;
 
   document.querySelectorAll('.yt-card').forEach(c => {
@@ -4178,7 +4173,7 @@ function highlightYtCard(id) {
 
   // Scroll the results container so the active card is visible.
   // We operate only on #ytResults.scrollTop — the window and .app never move.
-  if (activeCard) {
+  if (activeCard && shouldScroll) {
     setTimeout(() => {
       const container = document.getElementById('ytResults');
       if (!container) return;
@@ -4407,7 +4402,7 @@ function playYtItem(item) {
   }
 
   pauseRadioForYt();
-  highlightYtCard(item.id);
+  highlightYtCard(item.id, true);
 
   // Update Queue UI if open
   renderYtQueue();

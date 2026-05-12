@@ -4528,10 +4528,10 @@ body.light .filter-chip {
   to { transform: rotate(360deg); }
 }
 
- 
- / *   - - -   I M M E R S I V E   C I N E M A   M O D E   - - -   * / 
- 
- 
+ 
+  /*   - - -   I M M E R S I V E   C I N E M A   M O D E   - - -   */ 
+ 
+ 
 /* --- IMMERSIVE CINEMA MODE --- */
 .app.immersive-cinema-mode .header, 
 .app.immersive-cinema-mode #yt-view, 
