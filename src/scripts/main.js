@@ -3433,11 +3433,18 @@ function renderYtHub() {
     return;
   }
   hub.innerHTML = favs.map(item => `
-    <div class="yt-card" data-id="${item.id}" data-type="${item.type}" data-title="${item.title.replace(/"/g, '&quot;')}" data-channel="${(item.channel || '').replace(/"/g, '&quot;')}" data-thumb="${item.thumb}">
+    <div class="yt-card" data-id="${item.id}" data-type="${item.type}" data-title="${item.title.replace(/"/g, '&quot;')}" data-channel="${(item.channel || '').replace(/"/g, '&quot;')}" data-thumb="${item.thumb}" data-duration="${item.duration || ''}" data-views="${item.views || ''}" data-published="${item.published || ''}" data-video-count="${item.video_count || ''}">
       <img class="yt-card-thumb" src="${item.thumb}" alt="" loading="lazy">
       <div class="yt-card-info">
         <div class="yt-card-title">${item.title}</div>
-        <div class="yt-card-channel">${item.channel || ''}</div>
+        <div class="yt-card-channel">
+          ${item.type === 'playlist' ? 
+            `Playlist${item.video_count ? ' &middot; ' + item.video_count : ''}` :
+            `<span class="desktop-only">${item.channel || ''}${item.duration ? ' &middot; ' + item.duration : ''}</span>
+             <span class="desktop-only">&nbsp;&middot;&nbsp;</span>
+             <span class="mobile-stats">${item.views || ''}${item.published ? ' &middot; ' + item.published : ''}</span>`
+          }
+        </div>
       </div>
       <div class="yt-card-actions">
         <button class="yt-card-fav yt-card-delete active" data-id="${item.id}" title="Delete from Hub">
@@ -3833,7 +3840,7 @@ function renderYtVideoResults(videos, isAppending = false) {
   }
 
   const html = videos.map(v => `
-    <div class="yt-card${sparkyYtState.currentItemId === v.id ? ' active' : ''}" data-id="${v.id}" data-type="video" data-title="${v.title.replace(/"/g, '&quot;')}" data-channel="${(v.channel || '').replace(/"/g, '&quot;')}" data-thumb="${v.thumbnail}">
+    <div class="yt-card${sparkyYtState.currentItemId === v.id ? ' active' : ''}" data-id="${v.id}" data-type="video" data-title="${v.title.replace(/"/g, '&quot;')}" data-channel="${(v.channel || '').replace(/"/g, '&quot;')}" data-thumb="${v.thumbnail}" data-duration="${v.duration || ''}" data-views="${v.views || ''}" data-published="${v.published || ''}">
       <img class="yt-card-thumb" src="${v.thumbnail}" alt="" loading="lazy">
       <div class="yt-card-info">
         <div class="yt-card-title">${v.title}</div>
@@ -3872,7 +3879,7 @@ function renderYtPlaylistResults(playlists, isAppending = false) {
   }
 
   const html = playlists.map(p => `
-    <div class="yt-card${sparkyYtState.currentItemId === p.playlist_id ? ' active' : ''}" data-id="${p.playlist_id}" data-type="playlist" data-title="${p.title.replace(/"/g, '&quot;')}" data-channel="Playlist" data-thumb="${p.thumbnail}">
+    <div class="yt-card${sparkyYtState.currentItemId === p.playlist_id ? ' active' : ''}" data-id="${p.playlist_id}" data-type="playlist" data-title="${p.title.replace(/"/g, '&quot;')}" data-channel="Playlist" data-thumb="${p.thumbnail}" data-video-count="${p.video_count || ''}">
       <img class="yt-card-thumb" src="${p.thumbnail}" alt="" loading="lazy">
       <div class="yt-card-info">
         <div class="yt-card-title">${p.title}</div>
@@ -3916,7 +3923,11 @@ function attachYtCardListeners(container) {
         type: c.dataset.type,
         title: c.dataset.title,
         channel: c.dataset.channel,
-        thumb: c.dataset.thumb
+        thumb: c.dataset.thumb,
+        duration: c.dataset.duration || '',
+        views: c.dataset.views || '',
+        published: c.dataset.published || '',
+        video_count: c.dataset.videoCount || ''
       }));
       const index = allCards.indexOf(card);
       const item = queue[index];
@@ -3952,7 +3963,10 @@ function attachYtCardListeners(container) {
               type: 'video',
               title: v.title,
               channel: data.title || item.title,
-              thumb: v.thumb
+              thumb: v.thumb,
+              duration: v.duration || '',
+              views: v.views || '',
+              published: v.published || ''
             }));
             sparkyYtState.originalQueue = [...sparkyYtState.currentQueue];
             sparkyYtState.queueIndex = 0;
@@ -4006,7 +4020,11 @@ function attachYtCardListeners(container) {
           type: favBtn.dataset.type,
           title: card.dataset.title,
           thumb: card.dataset.thumb,
-          channel: card.dataset.channel
+          channel: card.dataset.channel,
+          duration: card.dataset.duration || '',
+          views: card.dataset.views || '',
+          published: card.dataset.published || '',
+          video_count: card.dataset.videoCount || ''
         };
 
         if (favBtn.classList.contains('yt-card-delete')) {
@@ -4317,6 +4335,11 @@ function renderYtQueue() {
       <img src="${item.thumb}" class="yt-queue-item-thumb">
       <div class="yt-queue-item-info">
         <div class="yt-queue-item-title">${item.title}</div>
+        <div class="yt-card-channel">
+          <span class="desktop-only">${item.channel || ''}${item.duration ? ' &middot; ' + item.duration : ''}</span>
+          <span class="desktop-only">&nbsp;&middot;&nbsp;</span>
+          <span class="mobile-stats">${item.views || ''}${item.published ? ' &middot; ' + item.published : ''}</span>
+        </div>
       </div>
       <div style="display:flex; align-items:center; gap:8px;">
         <button class="yt-queue-item-fav${isFav ? ' active' : ''}" title="${isFav ? 'Remove from Hub' : 'Save to Hub'}">
@@ -4324,10 +4347,9 @@ function renderYtQueue() {
         </button>
         ${isTempQueue ? `
           <button class="yt-queue-item-remove" title="Remove from Queue">
-            <span class="material-symbols-outlined">remove_from_queue</span>
+            <span class="material-symbols-outlined">delete</span>
           </button>
         ` : ''}
-        ${isActive ? '<span class="material-symbols-outlined yt-queue-item-active-icon">equalizer</span>' : ''}
       </div>
     `;
 
