@@ -3795,7 +3795,7 @@ function renderYtPlaylistResults(playlists, isAppending = false) {
       <img class="yt-card-thumb" src="${p.thumbnail}" alt="" loading="lazy">
       <div class="yt-card-info">
         <div class="yt-card-title">${p.title}</div>
-        <div class="yt-card-channel">Playlist</div>
+        <div class="yt-card-channel">Playlist${p.video_count ? ' &middot; ' + p.video_count : ''}</div>
       </div>
       <div class="yt-card-actions">
         <button class="yt-card-fav${isYtFav(p.playlist_id) ? ' active' : ''}" data-id="${p.playlist_id}" data-type="playlist" title="${isYtFav(p.playlist_id) ? 'Remove from Favs Hub' : 'Save to Favs Hub'}">
