@@ -3543,10 +3543,58 @@ let ytIframeApiLoading = false;
 let ytIframeApiReady = false;
 let pendingPlayItem = null;
 
+// ── Recent Searches Logic ──────────────────────────────────────────
+const RECENT_SEARCHES_KEY = 'sparky_yt_recent_searches';
+
+function loadYtRecentSearches() {
+  try {
+    return JSON.parse(localStorage.getItem(RECENT_SEARCHES_KEY)) || [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function saveYtRecentSearch(query) {
+  if (!query) return;
+  let searches = loadYtRecentSearches();
+  // Remove if exists (to move to front)
+  searches = searches.filter(s => s.toLowerCase() !== query.toLowerCase());
+  searches.unshift(query);
+  searches = searches.slice(0, 3);
+  localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(searches));
+}
+
+function renderYtRecentSearches() {
+  const container = document.getElementById('ytRecentSearches');
+  if (!container) return;
+  
+  const searches = loadYtRecentSearches();
+  if (!searches.length) {
+    container.classList.add('hidden');
+    return;
+  }
+  
+  // Show only if input has focus (managed by listeners)
+  container.innerHTML = searches.map(s => `<div class="yt-recent-chip" data-query="${s.replace(/"/g, '&quot;')}">${s}</div>`).join('');
+  
+  container.querySelectorAll('.yt-recent-chip').forEach(chip => {
+    chip.onclick = () => {
+      const input = document.getElementById('ytSearchInput');
+      if (input) {
+        input.value = chip.dataset.query;
+        runYtSearch();
+        container.classList.add('hidden');
+      }
+    };
+  });
+}
+
 // ── 3.1: Search ──────────────────────────────────────────────────
 async function runYtSearch() {
   let query = document.getElementById('ytSearchInput')?.value?.trim();
   if (!query) return;
+
+  saveYtRecentSearch(query);
 
   const mode = sparkyYtState.currentSubMode; // 'videos' | 'playlists'
 
@@ -4516,6 +4564,18 @@ btnYtSearchClear?.addEventListener('click', () => {
     toggleYtSearchClear();
     clearYtResults();
   }
+});
+
+ytSearchInput?.addEventListener('focus', () => {
+  renderYtRecentSearches();
+  document.getElementById('ytRecentSearches')?.classList.remove('hidden');
+});
+
+ytSearchInput?.addEventListener('blur', () => {
+  // Delay so chip click works
+  setTimeout(() => {
+    document.getElementById('ytRecentSearches')?.classList.add('hidden');
+  }, 200);
 });
 
 document.getElementById('btnYtQueue')?.addEventListener('click', toggleYtQueue);

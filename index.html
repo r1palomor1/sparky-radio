@@ -294,12 +294,15 @@
 
       <!-- YT Search Bar (hidden on Hub tab) -->
       <div class="yt-search-wrap" id="ytSearchWrap">
-        <span class="yt-search-icon">&#128269;</span>
-        <div class="yt-input-container">
-          <input type="text" id="ytSearchInput" placeholder="Search YouTube..." />
-          <button class="search-clear" id="btnYtSearchClear" style="display:none" title="Clear search">&#10006;</button>
+        <div class="yt-search-main">
+          <span class="yt-search-icon">&#128269;</span>
+          <div class="yt-input-container">
+            <input type="text" id="ytSearchInput" placeholder="Search YouTube..." autocomplete="off" />
+            <button class="search-clear" id="btnYtSearchClear" style="display:none" title="Clear search">&#10006;</button>
+          </div>
+          <button class="btn btn-search" id="btnYtSearch">Search</button>
         </div>
-        <button class="btn btn-search" id="btnYtSearch">Search</button>
+        <div id="ytRecentSearches" class="yt-recent-searches hidden"></div>
       </div>
 
       <!-- Results / Hub Container -->

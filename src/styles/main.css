@@ -3766,7 +3766,52 @@ body.light .filter-chip {
   box-shadow: var(--glow);
 }
 
-/* â”€â”€ YT View Container (canonical single definition) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ——— YT View Container (canonical single definition) ——————————————————— */
+.yt-search-wrap {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 12px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  gap: 8px;
+}
+
+.yt-search-main {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.yt-search-main .yt-search-icon { font-size: 16px; color: var(--dim); flex-shrink: 0; }
+
+.yt-recent-searches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 2px 0 4px 24px;
+}
+
+.yt-recent-chip {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: calc(9px * var(--text-scale));
+  color: var(--dim);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
+  padding: 3px 8px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.yt-recent-chip:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: rgba(255, 255, 255, 0.08);
+}
+
 /* position:relative is required so the queue overlay's position:absolute
    is contained within yt-view, not the entire .app shell. */
 .yt-view {
