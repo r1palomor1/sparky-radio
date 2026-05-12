@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import fetchPlaylist from './api/fetchPlaylist.js';
 import searchVideos from './api/searchVideos.js';
+import hydrateTags from './api/hydrateTags.js';
 
 const app = express();
 const port = 3002;
@@ -11,7 +12,7 @@ app.use(express.json());
 
 // Root route for environment verification
 app.get('/', (req, res) => {
-    res.send('🚀 Sparky API Relay is Active on Port 3002. Use /api/fetchPlaylist or /api/searchVideos.');
+    res.send('🚀 Sparky API Relay is Active on Port 3002. Use /api/fetchPlaylist, /api/searchVideos, or /api/hydrateTags.');
 });
 
 // Proxy-like behavior for Vercel functions
@@ -37,10 +38,32 @@ app.all('/api/searchVideos', async (req, res) => {
     }
 });
 
-app.listen(port, () => {
+app.all('/api/hydrateTags', async (req, res) => {
+    try {
+        await hydrateTags(req, res);
+    } catch (err) {
+        console.error('[API Server] hydrateTags Error:', err);
+        if (!res.headersSent) {
+            res.status(500).json({ error: 'Internal Server Error', message: err.message });
+        }
+    }
+});
+
+const server = app.listen(port, () => {
     console.log(`\n🚀 Local API Server running at http://localhost:${port}`);
     console.log(`📡 Endpoints:`);
     console.log(`   - http://localhost:${port}/api/fetchPlaylist`);
     console.log(`   - http://localhost:${port}/api/searchVideos`);
+    console.log(`   - http://localhost:${port}/api/hydrateTags`);
     console.log(`\n[Vite Integration] Proxied automatically via vite.config.js\n`);
+});
+
+server.on('error', (e) => {
+    if (e.code === 'EADDRINUSE') {
+        console.error(`\n❌ ERROR: Port ${port} is already in use!`);
+        console.error(`💡 SOLUTION: Run 'taskkill /f /im node.exe' and try again.\n`);
+        process.exit(1);
+    } else {
+        console.error('\n❌ SERVER ERROR:', e);
+    }
 });

@@ -3399,6 +3399,7 @@ function switchYtTab(mode) {
     }
     // 2. If no results BUT there is a search term in the input, auto-search
     else if (input && input.value.trim()) {
+      clearYtResults();
       runYtSearch();
     }
     // 3. Otherwise clear
@@ -3440,9 +3441,8 @@ function renderYtHub() {
         <div class="yt-card-channel">
           ${item.type === 'playlist' ? 
             `Playlist${item.video_count ? ' &middot; ' + item.video_count : ''}` :
-            `<span class="desktop-only">${item.channel || ''}${item.duration ? ' · ' + item.duration : ''}</span>
-             ${(item.views || item.published) ? `<span class="desktop-only">&nbsp;&middot;&nbsp;</span>` : ''}
-             <span class="mobile-stats">${item.views || ''}${item.published ? (item.views ? ' · ' : '') + item.published : ''}</span>`
+            `<span class="desktop-only">${item.channel || 'Unknown Channel'}${item.duration ? ' &middot; ' + item.duration : ''}${item.views ? ' &middot; ' + item.views : ''}${item.published ? ' &middot; ' + item.published : ''}</span>
+             <span class="mobile-stats">${item.views || ''}${item.duration ? (item.views ? ' &middot; ' : '') + item.duration : ''}</span>`
           }
         </div>
       </div>
@@ -3857,9 +3857,8 @@ function renderYtVideoResults(videos, isAppending = false) {
       <div class="yt-card-info">
         <div class="yt-card-title">${v.title}</div>
         <div class="yt-card-channel">
-            <span class="desktop-only">${v.channel || ''}${v.duration ? ' · ' + v.duration : ''}</span>
-            ${(v.views || v.published) ? `<span class="desktop-only">&nbsp;&middot;&nbsp;</span>` : ''}
-            <span class="mobile-stats">${v.views || ''}${v.published ? (v.views ? ' · ' : '') + v.published : ''}</span>
+            <span class="desktop-only">${v.channel || 'Unknown Channel'}${v.duration ? ' &middot; ' + v.duration : ''}${v.views ? ' &middot; ' + v.views : ''}${v.published ? ' &middot; ' + v.published : ''}</span>
+            <span class="mobile-stats">${v.views || ''}${v.duration ? (v.views ? ' &middot; ' : '') + v.duration : ''}</span>
         </div>
       </div>
       <div class="yt-card-actions">
@@ -3918,6 +3917,41 @@ function renderYtPlaylistResults(playlists, isAppending = false) {
   if (sparkyYtState.currentItemId) highlightYtCard(sparkyYtState.currentItemId);
 }
 
+async function hydrateYtQueueTags() {
+  const queue = sparkyYtState.currentQueue;
+  if (!queue || !queue.length) return;
+
+  // Hydrate first 15 videos in background for performance
+  const toHydrate = queue.slice(0, 15);
+  for (const item of toHydrate) {
+    if (item.views || item.published) continue; // Already has data
+
+    try {
+      const res = await fetch(`${YT_API_BASE}/api/hydrateTags?id=${item.id}`);
+      if (!res.ok) continue;
+      const tags = await res.json();
+      
+      if (tags.views || tags.published) {
+        item.views = tags.views;
+        item.published = tags.published;
+
+        // Surgical UI update for any visible cards of this ID
+        document.querySelectorAll(`.yt-card[data-id="${item.id}"]`).forEach(card => {
+          const infoDiv = card.querySelector('.yt-card-channel');
+          if (infoDiv) {
+            infoDiv.innerHTML = `
+              <span class="desktop-only">${item.channel || 'Unknown Channel'}${item.duration ? ' &middot; ' + item.duration : ''}${item.views ? ' &middot; ' + item.views : ''}${item.published ? ' &middot; ' + item.published : ''}</span>
+              <span class="mobile-stats">${item.views || ''}${item.duration ? (item.views ? ' &middot; ' : '') + item.duration : ''}</span>
+            `;
+          }
+        });
+      }
+    } catch (e) {
+      console.warn(`[YT] Hydration failed for ${item.id}`);
+    }
+  }
+}
+
 function attachYtCardListeners(container) {
   const newCards = Array.from(container.querySelectorAll('.yt-card:not([data-bound])'));
 
@@ -3974,7 +4008,7 @@ function attachYtCardListeners(container) {
               id: v.id,
               type: 'video',
               title: v.title,
-              channel: v.channel || v.author || data.title || item.title,
+              channel: v.channel || v.author || data.title || item.title || 'Unknown',
               thumb: v.thumbnail || v.thumb || v.thumbnail_url || `https://i.ytimg.com/vi/${v.id}/mqdefault.jpg`,
               duration: v.duration || '',
               views: v.views || '',
@@ -3990,6 +4024,9 @@ function attachYtCardListeners(container) {
             if (btnQueue) btnQueue.classList.remove('hidden');
 
             playYtItem(sparkyYtState.currentQueue[0]);
+            
+            // Kick off tag hydration for the rest of the queue
+            hydrateYtQueueTags();
           } else {
             if (titleEl) titleEl.textContent = 'Playlist Empty/Error';
           }
@@ -4353,9 +4390,8 @@ function renderYtQueue() {
         <div class="yt-card-channel">
           ${item.type === 'playlist' ? 
             `Playlist${item.video_count ? ' &middot; ' + item.video_count : ''}` :
-            `<span class="desktop-only">${item.channel || ''}${item.duration ? ' · ' + item.duration : ''}</span>
-             ${(item.views || item.published) ? `<span class="desktop-only">&nbsp;&middot;&nbsp;</span>` : ''}
-             <span class="mobile-stats">${item.views || ''}${item.published ? (item.views ? ' · ' : '') + item.published : ''}</span>`
+            `<span class="desktop-only">${item.channel || 'Unknown Channel'}${item.duration ? ' &middot; ' + item.duration : ''}${item.views ? ' &middot; ' + item.views : ''}${item.published ? ' &middot; ' + item.published : ''}</span>
+             <span class="mobile-stats">${item.views || ''}${item.duration ? (item.views ? ' &middot; ' : '') + item.duration : ''}</span>`
           }
         </div>
       </div>
