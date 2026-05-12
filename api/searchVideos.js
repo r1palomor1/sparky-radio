@@ -31,6 +31,22 @@ function findToken(obj) {
     return null;
 }
 
+// Utility to shorten views and published text to minimize UI footprint
+function shortenMetadata(text) {
+    if (!text) return '';
+    return text
+        .replace(/\s*views?\s*/gi, '')
+        .replace(/\s*ago\s*/gi, '')
+        .replace(/years?/gi, 'y')
+        .replace(/months?/gi, 'mo')
+        .replace(/weeks?/gi, 'w')
+        .replace(/days?/gi, 'd')
+        .replace(/hours?/gi, 'h')
+        .replace(/minutes?/gi, 'm')
+        .replace(/seconds?/gi, 's')
+        .trim();
+}
+
 // Recursive helper to find ALL video objects
 function findVideos(obj, results = []) {
     if (!obj || typeof obj !== 'object') return results;
@@ -41,8 +57,8 @@ function findVideos(obj, results = []) {
             thumbnail: obj.thumbnails?.[0]?.url || obj.thumbnail?.[0]?.url,
             channel: obj.author?.name || obj.author?.text || 'Unknown Channel',
             duration: obj.duration?.text || obj.duration?.label || '',
-            views: obj.view_count?.text || obj.short_view_count?.text || '',
-            published: obj.published?.text || '',
+            views: shortenMetadata(obj.view_count?.text || obj.short_view_count?.text || ''),
+            published: shortenMetadata(obj.published?.text || ''),
             type: 'video'
         });
         return results;
@@ -69,14 +85,12 @@ export default async function handler(req, res) {
         const youtube = await Innertube.create();
 
         if (query) {
-            console.log(`[YT API] Initial search: ${query}`);
             const searchResults = await youtube.search(query, { type: 'video' });
             const videos = findVideos(searchResults);
             const token = findToken(searchResults);
             return res.status(200).json({ video_results: videos, continuation: token });
 
         } else if (continuation) {
-            console.log(`[YT API] Continuation: ${continuation.substring(0, 20)}...`);
             const nextPage = await youtube.actions.execute('/search', { continuation: continuation, parse: true });
             const videos = findVideos(nextPage);
             const token = findToken(nextPage);

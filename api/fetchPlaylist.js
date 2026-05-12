@@ -31,6 +31,22 @@ function findToken(obj) {
     return null;
 }
 
+// Utility to shorten views and published text to minimize UI footprint
+function shortenMetadata(text) {
+    if (!text) return '';
+    return text
+        .replace(/\s*views?\s*/gi, '')
+        .replace(/\s*ago\s*/gi, '')
+        .replace(/years?/gi, 'y')
+        .replace(/months?/gi, 'mo')
+        .replace(/weeks?/gi, 'w')
+        .replace(/days?/gi, 'd')
+        .replace(/hours?/gi, 'h')
+        .replace(/minutes?/gi, 'm')
+        .replace(/seconds?/gi, 's')
+        .trim();
+}
+
 // Recursive helper to find ALL playlist objects
 function findPlaylists(obj, results = []) {
     if (!obj || typeof obj !== 'object') return results;
@@ -94,8 +110,8 @@ export default async function handler(req, res) {
                 thumb: v.thumbnails?.[v.thumbnails.length - 1]?.url || v.thumbnail?.[0]?.url,
                 channel: v.author?.name || v.author?.text || playlist.info?.title || 'Unknown',
                 duration: v.duration?.text || '',
-                views: v.view_count?.text || '',
-                published: v.published?.text || '',
+                views: shortenMetadata(v.view_count?.text || ''),
+                published: shortenMetadata(v.published?.text || ''),
                 type: 'video'
             }));
             return res.status(200).json({ title: playlist.info?.title || 'Playlist', video_results: videos });
