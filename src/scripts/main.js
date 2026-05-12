@@ -3440,9 +3440,9 @@ function renderYtHub() {
         <div class="yt-card-channel">
           ${item.type === 'playlist' ? 
             `Playlist${item.video_count ? ' &middot; ' + item.video_count : ''}` :
-            `<span class="desktop-only">${item.channel || ''}${item.duration ? ' &middot; ' + item.duration : ''}</span>
-             <span class="desktop-only">&nbsp;&middot;&nbsp;</span>
-             <span class="mobile-stats">${item.views || ''}${item.published ? ' &middot; ' + item.published : ''}</span>`
+            `<span class="desktop-only">${item.channel || ''}${item.duration ? ' · ' + item.duration : ''}</span>
+             ${(item.views || item.published) ? `<span class="desktop-only">&nbsp;&middot;&nbsp;</span>` : ''}
+             <span class="mobile-stats">${item.views || ''}${item.published ? (item.views ? ' · ' : '') + item.published : ''}</span>`
           }
         </div>
       </div>
@@ -3511,7 +3511,16 @@ function renderYtQueueTab() {
 }
 
 function isYtFav(id) { return loadYtFavs().some(f => f.id === id); }
-function addYtFav(item) { const f = loadYtFavs(); if (!isYtFav(item.id)) { f.push({ ...item, addedAt: Date.now() }); saveYtFavs(f); } }
+function addYtFav(item) {
+  const f = loadYtFavs();
+  const idx = f.findIndex(x => x.id === item.id);
+  if (idx !== -1) {
+    f[idx] = { ...f[idx], ...item }; // Refresh metadata
+  } else {
+    f.push({ ...item, addedAt: Date.now() });
+  }
+  saveYtFavs(f);
+}
 function removeYtFav(id) { saveYtFavs(loadYtFavs().filter(f => f.id !== id)); }
 
 // ── Boot ─────────────────────────────────────────────────────────
@@ -3669,19 +3678,19 @@ async function runYtSearch() {
 }
 
 async function fetchNextYtPage(isAppending = true) {
-  const mode = sparkyYtState.currentSubMode;
-  const cache = (mode === 'playlists') ? sparkyYtState.playlistCache : sparkyYtState.videoCache;
+  const modeAtStart = sparkyYtState.currentSubMode;
+  const cache = (modeAtStart === 'playlists') ? sparkyYtState.playlistCache : sparkyYtState.videoCache;
 
   if (cache.isFetchingMore) return;
 
   // PREFETCH OPTIMIZATION: If we already have the next page ready, use it immediately
   if (isAppending && cache.prefetchedPage) {
-    console.log(`[YT] Using prefetched page for ${mode}`);
-    processYtPage(cache.prefetchedPage, true);
+    console.log(`[YT] Using prefetched page for ${modeAtStart}`);
+    processYtPage(cache.prefetchedPage, true, modeAtStart);
     cache.prefetchedPage = null;
 
     // Proactively prefetch the NEXT one
-    if (cache.hasMore) prefetchNextYtPage();
+    if (cache.hasMore) prefetchNextYtPage(modeAtStart);
     return;
   }
 
@@ -3705,10 +3714,10 @@ async function fetchNextYtPage(isAppending = true) {
   try {
     let url = '';
     if (cache.continuation) {
-      const api = (mode === 'playlists') ? 'fetchPlaylist' : 'searchVideos';
+      const api = (modeAtStart === 'playlists') ? 'fetchPlaylist' : 'searchVideos';
       url = `${YT_API_BASE}/api/${api}?continuation=${encodeURIComponent(cache.continuation)}`;
     } else {
-      if (mode === 'videos') {
+      if (modeAtStart === 'videos') {
         url = `${YT_API_BASE}/api/searchVideos?query=${encodeURIComponent(cache.query)}`;
       } else {
         const isId = /^(PL|RD|LL|LM|UU|FL|OL)[a-zA-Z0-9_-]+/.test(cache.query);
@@ -3809,8 +3818,11 @@ function processYtPage(data, isAppending) {
   cache.hasMore = !!cache.continuation;
 
   if (cache.results.length) {
-    if (mode === 'videos') renderYtVideoResults(isAppending ? normalizedResults : cache.results, isAppending);
-    else renderYtPlaylistResults(isAppending ? normalizedResults : cache.results, isAppending);
+    // Only render if we are still viewing the mode that requested this data
+    if (mode === sparkyYtState.currentSubMode) {
+      if (mode === 'videos') renderYtVideoResults(isAppending ? normalizedResults : cache.results, isAppending);
+      else renderYtPlaylistResults(isAppending ? normalizedResults : cache.results, isAppending);
+    }
     
     // Final check for end of results
     if (!cache.hasMore) {
@@ -3845,9 +3857,9 @@ function renderYtVideoResults(videos, isAppending = false) {
       <div class="yt-card-info">
         <div class="yt-card-title">${v.title}</div>
         <div class="yt-card-channel">
-            <span class="desktop-only">${v.channel || ''}${v.duration ? ' &middot; ' + v.duration : ''}</span>
-            <span class="desktop-only">&nbsp;&middot;&nbsp;</span>
-            <span class="mobile-stats">${v.views || ''}${v.published ? ' &middot; ' + v.published : ''}</span>
+            <span class="desktop-only">${v.channel || ''}${v.duration ? ' · ' + v.duration : ''}</span>
+            ${(v.views || v.published) ? `<span class="desktop-only">&nbsp;&middot;&nbsp;</span>` : ''}
+            <span class="mobile-stats">${v.views || ''}${v.published ? (v.views ? ' · ' : '') + v.published : ''}</span>
         </div>
       </div>
       <div class="yt-card-actions">
@@ -3962,8 +3974,8 @@ function attachYtCardListeners(container) {
               id: v.id,
               type: 'video',
               title: v.title,
-              channel: data.title || item.title,
-              thumb: v.thumb,
+              channel: v.channel || v.author || data.title || item.title,
+              thumb: v.thumbnail || v.thumb || v.thumbnail_url || `https://i.ytimg.com/vi/${v.id}/mqdefault.jpg`,
               duration: v.duration || '',
               views: v.views || '',
               published: v.published || ''
@@ -4058,7 +4070,11 @@ function attachYtCardListeners(container) {
           type: card.dataset.type || 'video',
           title: card.dataset.title,
           thumb: card.dataset.thumb,
-          channel: card.dataset.channel
+          channel: card.dataset.channel,
+          duration: card.dataset.duration || '',
+          views: card.dataset.views || '',
+          published: card.dataset.published || '',
+          video_count: card.dataset.videoCount || ''
         };
 
         if (sparkyYtState.temporaryQueue.some(v => v.id === id)) {
@@ -4106,12 +4122,11 @@ function removeFromYtTempQueue(id, silent = false) {
     sparkyYtState.temporaryQueue = sparkyYtState.temporaryQueue.filter(v => v.id !== id);
     saveYtTempQueue(sparkyYtState.temporaryQueue);
 
-    // Instant Sync: If we are currently viewing/playing the 'temp' queue, update it immediately
-    if (sparkyYtState.activePlaylistId === 'temp') {
-      sparkyYtState.currentQueue = [...sparkyYtState.temporaryQueue];
-      sparkyYtState.originalQueue = [...sparkyYtState.temporaryQueue];
-      renderYtQueue();
-    }
+    // Sync with playback state: Always remove from current/original queue if present
+    sparkyYtState.currentQueue = sparkyYtState.currentQueue.filter(v => v.id !== id);
+    sparkyYtState.originalQueue = sparkyYtState.originalQueue.filter(v => v.id !== id);
+    
+    renderYtQueue();
 
     syncYtQueueBtn();
     syncYtQueueBadge();
@@ -4142,11 +4157,11 @@ function clearYtTempQueue() {
     syncYtQueueBtn();
     syncYtQueueBadge();
 
-    // Reset playback if we were playing the temp queue
-    if (sparkyYtState.activePlaylistId === 'temp') {
-      sparkyYtState.currentQueue = [];
-      sparkyYtState.originalQueue = [];
-    }
+    // Reset playback state: Clear everything
+    sparkyYtState.currentQueue = [];
+    sparkyYtState.originalQueue = [];
+    sparkyYtState.activePlaylistId = null;
+    sparkyYtState.queueIndex = 0;
 
     renderYtQueue();
     sparkyLog('[YT] Temporary queue cleared');
@@ -4330,23 +4345,26 @@ function renderYtQueue() {
     const isTempQueue = sparkyYtState.activePlaylistId === 'temp';
 
     const el = document.createElement('div');
-    el.className = `yt-queue-item ${isActive ? 'active' : ''}`;
+    el.className = `yt-card yt-queue-card${isActive ? ' active' : ''}`;
     el.innerHTML = `
-      <img src="${item.thumb}" class="yt-queue-item-thumb">
-      <div class="yt-queue-item-info">
-        <div class="yt-queue-item-title">${item.title}</div>
+      <img src="${item.thumb}" class="yt-card-thumb" alt="" loading="lazy">
+      <div class="yt-card-info">
+        <div class="yt-card-title">${item.title}</div>
         <div class="yt-card-channel">
-          <span class="desktop-only">${item.channel || ''}${item.duration ? ' &middot; ' + item.duration : ''}</span>
-          <span class="desktop-only">&nbsp;&middot;&nbsp;</span>
-          <span class="mobile-stats">${item.views || ''}${item.published ? ' &middot; ' + item.published : ''}</span>
+          ${item.type === 'playlist' ? 
+            `Playlist${item.video_count ? ' &middot; ' + item.video_count : ''}` :
+            `<span class="desktop-only">${item.channel || ''}${item.duration ? ' · ' + item.duration : ''}</span>
+             ${(item.views || item.published) ? `<span class="desktop-only">&nbsp;&middot;&nbsp;</span>` : ''}
+             <span class="mobile-stats">${item.views || ''}${item.published ? (item.views ? ' · ' : '') + item.published : ''}</span>`
+          }
         </div>
       </div>
-      <div style="display:flex; align-items:center; gap:8px;">
-        <button class="yt-queue-item-fav${isFav ? ' active' : ''}" title="${isFav ? 'Remove from Hub' : 'Save to Hub'}">
-          <span class="material-symbols-outlined">${isFav ? 'favorite' : 'favorite_border'}</span>
+      <div class="yt-card-actions">
+        <button class="yt-card-fav${isFav ? ' active' : ''}" title="${isFav ? 'Remove from Hub' : 'Save to Hub'}">
+          <span class="material-symbols-outlined">favorite</span>
         </button>
         ${isTempQueue ? `
-          <button class="yt-queue-item-remove" title="Remove from Queue">
+          <button class="yt-card-remove" title="Remove from Queue">
             <span class="material-symbols-outlined">delete</span>
           </button>
         ` : ''}
@@ -4355,13 +4373,13 @@ function renderYtQueue() {
 
     // Play on body click
     el.onclick = (e) => {
-      if (e.target.closest('.yt-queue-item-fav') || e.target.closest('.yt-queue-item-remove')) return;
+      if (e.target.closest('.yt-card-fav') || e.target.closest('.yt-card-remove')) return;
       sparkyYtState.queueIndex = idx;
       playYtItem(item);
     };
 
     // Fav toggle
-    const favBtn = el.querySelector('.yt-queue-item-fav');
+    const favBtn = el.querySelector('.yt-card-fav');
     if (favBtn) {
       favBtn.onclick = (e) => {
         e.stopPropagation();
@@ -4369,12 +4387,10 @@ function renderYtQueue() {
         if (currentlyFav) {
           removeYtFav(item.id);
           favBtn.classList.remove('active');
-          favBtn.innerHTML = '<span class="material-symbols-outlined">favorite_border</span>';
           favBtn.title = 'Save to Hub';
         } else {
           addYtFav(item);
           favBtn.classList.add('active');
-          favBtn.innerHTML = '<span class="material-symbols-outlined">favorite</span>';
           favBtn.title = 'Remove from Hub';
         }
 
@@ -4385,7 +4401,7 @@ function renderYtQueue() {
     }
 
     // Remove from Temp Queue
-    const removeBtn = el.querySelector('.yt-queue-item-remove');
+    const removeBtn = el.querySelector('.yt-card-remove');
     if (removeBtn) {
       removeBtn.onclick = (e) => {
         e.stopPropagation();

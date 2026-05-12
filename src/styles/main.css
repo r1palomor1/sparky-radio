@@ -4071,7 +4071,8 @@ body.light .filter-chip {
   white-space: nowrap;
 }
 
-.yt-card-fav {
+.yt-card-fav,
+.yt-card-remove {
   background: none;
   border: none;
   color: var(--dim);
@@ -4082,9 +4083,12 @@ body.light .filter-chip {
   transition: color 0.15s, transform 0.15s;
   flex-shrink: 0;
 }
-.yt-card-fav:hover { color: var(--accent); transform: scale(1.15); }
-.yt-card-fav.active { color: #e44; }
-.yt-card-fav .material-symbols-outlined { font-size: 18px; }
+.yt-card-fav:hover,
+.yt-card-remove:hover { color: var(--accent); transform: scale(1.15); }
+.yt-card-fav.active,
+.yt-card-remove { color: #e44; }
+.yt-card-fav .material-symbols-outlined,
+.yt-card-remove .material-symbols-outlined { font-size: 18px; }
 
 .yt-card-actions {
   display: flex;
@@ -4287,10 +4291,7 @@ body.light .filter-chip {
   z-index: 2000;
   display: flex;
   flex-direction: column;
-  padding: 0 14px;
-  /* STRUCTURAL FIX: Overlay is removed from flex flow when hidden.
-     The .hidden utility (display:none !important) now correctly wins.
-     The old translateY animation was masking the layout bug. */
+  padding: 0; /* Edge to edge */
 }
 
 /* .yt-queue-overlay.hidden â€” handled entirely by the global .hidden { display: none !important } rule.
@@ -4365,10 +4366,10 @@ body.light .filter-chip {
 .yt-queue-list {
   flex: 1;
   overflow-y: auto;
-  padding: 10px;
+  padding: 8px 12px; /* Matching yt-results padding */
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 8px; /* Matching yt-results gap */
   /* Custom Thin Scrollbar */
   scrollbar-width: thin;
   scrollbar-color: var(--border) transparent;
@@ -4389,107 +4390,7 @@ body.light .filter-chip {
   background: var(--accent);
 }
 
-.yt-queue-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 6px 12px;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid transparent;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.yt-queue-item:hover {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: var(--border);
-}
-
-.yt-queue-item.active {
-  background: var(--pl-active);
-  border-color: var(--accent);
-  box-shadow: var(--glow);
-}
-
-.yt-queue-item-thumb {
-  width: 50px;
-  height: 30px;
-  object-fit: cover;
-  border-radius: 2px;
-  background: var(--subdim);
-}
-
-/* YT Granular Favoriting Styles */
-.yt-queue-item-fav {
-  background: none !important;
-  border: none !important;
-  color: var(--dim);
-  cursor: pointer;
-  padding: 4px;
-  display: flex;
-  align-items: center;
-  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  z-index: 10;
-  opacity: 0.8;
-}
-.yt-queue-item-fav.active {
-  color: #ff5252 !important; /* Premium Red */
-  text-shadow: 0 0 12px rgba(255, 82, 82, 0.4);
-  opacity: 1;
-}
-.yt-queue-item-fav .material-symbols-outlined { font-size: 19px !important; }
-
-#btnYtNpFav.active {
-  color: #ff5252 !important;
-  text-shadow: 0 0 12px rgba(255, 82, 82, 0.4);
-}
-
-.yt-queue-item-info {
-  flex: 1;
-  overflow: hidden;
-}
-
-.yt-queue-item-title {
-  font-family: 'Inter', sans-serif;
-  font-size: calc(11px * var(--text-scale));
-  font-weight: 500;
-  color: var(--text);
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  line-height: 1.3;
-}
-
-.yt-queue-item-active-icon {
-  color: var(--accent);
-  font-size: 16px;
-  animation: pulse 1.5s infinite;
-}
-
-.yt-queue-item-remove {
-  background: none !important;
-  border: none !important;
-  color: var(--dim) !important;
-  cursor: pointer;
-  padding: 4px;
-  display: flex;
-  align-items: center;
-  transition: all 0.2s;
-  opacity: 0.7;
-}
-
-.yt-queue-item-remove:hover {
-  color: var(--accent2) !important;
-  transform: scale(1.1);
-  opacity: 1;
-}
-
-.yt-queue-item-remove .material-symbols-outlined {
-  font-size: 18px !important;
-}
-
+/* Legacy Queue Styles Purged - Now using .yt-card system */
 @keyframes pulse {
   0% { opacity: 0.4; }
   50% { opacity: 1; }
