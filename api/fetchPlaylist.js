@@ -1,132 +1,85 @@
 import { Innertube } from 'youtubei.js';
 
-function findTargetedToken(obj) {
+// MULTI-STAGE TOKEN HUNTER (Recursive)
+function findToken(obj) {
     if (!obj || typeof obj !== 'object') return null;
-    if (obj.name === 'continuationCommand' && obj.payload?.token) return obj.payload.token;
-    if (obj.continuationCommand && obj.continuationCommand.token) return obj.continuationCommand.token;
+    
+    // PRIORITY 1: Targeted research path
+    if (obj.continuationCommand?.payload?.token) {
+        const token = obj.continuationCommand.payload.token;
+        if (typeof token === 'string' && token.length > 20) return token;
+    }
+
+    // PRIORITY 2: Standard properties
+    if (obj.continuation) return obj.continuation;
+    if (obj.token && typeof obj.token === 'string' && obj.token.length > 20) return obj.token;
+    
+    // PRIORITY 3: Deep exhaustive crawl
+    if (Array.isArray(obj.on_response_received_commands)) {
+        for (const cmd of obj.on_response_received_commands) {
+            const token = findToken(cmd);
+            if (token) return token;
+        }
+    }
+    
     for (const key in obj) {
         if (Object.prototype.hasOwnProperty.call(obj, key)) {
-            const token = findTargetedToken(obj[key]);
+            const token = findToken(obj[key]);
             if (token) return token;
         }
     }
     return null;
 }
 
-function deepFindPlaylists(obj, results = []) {
+// Recursive helper to find ALL playlist objects
+function findPlaylists(obj, results = []) {
     if (!obj || typeof obj !== 'object') return results;
-    
-    // Prevent infinite loops on cyclic structures just in case
-    if (obj.__visited) return results;
-    Object.defineProperty(obj, '__visited', { value: true, enumerable: false });
 
-    // Check if current object represents a playlist
-    const isPlaylist = obj.type === 'Playlist' || obj.playlistRenderer || (typeof obj.playlistId === 'string' && obj.title);
+    // Check for various playlist renderer types
+    const isPlaylist = (obj.type === 'Playlist') || 
+                      (obj.playlistRenderer) || 
+                      (obj.lockupViewModel?.contentType === 'LOCKUP_CONTENT_TYPE_PLAYLIST') ||
+                      (typeof obj.playlistId === 'string' && (obj.title || obj.titleText));
+
     if (isPlaylist) {
-        results.push(obj);
+        const renderer = obj.playlistRenderer || (obj.type === 'Playlist' ? obj : null);
+        const luv = obj.lockupViewModel;
+
+        if (renderer) {
+            results.push({
+                playlist_id: renderer.playlistId || renderer.id,
+                title: renderer.title?.toString() || renderer.title?.text || renderer.title?.simpleText || 'Unknown Playlist',
+                thumbnail: renderer.thumbnails?.[0]?.url || renderer.thumbnails?.[0]?.thumbnails?.[0]?.url || renderer.thumbnail?.[0]?.url,
+                video_count: renderer.video_count?.text || renderer.videoCountText?.text || renderer.videoCount || 'N/A',
+                type: 'playlist'
+            });
+        } else if (luv) {
+            results.push({
+                playlist_id: luv.contentId,
+                title: luv.metadata?.lockupMetadataViewModel?.title?.content || 'Unknown Playlist',
+                thumbnail: luv.contentImage?.collectionThumbnailViewModel?.primaryThumbnail?.thumbnailViewModel?.image?.sources?.[0]?.url || 'N/A',
+                video_count: 'N/A',
+                type: 'playlist'
+            });
+        }
+        return results;
+    }
+
+    if (Array.isArray(obj)) {
+        for (const item of obj) findPlaylists(item, results);
     } else {
-        // Traverse down
         for (const key in obj) {
-            if (Object.prototype.hasOwnProperty.call(obj, key) && typeof obj[key] === 'object') {
-                deepFindPlaylists(obj[key], results);
-            }
+            if (Object.prototype.hasOwnProperty.call(obj, key)) findPlaylists(obj[key], results);
         }
     }
     return results;
-}
-
-function parsePlaylistRenderer(item) {
-    // Some items might be wrapped in playlistRenderer
-    const renderer = item.playlistRenderer || (item.type === 'Playlist' ? item : null);
-    if (!renderer) return null;
-    
-    try {
-        return {
-            playlist_id: renderer.playlistId || renderer.id,
-            title: renderer.title?.simpleText || renderer.title?.runs?.[0]?.text || renderer.title?.text || renderer.title?.toString(),
-            thumbnail: renderer.thumbnails?.[0]?.thumbnails?.[0]?.url || renderer.thumbnails?.[0]?.url || renderer.thumbnail?.[0]?.url,
-            video_count: renderer.videoCount || renderer.videoCountText?.runs?.[0]?.text || renderer.video_count?.text || 'N/A'
-        };
-    } catch (e) { return null; }
-}
-
-function formatPlaylistResults(data) {
-    let results = [];
-
-    // Try standard results (Page 1)
-    if (data.results) {
-        results = data.results?.map(item => {
-            if (item.content_type !== 'PLAYLIST' && item.type !== 'Playlist') return null;
-            try {
-                return {
-                    playlist_id: item.content_id || item.id,
-                    title: item.metadata?.title?.text || item.title?.text || item.title?.toString(),
-                    thumbnail: item.content_image?.primary_thumbnail?.image?.[0]?.url || item.thumbnails?.[0]?.url || item.thumbnail?.[0]?.url,
-                    video_count: item.content_image?.overlays?.[0]?.badges?.[0]?.text || item.video_count?.text || 'N/A'
-                };
-            } catch (e) { return null; }
-        }).filter(Boolean) || [];
-    }
-
-    // Try continuation lockupViewModel (Page 2+)
-    if (results.length === 0) {
-        console.log(`[YT-API-DEBUG] Page 2+ Parsing Data Keys:`, Object.keys(data));
-        let items = null;
-        
-        if (data.on_response_received_commands) {
-            for (const cmd of data.on_response_received_commands) {
-                items = cmd.appendContinuationItemsAction?.continuationItems;
-                if (items) break;
-            }
-        } else if (data.continuationContents) {
-            const cc = data.continuationContents;
-            items = cc.sectionListContinuation?.contents || cc.itemSectionContinuation?.contents || cc.twoColumnSearchResultsRenderer?.contents;
-        }
-
-        console.log(`[YT-API-DEBUG] Continuation Items Blocks Found:`, items ? items.length : 0);
-
-        if (items) {
-            // Find old playlistRenderer OR new lockupViewModel
-            const parsed = items.map(item => {
-                // If it's wrapped inside itemSectionRenderer
-                const realItem = item.itemSectionRenderer?.contents?.[0] || item;
-
-                if (realItem.playlistRenderer) {
-                    return parsePlaylistRenderer(realItem);
-                } else if (realItem.lockupViewModel?.contentType === 'LOCKUP_CONTENT_TYPE_PLAYLIST') {
-                    const luv = realItem.lockupViewModel;
-                    return {
-                        playlist_id: luv.contentId,
-                        title: luv.metadata?.lockupMetadataViewModel?.title?.content || 'N/A',
-                        thumbnail: luv.contentImage?.collectionThumbnailViewModel?.primaryThumbnail?.thumbnailViewModel?.image?.sources?.[0]?.url || 'N/A',
-                        video_count: 'N/A' // Not readily available in lockupViewModel
-                    };
-                }
-                return null;
-            }).filter(Boolean);
-            
-            console.log(`[YT-API-DEBUG] Extracted Playlists:`, parsed.length);
-            
-            if (parsed.length > 0) {
-                results = parsed;
-            } else {
-                console.log(`[YT-API-DEBUG] Items mapped to 0 playlists. First item dump:`, JSON.stringify(items[0] || {}).substring(0, 300));
-            }
-        } else {
-            console.log(`[YT-API-DEBUG] Unrecognized Page 2 format. Data snippet:`, JSON.stringify(data).substring(0, 300));
-        }
-    }
-
-    return {
-        playlist_results: results,
-        continuation: findTargetedToken(data)
-    };
 }
 
 export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
     if (req.method === 'OPTIONS') return res.status(200).end();
 
     try {
@@ -139,46 +92,39 @@ export default async function handler(req, res) {
                 id: v.id,
                 title: v.title?.text || v.title?.toString(),
                 thumb: v.thumbnails?.[v.thumbnails.length - 1]?.url || v.thumbnail?.[0]?.url,
+                channel: v.author?.name || v.author?.text || playlist.info?.title || 'Unknown',
+                duration: v.duration?.text || '',
+                views: v.view_count?.text || '',
+                published: v.published?.text || '',
+                type: 'video'
             }));
             return res.status(200).json({ title: playlist.info?.title || 'Playlist', video_results: videos });
 
         } else if (query) {
             const searchResults = await youtube.search(query, { type: 'playlist' });
-            
-            // Extract the infinite-scroll token
-            let nextPageToken = null;
-            const contItems = searchResults.memo.get("ContinuationItem");
-
-            if (contItems && contItems.length > 0) {
-                // The first ContinuationItem in the memo is typically the bottom-of-page scroll trigger
-                nextPageToken = contItems[0].endpoint?.payload?.token;
-            }
-
-            const formatted = formatPlaylistResults(searchResults);
-            if (nextPageToken) {
-                formatted.continuation = nextPageToken;
-            }
-
-            return res.status(200).json(formatted);
+            const playlists = findPlaylists(searchResults);
+            const token = findToken(searchResults);
+            return res.status(200).json({ playlist_results: playlists, continuation: token });
 
         } else if (continuation) {
-            // Fetch next page via raw execute
+            // Fetch next page via RAW execute (bypass brittle parser)
             const response = await youtube.actions.execute('/search', {
                 continuation: continuation,
-                client: youtube.session.context.client.clientName
+                client: youtube.session.context.client.clientName,
+                parse: false
             });
-
-            // Use the updated formatter that understands `lockupViewModel`
-            let formatted = formatPlaylistResults(response.data);
-
-            return res.status(200).json({
-                playlist_results: formatted.playlist_results,
-                continuation: formatted.continuation
-            });
+            
+            const rawData = response.data || response;
+            const playlists = findPlaylists(rawData);
+            const token = findToken(rawData);
+            
+            return res.status(200).json({ playlist_results: playlists, continuation: token });
         }
-        return res.status(400).json({ error: 'Missing params' });
+
+        return res.status(400).json({ error: 'Query, ID or continuation required' });
+
     } catch (error) {
-        console.error('[YT API] Error:', error.message);
-        res.status(500).json({ error: 'Failed', details: error.message });
+        console.error('[YT API] ERROR:', error);
+        res.status(500).json({ error: 'Failed to process YouTube request', message: error.message });
     }
 }

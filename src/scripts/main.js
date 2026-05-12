@@ -3635,7 +3635,7 @@ async function fetchNextYtPage(isAppending = true) {
       }
     }
 
-    console.log(`[YT-FETCH] Fetching URL: ${url}`);
+    console.log(`[YT-FETCH] Fetching URL: ${url.length > 150 ? url.substring(0, 150) + '...' : url}`);
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
 
