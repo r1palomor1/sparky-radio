@@ -342,6 +342,5 @@ window.getContrast = getContrast;
 
 // ══ BOOT BRIDGE ════════════════════════════
 window.initThemeEngine = function() {
-    console.log('--- THEME ENGINE BOOTING ---');
     if (window.initThemeUI) window.initThemeUI();
 };

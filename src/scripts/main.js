@@ -2663,12 +2663,12 @@ function loadSettingsOptions() {
 // ══ APP INITIALIZATION ══════════════════════════════════
 // ── FORENSIC DEBUGGING MODULE ─────────────────────────────────────
 function sparkyLog(msg) {
-  console.log(`%c[SPARKY-DEBUG] ${msg}`, 'color: #4fd1c5; font-weight: bold;');
+  // console.log(`%c[SPARKY-DEBUG] ${msg}`, 'color: #4fd1c5; font-weight: bold;');
   const out = document.getElementById('debugOutput');
   if (out) {
     const d = new Date();
     const ts = d.toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' }) + '.' + d.getMilliseconds();
-    out.innerHTML = `<div><span style="color:var(--accent)">[${ts}]</span> ${msg}</div>` + out.innerHTML;
+    // out.innerHTML = `<div><span style="color:var(--accent)">[${ts}]</span> ${msg}</div>` + out.innerHTML;
   }
 }
 
@@ -2693,7 +2693,7 @@ window.addEventListener('scroll', (e) => {
 
 // ── APP INITIALIZATION ───────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
-  sparkyLog('System Initialized - Forensic Mode Active');
+  // sparkyLog('System Initialized - Forensic Mode Active');
   initEq();
   setEqPreset(activePreset);
   loadPresets();
@@ -3302,8 +3302,8 @@ function saveYtTempQueue(arr) { localStorage.setItem(YT_TEMP_QUEUE_KEY, JSON.str
 
 // ── Core Mode Toggle ─────────────────────────────────────────────
 function toggleYtMode(activate) {
-  sparkyLog(`Action: toggleYtMode(${activate})`);
-  debugLayout('BEFORE-TOGGLE');
+  // sparkyLog(`Action: toggleYtMode(${activate})`);
+  // debugLayout('BEFORE-TOGGLE');
   sparkyYtState.isModeActive = activate;
 
   const radioView = document.getElementById('radio-view');
@@ -3350,8 +3350,8 @@ function toggleYtMode(activate) {
   }
 
   localStorage.setItem('sparky_yt_mode_active', activate ? '1' : '0');
-  sparkyLog(`[YT] Mode → ${activate ? 'VIDEO' : 'RADIO'}`);
-  setTimeout(() => debugLayout('AFTER-TOGGLE'), 100);
+  // sparkyLog(`[YT] Mode → ${activate ? 'VIDEO' : 'RADIO'}`);
+  // setTimeout(() => debugLayout('AFTER-TOGGLE'), 100);
 }
 
 // ── Sub-mode Tab Switching ───────────────────────────────────────
@@ -3537,9 +3537,7 @@ if (localStorage.getItem('sparky_yt_mode_active') === '1') {
 // ════════════════════════════════════════════════════════════════
 
 // Use relative paths for API calls to support Vite proxy in dev and Vercel in production
-const YT_API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-  ? (['3000', '3001'].includes(window.location.port) ? '' : 'http://localhost:3001')
-  : '';
+const YT_API_BASE = '';
 
 let ytIframeApiLoading = false;
 let ytIframeApiReady = false;

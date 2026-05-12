@@ -1,5 +1,4 @@
 (function() {
-    console.log('Theme Studio initializing...');
 
     const SUN_ICON = 'light_mode';
     const MOON_ICON = 'dark_mode';
@@ -106,7 +105,6 @@
         if (hS && sS && lS) {
             // Small timeout ensures CSS variables have propagated to the DOM
             setTimeout(() => {
-                console.log('Final Sync to Sliders:', currentHsl);
                 hS.value = currentHsl.h;
                 sS.value = currentHsl.s;
                 lS.value = currentHsl.l;
@@ -222,7 +220,6 @@
                 chip.textContent = mod;
                 chip.dataset.mod = mod;
                 chip.onclick = async () => {
-                    console.log(`Modifier Click: ${mod}`);
                     document.querySelectorAll('.modifier-chip').forEach(c => c.classList.remove('active'));
                     chip.classList.add('active');
                     studioActiveModifier = mod;

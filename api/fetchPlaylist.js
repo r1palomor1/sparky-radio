@@ -1,26 +1,11 @@
 import { Innertube } from 'youtubei.js';
 
-// MULTI-STAGE TOKEN HUNTER (Recursive)
+// MULTI-STAGE TOKEN HUNTER (Broad + Targeted)
 function findToken(obj) {
     if (!obj || typeof obj !== 'object') return null;
-    
-    // PRIORITY 1: Targeted research path
-    if (obj.continuationCommand?.payload?.token) {
-        const token = obj.continuationCommand.payload.token;
-        if (typeof token === 'string' && token.length > 20) return token;
-    }
-
-    // PRIORITY 2: Standard properties
+    if (obj.continuationCommand?.payload?.token) return obj.continuationCommand.payload.token;
     if (obj.continuation) return obj.continuation;
     if (obj.token && typeof obj.token === 'string' && obj.token.length > 20) return obj.token;
-    
-    // PRIORITY 3: Deep exhaustive crawl
-    if (Array.isArray(obj.on_response_received_commands)) {
-        for (const cmd of obj.on_response_received_commands) {
-            const token = findToken(cmd);
-            if (token) return token;
-        }
-    }
     
     for (const key in obj) {
         if (Object.prototype.hasOwnProperty.call(obj, key)) {
@@ -31,10 +16,32 @@ function findToken(obj) {
     return null;
 }
 
-// Utility to shorten views and published text to minimize UI footprint
+// Robust string extractor for raw/parsed YouTube data
+function extractString(obj) {
+    if (!obj) return '';
+    if (typeof obj === 'string') return obj;
+    if (obj.simpleText) return obj.simpleText;
+    if (Array.isArray(obj.runs)) return obj.runs.map(r => r.text).join('');
+    if (obj.text) return obj.text;
+    if (obj.content) return obj.content;
+    return obj.toString().includes('object Object') ? '' : obj.toString();
+}
+
+// Robust thumbnail extractor for raw/parsed YouTube data
+function extractThumbnail(obj) {
+    if (!obj) return '';
+    if (typeof obj === 'string') return obj;
+    const thumbs = obj.thumbnails || obj.image?.sources || obj.image?.thumbnails || (Array.isArray(obj) ? obj : []);
+    if (Array.isArray(thumbs) && thumbs.length > 0) {
+        return thumbs[thumbs.length - 1].url || thumbs[0].url || '';
+    }
+    return obj.url || '';
+}
+
+// Utility to shorten views and published text
 function shortenMetadata(text) {
     if (!text) return '';
-    return text
+    let clean = text
         .replace(/\s*views?\s*/gi, '')
         .replace(/\s*ago\s*/gi, '')
         .replace(/years?/gi, 'y')
@@ -45,13 +52,23 @@ function shortenMetadata(text) {
         .replace(/minutes?/gi, 'm')
         .replace(/seconds?/gi, 's')
         .trim();
+
+    if (/^[\d,.]+$/.test(clean)) {
+        const num = parseFloat(clean.replace(/,/g, ''));
+        if (!isNaN(num)) {
+            if (num >= 1000000000) return (num / 1000000000).toFixed(1).replace(/\.0$/, '') + 'B';
+            if (num >= 1000000) return (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
+            if (num >= 1000) return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
+            return num.toString();
+        }
+    }
+    return clean;
 }
 
-// Recursive helper to find ALL playlist objects
+// Forensic Playlist Hunter
 function findPlaylists(obj, results = []) {
     if (!obj || typeof obj !== 'object') return results;
 
-    // Check for various playlist renderer types
     const isPlaylist = (obj.type === 'Playlist') || 
                       (obj.playlistRenderer) || 
                       (obj.lockupViewModel?.contentType === 'LOCKUP_CONTENT_TYPE_PLAYLIST') ||
@@ -64,17 +81,45 @@ function findPlaylists(obj, results = []) {
         if (renderer) {
             results.push({
                 playlist_id: renderer.playlistId || renderer.id,
-                title: renderer.title?.toString() || renderer.title?.text || renderer.title?.simpleText || 'Unknown Playlist',
-                thumbnail: renderer.thumbnails?.[0]?.url || renderer.thumbnails?.[0]?.thumbnails?.[0]?.url || renderer.thumbnail?.[0]?.url,
-                video_count: renderer.video_count?.text || renderer.videoCountText?.text || renderer.videoCount || 'N/A',
+                title: extractString(renderer.title) || 'Unknown Playlist',
+                thumbnail: extractThumbnail(renderer.thumbnail || renderer.thumbnails),
+                video_count: extractString(renderer.video_count || renderer.videoCountText) || 'N/A',
                 type: 'playlist'
             });
         } else if (luv) {
+            let vCount = 'N/A';
+            const overlays = luv.contentImage?.collectionThumbnailViewModel?.primaryThumbnail?.thumbnailViewModel?.overlays || 
+                            luv.contentImage?.thumbnailViewModel?.overlays;
+            
+            if (Array.isArray(overlays)) {
+                for (const o of overlays) {
+                    const badge = o.thumbnailOverlayBadgeViewModel?.thumbnailBadges?.[0]?.thumbnailBadgeViewModel || 
+                                 o.thumbnailBadgeViewModel;
+                    if (badge?.text && (badge.text.toLowerCase().includes('video') || /\d+/.test(badge.text))) {
+                        vCount = badge.text;
+                        break;
+                    }
+                }
+            }
+            
+            if (vCount === 'N/A') {
+                const lines = luv.metadata?.lockupMetadataViewModel?.metadataLines;
+                if (lines) {
+                    for (const line of lines) {
+                        const content = line.contentMetadataViewModel?.metadata?.[0]?.content;
+                        if (content && (content.toLowerCase().includes('video') || /\d+/.test(content))) {
+                            vCount = content;
+                            break;
+                        }
+                    }
+                }
+            }
+
             results.push({
                 playlist_id: luv.contentId,
-                title: luv.metadata?.lockupMetadataViewModel?.title?.content || 'Unknown Playlist',
-                thumbnail: luv.contentImage?.collectionThumbnailViewModel?.primaryThumbnail?.thumbnailViewModel?.image?.sources?.[0]?.url || 'N/A',
-                video_count: 'N/A',
+                title: extractString(luv.metadata?.lockupMetadataViewModel?.title) || 'Unknown Playlist',
+                thumbnail: extractThumbnail(luv.contentImage?.collectionThumbnailViewModel?.primaryThumbnail?.thumbnailViewModel || luv.contentImage?.thumbnailViewModel),
+                video_count: vCount,
                 type: 'playlist'
             });
         }
@@ -106,34 +151,30 @@ export default async function handler(req, res) {
             const playlist = await youtube.getPlaylist(id);
             const videos = playlist.videos.map(v => ({
                 id: v.id,
-                title: v.title?.text || v.title?.toString(),
-                thumb: v.thumbnails?.[v.thumbnails.length - 1]?.url || v.thumbnail?.[0]?.url,
-                channel: v.author?.name || v.author?.text || playlist.info?.title || 'Unknown',
-                duration: v.duration?.text || '',
-                views: shortenMetadata(v.view_count?.text || ''),
-                published: shortenMetadata(v.published?.text || ''),
+                title: extractString(v.title),
+                thumbnail: extractThumbnail(v.thumbnails || v.thumbnail),
+                channel: extractString(v.author) || playlist.info?.title || 'Unknown',
+                duration: extractString(v.duration) || '',
+                views: shortenMetadata(extractString(v.view_count)),
+                published: shortenMetadata(extractString(v.published)),
                 type: 'video'
             }));
-            return res.status(200).json({ title: playlist.info?.title || 'Playlist', video_results: videos });
+            return res.status(200).json({ title: extractString(playlist.info?.title) || 'Playlist', video_results: videos });
 
         } else if (query) {
-            const searchResults = await youtube.search(query, { type: 'playlist' });
-            const playlists = findPlaylists(searchResults);
-            const token = findToken(searchResults);
+            const response = await youtube.actions.execute('/search', { query, params: 'EgIQAw%3D%3D', parse: false });
+            const playlists = findPlaylists(response.data || response);
+            const token = findToken(response.data || response);
             return res.status(200).json({ playlist_results: playlists, continuation: token });
 
         } else if (continuation) {
-            // Fetch next page via RAW execute (bypass brittle parser)
             const response = await youtube.actions.execute('/search', {
                 continuation: continuation,
                 client: youtube.session.context.client.clientName,
                 parse: false
             });
-            
-            const rawData = response.data || response;
-            const playlists = findPlaylists(rawData);
-            const token = findToken(rawData);
-            
+            const playlists = findPlaylists(response.data || response);
+            const token = findToken(response.data || response);
             return res.status(200).json({ playlist_results: playlists, continuation: token });
         }
 
