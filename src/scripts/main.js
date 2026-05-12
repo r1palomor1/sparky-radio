@@ -3239,7 +3239,7 @@ function toggleCinemaMode() {
   }
 }
 
-['click'].forEach(evt => {
+['click', 'touchstart'].forEach(evt => {
   document.addEventListener(evt, (e) => {
     // Wake Zone Explicit Tap
     if (e.target.closest('#cinemaWakeZone')) {
@@ -3276,7 +3276,7 @@ if (ytResultsEl) {
   }, { passive: true });
 }
 
-['scroll'].forEach(evt => {
+['scroll', 'mousemove', 'touchmove', 'keydown'].forEach(evt => {
   document.addEventListener(evt, () => {
     const app = document.querySelector('.app');
     if (!app.classList.contains('immersive-cinema-mode')) {
