@@ -6,7 +6,7 @@ function findToken(obj) {
     if (obj.continuationCommand?.payload?.token) return obj.continuationCommand.payload.token;
     if (obj.continuation) return obj.continuation;
     if (obj.token && typeof obj.token === 'string' && obj.token.length > 20) return obj.token;
-    
+
     for (const key in obj) {
         if (Object.prototype.hasOwnProperty.call(obj, key)) {
             const token = findToken(obj[key]);
@@ -69,10 +69,10 @@ function shortenMetadata(text) {
 function findPlaylists(obj, results = []) {
     if (!obj || typeof obj !== 'object') return results;
 
-    const isPlaylist = (obj.type === 'Playlist') || 
-                      (obj.playlistRenderer) || 
-                      (obj.lockupViewModel?.contentType === 'LOCKUP_CONTENT_TYPE_PLAYLIST') ||
-                      (typeof obj.playlistId === 'string' && (obj.title || obj.titleText));
+    const isPlaylist = (obj.type === 'Playlist') ||
+        (obj.playlistRenderer) ||
+        (obj.lockupViewModel?.contentType === 'LOCKUP_CONTENT_TYPE_PLAYLIST') ||
+        (typeof obj.playlistId === 'string' && (obj.title || obj.titleText));
 
     if (isPlaylist) {
         const renderer = obj.playlistRenderer || (obj.type === 'Playlist' ? obj : null);
@@ -88,20 +88,20 @@ function findPlaylists(obj, results = []) {
             });
         } else if (luv) {
             let vCount = 'N/A';
-            const overlays = luv.contentImage?.collectionThumbnailViewModel?.primaryThumbnail?.thumbnailViewModel?.overlays || 
-                            luv.contentImage?.thumbnailViewModel?.overlays;
-            
+            const overlays = luv.contentImage?.collectionThumbnailViewModel?.primaryThumbnail?.thumbnailViewModel?.overlays ||
+                luv.contentImage?.thumbnailViewModel?.overlays;
+
             if (Array.isArray(overlays)) {
                 for (const o of overlays) {
-                    const badge = o.thumbnailOverlayBadgeViewModel?.thumbnailBadges?.[0]?.thumbnailBadgeViewModel || 
-                                 o.thumbnailBadgeViewModel;
+                    const badge = o.thumbnailOverlayBadgeViewModel?.thumbnailBadges?.[0]?.thumbnailBadgeViewModel ||
+                        o.thumbnailBadgeViewModel;
                     if (badge?.text && (badge.text.toLowerCase().includes('video') || /\d+/.test(badge.text))) {
                         vCount = badge.text;
                         break;
                     }
                 }
             }
-            
+
             if (vCount === 'N/A') {
                 const lines = luv.metadata?.lockupMetadataViewModel?.metadataLines;
                 if (lines) {
@@ -149,17 +149,51 @@ export default async function handler(req, res) {
 
         if (id) {
             const playlist = await youtube.getPlaylist(id);
-            const videos = playlist.videos.map(v => ({
-                id: v.id,
-                title: extractString(v.title),
-                thumbnail: extractThumbnail(v.thumbnails || v.thumbnail),
-                channel: extractString(v.author) || playlist.info?.title || 'Unknown',
-                duration: extractString(v.duration) || '',
-                views: shortenMetadata(extractString(v.view_count)),
-                published: shortenMetadata(extractString(v.published)),
-                type: 'video'
+            const rawVideos = playlist.videos.map(v => {
+                const author = v.author?.name || v.author || '';
+                return {
+                    id: v.id,
+                    title: extractString(v.title),
+                    thumbnail: extractThumbnail(v.thumbnails || v.thumbnail),
+                    channel: extractString(author) || playlist.info?.title || 'Unknown',
+                    duration: extractString(v.duration?.text || v.duration) || '',
+                    views: '', // Initially empty, will be hydrated
+                    published: '',
+                    type: 'video'
+                };
+            });
+
+            console.log(`[YT] Hydrating metadata for playlist: ${id} (${rawVideos.length} videos)`);
+
+            // HYDRATION ENGINE: High-speed parallel fetch for the first 20 items
+            const hydrationPool = rawVideos.slice(0, 20);
+            const hydratedVideos = await Promise.all(hydrationPool.map(async (v) => {
+                try {
+                    // getBasicInfo is faster but getInfo is more complete
+                    const info = await youtube.getBasicInfo(v.id);
+                    const basic = info.basic_info;
+
+                    // Fallbacks for different Innertube versions
+                    const viewsStr = basic.view_count?.toString() || '';
+                    const dateStr = info.primary_info?.relative_date?.text || info.primary_info?.published?.text || '';
+
+                    return {
+                        ...v,
+                        views: shortenMetadata(viewsStr),
+                        published: shortenMetadata(dateStr)
+                    };
+                } catch (e) {
+                    return v;
+                }
             }));
-            return res.status(200).json({ title: extractString(playlist.info?.title) || 'Playlist', video_results: videos });
+
+            const finalVideos = [...hydratedVideos, ...rawVideos.slice(20)];
+            console.log(`[YT] Hydration complete for ${hydratedVideos.length} videos.`);
+
+            return res.status(200).json({
+                title: extractString(playlist.info?.title) || 'Playlist',
+                videos: finalVideos
+            });
 
         } else if (query) {
             const response = await youtube.actions.execute('/search', { query, params: 'EgIQAw%3D%3D', parse: false });
