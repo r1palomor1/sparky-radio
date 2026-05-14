@@ -26,6 +26,27 @@ function shortenMetadata(text) {
     return clean;
 }
 
+/**
+ * Converts an absolute ISO date string (e.g. "2023-05-14") to a
+ * relative timeframe string (e.g. "2 y", "3 mo", "5 d").
+ */
+function absoluteToRelative(isoDateStr) {
+    if (!isoDateStr) return '';
+    try {
+        const then = new Date(isoDateStr);
+        const now = new Date();
+        const diffMs = now - then;
+        const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+        if (diffDays < 1)   return 'today';
+        if (diffDays < 7)   return `${diffDays} d`;
+        if (diffDays < 30)  return `${Math.floor(diffDays / 7)} w`;
+        if (diffDays < 365) return `${Math.floor(diffDays / 30)} mo`;
+        return `${Math.floor(diffDays / 365)} y`;
+    } catch {
+        return '';
+    }
+}
+
 export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
@@ -38,23 +59,44 @@ export default async function handler(req, res) {
         if (!id) return res.status(400).json({ error: 'ID required' });
 
         const youtube = await Innertube.create();
-        
-        // Use getBasicInfo first (Fast and contains views)
-        const basic = await youtube.getBasicInfo(id);
-        let views = basic.basic_info?.view_count?.toString() || '';
-        let published = '';
 
-        // If basic info is missing the date, use a targeted primary info fetch
+        // PATH A: getInfo — most complete, includes primary_info (relative date) + microformat
         const info = await youtube.getInfo(id);
-        published = info.primary_info?.relative_date?.text || 
-                    info.primary_info?.published?.text || 
-                    info.basic_info?.published || 
-                    '';
+        const basic = info.basic_info;
+
+        const views = basic?.view_count?.toString() || '';
+
+        // Timeframe — hunt across all known paths, ordered by reliability
+        let published =
+            info.primary_info?.relative_date?.text ||         // "2 years ago"
+            info.primary_info?.published?.text ||              // "Published: May 14 2023"
+            '';
+
+        // PATH B: microformat absolute date → relative conversion (most reliable fallback)
+        if (!published) {
+            const mf = info.microformat?.microformat_data_renderer ||
+                       info.microformat?.playerMicroformatRenderer ||
+                       info.microformat;
+            const rawDate = mf?.publish_date || mf?.publishDate || mf?.upload_date || mf?.uploadDate || '';
+            if (rawDate) {
+                published = absoluteToRelative(rawDate);
+            }
+        }
+
+        // PATH C: basic_info.published as last resort
+        if (!published && basic?.published) {
+            published = basic.published;
+        }
 
         console.log(`[HYDRATE-TRACE] ID: ${id}`);
         console.log(`  - Views: ${views ? views : 'FAIL'}`);
-        console.log(`  - Date: ${published || 'MISSING'}`);
-        console.log(`  - Source: ${info.primary_info?.relative_date?.text ? 'relative_date' : (info.primary_info?.published?.text ? 'primary_published' : (info.basic_info?.published ? 'basic_published' : 'NONE'))}`);
+        console.log(`  - Date (raw): ${published || 'MISSING'}`);
+        const source = info.primary_info?.relative_date?.text ? 'relative_date'
+            : info.primary_info?.published?.text ? 'primary_published'
+            : (info.microformat?.microformat_data_renderer?.publish_date || info.microformat?.playerMicroformatRenderer?.publishDate) ? 'microformat'
+            : basic?.published ? 'basic_published'
+            : 'NONE';
+        console.log(`  - Source: ${source}`);
 
         return res.status(200).json({
             id: id,

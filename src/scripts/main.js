@@ -3441,8 +3441,8 @@ function renderYtHub() {
         <div class="yt-card-channel">
           ${item.type === 'playlist' ? 
             `Playlist${item.video_count ? ' &middot; ' + item.video_count : ''}` :
-            `<span class="desktop-only">${item.channel || 'Unknown Channel'}${item.duration ? ' &middot; ' + item.duration : ''}${item.views ? ' &middot; ' + item.views : ''}${item.published ? ' &middot; ' + item.published : ''}</span>
-             <span class="mobile-stats">${item.views || ''}${item.duration ? (item.views ? ' &middot; ' : '') + item.duration : ''}</span>`
+            `<span class="desktop-only">${item.views || ''}${item.published ? (item.views ? ' &middot; ' : '') + item.published : ''}${item.duration ? (item.views || item.published ? ' &middot; ' : '') + item.duration : ''}${item.channel ? (item.views || item.published || item.duration ? ' &middot; ' : '') + item.channel : ''}</span>
+             <span class="mobile-stats">${item.views || ''}${item.published ? (item.views ? ' &middot; ' : '') + item.published : ''}${item.channel ? (item.views || item.published ? ' &middot; ' : '') + item.channel : ''}</span>`
           }
         </div>
       </div>
@@ -3857,8 +3857,8 @@ function renderYtVideoResults(videos, isAppending = false) {
       <div class="yt-card-info">
         <div class="yt-card-title">${v.title}</div>
         <div class="yt-card-channel">
-            <span class="desktop-only">${v.channel || 'Unknown Channel'}${v.duration ? ' &middot; ' + v.duration : ''}${v.views ? ' &middot; ' + v.views : ''}${v.published ? ' &middot; ' + v.published : ''}</span>
-            <span class="mobile-stats">${v.views || ''}${v.duration ? (v.views ? ' &middot; ' : '') + v.duration : ''}</span>
+            <span class="desktop-only">${v.views || ''}${v.published ? (v.views ? ' &middot; ' : '') + v.published : ''}${v.duration ? (v.views || v.published ? ' &middot; ' : '') + v.duration : ''}${v.channel ? (v.views || v.published || v.duration ? ' &middot; ' : '') + v.channel : ''}</span>
+            <span class="mobile-stats">${v.views || ''}${v.published ? (v.views ? ' &middot; ' : '') + v.published : ''}${v.channel ? (v.views || v.published ? ' &middot; ' : '') + v.channel : ''}</span>
         </div>
       </div>
       <div class="yt-card-actions">
@@ -3921,41 +3921,46 @@ async function hydrateYtQueueTags() {
   const queue = sparkyYtState.currentQueue;
   if (!queue || !queue.length) return;
 
-  // Hydrate first 15 videos in background for performance
-  const toHydrate = queue.slice(0, 15);
-  for (const item of toHydrate) {
-    if (item.views || item.published) continue; // Already has data
+  const BATCH_SIZE = 5;
+  const toHydrate = queue.filter(item => !item.views || !item.published);
+  if (!toHydrate.length) return;
 
+  async function hydrateOne(item) {
+    if (item.views && item.published) return; // double-guard for race safety
     try {
       const res = await fetch(`${YT_API_BASE}/api/hydrateTags?id=${item.id}`);
-      if (!res.ok) {
-        console.error(`[YT-DEBUG] API Fail for ${item.id}: ${res.status}`);
-        continue;
-      }
+      if (!res.ok) return;
       const tags = await res.json();
-      console.log(`%c[YT-HYDRATE-TRACE] ${item.id}`, 'background: #222; color: #bada55', tags);
-      
-      if (tags.views || tags.published) {
-        item.views = tags.views;
-        item.published = tags.published;
 
-        // Surgical UI update for any visible cards of this ID
-        document.querySelectorAll(`.yt-card[data-id="${item.id}"]`).forEach(card => {
-          const infoDiv = card.querySelector('.yt-card-channel');
-          if (infoDiv) {
-            console.log(`[YT-DEBUG] UPDATING CARD DOM: ${item.id} | Views: ${tags.views} | Date: ${tags.published}`);
-            infoDiv.innerHTML = `
-              <span class="desktop-only">${item.channel || 'Unknown Channel'}${item.duration ? ' &middot; ' + item.duration : ''}${tags.views ? ' &middot; ' + tags.views : ''}${tags.published ? ' &middot; ' + tags.published : ''}</span>
-              <span class="mobile-stats">${tags.views || ''}${item.duration ? (tags.views ? ' &middot; ' : '') + item.duration : ''}</span>
-            `;
-          }
-        });
-      }
-    } catch (e) {
-      console.error(`[YT-DEBUG] Loop Error for ${item.id}:`, e);
-    }
+      if (tags.views)     item.views     = tags.views;
+      if (tags.published) item.published = tags.published;
+
+      const finalViews     = item.views     || '';
+      const finalPublished = item.published || '';
+      const finalDuration  = item.duration  || '';
+      const finalChannel   = item.channel   || '';
+
+      document.querySelectorAll(`.yt-card[data-id="${item.id}"]`).forEach(card => {
+        if (tags.views)     card.dataset.views     = tags.views;
+        if (tags.published) card.dataset.published = tags.published;
+
+        const infoDiv = card.querySelector('.yt-card-channel');
+        if (infoDiv) {
+          infoDiv.innerHTML = `
+            <span class="desktop-only">${finalViews}${finalPublished ? (finalViews ? ' &middot; ' : '') + finalPublished : ''}${finalDuration ? (finalViews || finalPublished ? ' &middot; ' : '') + finalDuration : ''}${finalChannel ? (finalViews || finalPublished || finalDuration ? ' &middot; ' : '') + finalChannel : ''}</span>
+            <span class="mobile-stats">${finalViews}${finalPublished ? (finalViews ? ' &middot; ' : '') + finalPublished : ''}${finalChannel ? (finalViews || finalPublished ? ' &middot; ' : '') + finalChannel : ''}</span>
+          `;
+        }
+      });
+    } catch (e) { /* silent — network failure on a single card should not block others */ }
+  }
+
+  // Process in batches of BATCH_SIZE concurrently
+  for (let i = 0; i < toHydrate.length; i += BATCH_SIZE) {
+    await Promise.all(toHydrate.slice(i, i + BATCH_SIZE).map(hydrateOne));
   }
 }
+
 
 function attachYtCardListeners(container) {
   const newCards = Array.from(container.querySelectorAll('.yt-card:not([data-bound])'));
@@ -4371,6 +4376,12 @@ function renderYtQueue() {
   if (!queue || queue.length === 0) {
     container.innerHTML = '<div class="pl-empty">Queue is empty</div>';
     if (countEl) countEl.textContent = 'Queue';
+    // Auto-close the overlay when queue is emptied (clear all or last item removed)
+    const overlay = document.getElementById('ytQueueOverlay');
+    if (overlay && !overlay.classList.contains('hidden')) {
+      overlay.classList.add('hidden');
+      syncYtQueueBtn();
+    }
     return;
   }
 
@@ -4388,6 +4399,7 @@ function renderYtQueue() {
 
     const el = document.createElement('div');
     el.className = `yt-card yt-queue-card${isActive ? ' active' : ''}`;
+    el.dataset.id = item.id;
     el.innerHTML = `
       <img src="${item.thumb}" class="yt-card-thumb" alt="" loading="lazy">
       <div class="yt-card-info">
@@ -4395,8 +4407,8 @@ function renderYtQueue() {
         <div class="yt-card-channel">
           ${item.type === 'playlist' ? 
             `Playlist${item.video_count ? ' &middot; ' + item.video_count : ''}` :
-            `<span class="desktop-only">${item.channel || 'Unknown Channel'}${item.duration ? ' &middot; ' + item.duration : ''}${item.views ? ' &middot; ' + item.views : ''}${item.published ? ' &middot; ' + item.published : ''}</span>
-             <span class="mobile-stats">${item.views || ''}${item.duration ? (item.views ? ' &middot; ' : '') + item.duration : ''}</span>`
+            `<span class="desktop-only">${item.views || ''}${item.published ? (item.views ? ' &middot; ' : '') + item.published : ''}${item.duration ? (item.views || item.published ? ' &middot; ' : '') + item.duration : ''}${item.channel ? (item.views || item.published || item.duration ? ' &middot; ' : '') + item.channel : ''}</span>
+             <span class="mobile-stats">${item.views || ''}${item.published ? (item.views ? ' &middot; ' : '') + item.published : ''}${item.channel ? (item.views || item.published ? ' &middot; ' : '') + item.channel : ''}</span>`
           }
         </div>
       </div>

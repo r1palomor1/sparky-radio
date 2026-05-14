@@ -175,7 +175,10 @@ export default async function handler(req, res) {
 
                     // Fallbacks for different Innertube versions
                     const viewsStr = basic.view_count?.toString() || '';
-                    const dateStr = info.primary_info?.relative_date?.text || info.primary_info?.published?.text || '';
+                    const dateStr = info.primary_info?.relative_date?.text || 
+                                     info.primary_info?.published?.text || 
+                                     info.basic_info?.published || 
+                                     '';
 
                     return {
                         ...v,
