@@ -153,3 +153,31 @@ The UI components will leverage DOM injection templates similar to Sparky's exis
     - **Status:** Logged for future backend proxy review (youtubei.js implementation).
     - **Note:** The frontend parser is confirmed working (correctly extracts and displays the ID in the search field).
 
+## 10. YouTube Search Sorting Logic ("Relevance")
+
+In this context, **Relevance** is the "Black Box" algorithm YouTube uses to decide which videos best satisfy a search query when no other instructions (like "Sort by Date") are given.
+
+Because Sparky Radio uses a **keyless, unauthenticated backend** (running on Vercel), the definition of relevance differs from a personal YouTube account:
+
+### 1. Keyword Weighting (The "What")
+The algorithm looks for matches between the search term and the video's **Title**, **Tags**, and **Description**. 
+*   An exact title match ranks highest.
+*   Search terms found only in the description or tags rank lower.
+
+### 2. Global Performance (The "Popularity")
+Since the API is unauthenticated, it relies on **Global Engagement Metrics**:
+*   **View Count:** High-view videos are prioritized.
+*   **Watch Time/Retention:** Videos with higher completion rates rank higher.
+*   **Click-Through Rate:** Frequently clicked videos are prioritized.
+
+### 3. Channel Authority
+Official artist channels or verified channels with high subscriber counts are boosted.
+
+### 4. Geographic Locality
+Since the Vercel function runs in a specific data center (e.g., US-East), results might be slightly biased toward what is popular in that region unless specifically targeted.
+
+### 5. The "Unauthenticated" Difference
+*   **Personal YouTube:** Search is personalized based on watch history.
+*   **Sparky Radio:** Search is **objective/generic**. It returns the biggest, most popular hits in the world right now.
+
+**Summary:** In Sparky, "Relevance" = **Global Popularity + High Semantic Match.**
