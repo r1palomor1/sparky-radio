@@ -4175,15 +4175,25 @@ body.light .filter-chip {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 15px;
+  gap: 18px;
   z-index: 5;
+  padding: 16px;
+  overflow: hidden;
+}
+
+/* Icon + label on one row */
+.audio-mode-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .audio-mode-icon {
-  font-size: 48px !important;
+  font-size: 22px !important;
   color: var(--accent);
-  text-shadow: 0 0 20px var(--accent);
+  text-shadow: 0 0 12px var(--accent);
   animation: audioPulse 2s infinite ease-in-out;
+  flex-shrink: 0;
 }
 
 .audio-mode-text {
@@ -4191,19 +4201,85 @@ body.light .filter-chip {
   font-size: calc(10px * var(--text-scale));
   color: var(--accent);
   letter-spacing: 3px;
-  opacity: 0.8;
+  opacity: 0.85;
+}
+
+/* Now-playing card */
+.audio-mode-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  max-width: 340px;
+  margin-top: 8px; /* slight gap on mobile */
+}
+
+@media (min-width: 480px) {
+  .audio-mode-card {
+    margin-top: 20px; /* comfortable separation on tablet/desktop */
+  }
+}
+
+.audio-mode-thumb {
+  width: 100%;
+  max-height: 120px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+  display: none; /* hidden until src set */
+}
+
+.audio-mode-thumb[src]:not([src=""]) {
+  display: block;
+}
+
+.audio-mode-title {
+  font-family: 'Archivo', sans-serif;
+  font-size: calc(12px * var(--text-scale));
+  font-weight: 700;
+  color: var(--text);
+  text-align: center;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.35;
+  width: 100%;
+}
+
+.audio-mode-meta {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: calc(9px * var(--text-scale));
+  color: var(--dim);
+  text-align: center;
+  letter-spacing: 0.5px;
+}
+
+/* Normal audio-only: title & meta are redundant (visible on the card below) */
+.audio-mode-title,
+.audio-mode-meta {
+  display: none;
+}
+
+/* Cinema mode: card UI is hidden — show full info inside the placeholder */
+.app.immersive-cinema-mode .audio-mode-title,
+.app.immersive-cinema-mode .audio-mode-meta {
+  display: block;
 }
 
 @keyframes audioPulse {
-  0% { transform: scale(0.95); opacity: 0.6; }
-  50% { transform: scale(1.05); opacity: 1; }
-  100% { transform: scale(0.95); opacity: 0.6; }
+  0%   { transform: scale(0.9);  opacity: 0.5; }
+  50%  { transform: scale(1.1);  opacity: 1;   }
+  100% { transform: scale(0.9);  opacity: 0.5; }
 }
 
 #btnYtAudioOnly.active {
   color: var(--accent);
   filter: brightness(0.7);
 }
+
 
 .yt-np-meta {
   display: flex;
