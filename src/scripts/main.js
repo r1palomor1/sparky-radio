@@ -3926,38 +3926,22 @@ async function hydrateYtQueueTags() {
   if (!toHydrate.length) return;
 
   async function hydrateOne(item) {
-    if (item.views && item.published) return; // double-guard for race safety
+    if (item.views && item.published) return;
     try {
       const res = await fetch(`${YT_API_BASE}/api/hydrateTags?id=${item.id}`);
       if (!res.ok) return;
       const tags = await res.json();
-
+      // Mutate state directly — renderYtQueue() reads from these objects
       if (tags.views)     item.views     = tags.views;
       if (tags.published) item.published = tags.published;
-
-      const finalViews     = item.views     || '';
-      const finalPublished = item.published || '';
-      const finalDuration  = item.duration  || '';
-      const finalChannel   = item.channel   || '';
-
-      document.querySelectorAll(`.yt-card[data-id="${item.id}"]`).forEach(card => {
-        if (tags.views)     card.dataset.views     = tags.views;
-        if (tags.published) card.dataset.published = tags.published;
-
-        const infoDiv = card.querySelector('.yt-card-channel');
-        if (infoDiv) {
-          infoDiv.innerHTML = `
-            <span class="desktop-only">${finalViews}${finalPublished ? (finalViews ? ' &middot; ' : '') + finalPublished : ''}${finalDuration ? (finalViews || finalPublished ? ' &middot; ' : '') + finalDuration : ''}${finalChannel ? (finalViews || finalPublished || finalDuration ? ' &middot; ' : '') + finalChannel : ''}</span>
-            <span class="mobile-stats">${finalViews}${finalPublished ? (finalViews ? ' &middot; ' : '') + finalPublished : ''}${finalChannel ? (finalViews || finalPublished ? ' &middot; ' : '') + finalChannel : ''}</span>
-          `;
-        }
-      });
-    } catch (e) { /* silent — network failure on a single card should not block others */ }
+    } catch (e) { /* silent */ }
   }
 
-  // Process in batches of BATCH_SIZE concurrently
+  // Process in batches; re-render the queue drawer once per batch so
+  // the display always reflects the latest hydrated state values.
   for (let i = 0; i < toHydrate.length; i += BATCH_SIZE) {
     await Promise.all(toHydrate.slice(i, i + BATCH_SIZE).map(hydrateOne));
+    renderYtQueue(); // single repaint per batch — reads updated item.views / item.published
   }
 }
 
