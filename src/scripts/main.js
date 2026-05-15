@@ -4388,7 +4388,7 @@ function renderYtQueue() {
   const queue = sparkyYtState.currentQueue;
   if (!queue || queue.length === 0) {
     container.innerHTML = '<div class="pl-empty">Queue is empty</div>';
-    if (countEl) countEl.textContent = 'Queue';
+    if (countEl) countEl.textContent = 'VIDEOS 0';
     // Auto-close the overlay when queue is emptied (clear all or last item removed)
     const overlay = document.getElementById('ytQueueOverlay');
     if (overlay && !overlay.classList.contains('hidden')) {
@@ -4399,7 +4399,7 @@ function renderYtQueue() {
   }
 
   if (countEl) {
-    countEl.textContent = `Videos [ ${queue.length} ]`;
+    countEl.textContent = `VIDEOS ${queue.length}`;
   }
 
   // Only re-render if count or items changed, or just update active class
@@ -4890,4 +4890,69 @@ const ytObserver = new MutationObserver(() => {
 const ytContainer = document.getElementById('ytResults');
 if (ytContainer) {
   ytObserver.observe(ytContainer, { childList: true });
+}
+
+// YT QUEUE LOCAL SORT LOGIC
+const ytQueueSortTrigger = document.getElementById('ytQueueSortTrigger');
+const ytQueueSortOptions = document.getElementById('ytQueueSortOptions');
+const ytQueueSortLabel = document.getElementById('ytQueueSortLabel');
+
+if (ytQueueSortTrigger) {
+  ytQueueSortTrigger.addEventListener('click', (e) => {
+    e.stopPropagation();
+    ytQueueSortOptions.classList.toggle('show');
+  });
+}
+
+document.addEventListener('click', (e) => {
+  if (ytQueueSortOptions && !ytQueueSortTrigger.contains(e.target)) {
+    ytQueueSortOptions.classList.remove('show');
+  }
+});
+
+if (ytQueueSortOptions) {
+  ytQueueSortOptions.querySelectorAll('.preset-opt').forEach(item => {
+    item.addEventListener('click', (e) => {
+      ytQueueSortOptions.querySelectorAll('.preset-opt').forEach(i => i.classList.remove('active'));
+      item.classList.add('active');
+      const sortMode = item.dataset.sort;
+      ytQueueSortLabel.textContent = item.textContent;
+      ytQueueSortOptions.classList.remove('show');
+      sortYtQueueLocal(sortMode);
+    });
+  });
+}
+
+function sortYtQueueLocal(mode) {
+  if (!sparkyYtState.currentQueue || !sparkyYtState.currentQueue.length) return;
+  const currentItem = sparkyYtState.currentQueue[sparkyYtState.queueIndex];
+
+  if (mode === 'relevance') {
+    sparkyYtState.currentQueue = [...sparkyYtState.originalQueue];
+  } else {
+    sparkyYtState.currentQueue.sort((a, b) => {
+      if (mode === 'views') {
+        return parseYtViews(b.views) - parseYtViews(a.views);
+      }
+      if (mode === 'duration') {
+        return parseYtDuration(b.duration) - parseYtDuration(a.duration);
+      }
+      if (mode === 'timeframe') {
+        return parseYtTimeframe(a.published) - parseYtTimeframe(b.published);
+      }
+      if (mode === 'artist') {
+        const aName = (a.channel || a.author || '').toLowerCase();
+        const bName = (b.channel || b.author || '').toLowerCase();
+        return aName.localeCompare(bName);
+      }
+      return 0;
+    });
+  }
+
+  if (currentItem) {
+    const newIdx = sparkyYtState.currentQueue.findIndex(v => v.id === currentItem.id);
+    if (newIdx !== -1) sparkyYtState.queueIndex = newIdx;
+  }
+  
+  renderYtQueue();
 }

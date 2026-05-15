@@ -1920,7 +1920,7 @@ body.light .preset-label {
 
 
 .preset-trigger::after {
-  content: 'â–¼';
+  content: "▼";
   font-size: 8px;
   color: var(--dim);
 }

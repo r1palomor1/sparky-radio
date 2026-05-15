@@ -1,10 +1,10 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>SPARKY · Internet Radio</title>
+  <title>SPARKY Â· Internet Radio</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link
     href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Outfit:wght@400;700;900&family=Inter:wght@400;700;900&family=Archivo:wght@400;700;800;900&display=swap"
@@ -119,7 +119,7 @@
           <div class="np-name-container">
             <div id="npName" class="np-name">Select a station</div>
           </div>
-          <div class="np-sub-meta" id="npSubMeta">Location · Genre</div>
+          <div class="np-sub-meta" id="npSubMeta">Location Â· Genre</div>
 
           <!-- INTEGRATED VISUALIZER -->
           <div class="np-viz-container">
@@ -342,10 +342,22 @@
       <!-- YT Queue Overlay (Moved inside YT view for structural stability) -->
       <div id="ytQueueOverlay" class="yt-queue-overlay hidden">
         <div class="yt-queue-header">
-          <div class="yt-queue-header-left">
-            <span class="material-symbols-outlined">queue_music</span>
-            <span id="ytQueueCount">Videos [ 0 ]</span>
-            <div class="yt-queue-controls">
+            <div class="yt-queue-header-left" style="gap: 8px;">
+              <span id="ytQueueCount" style="font-weight: bold; letter-spacing: 1px;">VIDEOS 0</span>
+              <div class="preset-dropdown-wrap" style="width: 100px;">
+                <div class="preset-trigger" id="ytQueueSortTrigger" style="height: 24px; font-size: 10px; padding: 0 6px; width: 100%; justify-content: space-between;">
+                  <span class="material-symbols-outlined" style="font-size: 14px;">sort</span>
+                  <span id="ytQueueSortLabel">Relevance</span>
+                </div>
+                <div class="preset-options" id="ytQueueSortOptions" style="width: 100%;">
+                  <div class="preset-opt active" data-sort="relevance">Relevance</div>
+                  <div class="preset-opt" data-sort="views">Views</div>
+                  <div class="preset-opt" data-sort="duration">Duration</div>
+                  <div class="preset-opt" data-sort="artist">Artist</div>
+                  <div class="preset-opt" data-sort="timeframe">Timeframe</div>
+                </div>
+              </div>
+              <div class="yt-queue-controls">
               <button id="btnYtShuffle" class="yt-ctrl-btn" title="Shuffle Playlist">
                 <span class="material-symbols-outlined">shuffle</span>
               </button>
@@ -381,7 +393,7 @@
       </div>
 
       <div class="footer-layout">
-        <!-- MODE TOGGLE: Radio ↔ Video -->
+        <!-- MODE TOGGLE: Radio â†” Video -->
         <button class="btn btn-footer-nav btn-mode-toggle" id="btnModeToggle" title="Switch to Video Mode">
           <span class="material-symbols-outlined" id="modeToggleIcon">radio</span>
         </button>
@@ -413,12 +425,12 @@
       <div class="modal-header">FAVICON GUIDE</div>
       <div style="font-size:calc(11px * var(--text-scale)); line-height:1.5; font-family:'Share Tech Mono', monospace; color:var(--text)">
         <div style="color:var(--accent); margin-bottom:8px; border-bottom:1px solid var(--border); padding-bottom:4px">FAVICON STANDARDS</div>
-        • Use SQUARE (1:1) aspect ratio<br>
-        • 64x64px or 128x128px recommended<br>
-        • PNG, SVG, or WEBP (transparency preferred)<br><br>
+        â€¢ Use SQUARE (1:1) aspect ratio<br>
+        â€¢ 64x64px or 128x128px recommended<br>
+        â€¢ PNG, SVG, or WEBP (transparency preferred)<br><br>
         <div style="color:var(--accent); margin-bottom:8px; border-bottom:1px solid var(--border); padding-bottom:4px">QUICK SOURCES</div>
-        • Clearbit: logo.clearbit.com/domain.com<br>
-        • Google: google.com/s2/favicons?domain=domain.com&sz=128<br><br>
+        â€¢ Clearbit: logo.clearbit.com/domain.com<br>
+        â€¢ Google: google.com/s2/favicons?domain=domain.com&sz=128<br><br>
         <div style="color:var(--dim); font-size:calc(9px * var(--text-scale))">TIP: Right-click any image online and select "Copy Image Address" to paste here.</div>
       </div>
       <div class="modal-footer" style="margin-top:20px;">
@@ -501,8 +513,8 @@
         <div style="font-size: calc(10px * var(--text-scale)); color: var(--accent); letter-spacing: 1.5px; font-weight: 500; margin-bottom: 12px;">
           VAULT MANAGEMENT</div>
         <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-          <button class="btn btn-sm btn-action" style="flex: 1;" id="btnExportFavs">EXPORT VAULT</button>
-          <button class="btn btn-sm btn-action" style="flex: 1;" id="btnImportFavs">RESTORE VAULT</button>
+          <button class="btn btn-sm btn-action" style="width: 100px;" id="btnExportFavs">EXPORT VAULT</button>
+          <button class="btn btn-sm btn-action" style="width: 100px;" id="btnImportFavs">RESTORE VAULT</button>
         </div>
         <button class="btn btn-sm btn-action" style="width: 100%; margin-top: 15px;" id="btnAddVault">+ ADD CUSTOM STATION</button>
       </div>
