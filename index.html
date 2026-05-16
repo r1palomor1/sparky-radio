@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -343,7 +343,10 @@
       <div id="ytQueueOverlay" class="yt-queue-overlay hidden">
         <div class="yt-queue-header">
             <div class="yt-queue-header-left" style="gap: 8px;">
-              <span id="ytQueueCount" class="yt-queue-count">VIDEOS 0</span>
+              <div style="display: flex; align-items: center; gap: 4px; color: var(--accent); opacity: 0.8;">
+                <span class="material-symbols-outlined" style="font-size: 16px;">video_library</span>
+                <span id="ytQueueCount" class="yt-queue-count" style="margin: 0;">0</span>
+              </div>
               <div class="preset-dropdown-wrap" style="min-width: 100px; width: fit-content;">
                 <div class="preset-trigger" id="ytQueueSortTrigger" style="height: 24px; font-size: 10px; padding: 0 8px; width: 100%; justify-content: space-between; gap: 8px;">
                   <span class="material-symbols-outlined" style="font-size: 14px;">sort</span>
@@ -358,6 +361,9 @@
                 </div>
               </div>
               <div class="yt-queue-controls">
+              <button id="btnYtLoop" class="yt-ctrl-btn" title="Loop Mode: Off">
+                <span class="material-symbols-outlined">repeat</span>
+              </button>
               <button id="btnYtShuffle" class="yt-ctrl-btn" title="Shuffle Playlist">
                 <span class="material-symbols-outlined">shuffle</span>
               </button>

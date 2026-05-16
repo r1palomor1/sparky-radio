@@ -3228,7 +3228,8 @@ const sparkyYtState = {
   currentItemId: null,  // Tracks last played item â€” used to restore highlight after tab switch
   isAudioOnly: false,
   isShuffleActive: false,
-  tempQueuePlayedIds: new Set() // Track played IDs for pulsing logic
+  tempQueuePlayedIds: new Set(), // Track played IDs for pulsing logic
+  loopMode: 'none' // 'none' | 'one'
 };
 
 const YT_FAVS_KEY = 'sparky_yt_favorites';
@@ -3237,7 +3238,7 @@ const YT_TEMP_QUEUE_KEY = 'sparky_yt_temp_queue';
 
 /* --- IMMERSIVE CINEMA MODE --- */
 let cinemaModeTimer = null;
-const CINEMA_TIMEOUT_MS = 8000;
+const CINEMA_TIMEOUT_MS = 20000;
 
 function wakeFromCinemaMode() {
   document.querySelector('.app').classList.remove('immersive-cinema-mode');
@@ -4323,6 +4324,7 @@ function highlightYtCard(id, shouldScroll = false) {
 }
 
 function toggleYtQueue() {
+  resetCinemaTimer();
   const overlay = document.getElementById('ytQueueOverlay');
   if (!overlay) return;
 
@@ -4346,6 +4348,7 @@ function toggleYtQueue() {
 }
 
 function closeYtQueue() {
+  resetCinemaTimer();
   const overlay = document.getElementById('ytQueueOverlay');
   if (overlay) overlay.classList.add('hidden');
 }
@@ -4442,6 +4445,17 @@ function toggleYtShuffle() {
 
   renderYtQueue();
 }
+function toggleYtLoop() {
+  const btn = document.getElementById('btnYtLoop');
+  if (!btn) return;
+  sparkyYtState.loopMode = sparkyYtState.loopMode === 'none' ? 'one' : 'none';
+  const isActive = sparkyYtState.loopMode === 'one';
+  btn.classList.toggle('active', isActive);
+  btn.title = `Loop Mode: ${isActive ? 'Single' : 'Off'}`;
+  const icon = btn.querySelector('.material-symbols-outlined');
+  if (icon) icon.textContent = isActive ? 'repeat_one' : 'repeat';
+  console.log(`[YT] Loop Mode: ${sparkyYtState.loopMode}`);
+}
 
 function renderYtQueue() {
   const container = document.getElementById('ytQueueList');
@@ -4462,7 +4476,7 @@ function renderYtQueue() {
   }
 
   if (countEl) {
-    countEl.textContent = `VIDEOS ${queue.length}`;
+    countEl.textContent = queue.length;
   }
 
   // Only re-render if count or items changed, or just update active class
@@ -4737,7 +4751,12 @@ function onYtStateChange(event) {
       wakeFromCinemaMode(); // Auto-wake if paused or ended, ignore instantaneous layout reflow pause pings
     }
     if (event.data === YT.PlayerState.ENDED) {
-      playYtNext();
+      if (sparkyYtState.loopMode === 'one') {
+        console.log('[YT] Loop Active: Restarting current video');
+        event.target.playVideo();
+      } else {
+        playYtNext();
+      }
     }
   }
 }
@@ -4835,6 +4854,7 @@ document.getElementById('btnYtCinemaToggle')?.addEventListener('click', toggleCi
 document.getElementById('btnYtQueueClear')?.addEventListener('click', clearYtTempQueue);
 document.getElementById('btnYtAudioOnly')?.addEventListener('click', toggleYtAudioOnly);
 document.getElementById('btnYtShuffle')?.addEventListener('click', toggleYtShuffle);
+document.getElementById('btnYtLoop')?.addEventListener('click', toggleYtLoop);
 document.getElementById('btnYtRestart')?.addEventListener('click', restartYtQueue);
 
 // Tab switching

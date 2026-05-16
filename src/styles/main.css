@@ -4378,6 +4378,11 @@ body.light .filter-chip {
 
 /* â”€â”€ YT Queue Overlay (Full App Coverage) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .yt-queue-overlay {
+  /* Transition setup */
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.4s;
+  transform: translateX(0);
+  visibility: visible;
+  pointer-events: auto;
   position: absolute;
   top: 0;
   left: 0;
@@ -4388,7 +4393,7 @@ body.light .filter-chip {
   z-index: 2000;
   display: flex;
   flex-direction: column;
-  padding: 0; /* Edge to edge */
+    padding: 0; /* Edge to edge */
 }
 
 /* .yt-queue-overlay.hidden â€” handled entirely by the global .hidden { display: none !important } rule.
@@ -4708,4 +4713,13 @@ body.light .filter-chip {
   position: relative;
   z-index: 1;
   overflow: hidden;
+}
+
+
+/* Override global .hidden for YouTube Queue to allow slide transition */
+.yt-queue-overlay.hidden {
+  display: flex !important;
+  transform: translateX(100%);
+  visibility: hidden;
+  pointer-events: none;
 }

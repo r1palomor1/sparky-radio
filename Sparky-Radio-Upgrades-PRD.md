@@ -202,9 +202,10 @@
 - [df0ea5f] **[Radio - Optimization]** Debounce `backgroundSyncFavs` (R-O3)
 - [d0040a7] **[Radio - Enhancement]** Batch favorites sync (R-E5)
 - [dfc132f] **[Radio - UI Upgrade]** NP panel ambient favicon glow (R-U1)
-- [ ] **[Video - Enhancement]** Playback speed control (V-E5)
-- [ ] **[Video - Enhancement]** Loop single video mode (V-E6)
-- [ ] **[Video - UI Upgrade]** Queue drawer slide-in animation (V-U2)
+- [Skipped] **[Video - Enhancement]** Playback speed control (V-E5)
+*(Update 5 deployed for testing)*
+- [80fee74] **[Video - Enhancement]** Loop single video mode (V-E6)
+- [2f19b1c] **[Video - UI Upgrade]** Queue drawer slide-in animation (V-U2)
 - [ ] **[Video - UI Upgrade]** "X of Y" queue progress indicator (V-U9)
 - [ ] **[Video - Downgrade]** Remove dead `renderYtQueueTab()` (V-D3)
 - [ ] **[Video - Downgrade]** Remove unused `originalQueue` state (V-D4)
