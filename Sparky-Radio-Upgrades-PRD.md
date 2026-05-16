@@ -212,7 +212,7 @@
 - [0550c1b] **[Video - Downgrade]** Remove unused `originalQueue` state (V-D4)
 - [0550c1b] **[Video - Downgrade]** Declare `lastCinemaTriggerTime` (V-D5)
 - [0550c1b] **[Video - Optimization]** Extract shared `shortenMetadata()` (V-O7)
-- [8c45e12] **[Radio - UI Upgrade]** playing card panel ambient favicon glow (R-U2)
+- [b8143c5] **[Radio - UI Upgrade]** playing card panel ambient favicon glow (R-U2)
 
 **Phase 2: Strategic**
 - [ ] **[Radio - Enhancement]** Station stream health indicator (R-E2)
