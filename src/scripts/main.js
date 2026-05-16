@@ -1,11 +1,11 @@
 /**
- * SPARKY RADIO · CORE LOGIC
+ * SPARKY RADIO Â· CORE LOGIC
  * 1:1 FIDELITY RESTORATION FROM index.html.bak
  * Modularized for production but preserving all legacy behaviors, 
  * bug fixes, and structural improvements.
  */
 
-// ══ PRO-DEBUGGER INTERCEPTOR ══════════════
+// â•â• PRO-DEBUGGER INTERCEPTOR â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 (function () {
   const output = [];
   const originalLog = console.log, originalErr = console.error;
@@ -130,7 +130,7 @@
   };
 })();
 
-// ══ STORAGE MIGRATION ══════════════════════
+// â•â• STORAGE MIGRATION â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 (function migrate() {
   const map = { 'sparky_favorites_v2': 'sparky_favorites', 'sparky_eq_v5': 'sparky_eq_presets', 'sparky_volume_v2': 'sparky_volume' };
   Object.entries(map).forEach(([oldK, newK]) => {
@@ -144,7 +144,7 @@
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
-// ══ STATE ══════════════════════════════════
+// â•â• STATE â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 const audioEl = document.getElementById('audioEl');
 let stations = [];
 let activeTab = 'favs';
@@ -190,7 +190,7 @@ function updateDeploymentUI() {
     hour: 'numeric',
     minute: 'numeric',
     hour12: true
-  }).format(modDate).replace(',', ' ·');
+  }).format(modDate).replace(',', ' Â·');
   tsEl.textContent = ts;
 }
 
@@ -201,7 +201,7 @@ let freqData;
 let smoothedBands = new Float32Array(128); // Pre-init for high-density bars
 let sortTooltipTimeout;
 
-// ══ THEME INITIALIZATION ══════════════════
+// â•â• THEME INITIALIZATION â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 if (window.initThemeEngine) {
   // If we're on localhost, clear any stale service worker caches to prevent the "broken UI" bug
   if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
@@ -214,7 +214,7 @@ if (window.initThemeEngine) {
   window.initThemeEngine();
 }
 
-// ══ FAVORITES ══════════════════════════════
+// â•â• FAVORITES â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 const FAV_KEY = 'sparky_favorites';
 const USAGE_KEY = 'sparky_usage_stats';
 let usagePulseTimer;
@@ -438,7 +438,7 @@ function addFav(st, customName, customUrl, customCat, customFav) {
   });
 
   if (existing.length > 0) {
-    sparkyConfirm(`<span style="color:#ff0; font-weight:bold; font-size:13px">⚠ CAUTION: DUPLICATE URL</span><br><br>There is already a station in your Favorites with the same URL. Proceed anyway?`, proceed, "DUPLICATE DETECTED");
+    sparkyConfirm(`<span style="color:#ff0; font-weight:bold; font-size:13px">âš  CAUTION: DUPLICATE URL</span><br><br>There is already a station in your Favorites with the same URL. Proceed anyway?`, proceed, "DUPLICATE DETECTED");
   } else {
     proceed();
   }
@@ -500,7 +500,7 @@ function syncFavMetadata(st) {
   }
 }
 
-// ══ TABS ═══════════════════════════════════
+// â•â• TABS â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 function switchTab(tab) {
   const pl = document.getElementById('playlist');
   if (pl) scrollPositions[activeTab] = pl.scrollTop;
@@ -572,7 +572,7 @@ async function backgroundSyncFavs() {
   isSyncingFavs = false;
 }
 
-// ══ EQ ════════════════════════════════════
+// â•â• EQ â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 const EQ_FREQS = [60, 170, 310, 600, 1000, 3000, 6000, 12000];
 const EQ_LABELS = ['60Hz', '170Hz', '310Hz', '600Hz', '1kHz', '3kHz', '6kHz', '12kHz'];
 const eqNodes = [], eqVals = new Array(8).fill(0);
@@ -699,7 +699,7 @@ function setEqPreset(p) {
   updateSaveButtonState();
 }
 
-// ══ EQ BINDINGS CONSOLIDATED IN DOMContentLoaded ══
+// â•â• EQ BINDINGS CONSOLIDATED IN DOMContentLoaded â•â•
 
 document.querySelectorAll('.btn-preset').forEach(btn => {
   btn.onclick = () => {
@@ -770,7 +770,7 @@ function resetEqDefaults() {
   }
 }
 
-// ══ MODALS ═════════════════════════════════
+// â•â• MODALS â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 function sparkyAlert(msg, header = "SYSTEM MESSAGE") {
   document.getElementById('sparkyModalHeader').textContent = header;
   document.getElementById('sparkyModalText').innerHTML = msg;
@@ -835,7 +835,7 @@ function loadEditCategories(currentVal) {
     const isCustomPreset = customPresets.includes(c) && !defaultPresets.includes(c);
     const isDeletable = isCustomCat || isCustomPreset;
 
-    html += `<div class="preset-opt" data-val="${c}"><span>${c}</span>${isDeletable ? `<span class="preset-del" data-del-cat="${c}">✕</span>` : ''}</div>`;
+    html += `<div class="preset-opt" data-val="${c}"><span>${c}</span>${isDeletable ? `<span class="preset-del" data-del-cat="${c}">âœ•</span>` : ''}</div>`;
   });
   container.innerHTML = html;
 
@@ -928,7 +928,7 @@ function openEditModal(name, url, category, favicon, onSave, title = "EDIT STATI
     const finalFav = favInput.value.trim();
 
     if (!isValidImageUrl(finalFav)) {
-      sparkyAlert("FAVICON REQUIREMENTS:\n• Must start with http:// or https://\n• Must point to a valid image (.png, .jpg, .ico, .webp, .svg)\n• Data URIs are also supported.", "INVALID FAVICON URL");
+      sparkyAlert("FAVICON REQUIREMENTS:\nâ€¢ Must start with http:// or https://\nâ€¢ Must point to a valid image (.png, .jpg, .ico, .webp, .svg)\nâ€¢ Data URIs are also supported.", "INVALID FAVICON URL");
       return;
     }
 
@@ -950,7 +950,7 @@ function removeFav(st) {
   else renderStations();
 }
 
-// ══ AUDIO INIT ════════════════════════════
+// â•â• AUDIO INIT â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 const isIOS = (/iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) && !window.MSStream;
 
 function initAudio() {
@@ -988,7 +988,7 @@ function initAudio() {
   freqData = new Uint8Array(analyser.frequencyBinCount);
 }
 
-// ══ VISUALIZER ════════════════════════════
+// â•â• VISUALIZER â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 const vizBars = document.querySelectorAll('.visualizer .bar');
 
 function lerp(a, b, t) {
@@ -1057,7 +1057,7 @@ function idleViz() {
 }
 idleViz();
 
-// ══ STATUS ════════════════════════════════
+// â•â• STATUS â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 function setStatus(state, txt) {
   const dot = document.getElementById('statusDot');
   const text = document.getElementById('statusText');
@@ -1065,7 +1065,7 @@ function setStatus(state, txt) {
   if (text) text.textContent = txt;
 }
 
-// ══ NOW PLAYING ═══════════════════════════
+// â•â• NOW PLAYING â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 function updateNowPlaying(st) {
   const nm = document.getElementById('npName');
   const sm = document.getElementById('npSubMeta');
@@ -1123,9 +1123,9 @@ function updateNowPlaying(st) {
       const location = st.countrycode || st.country || 'Global';
       const genre = (st.tags || 'Various').split(',')[0].trim();
       const hdBadge = (Number(st?.bitrate || 0) >= 128) ? '<span class="hd-badge-inline" style="margin-left: 8px; vertical-align: middle;">HD</span>' : '';
-      sm.innerHTML = `${location.toUpperCase()} · ${genre}${hdBadge}`;
+      sm.innerHTML = `${location.toUpperCase()} Â· ${genre}${hdBadge}`;
     } else {
-      sm.textContent = '—';
+      sm.textContent = 'â€”';
     }
   }
 
@@ -1134,7 +1134,7 @@ function updateNowPlaying(st) {
   const trend = document.getElementById('npTrend');
   const codec = document.getElementById('npCodec');
 
-  if (trend) trend.textContent = (st?.clicktrend !== undefined) ? (st.clicktrend > 0 ? '+' + st.clicktrend : st.clicktrend) : '—';
+  if (trend) trend.textContent = (st?.clicktrend !== undefined) ? (st.clicktrend > 0 ? '+' + st.clicktrend : st.clicktrend) : 'â€”';
   if (codec) codec.textContent = (st?.codec || 'MP3').toUpperCase();
   if (votes) votes.textContent = fmtK(st?.votes || 0);
   if (clicks) clicks.textContent = fmtK(st?.clickcount || 0);
@@ -1222,7 +1222,7 @@ function jumpToStation(st) {
   }
 }
 
-// ══ PLAYBACK ══════════════════════════════
+// â•â• PLAYBACK â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 function playStationObj(st) {
   sparkyLog(`Action: playStationObj(${st.stationuuid || st.id}) - ${st.name}`);
   debugLayout('BEFORE-RADIO-PLAY');
@@ -1330,7 +1330,7 @@ function renderCurrent() {
   scrollToActive();
 }
 
-// ══ RENDERERS ══════════════════════════════
+// â•â• RENDERERS â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 function renderFavicon(st) {
   if (st.favicon && st.favicon.trim() !== '') {
     return `<img class="pl-favicon" src="${esc(st.favicon)}" onerror="this.onerror=null; const s=document.createElement('span'); s.className='material-symbols-outlined pl-favicon-fallback'; s.textContent='radio'; this.replaceWith(s);">`;
@@ -1350,7 +1350,7 @@ function renderStations() {
   const pl = document.getElementById('playlist');
   if (!pl || activeTab !== 'stations') return;
   if (!stations.length) {
-    pl.innerHTML = '<div class="pl-empty"><div class="pl-empty-icon">📻</div><div>No stations loaded</div></div>'; return;
+    pl.innerHTML = '<div class="pl-empty"><div class="pl-empty-icon">ðŸ“»</div><div>No stations loaded</div></div>'; return;
   }
   let displayStations = [...stations];
   if (searchQuery) {
@@ -1385,7 +1385,7 @@ function renderStations() {
   if (stations.length > 0 && !displayStations.length) {
     const sb = document.getElementById('stationsBadge');
     if (sb) sb.textContent = '0';
-    pl.innerHTML = '<div class="pl-empty"><div class="pl-empty-icon">🔍</div><div>No matching stations</div></div>';
+    pl.innerHTML = '<div class="pl-empty"><div class="pl-empty-icon">ðŸ”</div><div>No matching stations</div></div>';
     return;
   }
 
@@ -1408,8 +1408,8 @@ function renderStations() {
     const rank = (((st.clickcount || 0) / mC) * 0.6) + (((st.votes || 0) / mV) * 0.3) + (((st.clicktrend || 0) / mT) * 0.1);
     const pwr = Math.min(100, Math.round(rank * 100));
     const trending = (st.clicktrend || 0) > 50 ? '<span class="pl-status-badge trending">Trending</span>' : '';
-    let primary = { id: 'pwr', icon: '⚡', val: `${pwr}%`, color: 'var(--text)' };
-    if (sortMode === 'vote') { primary = { id: 'vot', icon: '👍', val: fmtK(st.votes), color: 'var(--text)' }; }
+    let primary = { id: 'pwr', icon: 'âš¡', val: `${pwr}%`, color: 'var(--text)' };
+    if (sortMode === 'vote') { primary = { id: 'vot', icon: 'ðŸ‘', val: fmtK(st.votes), color: 'var(--text)' }; }
 
     const tagArr = (st.tags || '').split(',').map(t => t.trim()).filter(t => t);
     let dispTags = tagArr.slice(0, 2);
@@ -1428,9 +1428,9 @@ function renderStations() {
       </div>
       <div class="pl-main-col">
         <div class="pl-item-name">${esc(st.name)}</div>
-        <div class="pl-item-meta">${esc(st.countrycode || '--')} · ${esc(finalTags)}</div>
+        <div class="pl-item-meta">${esc(st.countrycode || '--')} Â· ${esc(finalTags)}</div>
         <div class="pl-item-stats">
-          <span class="pl-stat-power" style="color:${primary.color}">⚡ ${primary.val}</span>
+          <span class="pl-stat-power" style="color:${primary.color}">âš¡ ${primary.val}</span>
           ${(Number(st.bitrate || 0) >= 128) ? '<span class="hd-badge-inline">HD</span>' : ''}
           ${trending}
         </div>
@@ -1488,7 +1488,7 @@ function renderFavs() {
   refreshFavBadge();
   const recentList = getRecentStations();
   if (!favs.length && !recentList.length) {
-    pl.innerHTML = '<div class="pl-empty"><div class="pl-empty-icon">★</div><div>No favorites yet</div></div>'; return;
+    pl.innerHTML = '<div class="pl-empty"><div class="pl-empty-icon">â˜…</div><div>No favorites yet</div></div>'; return;
   }
 
   if (favViewMode === 'grouped') {
@@ -1563,8 +1563,8 @@ function renderFavs() {
     const pwr = Math.min(100, Math.round(rank * 100));
     const isManual = sortMode === 'custom' && !isRecent;
     const trending = (st.clicktrend || 0) > 50 ? '<span class="pl-status-badge trending">Trending</span>' : '';
-    let primary = { id: 'pwr', icon: '⚡', val: isRecent ? `${pwr}% · # ${st.count} plays` : `${pwr}%`, color: 'var(--accent)' };
-    if (sortMode === 'vote' && !isRecent) { primary = { id: 'vot', icon: '👍', val: fmtK(st.votes), color: 'var(--fav)' }; }
+    let primary = { id: 'pwr', icon: 'âš¡', val: isRecent ? `${pwr}% Â· # ${st.count} plays` : `${pwr}%`, color: 'var(--accent)' };
+    if (sortMode === 'vote' && !isRecent) { primary = { id: 'vot', icon: 'ðŸ‘', val: fmtK(st.votes), color: 'var(--fav)' }; }
 
     const tagArr = (st.tags || '').split(',').map(t => t.trim()).filter(t => t);
     let dispTags = tagArr.slice(0, 2);
@@ -1583,7 +1583,7 @@ function renderFavs() {
       </div>
       <div class="pl-main-col">
         <div class="pl-item-name">${esc(st.name)}</div>
-        <div class="pl-item-meta">${esc(st.countrycode || '--')} · ${esc(finalTags)}</div>
+        <div class="pl-item-meta">${esc(st.countrycode || '--')} Â· ${esc(finalTags)}</div>
         <div class="pl-item-stats">
           <span class="pl-stat-power" style="color:${primary.color}">${primary.icon} ${primary.val}</span>
           ${(Number(st.bitrate || 0) >= 128) ? '<span class="hd-badge-inline">HD</span>' : ''}
@@ -1792,8 +1792,8 @@ function renderGroupedFavs(pl) {
       const rank = (((st.clickcount || 0) / mC) * 0.6) + (((st.votes || 0) / mV) * 0.3) + (((st.clicktrend || 0) / mT) * 0.1);
       const pwr = Math.min(100, Math.round(rank * 100));
       const trending = (st.clicktrend || 0) > 50 ? '<span class="pl-status-badge trending">Trending</span>' : '';
-      let primary = { id: 'pwr', icon: '⚡', val: isRecent ? `${st.count} plays` : `${pwr}%`, color: 'var(--text)' };
-      if (sortMode === 'vote' && !isRecent) { primary = { id: 'vot', icon: '👍', val: fmtK(st.votes), color: 'var(--text)' }; }
+      let primary = { id: 'pwr', icon: 'âš¡', val: isRecent ? `${st.count} plays` : `${pwr}%`, color: 'var(--text)' };
+      if (sortMode === 'vote' && !isRecent) { primary = { id: 'vot', icon: 'ðŸ‘', val: fmtK(st.votes), color: 'var(--text)' }; }
       const tagArr = (st.tags || '').split(',').map(t => t.trim()).filter(t => t);
       const finalTags = tagArr.slice(0, 3).join(', ') || 'Radio';
       const rescued = st.isRescued ? ' rescued' : '';
@@ -1802,7 +1802,7 @@ function renderGroupedFavs(pl) {
               <div class="pl-favicon-col">${renderFavicon(st)}</div>
               <div class="pl-main-col">
                 <div class="pl-item-name">${esc(st.name)}</div>
-                <div class="pl-item-meta">${esc(st.countrycode || '--')} · ${esc(finalTags)}</div>
+                <div class="pl-item-meta">${esc(st.countrycode || '--')} Â· ${esc(finalTags)}</div>
                 <div class="pl-item-stats">
                   <span class="pl-stat-power" style="color:${primary.color}">${primary.icon} ${primary.val}</span>
                   ${(Number(st.bitrate || 0) >= 128) ? '<span class="hd-badge-inline">HD</span>' : ''}
@@ -1920,12 +1920,12 @@ function renderDiscoveryFavs(pl) {
     const pwr = Math.min(100, Math.round(rank * 100));
 
     const tagArr = (st.tags || '').split(',').map(t => t.trim()).filter(t => t);
-    const finalTags = tagArr.slice(0, 2).join(' · ') || 'Radio';
+    const finalTags = tagArr.slice(0, 2).join(' Â· ') || 'Radio';
     const rescued = st.isRescued ? ' rescued' : '';
 
-    let statVal = `⚡ ${pwr}%`;
-    if (discoveryCategoryFilter === 'RECENT') statVal = `⚡ ${st.count} plays`;
-    else if (sortMode === 'vote') statVal = `👍 ${fmtK(st.votes)}`;
+    let statVal = `âš¡ ${pwr}%`;
+    if (discoveryCategoryFilter === 'RECENT') statVal = `âš¡ ${st.count} plays`;
+    else if (sortMode === 'vote') statVal = `ðŸ‘ ${fmtK(st.votes)}`;
 
     return `
       <div class="pl-discovery-card${actv ? ' active' : ''}${rescued}" data-sid="${st.sparkyId || ''}" data-uuid="${st.stationuuid || ''}" data-url="${st.url || ''}">
@@ -2165,11 +2165,11 @@ function scrollActiveChipIntoView(container) {
   }
 }
 
-// ══ TRANSPORT ══════════════════════════════
+// â•â• TRANSPORT â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // Logic moved to footer bindings and togglePlay function
 
 
-// ══ FOOTER ACTIONS (Logic defined here, bound in INIT) ════
+// â•â• FOOTER ACTIONS (Logic defined here, bound in INIT) â•â•â•â•
 function handleAddStation() {
   openEditModal("", "", "Select Category", "", (name, url, cat, favicon) => {
     if (!name || !url) return;
@@ -2265,7 +2265,7 @@ const updateVolFill = (el) => {
   el.style.background = `linear-gradient(to right, var(--accent) ${v}%, var(--seek-bg) ${v}%)`;
 };
 
-// ══ SEARCH ════════════════════════════════
+// â•â• SEARCH â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 async function searchStations(q, isManual = false) {
   if (isSearching) return;
   searchQuery = (q || "").trim();
@@ -2346,7 +2346,7 @@ async function searchStations(q, isManual = false) {
       }
 
       const mirrorIndicator = document.getElementById('mirrorIndicator');
-      if (mirrorIndicator) mirrorIndicator.textContent = (isEscalated ? '🌐 ' : '') + srv.split('.')[0].toUpperCase();
+      if (mirrorIndicator) mirrorIndicator.textContent = (isEscalated ? 'ðŸŒ ' : '') + srv.split('.')[0].toUpperCase();
 
       const maxClicks = Math.max(...filtered.map(s => Number(s.clickcount || 0)), 1);
       const maxVotes = Math.max(...filtered.map(s => Number(s.votes || 0)), 1);
@@ -2361,8 +2361,8 @@ async function searchStations(q, isManual = false) {
   if (success) {
     renderStations();
   } else if (pl) {
-    const fallbackMsg = q ? `NO STATIONS FOUND FOR "${q.toUpperCase()}"<br><span style="font-size:10px; color:var(--dim)">TRY SEARCHING BY GENRE (E.G. REGGAETON, ROCK)</span>` : '⚠ ALL MIRRORS UNREACHABLE';
-    pl.innerHTML = `<div class="pl-empty"><div class="pl-empty-icon">📡</div><div>${fallbackMsg}</div></div>`;
+    const fallbackMsg = q ? `NO STATIONS FOUND FOR "${q.toUpperCase()}"<br><span style="font-size:10px; color:var(--dim)">TRY SEARCHING BY GENRE (E.G. REGGAETON, ROCK)</span>` : 'âš  ALL MIRRORS UNREACHABLE';
+    pl.innerHTML = `<div class="pl-empty"><div class="pl-empty-icon">ðŸ“¡</div><div>${fallbackMsg}</div></div>`;
   }
   isSearching = false;
 }
@@ -2375,8 +2375,8 @@ function expandFilters() {
 }
 
 
-// ══ SETTINGS & UI ══════════════════════════
-// ══ SETTINGS & UI (Logic defined here, bound in INIT) ══
+// â•â• SETTINGS & UI â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// â•â• SETTINGS & UI (Logic defined here, bound in INIT) â•â•
 function handleExport() {
   const exportPayload = {
     version: 2,
@@ -2505,7 +2505,7 @@ const CTRY_NAMES = {
   "FR": "France", "GB": "United Kingdom", "GR": "Greece", "HR": "Croatia", "HU": "Hungary", "ID": "Indonesia",
   "IE": "Ireland", "IL": "Israel", "IN": "India", "IT": "Italy", "JP": "Japan", "MX": "Mexico", "NL": "The Netherlands",
   "NZ": "New Zealand", "PE": "Peru", "PH": "Philippines", "PL": "Poland", "PT": "Portugal", "RO": "Romania",
-  "RS": "Serbia", "RU": "Russian Federation", "SE": "Sweden", "SK": "Slovakia", "TR": "Türkiye", "TW": "Taiwan",
+  "RS": "Serbia", "RU": "Russian Federation", "SE": "Sweden", "SK": "Slovakia", "TR": "TÃ¼rkiye", "TW": "Taiwan",
   "UA": "Ukraine", "UG": "Uganda", "US": "United States", "UY": "Uruguay", "VE": "Venezuela", "ZA": "South Africa"
 };
 
@@ -2535,14 +2535,14 @@ function loadFilterOptions() {
 
   cCont.innerHTML = finalC.map(c => {
     const name = CTRY_NAMES[c] || c;
-    const display = c === 'ALL' ? 'All countries' : `${name} · ${c}`;
+    const display = c === 'ALL' ? 'All countries' : `${name} Â· ${c}`;
     return `<div class="preset-opt" data-val="${c}">${display}</div>`;
   }).join('');
 
   lCont.innerHTML = finalL.map(l => {
     const name = l.charAt(0).toUpperCase() + l.slice(1);
     const code = l === 'ALL' ? 'ALL' : l.substring(0, 3).toUpperCase();
-    const display = l === 'ALL' ? 'All languages' : `${name} · ${code}`;
+    const display = l === 'ALL' ? 'All languages' : `${name} Â· ${code}`;
     return `<div class="preset-opt" data-val="${l}">${display}</div>`;
   }).join('');
 
@@ -2563,7 +2563,7 @@ function loadPresets() {
   let html = `<div class="preset-opt add-opt" data-val="ADD">+ Add new tune</div>`;
   all.forEach(p => {
     const isDefault = defaultPresets.includes(p);
-    html += `<div class="preset-opt" data-val="${p}"><span>${p}</span>${!isDefault ? `<span class="preset-del" data-del="${p}">✕</span>` : ''}</div>`;
+    html += `<div class="preset-opt" data-val="${p}"><span>${p}</span>${!isDefault ? `<span class="preset-del" data-del="${p}">âœ•</span>` : ''}</div>`;
   });
   container.innerHTML = html;
   container.querySelectorAll('.preset-opt').forEach(opt => opt.onclick = (e) => {
@@ -2630,14 +2630,14 @@ function loadSettingsOptions() {
 
   dcCont.innerHTML = CTRY_LIST.map(c => {
     const name = CTRY_NAMES[c] || c;
-    const display = c === 'ALL' ? 'All countries' : `${name} · ${c}`;
+    const display = c === 'ALL' ? 'All countries' : `${name} Â· ${c}`;
     return `<div class="preset-opt${c === defC ? ' active' : ''}" data-val="${c}">${display}</div>`;
   }).join('');
 
   dlCont.innerHTML = LANG_LIST.map(l => {
     const name = l.charAt(0).toUpperCase() + l.slice(1);
     const code = l === 'ALL' ? 'ALL' : l.substring(0, 3).toUpperCase();
-    const display = l === 'ALL' ? 'All languages' : `${name} · ${code}`;
+    const display = l === 'ALL' ? 'All languages' : `${name} Â· ${code}`;
     return `<div class="preset-opt${l === defL ? ' active' : ''}" data-val="${l}">${display}</div>`;
   }).join('');
 
@@ -2660,8 +2660,8 @@ function loadSettingsOptions() {
   });
 
 }
-// ══ APP INITIALIZATION ══════════════════════════════════
-// ── FORENSIC DEBUGGING MODULE ─────────────────────────────────────
+// â•â• APP INITIALIZATION â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// â”€â”€ FORENSIC DEBUGGING MODULE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function sparkyLog(msg) {
   // console.log(`%c[SPARKY-DEBUG] ${msg}`, 'color: #4fd1c5; font-weight: bold;');
   const out = document.getElementById('debugOutput');
@@ -2691,7 +2691,7 @@ window.addEventListener('scroll', (e) => {
   }
 }, true);
 
-// ── APP INITIALIZATION ───────────────────────────────────────────
+// â”€â”€ APP INITIALIZATION â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 document.addEventListener('DOMContentLoaded', () => {
   // sparkyLog('System Initialized - Forensic Mode Active');
   initEq();
@@ -2718,8 +2718,8 @@ document.addEventListener('DOMContentLoaded', () => {
   bind('npLabel', (e) => { e.stopPropagation(); jumpToCategoryShortcut(currentSrc); });
   bind('npJumpArea', () => jumpToStation(currentSrc));
 
-  // ══ DEFAULTS TRIGGERS ══
-  // ══ DEFAULTS TRIGGERS (Safe Bindings) ══
+  // â•â• DEFAULTS TRIGGERS â•â•
+  // â•â• DEFAULTS TRIGGERS (Safe Bindings) â•â•
   bind('defaultCountryTrigger', (e) => { e.stopPropagation(); document.getElementById('defaultCountryOptions')?.classList.toggle('show'); });
   bind('defaultLangTrigger', (e) => { e.stopPropagation(); document.getElementById('defaultLangOptions')?.classList.toggle('show'); });
 
@@ -2779,7 +2779,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   };
 
-  // ── VOLUME ROW LOGIC ──
+  // â”€â”€ VOLUME ROW LOGIC â”€â”€
   let volTimer = null;
   const volCtrl = document.getElementById('volCtrl');
   const volRow = document.getElementById('volRow');
@@ -2843,7 +2843,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
 
-  // ══ CONSOLIDATED DOM BINDINGS (ELIMINATE TYPEERROR) ══
+  // â•â• CONSOLIDATED DOM BINDINGS (ELIMINATE TYPEERROR) â•â•
   function bind(id, fn, ev = 'onclick') { const el = document.getElementById(id); if (el) el[ev] = fn; }
 
   bind('btnSearch', () => {
@@ -2892,14 +2892,14 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   bind('presetTrigger', (e) => { e.stopPropagation(); document.getElementById('presetOptions')?.classList.toggle('show'); });
 
-  // ══ BACKDROP CLICK LISTENER ══
+  // â•â• BACKDROP CLICK LISTENER â•â•
   window.addEventListener('click', () => {
     ['presetOptions', 'filterCountryOptions', 'filterLangOptions', 'defaultCountryOptions', 'defaultLangOptions', 'statsModeOptions'].forEach(id => {
       document.getElementById(id)?.classList.remove('show');
     });
   });
 
-  // ══ SYSTEM & UTILITY BINDINGS (SAFE) ══
+  // â•â• SYSTEM & UTILITY BINDINGS (SAFE) â•â•
   bind('btnCopyLogs', () => window.copyLogs());
   bind('btnAuditFavs', () => window.auditFavs());
   bind('btnExportFavs', handleExport);
@@ -2927,15 +2927,15 @@ document.addEventListener('DOMContentLoaded', () => {
     if (dm) dm.style.display = 'none';
   });
 
-  // ══ INTERFACE SCALE BINDINGS ══
+  // â•â• INTERFACE SCALE BINDINGS â•â•
   bind('textScaleSlider', (e) => applyTextScale(parseFloat(e.target.value)), 'oninput');
   bind('btnResetScale', () => applyTextScale(1.0));
 
-  // ── PANEL THEME BINDINGS ──
+  // â”€â”€ PANEL THEME BINDINGS â”€â”€
   bind('panelColorPicker', (e) => applyPanelColor(e.target.value), 'oninput');
   bind('btnResetPanel', () => applyPanelColor('#061021'));
 
-  // ══ SORT MODE BINDING ══
+  // â•â• SORT MODE BINDING â•â•
   bind('btnSortMode', () => {
     if (activeTab === 'favs' && discoveryCategoryFilter === 'RECENT') return;
     const modes = (activeTab === 'stations' || favViewMode !== 'list' || (discoveryCategoryFilter !== 'ALL' && discoveryCategoryFilter !== 'RECENT')) ? ['pwr', 'vote'] : ['pwr', 'vote', 'custom'];
@@ -2955,7 +2955,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // ── VIEW MODE BINDINGS ──
+  // â”€â”€ VIEW MODE BINDINGS â”€â”€
   bind('btnViewToggle', () => {
     if (favViewMode === 'list') {
       favViewMode = 'discovery';
@@ -2981,7 +2981,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   updateViewToggleUI();
 
-  // ══ LAST STATION RESTORATION ══
+  // â•â• LAST STATION RESTORATION â•â•
   const last = localStorage.getItem('sparky_last_station');
   if (last) {
     try {
@@ -3159,9 +3159,9 @@ async function healFavoritesFavicons() {
 }
 
 
-// ════════════════════════════════════════════════════════════════
-// ║  SPARKY YT MODULE — Phase 2: State Manager & DOM Toggling  ║
-// ════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// â•‘  SPARKY YT MODULE â€” Phase 2: State Manager & DOM Toggling  â•‘
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 const sparkyYtState = {
   isModeActive: false,
@@ -3188,7 +3188,7 @@ const sparkyYtState = {
     prefetchedPage: null
   },
   activePlaylistId: null,
-  currentItemId: null,  // Tracks last played item — used to restore highlight after tab switch
+  currentItemId: null,  // Tracks last played item â€” used to restore highlight after tab switch
   isAudioOnly: false,
   isShuffleActive: false,
   tempQueuePlayedIds: new Set() // Track played IDs for pulsing logic
@@ -3239,7 +3239,7 @@ function toggleCinemaMode() {
   }
 }
 
-// ── Wake Button Isolated Logic ────────────────────────────────────
+// â”€â”€ Wake Button Isolated Logic â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const wakeZone = document.getElementById('cinemaWakeZone');
 if (wakeZone) {
   ['click', 'touchstart'].forEach(evt => {
@@ -3252,7 +3252,7 @@ if (wakeZone) {
   });
 }
 
-// ── General Idle Detection (Reset Timer) ──────────────────────────
+// â”€â”€ General Idle Detection (Reset Timer) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 ['click', 'touchstart'].forEach(evt => {
   document.addEventListener(evt, (e) => {
     // If the wake button handled it above, this won't trigger for the button
@@ -3268,7 +3268,7 @@ if (wakeZone) {
   }, { passive: true });
 });
 
-// ── Infinite Scroll Listener ──────────────────────────────────────
+// â”€â”€ Infinite Scroll Listener â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const ytResultsEl = document.getElementById('ytResults');
 if (ytResultsEl) {
   ytResultsEl.addEventListener('scroll', () => {
@@ -3311,7 +3311,7 @@ function loadYtTempQueue() { try { return JSON.parse(localStorage.getItem(YT_TEM
 function saveYtFavs(arr) { localStorage.setItem(YT_FAVS_KEY, JSON.stringify(arr)); }
 function saveYtTempQueue(arr) { localStorage.setItem(YT_TEMP_QUEUE_KEY, JSON.stringify(arr)); }
 
-// ── Core Mode Toggle ─────────────────────────────────────────────
+// â”€â”€ Core Mode Toggle â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function toggleYtMode(activate) {
   // sparkyLog(`Action: toggleYtMode(${activate})`);
   // debugLayout('BEFORE-TOGGLE');
@@ -3361,11 +3361,11 @@ function toggleYtMode(activate) {
   }
 
   localStorage.setItem('sparky_yt_mode_active', activate ? '1' : '0');
-  // sparkyLog(`[YT] Mode → ${activate ? 'VIDEO' : 'RADIO'}`);
+  // sparkyLog(`[YT] Mode â†’ ${activate ? 'VIDEO' : 'RADIO'}`);
   // setTimeout(() => debugLayout('AFTER-TOGGLE'), 100);
 }
 
-// ── Sub-mode Tab Switching ───────────────────────────────────────
+// â”€â”€ Sub-mode Tab Switching â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function switchYtTab(mode) {
   wakeFromCinemaMode(); // Wake up when switching tabs
   sparkyYtState.currentSubMode = mode;
@@ -3394,7 +3394,7 @@ function switchYtTab(mode) {
       if (input) input.value = cache.query;
       if (mode === 'playlists') renderYtPlaylistResults(cache.results);
       else renderYtVideoResults(cache.results);
-      // Re-apply active highlight — render wipes innerHTML so .active class is lost
+      // Re-apply active highlight â€” render wipes innerHTML so .active class is lost
       if (sparkyYtState.currentItemId) highlightYtCard(sparkyYtState.currentItemId);
     }
     // 2. If no results BUT there is a search term in the input, auto-search
@@ -3523,7 +3523,7 @@ function addYtFav(item) {
 }
 function removeYtFav(id) { saveYtFavs(loadYtFavs().filter(f => f.id !== id)); }
 
-// ── Boot ─────────────────────────────────────────────────────────
+// â”€â”€ Boot â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 initYtStorage();
 syncYtQueueBtn();
 syncYtQueueBadge();
@@ -3543,9 +3543,9 @@ if (localStorage.getItem('sparky_yt_mode_active') === '1') {
   toggleYtMode(true);
 }
 
-// ════════════════════════════════════════════════════════════════
-// ║  SPARKY YT MODULE — Phase 3: Search, Player & Audio Overlap ║
-// ════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// â•‘  SPARKY YT MODULE â€” Phase 3: Search, Player & Audio Overlap â•‘
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 // Use relative paths for API calls to support Vite proxy in dev and Vercel in production
 const YT_API_BASE = '';
@@ -3554,7 +3554,7 @@ let ytIframeApiLoading = false;
 let ytIframeApiReady = false;
 let pendingPlayItem = null;
 
-// ── Recent Searches Logic ──────────────────────────────────────────
+// â”€â”€ Recent Searches Logic â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const RECENT_SEARCHES_KEY = 'sparky_yt_recent_searches';
 
 function loadYtRecentSearches() {
@@ -3634,7 +3634,7 @@ function renderYtRecentSearches() {
   });
 }
 
-// ── 3.1: Search ──────────────────────────────────────────────────
+// â”€â”€ 3.1: Search â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 async function runYtSearch() {
   let query = document.getElementById('ytSearchInput')?.value?.trim();
   if (!query) return;
@@ -3660,8 +3660,8 @@ async function runYtSearch() {
   const resultsEl = document.getElementById('ytResults');
   if (!resultsEl) return;
 
-  // Clear and show loading
-  resultsEl.innerHTML = `<div class="yt-loading"><div class="yt-spinner"></div>Searching...</div>`;
+  resultsEl.classList.add('yt-searching-deep');
+  resultsEl.innerHTML = `<div id="ytDeepScanLoader" class="yt-loading"><div class="yt-spinner"></div>Searching for videos...</div>`;
   resultsEl.scrollTop = 0;
 
   // Reset Cache for NEW search
@@ -3675,7 +3675,35 @@ async function runYtSearch() {
 
   console.log(`[YT-SEARCH] Starting search for: "${query}" (Mode: ${mode})`);
   await fetchNextYtPage(false);
+
+  // AUTO-DEEP-SEARCH: Fetch a second page immediately to ensure consistent sorting pools
+  if (cache.hasMore && !cache.isFetchingMore) {
+    console.log('[YT-SEARCH] Auto-Deep-Search: Fetching second page...');
+    await fetchNextYtPage(true);
+  }
+
+  // Show results and scroll to top
+  const deepLoader = document.getElementById('ytDeepScanLoader');
+  if (deepLoader) deepLoader.remove();
+  
+  resultsEl.classList.remove('yt-searching-deep');
+  
+  // Final explicit render to ensure everything is visible
+  if (mode === 'videos') renderYtVideoResults(cache.results, false);
+  else renderYtPlaylistResults(cache.results, false);
+
+  // AUTO-SORT: Apply current sort selection before revealing
+  const activeSort = document.querySelector('#ytSortOptions .preset-opt.active');
+  if (activeSort && activeSort.dataset.sort !== 'relevance') {
+    console.log(`[YT-SEARCH] Auto-sorting results by: ${activeSort.dataset.sort}`);
+    sortYtResultsLocal(activeSort.dataset.sort);
+  }
+  
+  resultsEl.scrollTop = 0;
 }
+
+
+
 
 async function fetchNextYtPage(isAppending = true) {
   const modeAtStart = sparkyYtState.currentSubMode;
@@ -3730,30 +3758,26 @@ async function fetchNextYtPage(isAppending = true) {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
 
-    try {
-      const res = await fetch(url, { signal: controller.signal });
-      clearTimeout(timeoutId);
-      console.log(`[YT-FETCH] Response received: ${res.status} ${res.statusText}`);
+    const res = await fetch(url, { signal: controller.signal });
+    clearTimeout(timeoutId);
+    console.log(`[YT-FETCH] Response received: ${res.status} ${res.statusText}`);
 
-      if (!res.ok) {
-        let errData = {};
-        try { errData = await res.json(); } catch (e) { console.warn('[YT-FETCH] Could not parse error JSON'); }
-        console.error('[YT-FETCH] Server error detail:', errData);
-        throw new Error(`HTTP ${res.status}: ${errData.message || errData.error || 'Unknown Error'}`);
-      }
-      const data = await res.json();
-      console.log(`[YT-FETCH] Data received. Results length: ${(data.video_results || data.playlist_results || []).length}`);
-      
-      processYtPage(data, isAppending);
-
-      // Initial prefetch after first page loads
-      if (!isAppending && cache.hasMore) {
-        prefetchNextYtPage();
-      }
-    } finally {
-      clearTimeout(timeoutId);
+    if (!res.ok) {
+      let errData = {};
+      try { errData = await res.json(); } catch (e) { console.warn('[YT-FETCH] Could not parse error JSON'); }
+      console.error('[YT-FETCH] Server error detail:', errData);
+      throw new Error(`HTTP ${res.status}: ${errData.message || errData.error || 'Unknown Error'}`);
     }
+    
+    const data = await res.json();
+    console.log(`[YT-FETCH] Data received. Results length: ${(data.video_results || data.playlist_results || []).length}`);
+    
+    processYtPage(data, isAppending);
 
+    // Initial prefetch after first page loads
+    if (!isAppending && cache.hasMore) {
+      prefetchNextYtPage();
+    }
   } catch (err) {
     console.error('[YT] Fetch error:', err);
     if (!isAppending) {
@@ -3766,6 +3790,8 @@ async function fetchNextYtPage(isAppending = true) {
     cache.isFetchingMore = false;
   }
 }
+
+
 
 async function prefetchNextYtPage() {
   const mode = sparkyYtState.currentSubMode;
@@ -3819,7 +3845,7 @@ function processYtPage(data, isAppending) {
 
   if (cache.results.length) {
     // Only render if we are still viewing the mode that requested this data
-    if (mode === sparkyYtState.currentSubMode) {
+    if (mode === sparkyYtState.currentSubMode && !document.getElementById('ytDeepScanLoader')) {
       if (mode === 'videos') renderYtVideoResults(isAppending ? normalizedResults : cache.results, isAppending);
       else renderYtPlaylistResults(isAppending ? normalizedResults : cache.results, isAppending);
     }
@@ -3830,12 +3856,12 @@ function processYtPage(data, isAppending) {
       if (el) {
         const endMsg = document.createElement('div');
         endMsg.className = 'yt-end-results';
-        endMsg.innerHTML = '— End of results —';
+        endMsg.innerHTML = 'â€” End of results â€”';
         el.appendChild(endMsg);
       }
     }
   } else if (!isAppending) {
-    showYtError('No results found — try a different search.');
+    showYtError('No results found â€” try a different search.');
   }
 }
 
@@ -3931,7 +3957,7 @@ async function hydrateYtQueueTags() {
       const res = await fetch(`${YT_API_BASE}/api/hydrateTags?id=${item.id}`);
       if (!res.ok) return;
       const tags = await res.json();
-      // Mutate state directly — renderYtQueue() reads from these objects
+      // Mutate state directly â€” renderYtQueue() reads from these objects
       if (tags.views)     item.views     = tags.views;
       if (tags.published) item.published = tags.published;
     } catch (e) { /* silent */ }
@@ -3941,7 +3967,7 @@ async function hydrateYtQueueTags() {
   // the display always reflects the latest hydrated state values.
   for (let i = 0; i < toHydrate.length; i += BATCH_SIZE) {
     await Promise.all(toHydrate.slice(i, i + BATCH_SIZE).map(hydrateOne));
-    renderYtQueue(); // single repaint per batch — reads updated item.views / item.published
+    renderYtQueue(); // single repaint per batch â€” reads updated item.views / item.published
   }
 }
 
@@ -3952,7 +3978,7 @@ function attachYtCardListeners(container) {
   newCards.forEach((card) => {
     card.setAttribute('data-bound', 'true');
 
-    // Card body click → play
+    // Card body click â†’ play
     card.addEventListener('click', async e => {
       if (e.target.closest('.yt-card-fav') || e.target.closest('.yt-card-add')) return;
 
@@ -4236,7 +4262,7 @@ function highlightYtCard(id, shouldScroll = false) {
   });
 
   // Scroll the results container so the active card is visible.
-  // We operate only on #ytResults.scrollTop — the window and .app never move.
+  // We operate only on #ytResults.scrollTop â€” the window and .app never move.
   if (activeCard && shouldScroll) {
     setTimeout(() => {
       const container = document.getElementById('ytResults');
@@ -4249,10 +4275,10 @@ function highlightYtCard(id, shouldScroll = false) {
 
       // Only scroll if the card is partially or fully outside the visible container
       if (cardTop < containerTop) {
-        // Card is above visible area — scroll up
+        // Card is above visible area â€” scroll up
         container.scrollTop -= (containerTop - cardTop) + 8;
       } else if (cardBottom > containerBottom) {
-        // Card is below visible area — scroll down
+        // Card is below visible area â€” scroll down
         container.scrollTop += (cardBottom - containerBottom) + 8;
       }
     }, 80); // Small delay so the active class is painted first
@@ -4308,7 +4334,7 @@ function syncAudioOnlyCard() {
     const parts = [];
     if (item.channel)  parts.push(item.channel);
     if (item.duration) parts.push(item.duration);
-    metaEl.textContent = parts.join(' · ');
+    metaEl.textContent = parts.join(' Â· ');
   } else {
     thumbEl.src = '';
     titleEl.textContent = document.getElementById('ytNpTitle')?.textContent || '';
@@ -4329,7 +4355,7 @@ function toggleYtAudioOnly() {
   if (sparkyYtState.isAudioOnly) syncAudioOnlyCard();
 }
 
-// ── Ported from R1: Playlist Engine (Shuffle & Restart) ──────────
+// â”€â”€ Ported from R1: Playlist Engine (Shuffle & Restart) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function restartYtQueue() {
   if (sparkyYtState.originalQueue.length === 0) return;
 
@@ -4492,7 +4518,7 @@ function syncYtNpFav() {
   btn.innerHTML = `<span class="material-symbols-outlined">${isFav ? 'favorite' : 'favorite_border'}</span>`;
 }
 
-// ── 3.2: Lazy Player Loading ─────────────────────────────────────
+// â”€â”€ 3.2: Lazy Player Loading â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 async function playYtItem(item) {
   sparkyLog(`Action: playYtItem(${item.id}) - ${item.title}`);
   debugLayout('BEFORE-PLAY');
@@ -4550,7 +4576,7 @@ async function playYtItem(item) {
   const titleEl = document.getElementById('ytNpTitle');
   const channelEl = document.getElementById('ytNpChannel');
   if (titleEl) titleEl.textContent = item.title || 'Loading...';
-  if (channelEl) channelEl.textContent = item.type === 'playlist' ? '▶ Playlist' : '▶ Video';
+  if (channelEl) channelEl.textContent = item.type === 'playlist' ? 'â–¶ Playlist' : 'â–¶ Video';
 
   // Update/Inject NP heart button
   let btnFav = document.getElementById('btnYtNpFav');
@@ -4618,7 +4644,7 @@ function loadYtIframeApi() {
   console.log('[YT] Lazy-loading iframe API...');
 }
 
-// Global callback — YouTube API calls this when ready
+// Global callback â€” YouTube API calls this when ready
 window.onYouTubeIframeAPIReady = function () {
   ytIframeApiReady = true;
   ytIframeApiLoading = false;
@@ -4659,7 +4685,7 @@ function createYtPlayer(item) {
   });
 }
 
-// ── 3.3: Audio Overlap Prevention ────────────────────────────────
+// â”€â”€ 3.3: Audio Overlap Prevention â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 let lastCinemaTriggerTime = 0;
 function onYtStateChange(event) {
   if (event.data === YT.PlayerState.PLAYING) {
@@ -4709,11 +4735,11 @@ function pauseRadioForYt() {
   const audio = document.getElementById('audioEl');
   if (audio && !audio.paused) {
     audio.pause();
-    console.log('[YT] Radio paused — YouTube is now playing');
+    console.log('[YT] Radio paused â€” YouTube is now playing');
   }
 }
 
-// ── Search Event Wiring ───────────────────────────────────────────
+// â”€â”€ Search Event Wiring â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const ytSearchInput = document.getElementById('ytSearchInput');
 const btnYtSearchClear = document.getElementById('btnYtSearchClear');
 
