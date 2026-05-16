@@ -4689,3 +4689,23 @@ body.light .filter-chip {
   white-space: nowrap;
   flex-shrink: 0;
 }
+
+/* R-U1: Ambient Favicon Glow */
+.now-playing.has-ambient-bg::before {
+  content: '';
+  position: absolute;
+  top: -20%; left: -20%; right: -20%; bottom: -20%;
+  background-image: var(--ambient-bg);
+  background-size: cover;
+  background-position: center;
+  opacity: 0.25;
+  filter: blur(30px) saturate(1.5);
+  z-index: -1;
+  pointer-events: none;
+  transition: background-image 0.5s ease;
+}
+.now-playing {
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+}

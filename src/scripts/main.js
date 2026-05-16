@@ -1099,6 +1099,19 @@ function updateNowPlaying(st) {
   if (!nm) return;
 
   if (favEl) favEl.innerHTML = st ? renderFavicon(st) : '';
+  
+  // R-U1: Ambient favicon glow for Now Playing panel
+  const npPanel = document.querySelector('.now-playing');
+  if (npPanel) {
+    if (st && st.favicon && st.favicon.trim() !== '') {
+      npPanel.style.setProperty('--ambient-bg', `url("${esc(st.favicon)}")`);
+      npPanel.classList.add('has-ambient-bg');
+    } else {
+      npPanel.style.removeProperty('--ambient-bg');
+      npPanel.classList.remove('has-ambient-bg');
+    }
+  }
+
   nm.textContent = st ? st.name : 'SELECT A STATION';
 
   if (catNameEl && catIconEl) {
