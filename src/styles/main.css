@@ -4403,10 +4403,29 @@ body.light .filter-chip {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 26px 10px 12px;
+  padding: 10px 10px 10px 12px;
   background: var(--panel);
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
+}
+
+.yt-queue-progress-wrap {
+  width: 100%;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.05);
+  position: relative;
+  overflow: hidden;
+}
+
+.yt-queue-progress-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 0%;
+  background: var(--accent);
+  box-shadow: 0 0 10px var(--accent);
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .yt-queue-header-left {
@@ -4423,9 +4442,9 @@ body.light .filter-chip {
 .yt-queue-controls {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-left: 8px;
-  padding-left: 8px;
+  gap: 8px;
+  margin-left: 4px;
+  padding-left: 4px;
   border-left: 1px solid var(--border);
 }
 
@@ -4690,9 +4709,10 @@ body.light .filter-chip {
 .yt-queue-count {
   font-weight: bold;
   letter-spacing: 1px;
-  font-size: calc(10px * var(--text-scale));
+  font-size: calc(9px * var(--text-scale));
   white-space: nowrap;
   flex-shrink: 0;
+  opacity: 0.9;
 }
 
 /* R-U1: Ambient Favicon Glow */

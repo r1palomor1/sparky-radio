@@ -4465,7 +4465,9 @@ function renderYtQueue() {
   const queue = sparkyYtState.currentQueue;
   if (!queue || queue.length === 0) {
     container.innerHTML = '<div class="pl-empty">Queue is empty</div>';
-    if (countEl) countEl.textContent = 'VIDEOS 0';
+    if (countEl) countEl.textContent = '0 / 0';
+    const progressEl = document.getElementById('ytQueueProgressBar');
+    if (progressEl) progressEl.style.width = '0%';
     // Auto-close the overlay when queue is emptied (clear all or last item removed)
     const overlay = document.getElementById('ytQueueOverlay');
     if (overlay && !overlay.classList.contains('hidden')) {
@@ -4476,7 +4478,14 @@ function renderYtQueue() {
   }
 
   if (countEl) {
-    countEl.textContent = queue.length;
+    const current = sparkyYtState.queueIndex + 1;
+    countEl.textContent = `${current} / ${queue.length}`;
+  }
+
+  const progressEl = document.getElementById('ytQueueProgressBar');
+  if (progressEl) {
+    const pct = ((sparkyYtState.queueIndex + 1) / queue.length) * 100;
+    progressEl.style.width = `${pct}%`;
   }
 
   // Only re-render if count or items changed, or just update active class
