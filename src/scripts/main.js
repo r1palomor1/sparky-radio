@@ -562,28 +562,34 @@ async function backgroundSyncFavs() {
     if (!fv.length) { isSyncingFavs = false; return; }
     const mirrors = ["de1.api.radio-browser.info", "at1.api.radio-browser.info", "nl1.api.radio-browser.info"];
     try {
-      for (let f of fv) {
-        await sleep(500);
-        let id = f.id || f.stationuuid;
+      // 1. Attempt to resolve any orphans (missing UUID) first
+      const orphans = fv.filter(f => !(f.id || f.stationuuid));
+      for (let o of orphans) {
         const m = mirrors[Math.floor(Math.random() * mirrors.length)];
         try {
-          if (!id) {
-            const sr = await fetch(`https://${m}/json/stations/byurl?url=${encodeURIComponent(f.url.split('?')[0])}`);
-            const res = await sr.json();
-            if (res && res.length) {
-              id = res[0].stationuuid;
-              let latest = loadFavs();
-              let idx = latest.findIndex(fav => norm(fav.url) === norm(f.url));
-              if (idx !== -1) { latest[idx].id = id; saveFavs(latest); }
-            } else continue;
+          const sr = await fetch(`https://${m}/json/stations/byurl?url=${encodeURIComponent(o.url.split('?')[0])}`);
+          const res = await sr.json();
+          if (res && res.length) {
+            let id = res[0].stationuuid;
+            let latest = loadFavs();
+            let idx = latest.findIndex(fav => norm(fav.url) === norm(o.url));
+            if (idx !== -1) { latest[idx].id = id; saveFavs(latest); }
+            o.id = id; // update local ref
           }
-          const r = await fetch(`https://${m}/json/stations/byuuid/${id}`, { cache: 'no-store' });
-          const d = await r.json();
-          if (d && d.length) {
-            syncFavMetadata(d[0]);
-            if (activeTab === 'favs') renderFavs();
-          }
-        } catch (e) { /* Silent fail for individual stations */ }
+        } catch (e) { /* Silent fail */ }
+      }
+
+      // 2. Fetch all valid UUIDs in a single batched request
+      const validUuids = fv.map(f => f.id || f.stationuuid).filter(Boolean);
+      if (validUuids.length > 0) {
+        const m = mirrors[Math.floor(Math.random() * mirrors.length)];
+        const r = await fetch(`https://${m}/json/stations/byuuid/${validUuids.join(',')}`, { cache: 'no-store' });
+        const batchData = await r.json();
+        
+        if (batchData && batchData.length) {
+          batchData.forEach(st => syncFavMetadata(st));
+          if (activeTab === 'favs') renderFavs();
+        }
       }
     } catch (e) { console.error("[GLOBAL_SYNC_ERROR]", e); }
     isSyncingFavs = false;
