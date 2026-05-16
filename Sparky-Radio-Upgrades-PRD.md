@@ -195,4 +195,41 @@
 
 ---
 
+## 📋 Implementation Tracker (Mobile/Tablet Focused)
+
+**Phase 1: Quick Wins**
+- [x] **[Radio - Optimization]** Deduplicate `loadFavs()` calls (R-O1)
+- [ ] **[Radio - Optimization]** Debounce `backgroundSyncFavs` (R-O3)
+- [ ] **[Radio - Enhancement]** Batch favorites sync (R-E5)
+- [ ] **[Radio - UI Upgrade]** NP panel ambient favicon glow (R-U1)
+- [ ] **[Video - Enhancement]** Playback speed control (V-E5)
+- [ ] **[Video - Enhancement]** Loop single video mode (V-E6)
+- [ ] **[Video - UI Upgrade]** Queue drawer slide-in animation (V-U2)
+- [ ] **[Video - UI Upgrade]** "X of Y" queue progress indicator (V-U9)
+- [ ] **[Video - Downgrade]** Remove dead `renderYtQueueTab()` (V-D3)
+- [ ] **[Video - Downgrade]** Remove unused `originalQueue` state (V-D4)
+- [ ] **[Video - Downgrade]** Declare `lastCinemaTriggerTime` (V-D5)
+- [ ] **[Video - Optimization]** Extract shared `shortenMetadata()` (V-O7)
+
+**Phase 2: Strategic**
+- [ ] **[Radio - Enhancement]** Station stream health indicator (R-E2)
+- [ ] **[Radio - Enhancement]** Auto-resume on network reconnect (R-E4)
+- [ ] **[Radio - UI Upgrade]** Collapsible mini-player on scroll (R-U6)
+- [ ] **[Radio - UI Upgrade]** Favorites grid card gradient art (R-U5)
+- [ ] **[Video - Optimization]** Innertube singleton across API handlers (V-O1)
+- [ ] **[Video - Optimization]** Full-queue server-side hydration (V-O2)
+- [ ] **[Video - Optimization]** Prefetch race condition fix (V-O5)
+- [ ] **[Video - Optimization]** Cancel stale requests on new search (V-O6)
+- [ ] **[Video - Enhancement]** Related videos sidebar (V-E4)
+- [ ] **[Video - UI Upgrade]** Active queue item now-playing bar (V-U4)
+- [ ] **[Video - UI Upgrade]** Hybrid search suggestions dropdown (V-U7)
+
+**Phase 3: Architectural**
+- [ ] **[Radio - Optimization]** Targeted DOM patching (R-O2)
+- [ ] **[Radio - Optimization]** Virtualized station list (R-O6)
+- [ ] **[Video - Downgrade]** Replace recursive `findToken()` (V-D1)
+- [ ] **[Video - Downgrade]** Replace recursive renderer scanners (V-D2)
+
+---
+
 *End of PRD — Sparky Radio Upgrades v1.0*

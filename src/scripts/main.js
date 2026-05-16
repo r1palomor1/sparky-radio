@@ -318,11 +318,17 @@ function trackUsage(st) {
   }, 120000);
 }
 
+let _favsCache = null;
+let _favsCacheTid = null;
+
 function loadFavs() {
+  if (_favsCache) return _favsCache;
   try {
     const raw = JSON.parse(localStorage.getItem(FAV_KEY)) || [];
+    // Ensure defaultPresets is defined; if not, fallback to empty array
+    const dp = typeof defaultPresets !== 'undefined' ? defaultPresets : [];
     const custom = JSON.parse(localStorage.getItem('sparky_search_presets') || '[]');
-    const allPresets = [...new Set([...defaultPresets, ...custom])];
+    const allPresets = [...new Set([...dp, ...custom])];
 
     let changed = false;
     raw.forEach(f => {
@@ -335,10 +341,18 @@ function loadFavs() {
       }
     });
     if (changed) localStorage.setItem(FAV_KEY, JSON.stringify(raw));
+    
+    _favsCache = raw;
+    if (!_favsCacheTid) {
+       _favsCacheTid = setTimeout(() => { _favsCache = null; _favsCacheTid = null; }, 0);
+    }
     return raw;
   } catch { return []; }
 }
-function saveFavs(f) { localStorage.setItem(FAV_KEY, JSON.stringify(f)); }
+function saveFavs(f) { 
+  localStorage.setItem(FAV_KEY, JSON.stringify(f));
+  _favsCache = null; 
+}
 
 function norm(u) {
   if (!u) return '';
