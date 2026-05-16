@@ -199,7 +199,7 @@
 
 **Phase 1: Quick Wins**
 - [x] **[Radio - Optimization]** Deduplicate `loadFavs()` calls (R-O1)
-- [ ] **[Radio - Optimization]** Debounce `backgroundSyncFavs` (R-O3)
+- [x] **[Radio - Optimization]** Debounce `backgroundSyncFavs` (R-O3)
 - [ ] **[Radio - Enhancement]** Batch favorites sync (R-E5)
 - [ ] **[Radio - UI Upgrade]** NP panel ambient favicon glow (R-U1)
 - [ ] **[Video - Enhancement]** Playback speed control (V-E5)

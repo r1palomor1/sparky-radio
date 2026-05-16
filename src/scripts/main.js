@@ -550,40 +550,44 @@ function switchTab(tab) {
 document.getElementById('tabStations').addEventListener('click', () => switchTab('stations'));
 document.getElementById('tabFavs').addEventListener('click', () => switchTab('favs'));
 
+let syncFavsTimer = null;
 async function backgroundSyncFavs() {
-  if (isSyncingFavs) return;
-  // Skip background sync in local dev to prevent console noise from failing mirrors
-  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') return;
-  isSyncingFavs = true;
-  const fv = loadFavs();
-  if (!fv.length) { isSyncingFavs = false; return; }
-  const mirrors = ["de1.api.radio-browser.info", "at1.api.radio-browser.info", "nl1.api.radio-browser.info"];
-  try {
-    for (let f of fv) {
-      await sleep(500);
-      let id = f.id || f.stationuuid;
-      const m = mirrors[Math.floor(Math.random() * mirrors.length)];
-      try {
-        if (!id) {
-          const sr = await fetch(`https://${m}/json/stations/byurl?url=${encodeURIComponent(f.url.split('?')[0])}`);
-          const res = await sr.json();
-          if (res && res.length) {
-            id = res[0].stationuuid;
-            let latest = loadFavs();
-            let idx = latest.findIndex(fav => norm(fav.url) === norm(f.url));
-            if (idx !== -1) { latest[idx].id = id; saveFavs(latest); }
-          } else continue;
-        }
-        const r = await fetch(`https://${m}/json/stations/byuuid/${id}`, { cache: 'no-store' });
-        const d = await r.json();
-        if (d && d.length) {
-          syncFavMetadata(d[0]);
-          if (activeTab === 'favs') renderFavs();
-        }
-      } catch (e) { /* Silent fail for individual stations */ }
-    }
-  } catch (e) { console.error("[GLOBAL_SYNC_ERROR]", e); }
-  isSyncingFavs = false;
+  if (syncFavsTimer) clearTimeout(syncFavsTimer);
+  syncFavsTimer = setTimeout(async () => {
+    if (isSyncingFavs) return;
+    // Skip background sync in local dev to prevent console noise from failing mirrors
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') return;
+    isSyncingFavs = true;
+    const fv = loadFavs();
+    if (!fv.length) { isSyncingFavs = false; return; }
+    const mirrors = ["de1.api.radio-browser.info", "at1.api.radio-browser.info", "nl1.api.radio-browser.info"];
+    try {
+      for (let f of fv) {
+        await sleep(500);
+        let id = f.id || f.stationuuid;
+        const m = mirrors[Math.floor(Math.random() * mirrors.length)];
+        try {
+          if (!id) {
+            const sr = await fetch(`https://${m}/json/stations/byurl?url=${encodeURIComponent(f.url.split('?')[0])}`);
+            const res = await sr.json();
+            if (res && res.length) {
+              id = res[0].stationuuid;
+              let latest = loadFavs();
+              let idx = latest.findIndex(fav => norm(fav.url) === norm(f.url));
+              if (idx !== -1) { latest[idx].id = id; saveFavs(latest); }
+            } else continue;
+          }
+          const r = await fetch(`https://${m}/json/stations/byuuid/${id}`, { cache: 'no-store' });
+          const d = await r.json();
+          if (d && d.length) {
+            syncFavMetadata(d[0]);
+            if (activeTab === 'favs') renderFavs();
+          }
+        } catch (e) { /* Silent fail for individual stations */ }
+      }
+    } catch (e) { console.error("[GLOBAL_SYNC_ERROR]", e); }
+    isSyncingFavs = false;
+  }, 2000); // Wait 2 seconds of stabilization before starting heavy sync loop
 }
 
 // â•â• EQ â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
