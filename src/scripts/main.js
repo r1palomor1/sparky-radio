@@ -3483,8 +3483,13 @@ function renderYtHub() {
     </div>`;
     return;
   }
-  hub.innerHTML = favs.map(item => `
-    <div class="yt-card" data-id="${item.id}" data-type="${item.type}" data-title="${item.title.replace(/"/g, '&quot;')}" data-channel="${(item.channel || '').replace(/"/g, '&quot;')}" data-thumb="${item.thumb}" data-duration="${item.duration || ''}" data-views="${item.views || ''}" data-published="${item.published || ''}" data-video-count="${item.video_count || ''}">
+  hub.innerHTML = favs.map(item => {
+    const isAct = sparkyYtState.currentItemId === item.id || (sparkyYtState.activePlaylistId && item.id === sparkyYtState.activePlaylistId);
+    const ambientStyle = isAct && item.thumb ? ` style="--ambient-bg: url('${esc(item.thumb)}');"` : '';
+    const ambientClass = isAct && item.thumb ? ' has-ambient-bg' : '';
+
+    return `
+    <div class="yt-card${isAct ? ' active' : ''}${ambientClass}" data-id="${item.id}" data-type="${item.type}" data-title="${item.title.replace(/"/g, '&quot;')}" data-channel="${(item.channel || '').replace(/"/g, '&quot;')}" data-thumb="${item.thumb}" data-duration="${item.duration || ''}" data-views="${item.views || ''}" data-published="${item.published || ''}" data-video-count="${item.video_count || ''}"${ambientStyle}>
       <img class="yt-card-thumb" src="${item.thumb}" alt="" loading="lazy">
       <div class="yt-card-info">
         <div class="yt-card-title">${item.title}</div>
@@ -3505,7 +3510,7 @@ function renderYtHub() {
         </button>
       </div>
     </div>
-  `).join('');
+  `;}).join('');
 
   // Standard listeners (play, fav, add) handle the Hub interactions via delegation in attachYtCardListeners
   attachYtCardListeners(hub);
@@ -3880,8 +3885,13 @@ function renderYtVideoResults(videos, isAppending = false) {
     return;
   }
 
-  const html = videos.map(v => `
-    <div class="yt-card${sparkyYtState.currentItemId === v.id ? ' active' : ''}" data-id="${v.id}" data-type="video" data-title="${v.title.replace(/"/g, '&quot;')}" data-channel="${(v.channel || '').replace(/"/g, '&quot;')}" data-thumb="${v.thumbnail}" data-duration="${v.duration || ''}" data-views="${v.views || ''}" data-published="${v.published || ''}">
+  const html = videos.map(v => {
+    const isAct = sparkyYtState.currentItemId === v.id;
+    const ambientStyle = isAct && v.thumbnail ? ` style="--ambient-bg: url('${esc(v.thumbnail)}');"` : '';
+    const ambientClass = isAct && v.thumbnail ? ' has-ambient-bg' : '';
+
+    return `
+    <div class="yt-card${isAct ? ' active' : ''}${ambientClass}" data-id="${v.id}" data-type="video" data-title="${v.title.replace(/"/g, '&quot;')}" data-channel="${(v.channel || '').replace(/"/g, '&quot;')}" data-thumb="${v.thumbnail}" data-duration="${v.duration || ''}" data-views="${v.views || ''}" data-published="${v.published || ''}"${ambientStyle}>
       <img class="yt-card-thumb" src="${v.thumbnail}" alt="" loading="lazy">
       <div class="yt-card-info">
         <div class="yt-card-title">${v.title}</div>
@@ -3899,7 +3909,7 @@ function renderYtVideoResults(videos, isAppending = false) {
         </button>
       </div>
     </div>
-  `).join('');
+  `;}).join('');
 
   if (isAppending) {
     el.insertAdjacentHTML('beforeend', html);
@@ -3918,8 +3928,13 @@ function renderYtPlaylistResults(playlists, isAppending = false) {
     return;
   }
 
-  const html = playlists.map(p => `
-    <div class="yt-card${sparkyYtState.currentItemId === p.playlist_id ? ' active' : ''}" data-id="${p.playlist_id}" data-type="playlist" data-title="${p.title.replace(/"/g, '&quot;')}" data-channel="Playlist" data-thumb="${p.thumbnail}" data-video-count="${p.video_count || ''}">
+  const html = playlists.map(p => {
+    const isAct = sparkyYtState.currentItemId === p.playlist_id;
+    const ambientStyle = isAct && p.thumbnail ? ` style="--ambient-bg: url('${esc(p.thumbnail)}');"` : '';
+    const ambientClass = isAct && p.thumbnail ? ' has-ambient-bg' : '';
+
+    return `
+    <div class="yt-card${isAct ? ' active' : ''}${ambientClass}" data-id="${p.playlist_id}" data-type="playlist" data-title="${p.title.replace(/"/g, '&quot;')}" data-channel="Playlist" data-thumb="${p.thumbnail}" data-video-count="${p.video_count || ''}"${ambientStyle}>
       <img class="yt-card-thumb" src="${p.thumbnail}" alt="" loading="lazy">
       <div class="yt-card-info">
         <div class="yt-card-title">${p.title}</div>
@@ -3934,7 +3949,7 @@ function renderYtPlaylistResults(playlists, isAppending = false) {
         </button>
       </div>
     </div>
-  `).join('');
+  `;}).join('');
 
   if (isAppending) {
     el.insertAdjacentHTML('beforeend', html);
@@ -4012,8 +4027,12 @@ function attachYtCardListeners(container) {
             const cardTop = card.getBoundingClientRect().top;
             const cardBottom = card.getBoundingClientRect().bottom;
             const containerBottom = container.getBoundingClientRect().bottom;
-            if (cardTop < containerTop) container.scrollTop -= (containerTop - cardTop) + 8;
-            else if (cardBottom > containerBottom) container.scrollTop += (cardBottom - containerBottom) + 8;
+            
+            // Only scroll if card is actually off-screen (with 20px buffer)
+            const isOffScreen = (cardTop < containerTop - 20) || (cardBottom > containerBottom + 20);
+            if (isOffScreen) {
+              card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
           }
           return;
         }
@@ -4261,30 +4280,37 @@ function highlightYtCard(id, shouldScroll = false) {
     // Highlight if it matches the current song ID OR if it's the active parent playlist
     const isAct = c.dataset.id === id || (sparkyYtState.activePlaylistId && c.dataset.id === sparkyYtState.activePlaylistId);
     c.classList.toggle('active', isAct);
+
+    // V-U12: Ambient favicon glow for playing card
+    if (isAct && c.dataset.thumb) {
+      c.style.setProperty('--ambient-bg', `url("${esc(c.dataset.thumb)}")`);
+      c.classList.add('has-ambient-bg');
+    } else {
+      c.style.removeProperty('--ambient-bg');
+      c.classList.remove('has-ambient-bg');
+    }
+
     if (isAct && c.dataset.id === id) activeCard = c;
   });
 
-  // Scroll the results container so the active card is visible.
-  // We operate only on #ytResults.scrollTop â€” the window and .app never move.
   if (activeCard && shouldScroll) {
+    // Small delay to ensure any layout changes (like active class) have finished painting
     setTimeout(() => {
-      const container = document.getElementById('ytResults');
+      // Find the specific container this card belongs to (Results, Hub, or Queue)
+      const container = activeCard.closest('#ytResults, #ytHub, #ytQueueList');
       if (!container) return;
 
-      const containerTop = container.getBoundingClientRect().top;
-      const cardTop = activeCard.getBoundingClientRect().top;
-      const cardBottom = activeCard.getBoundingClientRect().bottom;
-      const containerBottom = container.getBoundingClientRect().bottom;
+      const cRect = container.getBoundingClientRect();
+      const aRect = activeCard.getBoundingClientRect();
 
-      // Only scroll if the card is partially or fully outside the visible container
-      if (cardTop < containerTop) {
-        // Card is above visible area â€” scroll up
-        container.scrollTop -= (containerTop - cardTop) + 8;
-      } else if (cardBottom > containerBottom) {
-        // Card is below visible area â€” scroll down
-        container.scrollTop += (cardBottom - containerBottom) + 8;
+      // Check if mostly visible in the container (with 10px buffer)
+      const isVisible = (aRect.top >= cRect.top - 10) && (aRect.bottom <= cRect.bottom + 10);
+
+      // Only scroll if NOT visible, preventing the 'jump' on direct click
+      if (!isVisible) {
+        activeCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       }
-    }, 80); // Small delay so the active class is painted first
+    }, 50);
   }
 }
 
@@ -4461,9 +4487,14 @@ function renderYtQueue() {
     const isFav = isYtFav(item.id);
     const isTempQueue = sparkyYtState.activePlaylistId === 'temp';
 
+    const ambientStyle = isActive && item.thumb ? ` style="--ambient-bg: url('${esc(item.thumb)}');"` : '';
+    const ambientClass = isActive && item.thumb ? ' has-ambient-bg' : '';
+
     const el = document.createElement('div');
-    el.className = `yt-card yt-queue-card${isActive ? ' active' : ''}`;
+    el.className = `yt-card yt-queue-card${isActive ? ' active' : ''}${ambientClass}`;
     el.dataset.id = item.id;
+    el.dataset.thumb = item.thumb;
+    if (ambientStyle) el.style.cssText += ambientStyle.replace(' style="', '').replace('"', '');
     el.innerHTML = `
       <img src="${item.thumb}" class="yt-card-thumb" alt="" loading="lazy">
       <div class="yt-card-info">
@@ -4558,6 +4589,19 @@ async function playYtItem(item) {
 
   pauseRadioForYt();
   highlightYtCard(item.id, true);
+
+  // V-U11: Ambient favicon glow for Now Playing panel
+  const npPanel = document.querySelector('.now-playing');
+  if (npPanel) {
+    const thumb = item.thumb || item.thumbnail || (item.thumbnail_url);
+    if (thumb) {
+      npPanel.style.setProperty('--ambient-bg', `url("${esc(thumb)}")`);
+      npPanel.classList.add('has-ambient-bg');
+    } else {
+      npPanel.style.removeProperty('--ambient-bg');
+      npPanel.classList.remove('has-ambient-bg');
+    }
+  }
 
   // Handle Playlist Expansion
   if (item.type === 'playlist') {

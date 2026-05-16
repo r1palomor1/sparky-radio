@@ -137,6 +137,8 @@
 | V-U8 | **"Audio Only" mode animated waveform placeholder** — upgrade the flat `yt-audio-only-placeholder` to a gradient waveform animation (CSS bars) synchronized with the YouTube player's `onStateChange` playing/paused state. | Flat placeholder is visually dead; animated waveform signals audio activity. | 🟡 Medium | 🟡 Medium |
 | V-U9 | **Queue header "playing X of Y" progress indicator** — add `[3 / 12]` counter to `ytQueueCount` and a thin progress bar below the queue header showing playlist advancement. | Users have no sense of how far through a playlist they are. | 🔥 High | 🟢 Low |
 | V-U10 | **Card actions micro-animation on fav toggle** — when user taps the heart on a YT card, animate with a scale-up + color fill (`transform: scale(1.4)` → `scale(1)`) to confirm the action. | Current toggle is instant state flip with no animation; heart tap feels unresponsive. | 🟡 Medium | 🟢 Low |
+| V-U11 | **NP panel ambient favicon glow** — apply the radio-mode ambient glow logic to YouTube video thumbnails when in Video mode. | Consistency with Radio mode immersive aesthetic. | 🔥 High | 🟢 Low |
+| V-U12 | **Playing card panel ambient favicon glow** — apply the ambient glow to the active YouTube video card in search results or the queue. | Consistency with Radio mode playing card aesthetic. | 🔥 High | 🟢 Low |
 
 ---
 
@@ -173,6 +175,8 @@
 - **V-D4** Remove unused `originalQueue` state
 - **V-D5** Declare `lastCinemaTriggerTime`
 - **V-O7** Extract shared `shortenMetadata()` to `api/utils.js`
+- **V-U11** NP panel ambient favicon glow (Video)
+- **V-U12** Playing card panel ambient favicon glow (Video)
 
 ### 🎯 Strategic — High Impact, Medium Effort
 - **R-E2** Station stream health indicator
@@ -206,13 +210,16 @@
 - [Skipped] **[Video - Enhancement]** Playback speed control (V-E5)
 - [80fee74] **[Video - Enhancement]** Loop single video mode (V-E6)
 - [2f19b1c] **[Video - UI Upgrade]** Queue drawer slide-in animation (V-U2)
-*(Updates 8-12 deployed for testing)*
+*(Updates 8-13 deployed for testing)*
 - [6b0d119] **[Video - UI Upgrade]** "X of Y" queue progress indicator (V-U9)
 - [0550c1b] **[Video - Downgrade]** Remove dead `renderYtQueueTab()` (V-D3)
 - [0550c1b] **[Video - Downgrade]** Remove unused `originalQueue` state (V-D4)
 - [0550c1b] **[Video - Downgrade]** Declare `lastCinemaTriggerTime` (V-D5)
 - [0550c1b] **[Video - Optimization]** Extract shared `shortenMetadata()` (V-O7)
 - [b8143c5] **[Radio - UI Upgrade]** playing card panel ambient favicon glow (R-U2)
+*(Updates 14-15 deployed for testing)*
+- [x] **[Video - UI Upgrade]** NP panel ambient favicon glow (V-U11)
+- [x] **[Video - UI Upgrade]** playing card panel ambient favicon glow (V-U12)
 
 **Phase 2: Strategic**
 - [ ] **[Radio - Enhancement]** Station stream health indicator (R-E2)

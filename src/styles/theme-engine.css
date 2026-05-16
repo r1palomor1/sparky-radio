@@ -482,8 +482,9 @@
 }
 
 /* ── PLAYLIST ACTIVE STATE ── */
-.pl-item.active {
-/* background: var(--pl-active) !important; -- Removed for R-U2 parity */
+.pl-item.active,
+.yt-card.active {
+/* background: var(--pl-active) !important; -- Removed for R-U2/V-U12 parity */
     border-color: var(--accent) !important;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
     transform: translateY(-1px);
