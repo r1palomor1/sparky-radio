@@ -1459,7 +1459,10 @@ function renderStations() {
     const finalTags = dispTags.slice(0, 3).join(', ') || 'Radio';
     const rescued = st.isRescued ? ' rescued' : '';
 
-    return `<div class="pl-item${actv ? ' active' : ''}${rescued}" data-idx="${i}">
+    const ambientStyle = actv && st.favicon && st.favicon.trim() !== '' ? ` style="--ambient-bg: url('${esc(st.favicon)}');"` : '';
+    const ambientClass = actv && st.favicon && st.favicon.trim() !== '' ? ' has-ambient-bg' : '';
+
+    return `<div class="pl-item${actv ? ' active' : ''}${rescued}${ambientClass}" data-idx="${i}"${ambientStyle}>
       <div class="pl-favicon-col">
         ${renderFavicon(st)}
       </div>
@@ -1614,7 +1617,10 @@ function renderFavs() {
     const finalTags = dispTags.slice(0, 3).join(', ') || 'Radio';
     const rescued = st.isRescued ? ' rescued' : '';
 
-    return `<div class="pl-item${actv ? ' active' : ''}${rescued}" data-sid="${st.sparkyId || ''}" data-uuid="${st.stationuuid || ''}" data-url="${st.url || ''}">
+    const ambientStyle = actv && st.favicon && st.favicon.trim() !== '' ? ` style="--ambient-bg: url('${esc(st.favicon)}');"` : '';
+    const ambientClass = actv && st.favicon && st.favicon.trim() !== '' ? ' has-ambient-bg' : '';
+
+    return `<div class="pl-item${actv ? ' active' : ''}${rescued}${ambientClass}" data-sid="${st.sparkyId || ''}" data-uuid="${st.stationuuid || ''}" data-url="${st.url || ''}"${ambientStyle}>
       <div class="pl-favicon-col">
         ${renderFavicon(st)}
       </div>
@@ -1835,7 +1841,10 @@ function renderGroupedFavs(pl) {
       const finalTags = tagArr.slice(0, 3).join(', ') || 'Radio';
       const rescued = st.isRescued ? ' rescued' : '';
 
-      return `<div class="pl-item${actv ? ' active' : ''}${rescued}" data-sid="${st.sparkyId || ''}" data-uuid="${st.stationuuid || ''}" data-url="${st.url || ''}">
+      const ambientStyle = actv && st.favicon && st.favicon.trim() !== '' ? ` style="--ambient-bg: url('${esc(st.favicon)}');"` : '';
+      const ambientClass = actv && st.favicon && st.favicon.trim() !== '' ? ' has-ambient-bg' : '';
+
+      return `<div class="pl-item${actv ? ' active' : ''}${rescued}${ambientClass}" data-sid="${st.sparkyId || ''}" data-uuid="${st.stationuuid || ''}" data-url="${st.url || ''}"${ambientStyle}>
               <div class="pl-favicon-col">${renderFavicon(st)}</div>
               <div class="pl-main-col">
                 <div class="pl-item-name">${esc(st.name)}</div>
@@ -1964,8 +1973,11 @@ function renderDiscoveryFavs(pl) {
     if (discoveryCategoryFilter === 'RECENT') statVal = `âš¡ ${st.count} plays`;
     else if (sortMode === 'vote') statVal = `ðŸ‘ ${fmtK(st.votes)}`;
 
+    const ambientStyle = actv && st.favicon && st.favicon.trim() !== '' ? ` style="--ambient-bg: url('${esc(st.favicon)}');"` : '';
+    const ambientClass = actv && st.favicon && st.favicon.trim() !== '' ? ' has-ambient-bg' : '';
+
     return `
-      <div class="pl-discovery-card${actv ? ' active' : ''}${rescued}" data-sid="${st.sparkyId || ''}" data-uuid="${st.stationuuid || ''}" data-url="${st.url || ''}">
+      <div class="pl-discovery-card${actv ? ' active' : ''}${rescued}${ambientClass}" data-sid="${st.sparkyId || ''}" data-uuid="${st.stationuuid || ''}" data-url="${st.url || ''}"${ambientStyle}>
         <div class="card-favicon-wrap">
           ${renderFavicon(st)}
         </div>

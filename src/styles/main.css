@@ -2066,12 +2066,10 @@ body.light .preset-label {
 }
 
 .pl-item.active {
-  background: var(--panel-active);
-  /* Theme-aware active tint */
-  border-left: 4px solid var(--accent);
-  filter: var(--accent-correction);
-  /* Apply brand protection to the whole active state if needed */
-  box-shadow: inset 5px 0 20px var(--panel-glow);
+  background: radial-gradient(circle at 10% 10%, rgba(255, 255, 255, 0.03) 0%, transparent 50%), var(--panel) !important;
+  border: 1px solid var(--panel-border) !important;
+  box-shadow: 0 15px 45px rgba(0, 0, 0, 0.4) !important;
+  filter: none !important;
 }
 
 .pl-item.jump-highlight {
@@ -3699,9 +3697,9 @@ body.light .filter-chip {
 }
 
 .pl-discovery-card.active {
-  border-color: var(--accent);
-  background: var(--pl-active);
-  box-shadow: var(--glow);
+  background: radial-gradient(circle at 10% 10%, rgba(255, 255, 255, 0.03) 0%, transparent 50%), var(--panel) !important;
+  border: 1px solid var(--panel-border) !important;
+  box-shadow: 0 15px 45px rgba(0, 0, 0, 0.4) !important;
 }
 
 .card-favicon-wrap {
@@ -4733,6 +4731,29 @@ body.light .filter-chip {
   position: relative;
   z-index: 1;
   overflow: hidden;
+}
+
+/* R-U2: Playing card panel ambient favicon glow */
+.pl-item.active.has-ambient-bg::before,
+.pl-discovery-card.active.has-ambient-bg::before {
+  content: '';
+  position: absolute;
+  top: -20%; left: -20%; right: -20%; bottom: -20%;
+  background-image: var(--ambient-bg);
+  background-size: cover;
+  background-position: center;
+  opacity: 0.25;
+  filter: blur(30px) saturate(1.5);
+  z-index: -1;
+  pointer-events: none;
+  transition: background-image 0.5s ease;
+}
+.pl-item.active,
+.pl-discovery-card.active {
+  position: relative !important;
+  z-index: 1 !important;
+  overflow: hidden !important;
+  border-color: rgba(var(--accent-rgb), 0.5) !important;
 }
 
 
