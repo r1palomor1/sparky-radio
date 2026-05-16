@@ -3499,54 +3499,7 @@ function renderYtHub() {
   attachYtCardListeners(hub);
 }
 
-function renderYtQueueTab() {
-  const container = document.getElementById('ytQueue');
-  if (!container) return;
 
-  const queue = sparkyYtState.temporaryQueue;
-  if (!queue.length) {
-    container.innerHTML = `<div class="pl-empty">
-      <div class="pl-empty-icon">queue_music</div>
-      <div>Your queue is empty &mdash; add videos using the "+" button on cards</div>
-    </div>`;
-    return;
-  }
-
-  container.innerHTML = `
-    <div style="grid-column: 1 / -1; display:flex; justify-content:space-between; align-items:center; padding: 4px 8px; background: rgba(255,255,255,0.03); border-radius:4px; margin-bottom:8px;">
-      <div style="font-family:'Orbitron'; font-size:10px; color:var(--accent); letter-spacing:1px; text-transform:uppercase;">User Session Queue</div>
-      <button class="btn-yt-queue" onclick="clearYtTempQueue()" style="padding:4px 10px; font-size:10px;">Clear All</button>
-    </div>
-  ` + queue.map(item => `
-    <div class="yt-card" data-id="${item.id}" data-type="video" data-title="${item.title.replace(/"/g, '&quot;')}" data-channel="${(item.channel || '').replace(/"/g, '&quot;')}" data-thumb="${item.thumb}">
-      <img class="yt-card-thumb" src="${item.thumb}" alt="" loading="lazy">
-      <div class="yt-card-info">
-        <div class="yt-card-title">${item.title}</div>
-        <div class="yt-card-channel">${item.channel || ''}</div>
-      </div>
-      <div class="yt-card-actions">
-        <button class="yt-card-fav${isYtFav(item.id) ? ' active' : ''}" data-id="${item.id}" data-type="video" title="${isYtFav(item.id) ? 'Remove from Favs Hub' : 'Save to Favs Hub'}">
-          <span class="material-symbols-outlined">favorite</span>
-        </button>
-        <button class="yt-card-remove-temp" data-id="${item.id}" title="Remove from Queue">
-          <span class="material-symbols-outlined">close</span>
-        </button>
-      </div>
-    </div>
-  `).join('');
-
-  // Manual Attach for removals
-  container.querySelectorAll('.yt-card-remove-temp').forEach(btn => {
-    btn.onclick = (e) => {
-      e.stopPropagation();
-      removeFromYtTempQueue(btn.dataset.id);
-      renderYtQueueTab();
-    };
-  });
-
-  // Standard listeners (play, fav)
-  attachYtCardListeners(container);
-}
 
 function isYtFav(id) { return loadYtFavs().some(f => f.id === id); }
 function addYtFav(item) {

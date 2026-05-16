@@ -206,7 +206,7 @@
 - [Skipped] **[Video - Enhancement]** Playback speed control (V-E5)
 - [80fee74] **[Video - Enhancement]** Loop single video mode (V-E6)
 - [2f19b1c] **[Video - UI Upgrade]** Queue drawer slide-in animation (V-U2)
-- [x] **[Video - UI Upgrade]** "X of Y" queue progress indicator (V-U9)
+- [6b0d119] **[Video - UI Upgrade]** "X of Y" queue progress indicator (V-U9)
 - [ ] **[Video - Downgrade]** Remove dead `renderYtQueueTab()` (V-D3)
 - [ ] **[Video - Downgrade]** Remove unused `originalQueue` state (V-D4)
 - [ ] **[Video - Downgrade]** Declare `lastCinemaTriggerTime` (V-D5)
