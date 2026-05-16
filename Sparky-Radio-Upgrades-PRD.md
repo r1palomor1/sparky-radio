@@ -197,11 +197,11 @@
 
 ## 📋 Implementation Tracker (Mobile/Tablet Focused)
 
-**Phase 1: Quick Wins**
-- [x] **[Radio - Optimization]** Deduplicate `loadFavs()` calls (R-O1)
-- [x] **[Radio - Optimization]** Debounce `backgroundSyncFavs` (R-O3)
-- [ ] **[Radio - Enhancement]** Batch favorites sync (R-E5)
-- [ ] **[Radio - UI Upgrade]** NP panel ambient favicon glow (R-U1)
+**Phase 1: Quick Wins** *(Updates 1-4 deployed for testing)*
+- [9dc2f90] **[Radio - Optimization]** Deduplicate `loadFavs()` calls (R-O1)
+- [df0ea5f] **[Radio - Optimization]** Debounce `backgroundSyncFavs` (R-O3)
+- [d0040a7] **[Radio - Enhancement]** Batch favorites sync (R-E5)
+- [dfc132f] **[Radio - UI Upgrade]** NP panel ambient favicon glow (R-U1)
 - [ ] **[Video - Enhancement]** Playback speed control (V-E5)
 - [ ] **[Video - Enhancement]** Loop single video mode (V-E6)
 - [ ] **[Video - UI Upgrade]** Queue drawer slide-in animation (V-U2)
