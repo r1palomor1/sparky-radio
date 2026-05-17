@@ -223,7 +223,7 @@
 
 
 **Phase 2: Strategic**
-- [ ] **[Radio - Enhancement]** Station stream health indicator (R-E2)
+- [6d191c1] **[Radio - Enhancement]** Station stream health indicator (R-E2)
 - [ ] **[Radio - Enhancement]** Auto-resume on network reconnect (R-E4)
 - [ ] **[Radio - UI Upgrade]** Collapsible mini-player on scroll (R-U6)
 - [ ] **[Radio - UI Upgrade]** Favorites grid card gradient art (R-U5)
