@@ -41,7 +41,7 @@
 | # | Idea | Why | Impact | Effort |
 |---|------|-----|--------|--------|
 | R-E1 | **Keyboard shortcuts for transport controls** — Space = play/stop, Left/Right arrows = prev/next, `M` = mute. | PWA power users on desktop have no keyboard nav; standard in streaming apps. | 🔥 High | 🟢 Low |
-| R-E2 | **Station stream health indicator** — passive ping before play via HEAD request; show a latency badge (✅ <100ms, ⚠️ >300ms, ❌ unreachable). | Current retry logic (`_retryAttempted`) is reactive; a proactive indicator prevents dead-click frustration. | 🔥 High | 🟡 Medium |
+
 | R-E3 | **Persist EQ state to `sparky_last_station` context** — restore EQ preset alongside the last-played station on cold start. | `sparky_active_preset` is restored but `isStagedPreset` state is lost; user must re-apply. | 🟡 Medium | 🟢 Low |
 | R-E4 | **Smart "Auto-Resume" on network reconnect** — listen to `navigator.onLine` / `online` event; auto-retry last station after connectivity is restored. | Drop-outs require manual user re-tap; broadcast apps handle this transparently. | 🔥 High | 🟡 Medium |
 | R-E5 | **Batch `backgroundSyncFavs()` using `/byuuid` multi-ID endpoint** — radio-browser.info supports comma-separated UUIDs; replace the serial per-station loop with a single batch call. | Reduces sync time from ~10s serial to one parallel request. | 🔥 High | 🟢 Low |
@@ -50,6 +50,7 @@
 | R-E8 | **Export/Import include EQ presets** — current export schema (`version:2`) contains favorites and usageStats but omits `sparky_eq_presets` and `sparky_custom_categories`. | Users lose custom EQ tuning when migrating devices. | 🟡 Medium | 🟢 Low |
 | R-E9 | **"Play Similar" action on Now Playing** — query radio-browser by the playing station's primary tag to surface genre-adjacent stations. | Contextual discovery without leaving the NP panel. | 🔥 High | 🟡 Medium |
 | R-E10 | **"Station of the Day" cold-start banner** — on first daily load, feature one trending station pulled from radio-browser's `/stations/topclick` endpoint. | Empty-state screen on first launch is generic; a curated pick drives engagement. | 🟡 Medium | 🟡 Medium |
+| R-E11 | **Native Google Cast SDK integration** — embed `<google-cast-launcher>` and initialize Cast Web SDK with the default media receiver to cast direct audio streams to Nest devices. | Allows casting stream audio directly from within the app rather than manually casting system-wide. | 🔥 High | 🟡 Medium |
 
 ---
 
@@ -115,7 +116,7 @@
 | V-E5 | **Playback speed control for video** — add a 0.75×/1×/1.25×/1.5×/2× speed selector to the YT NP meta row; YouTube IFrame API exposes `setPlaybackRate()`. | Essential for podcasts, lectures, and long-form content in audio-only mode. | 🔥 High | 🟢 Low |
 | V-E6 | **Loop single video mode** — add a loop toggle to the queue drawer; maps to `YT.PlayerState.ENDED` handler that re-calls `player.playVideo()` on the same ID. | Missing core playback control; required for music videos and ambient loops. | 🔥 High | 🟢 Low |
 | V-E7 | **"Play All" from Favs Hub** — one-tap button on the Hub tab header loads all Hub videos into the active queue and starts playback. | Hub currently requires individual clicks to queue each item. | 🟡 Medium | 🟢 Low |
-| V-E8 | **Playlist video preview on hover** — on desktop, show a tooltip preview card (title + duration + channel + thumbnail) when hovering a playlist item in the queue drawer. | Low-effort discovery signal without opening the full player. | 🟡 Medium | 🟡 Medium |
+| V-E8 | **Playlist video preview on hover** — on desktop, show a tooltip preview card (title + duration + channel + thumbnail) when hovering a playlist item in the queue drawer. | Low-effort discovery signal without opening the player. | 🟡 Medium | 🟡 Medium |
 | V-E9 | **Keyboard shortcut layer for video mode** — `Space` = pause/play, `F` = toggle cinema mode, `M` = audio-only toggle, `N` = next in queue. | No keyboard shortcuts exist for video mode; essential for desktop UX. | 🔥 High | 🟢 Low |
 | V-E10 | **Search filter chips (Duration, Date, Type)** — add filter row below the search bar for `Short (<4min)`, `Long (>20min)`, `This week`, `This year`; maps to YouTube search filter params. | Power users can't filter by duration or recency; they get raw chronological results. | 🔥 High | 🟡 Medium |
 
@@ -133,7 +134,7 @@
 | V-U4 | **Active queue item "now playing" animated bar** — in `ytQueueList`, show a mini 3-bar animated equalizer icon (like Spotify's) next to the currently playing queue item. | No visual link between the queue drawer and what's actually playing. | 🔥 High | 🟡 Medium |
 | V-U5 | **Favs Hub grid masonry layout** — replace the current CSS grid (fixed aspect ratio) with a multi-column masonry layout for the Hub to better accommodate landscape vs portrait thumbnails. | Hub cards are cropped inconsistently; masonry respects natural aspect ratios. | 🟡 Medium | 🟡 Medium |
 | V-U6 | **Video mode tab indicator glow pulse** — when a video is playing, `btnModeToggle` should pulse a soft glow in `--accent` color to indicate live video state. | Currently `yt-mode-active` CSS class only changes the icon; no ambient signal. | 🟡 Medium | 🟢 Low |
-| V-U7 | **Search input hybrid suggestions dropdown** — upgrade the current `ytRecentSearches` (max 3, list-only) to a hybrid dropdown showing recents + suggestions with section headers. | 3 entries feel sparse; hybrid suggestions improve cold-start UX. | 🔥 High | 🟡 Medium |
+| V-U7 | **Search input hybrid suggestions dropdown** — upgrade dropdown to a Hybrid Discovery Engine showing Recents (top 3) + Autocomplete (middle 3) + Smart Similar & Related artists/genres (bottom 3) with dynamic query-matching. | 3 entries feel sparse; smart suggestions drive proactive, tap-only video/genre discovery. | 🔥 High | 🟡 Medium |
 | V-U8 | **"Audio Only" mode animated waveform placeholder** — upgrade the flat `yt-audio-only-placeholder` to a gradient waveform animation (CSS bars) synchronized with the YouTube player's `onStateChange` playing/paused state. | Flat placeholder is visually dead; animated waveform signals audio activity. | 🟡 Medium | 🟡 Medium |
 | V-U9 | **Queue header "playing X of Y" progress indicator** — add `[3 / 12]` counter to `ytQueueCount` and a thin progress bar below the queue header showing playlist advancement. | Users have no sense of how far through a playlist they are. | 🔥 High | 🟢 Low |
 | V-U10 | **Card actions micro-animation on fav toggle** — when user taps the heart on a YT card, animate with a scale-up + color fill (`transform: scale(1.4)` → `scale(1)`) to confirm the action. | Current toggle is instant state flip with no animation; heart tap feels unresponsive. | 🟡 Medium | 🟢 Low |
@@ -179,7 +180,7 @@
 - **V-U12** Playing card panel ambient favicon glow (Video)
 
 ### 🎯 Strategic — High Impact, Medium Effort
-- **R-E2** Station stream health indicator
+
 - **R-E4** Auto-resume on network reconnect
 - **R-U6** Collapsible mini-player on scroll
 - **R-U5** Favorites grid card gradient art
@@ -190,6 +191,7 @@
 - **V-E4** Related videos sidebar
 - **V-U4** Active queue item now-playing bar
 - **V-U7** Hybrid search suggestions dropdown
+- **R-E11** Native Google Cast SDK integration
 
 ### 🏗️ Architectural — Must Plan Carefully
 - **R-O2** Targeted DOM patching (replace innerHTML redraws)
@@ -223,7 +225,7 @@
 
 
 **Phase 2: Strategic**
-- [6d191c1] **[Radio - Enhancement]** Station stream health indicator (R-E2)
+- [Removed] **[Radio - Enhancement]** Station stream health indicator (R-E2) - removed due to passive ping CORS/method incompatibilities
 - [a1c9b2f] **[Radio - Enhancement]** Auto-resume on network reconnect (R-E4)
 - [1bdcb84] **[Radio - UI Upgrade]** Collapsible mini-player on scroll (R-U6)
 - [ ] **[Radio - UI Upgrade]** Favorites grid card gradient art (R-U5)
@@ -234,6 +236,7 @@
 - [ ] **[Video - Enhancement]** Related videos sidebar (V-E4)
 - [ ] **[Video - UI Upgrade]** Active queue item now-playing bar (V-U4)
 - [ ] **[Video - UI Upgrade]** Hybrid search suggestions dropdown (V-U7)
+- [ ] **[Radio - Enhancement]** Native Google Cast SDK integration (R-E11)
 
 **Phase 3: Architectural**
 - [ ] **[Radio - Optimization]** Targeted DOM patching (R-O2)

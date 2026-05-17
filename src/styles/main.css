@@ -491,7 +491,7 @@ body.light .header {
   /* Restructured to vertical stack of rows */
   gap: 12px;
   box-shadow: 0 15px 45px rgba(0, 0, 0, 0.4);
-  transition: all 0.3s ease;
+  transition: background 0.3s ease, opacity 0.3s ease;
   overflow: hidden;
   position: relative;
   z-index: 100;
@@ -4501,33 +4501,7 @@ body.light .filter-chip {
   pointer-events: none;
 }
 
-/* R-E2: Stream Health Latency Badges */
-.pl-health-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  font-family: 'Share Tech Mono', monospace;
-  font-size: calc(8px * var(--text-scale));
-  font-weight: 800;
-  padding: 0px 3px;
-  border-radius: 3px;
-  vertical-align: middle;
-  margin-left: 6px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-.pl-health-badge.slow {
-  background: rgba(255, 170, 0, 0.12);
-  color: #ffaa00;
-  border: 1px solid rgba(255, 170, 0, 0.3);
-  box-shadow: 0 0 8px rgba(255, 170, 0, 0.08);
-}
-.pl-health-badge.offline {
-  background: rgba(255, 51, 51, 0.12);
-  color: #ff3333;
-  border: 1px solid rgba(255, 51, 51, 0.3);
-  box-shadow: 0 0 8px rgba(255, 51, 51, 0.08);
-}
+
 
 /* --- COLLAPSIBLE MINI-PLAYER (RADIO) --- */
 .now-playing.compact-radio {
@@ -4552,8 +4526,10 @@ body.light .filter-chip {
   box-shadow: 0 4px 20px rgba(0, 242, 255, 0.25);
   z-index: 1000;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease, background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
   transform: translateY(0);
+  will-change: transform, opacity;
+  animation: compactEntrance 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .now-playing.compact-radio:hover {
@@ -4636,9 +4612,11 @@ body.light .filter-chip {
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), 0 0 15px rgba(0, 242, 255, 0.25);
   z-index: 1000;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease, background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
   transform: translateY(0);
   overflow: hidden;
+  will-change: transform, opacity;
+  animation: compactEntrance 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .now-playing.compact-video:hover {
@@ -4723,4 +4701,31 @@ body.light .filter-chip {
 
 .app.immersive-cinema-mode .now-playing.compact-video #cinemaWakeZone {
   display: flex !important;
+}
+
+@keyframes compactEntrance {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes normalRestored {
+  from {
+    opacity: 0.85;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* R-U6: Soft-Snap entrance when restoring to normal grid card */
+.now-playing:not(.compact-radio):not(.compact-video) {
+  animation: normalRestored 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }

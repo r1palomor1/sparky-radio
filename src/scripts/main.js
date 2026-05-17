@@ -205,108 +205,7 @@ let freqData;
 let smoothedBands = new Float32Array(128); // Pre-init for high-density bars
 let sortTooltipTimeout;
 
-// == R-E2: STREAM HEALTH PASSIVE MONITOR SYSTEM ==
-const healthCache = {};
-const pingQueue = [];
-let activePings = 0;
-const MAX_CONCURRENT_PINGS = 2;
 
-function processPingQueue() {
-  if (pingQueue.length === 0 || activePings >= MAX_CONCURRENT_PINGS) return;
-
-  const { url, element } = pingQueue.shift();
-  if (healthCache[url] !== undefined) {
-    applyHealthBadge(element, healthCache[url]);
-    processPingQueue();
-    return;
-  }
-
-  activePings++;
-  const start = Date.now();
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 1000);
-
-  fetch(url, { method: 'HEAD', mode: 'no-cors', signal: controller.signal })
-    .then(() => {
-      clearTimeout(timeoutId);
-      const latency = Date.now() - start;
-      let status = null;
-      if (latency >= 300) {
-        status = { type: 'slow', label: '⚠️ Slow' };
-      } else {
-        status = { type: 'good' };
-      }
-      healthCache[url] = status;
-      applyHealthBadge(element, status);
-    })
-    .catch(() => {
-      clearTimeout(timeoutId);
-      const status = { type: 'offline', label: '❌ Offline' };
-      healthCache[url] = status;
-      applyHealthBadge(element, status);
-    })
-    .finally(() => {
-      activePings--;
-      processPingQueue();
-    });
-}
-
-function applyHealthBadge(element, status) {
-  if (!status || status.type === 'good') return;
-
-  const statsContainer = element.querySelector('.pl-item-stats, .card-stats');
-  if (!statsContainer) return;
-
-  if (statsContainer.querySelector('.pl-health-badge')) return;
-
-  const badge = document.createElement('span');
-  badge.className = `pl-health-badge ${status.type}`;
-  badge.textContent = status.label;
-
-  if (statsContainer.classList.contains('card-stats')) {
-    const removeBtn = statsContainer.querySelector('.pl-remove, .card-remove');
-    if (removeBtn) {
-      statsContainer.insertBefore(badge, removeBtn);
-    } else {
-      statsContainer.appendChild(badge);
-    }
-  } else {
-    statsContainer.appendChild(badge);
-  }
-}
-
-let healthObserver = null;
-function initHealthObserver() {
-  if (!window.IntersectionObserver) return;
-  if (healthObserver) healthObserver.disconnect();
-
-  healthObserver = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        const el = entry.target;
-        const url = el.dataset.url;
-        if (!url) return;
-
-        if (healthCache[url] === undefined) {
-          if (!pingQueue.some(item => item.url === url)) {
-            pingQueue.push({ url, element: el });
-            processPingQueue();
-          }
-        } else {
-          applyHealthBadge(el, healthCache[url]);
-        }
-        healthObserver.unobserve(el);
-      }
-    });
-  }, {
-    root: document.getElementById('playlist'),
-    rootMargin: '40px',
-    threshold: 0.1
-  });
-
-  const cards = document.querySelectorAll('.pl-item, .pl-discovery-card');
-  cards.forEach(card => healthObserver.observe(card));
-}
 
 // â•â• THEME INITIALIZATION â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 if (window.initThemeEngine) {
@@ -1638,7 +1537,6 @@ function renderStations() {
     });
   });
   lastRenderedList = displayStations;
-  initHealthObserver();
 }
 
 function renderFavs() {
@@ -1648,7 +1546,7 @@ function renderFavs() {
   refreshFavBadge();
   const recentList = getRecentStations();
   if (!favs.length && !recentList.length) {
-    pl.innerHTML = '<div class="pl-empty"><div class="pl-empty-icon">â˜…</div><div>No favorites yet</div></div>'; return;
+    pl.innerHTML = '<div class="pl-empty"><div class="pl-empty-icon"><span class="material-symbols-outlined">radio</span></div><div>No favorites yet</div></div>'; return;
   }
 
   if (favViewMode === 'grouped') {
@@ -1874,7 +1772,6 @@ function renderFavs() {
   lastRenderedList = displayFavs;
   bindListChips(pl);
   scrollActiveChipIntoView(pl);
-  initHealthObserver();
 }
 
 function bindListChips(pl) {
@@ -2028,7 +1925,6 @@ function renderGroupedFavs(pl) {
 
   // Re-bind station actions (same as standard list)
   bindStationActions(pl, favs);
-  initHealthObserver();
 }
 
 function renderDiscoveryFavs(pl) {
@@ -2249,7 +2145,6 @@ function renderDiscoveryFavs(pl) {
   });
 
   lastRenderedList = displayFavs;
-  initHealthObserver();
 }
 
 
