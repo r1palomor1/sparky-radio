@@ -4669,6 +4669,7 @@ body.light .filter-chip {
   border-radius: 15px !important;
   overflow: hidden !important;
   z-index: 10 !important;
+  pointer-events: none !important;
 }
 
 .now-playing.compact-video #sparky-yt-player-wrap .yt-player-container-inner {

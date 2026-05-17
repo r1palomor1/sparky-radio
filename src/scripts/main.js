@@ -3607,6 +3607,11 @@ function toggleYtMode(activate) {
   // debugLayout('BEFORE-TOGGLE');
   sparkyYtState.isModeActive = activate;
 
+  const logoText = document.getElementById('mainLogoText');
+  if (logoText) {
+    logoText.textContent = activate ? 'Video' : 'Radio';
+  }
+
   const radioView = document.getElementById('radio-view');
   const ytView = document.getElementById('yt-view');
   const ytPlayer = document.getElementById('sparky-yt-player-wrap');
