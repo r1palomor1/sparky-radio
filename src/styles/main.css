@@ -4060,8 +4060,9 @@ body.light .filter-chip {
   transition: all 0.2s;
 }
 .btn-yt-queue.active {
-  filter: brightness(0.7);
-  color: var(--accent);
+  color: var(--accent) !important;
+  filter: none !important;
+  opacity: 1 !important;
 }
 #btnYtNpFav.active {
   color: #ff5252 !important;

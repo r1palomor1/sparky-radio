@@ -4399,11 +4399,13 @@ function syncYtQueueBtn() {
 
   btn.classList.toggle('hidden', !hasQueue);
 
+  const isOverlayOpen = !document.getElementById('ytQueueOverlay').classList.contains('hidden');
+  btn.classList.toggle('active', isOverlayOpen);
+
   // Pulse logic: if we have items in temp queue NOT played yet, pulse it (only in video tab context)
   if (hasTempItems) {
     const unplayed = sparkyYtState.temporaryQueue.some(v => !sparkyYtState.tempQueuePlayedIds.has(v.id));
     // Only pulse if we are in Video mode (isModeActive) but NOT looking at the overlay
-    const isOverlayOpen = !document.getElementById('ytQueueOverlay').classList.contains('hidden');
     btn.classList.toggle('pulse', unplayed && sparkyYtState.isModeActive && !isOverlayOpen);
   } else {
     btn.classList.remove('pulse');
@@ -4483,7 +4485,10 @@ function toggleYtQueue() {
 function closeYtQueue() {
   resetCinemaTimer();
   const overlay = document.getElementById('ytQueueOverlay');
-  if (overlay) overlay.classList.add('hidden');
+  if (overlay) {
+    overlay.classList.add('hidden');
+    syncYtQueueBtn();
+  }
 }
 
 function syncAudioOnlyCard() {
