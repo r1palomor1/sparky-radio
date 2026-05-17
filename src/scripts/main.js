@@ -178,6 +178,10 @@ let wasCollapsedBeforeEQ = false; // State persistence for EQ engaged mode
 let scrollPositions = { stations: 0, favs: 0 };
 const APP_CODENAME = "Smart-Tune Pro";
 
+let wasPlayingBeforeOffline = false;
+let offlineRetryCount = 0;
+const MAX_OFFLINE_RETRIES = 3;
+
 
 function updateDeploymentUI() {
   const tsEl = document.getElementById('sigTS');
@@ -619,6 +623,8 @@ function syncFavMetadata(st) {
 
 // â•â• TABS â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 function switchTab(tab) {
+  const npPanel = document.querySelector('.now-playing');
+  if (npPanel) npPanel.classList.remove('compact');
   const pl = document.getElementById('playlist');
   if (pl) scrollPositions[activeTab] = pl.scrollTop;
 
@@ -1364,6 +1370,8 @@ function jumpToStation(st) {
 
 // â•â• PLAYBACK â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 function playStationObj(st) {
+  const npPanel = document.querySelector('.now-playing');
+  if (npPanel) npPanel.classList.remove('compact', 'compact-radio', 'compact-video');
   sparkyLog(`Action: playStationObj(${st.stationuuid || st.id}) - ${st.name}`);
   debugLayout('BEFORE-RADIO-PLAY');
   if (!st) return;
@@ -1400,6 +1408,13 @@ function playStationObj(st) {
     cancelAnimationFrame(rafId); drawViz();
   }
   async function onPlayError() {
+    if (!navigator.onLine) {
+      wasPlayingBeforeOffline = true;
+      setStatus('error', 'Offline');
+      console.log(`[PLAY_ERROR] Playback failed because network is offline. Staging for auto-resume: ${st.name}`);
+      return;
+    }
+
     if (!st._retryAttempted) {
       console.log(`[PLAY_ERROR] Transient error for ${st.name}. Retrying original link...`);
       setStatus('buffering', 'Reconnecting...');
@@ -1437,6 +1452,7 @@ function playAtIndex(idx) {
 function stopPlayback() {
   audioEl.pause(); audioEl.src = '';
   isPlaying = false;
+  wasPlayingBeforeOffline = false; // Reset network reconnect state on manual stop
   setStatus('', 'Idle');
   syncPlayBtns();
   idleViz(); renderCurrent();
@@ -3166,6 +3182,119 @@ document.addEventListener('DOMContentLoaded', () => {
   applyPanelColor(panelColor);
 
   if (window.syncSearchUI) window.syncSearchUI();
+
+  // Smart Auto-Resume on network reconnect (R-E4)
+  window.addEventListener('offline', () => {
+    if (isPlaying && currentSrc) {
+      wasPlayingBeforeOffline = true;
+      offlineRetryCount = 0;
+      console.log(`[OFFLINE] Network disconnected. Pausing player to preserve stream state.`);
+      setStatus('buffering', 'Network Offline');
+      audioEl.pause();
+    }
+  });
+
+  window.addEventListener('online', () => {
+    if (wasPlayingBeforeOffline && currentSrc) {
+      console.log(`[ONLINE] Network restored. Attempting auto-resume for: ${currentSrc.name}`);
+      setStatus('buffering', 'Network Restored...');
+      setTimeout(() => {
+        // Double check we are still online and player hasn't been manually stopped
+        if (navigator.onLine && wasPlayingBeforeOffline && currentSrc) {
+          wasPlayingBeforeOffline = false; // Reset before retrying
+          playStationObj(currentSrc);
+        }
+      }, 1500); // 1.5s delay to allow network hardware/routes to stabilize
+    }
+  });
+
+  // --- INDEPENDENT COLLAPSIBLE MINI-PLAYER LOGIC (R-U6) ---
+  const npPanel = document.querySelector('.now-playing');
+  const playlistContainer = document.getElementById('playlist');
+  const ytResultsContainer = document.getElementById('ytResults');
+  const ytHubContainer = document.getElementById('ytHub');
+  let ignoreScrollCollapse = false;
+
+  function handleRadioScrollCollapse(e) {
+    if (!npPanel || ignoreScrollCollapse) return;
+    if (typeof sparkyYtState !== 'undefined' && sparkyYtState.isModeActive) return;
+
+    // Viewport-agnostic card count safety gate: do not compact if list is short (<= 10 cards)
+    const cardCount = playlistContainer ? playlistContainer.querySelectorAll('.pl-item').length : 0;
+    if (cardCount <= 10) {
+      npPanel.classList.remove('compact-radio');
+      return;
+    }
+
+    const scrollTop = e.currentTarget.scrollTop;
+    if (scrollTop > 120) {
+      npPanel.classList.add('compact-radio');
+    } else if (scrollTop <= 10) {
+      npPanel.classList.remove('compact-radio');
+    }
+  }
+
+  function handleVideoScrollCollapse(e) {
+    if (!npPanel || ignoreScrollCollapse) return;
+    if (typeof sparkyYtState === 'undefined' || !sparkyYtState.isModeActive) return;
+    if (document.querySelector('.app')?.classList.contains('immersive-cinema-mode')) {
+      npPanel.classList.remove('compact-video');
+      return;
+    }
+
+    const scrollTop = e.currentTarget.scrollTop;
+    if (scrollTop > 50) {
+      npPanel.classList.add('compact-video');
+    } else if (scrollTop <= 10) {
+      npPanel.classList.remove('compact-video');
+    }
+  }
+
+  if (playlistContainer) {
+    playlistContainer.addEventListener('scroll', handleRadioScrollCollapse, { passive: true });
+  }
+  if (ytResultsContainer) {
+    ytResultsContainer.addEventListener('scroll', handleVideoScrollCollapse, { passive: true });
+  }
+  if (ytHubContainer) {
+    ytHubContainer.addEventListener('scroll', handleVideoScrollCollapse, { passive: true });
+  }
+
+  // Allow tapping compact player to expand it back to full and scroll to top
+  if (npPanel) {
+    npPanel.addEventListener('click', (e) => {
+      // Don't expand if clicking interactive links or buttons (like stop/play buttons)
+      if (e.target.closest('button') || e.target.closest('a')) return;
+
+      const isCompactRadio = npPanel.classList.contains('compact-radio');
+      const isCompactVideo = npPanel.classList.contains('compact-video');
+
+      if (isCompactRadio || isCompactVideo) {
+        e.stopPropagation();
+        e.preventDefault();
+        
+        ignoreScrollCollapse = true;
+        npPanel.classList.remove('compact-radio', 'compact-video');
+        
+        // Scroll active container back to top
+        if (typeof sparkyYtState !== 'undefined' && sparkyYtState.isModeActive) {
+          if (sparkyYtState.currentSubMode === 'hub') {
+            if (ytHubContainer) ytHubContainer.scrollTo({ top: 0, behavior: 'smooth' });
+          } else {
+            if (ytResultsContainer) ytResultsContainer.scrollTo({ top: 0, behavior: 'smooth' });
+          }
+        } else {
+          if (playlistContainer) {
+            playlistContainer.scrollTo({ top: 0, behavior: 'smooth' });
+          }
+        }
+
+        setTimeout(() => {
+          ignoreScrollCollapse = false;
+        }, 800); // 800ms locks the ignore flag until smooth scroll is fully complete
+      }
+    });
+  }
 });
 
 function updateViewToggleUI() {
@@ -3379,6 +3508,7 @@ function resetCinemaTimer() {
     cinemaModeTimer = setTimeout(() => {
       lastCinemaTriggerTime = Date.now();
       app.classList.add('immersive-cinema-mode');
+      document.querySelector('.now-playing')?.classList.remove('compact-video');
       if (document.getElementById('cinemaWakeZone')) document.getElementById('cinemaWakeZone').classList.add('is-cinema');
     }, CINEMA_TIMEOUT_MS);
   }
@@ -3391,6 +3521,7 @@ function toggleCinemaMode() {
   } else {
     lastCinemaTriggerTime = Date.now();
     app.classList.add('immersive-cinema-mode');
+    document.querySelector('.now-playing')?.classList.remove('compact-video');
     if (document.getElementById('cinemaWakeZone')) document.getElementById('cinemaWakeZone').classList.add('is-cinema');
     clearTimeout(cinemaModeTimer); // Disable auto-timer when manually forcing it
   }
@@ -3470,6 +3601,8 @@ function saveYtTempQueue(arr) { localStorage.setItem(YT_TEMP_QUEUE_KEY, JSON.str
 
 // â”€â”€ Core Mode Toggle â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function toggleYtMode(activate) {
+  const npPanel = document.querySelector('.now-playing');
+  if (npPanel) npPanel.classList.remove('compact', 'compact-radio', 'compact-video');
   // sparkyLog(`Action: toggleYtMode(${activate})`);
   // debugLayout('BEFORE-TOGGLE');
   sparkyYtState.isModeActive = activate;
@@ -3524,6 +3657,8 @@ function toggleYtMode(activate) {
 
 // â”€â”€ Sub-mode Tab Switching â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function switchYtTab(mode) {
+  const npPanel = document.querySelector('.now-playing');
+  if (npPanel) npPanel.classList.remove('compact');
   wakeFromCinemaMode(); // Wake up when switching tabs
   sparkyYtState.currentSubMode = mode;
   document.querySelectorAll('.yt-tab').forEach(t => t.classList.toggle('active', t.dataset.mode === mode));

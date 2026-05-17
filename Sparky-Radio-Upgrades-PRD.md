@@ -224,8 +224,8 @@
 
 **Phase 2: Strategic**
 - [6d191c1] **[Radio - Enhancement]** Station stream health indicator (R-E2)
-- [ ] **[Radio - Enhancement]** Auto-resume on network reconnect (R-E4)
-- [ ] **[Radio - UI Upgrade]** Collapsible mini-player on scroll (R-U6)
+- [a1c9b2f] **[Radio - Enhancement]** Auto-resume on network reconnect (R-E4)
+- [1bdcb84] **[Radio - UI Upgrade]** Collapsible mini-player on scroll (R-U6)
 - [ ] **[Radio - UI Upgrade]** Favorites grid card gradient art (R-U5)
 - [ ] **[Video - Optimization]** Innertube singleton across API handlers (V-O1)
 - [ ] **[Video - Optimization]** Full-queue server-side hydration (V-O2)
