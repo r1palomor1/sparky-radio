@@ -1445,8 +1445,8 @@ function renderStations() {
     const rank = (((st.clickcount || 0) / mC) * 0.6) + (((st.votes || 0) / mV) * 0.3) + (((st.clicktrend || 0) / mT) * 0.1);
     const pwr = Math.min(100, Math.round(rank * 100));
     const trending = (st.clicktrend || 0) > 50 ? '<span class="pl-status-badge trending">Trending</span>' : '';
-    let primary = { id: 'pwr', icon: 'âš¡', val: `${pwr}%`, color: 'var(--text)' };
-    if (sortMode === 'vote') { primary = { id: 'vot', icon: 'ðŸ‘', val: fmtK(st.votes), color: 'var(--text)' }; }
+    let primary = { id: 'pwr', icon: 'bolt', val: `${pwr}%`, color: 'var(--text)' };
+    if (sortMode === 'vote') { primary = { id: 'vot', icon: 'thumb_up', val: fmtK(st.votes), color: 'var(--text)' }; }
 
     const tagArr = (st.tags || '').split(',').map(t => t.trim()).filter(t => t);
     let dispTags = tagArr.slice(0, 2);
@@ -1470,7 +1470,7 @@ function renderStations() {
         <div class="pl-item-name">${esc(st.name)}</div>
         <div class="pl-item-meta">${esc(st.countrycode || '--')} Â· ${esc(finalTags)}</div>
         <div class="pl-item-stats">
-          <span class="pl-stat-power" style="color:${primary.color}">âš¡ ${primary.val}</span>
+          <span class="pl-stat-power" style="color:${primary.color}"><span class="material-symbols-outlined" style="font-size:12px; vertical-align:middle;">${primary.icon}</span> ${primary.val}</span>
           ${(Number(st.bitrate || 0) >= 128) ? '<span class="hd-badge-inline">HD</span>' : ''}
           ${trending}
         </div>
@@ -1603,8 +1603,8 @@ function renderFavs() {
     const pwr = Math.min(100, Math.round(rank * 100));
     const isManual = sortMode === 'custom' && !isRecent;
     const trending = (st.clicktrend || 0) > 50 ? '<span class="pl-status-badge trending">Trending</span>' : '';
-    let primary = { id: 'pwr', icon: 'âš¡', val: isRecent ? `${pwr}% Â· # ${st.count} plays` : `${pwr}%`, color: 'var(--accent)' };
-    if (sortMode === 'vote' && !isRecent) { primary = { id: 'vot', icon: 'ðŸ‘', val: fmtK(st.votes), color: 'var(--fav)' }; }
+    let primary = { id: 'pwr', icon: 'bolt', val: isRecent ? `${st.count} plays` : `${pwr}%`, color: 'var(--accent)' };
+    if (sortMode === 'vote' && !isRecent) { primary = { id: 'vot', icon: 'thumb_up', val: fmtK(st.votes), color: 'var(--fav)' }; }
 
     const tagArr = (st.tags || '').split(',').map(t => t.trim()).filter(t => t);
     let dispTags = tagArr.slice(0, 2);
@@ -1628,7 +1628,7 @@ function renderFavs() {
         <div class="pl-item-name">${esc(st.name)}</div>
         <div class="pl-item-meta">${esc(st.countrycode || '--')} Â· ${esc(finalTags)}</div>
         <div class="pl-item-stats">
-          <span class="pl-stat-power" style="color:${primary.color}">${primary.icon} ${primary.val}</span>
+          <span class="pl-stat-power" style="color:${primary.color}"><span class="material-symbols-outlined" style="font-size:12px; vertical-align:middle;">${primary.icon}</span> ${primary.val}</span>
           ${(Number(st.bitrate || 0) >= 128) ? '<span class="hd-badge-inline">HD</span>' : ''}
           ${trending}
         </div>
@@ -1835,8 +1835,8 @@ function renderGroupedFavs(pl) {
       const rank = (((st.clickcount || 0) / mC) * 0.6) + (((st.votes || 0) / mV) * 0.3) + (((st.clicktrend || 0) / mT) * 0.1);
       const pwr = Math.min(100, Math.round(rank * 100));
       const trending = (st.clicktrend || 0) > 50 ? '<span class="pl-status-badge trending">Trending</span>' : '';
-      let primary = { id: 'pwr', icon: 'âš¡', val: isRecent ? `${st.count} plays` : `${pwr}%`, color: 'var(--text)' };
-      if (sortMode === 'vote' && !isRecent) { primary = { id: 'vot', icon: 'ðŸ‘', val: fmtK(st.votes), color: 'var(--text)' }; }
+      let primary = { id: 'pwr', icon: 'bolt', val: isRecent ? `${st.count} plays` : `${pwr}%`, color: 'var(--text)' };
+      if (sortMode === 'vote' && !isRecent) { primary = { id: 'vot', icon: 'thumb_up', val: fmtK(st.votes), color: 'var(--text)' }; }
       const tagArr = (st.tags || '').split(',').map(t => t.trim()).filter(t => t);
       const finalTags = tagArr.slice(0, 3).join(', ') || 'Radio';
       const rescued = st.isRescued ? ' rescued' : '';
@@ -1850,7 +1850,7 @@ function renderGroupedFavs(pl) {
                 <div class="pl-item-name">${esc(st.name)}</div>
                 <div class="pl-item-meta">${esc(st.countrycode || '--')} Â· ${esc(finalTags)}</div>
                 <div class="pl-item-stats">
-                  <span class="pl-stat-power" style="color:${primary.color}">${primary.icon} ${primary.val}</span>
+                  <span class="pl-stat-power" style="color:${primary.color}"><span class="material-symbols-outlined" style="font-size:12px; vertical-align:middle;">${primary.icon}</span> ${primary.val}</span>
                   ${(Number(st.bitrate || 0) >= 128) ? '<span class="hd-badge-inline">HD</span>' : ''}
                   ${trending}
                 </div>
@@ -1969,9 +1969,9 @@ function renderDiscoveryFavs(pl) {
     const finalTags = tagArr.slice(0, 2).join(' Â· ') || 'Radio';
     const rescued = st.isRescued ? ' rescued' : '';
 
-    let statVal = `âš¡ ${pwr}%`;
-    if (discoveryCategoryFilter === 'RECENT') statVal = `âš¡ ${st.count} plays`;
-    else if (sortMode === 'vote') statVal = `ðŸ‘ ${fmtK(st.votes)}`;
+    let statVal = `<span class="material-symbols-outlined" style="font-size:12px; vertical-align:middle;">bolt</span> ${pwr}%`;
+    if (discoveryCategoryFilter === 'RECENT') statVal = `<span class="material-symbols-outlined" style="font-size:12px; vertical-align:middle;">bolt</span> ${st.count} plays`;
+    else if (sortMode === 'vote') statVal = `<span class="material-symbols-outlined" style="font-size:12px; vertical-align:middle;">thumb_up</span> ${fmtK(st.votes)}`;
 
     const ambientStyle = actv && st.favicon && st.favicon.trim() !== '' ? ` style="--ambient-bg: url('${esc(st.favicon)}');"` : '';
     const ambientClass = actv && st.favicon && st.favicon.trim() !== '' ? ' has-ambient-bg' : '';

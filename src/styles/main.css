@@ -3307,7 +3307,9 @@ body.light .footer {
 /* --- DISCOVERY HUB (GRID VIEW) --- */
 .pl-discovery-filters {
   display: flex;
-  overflow: visible; flex-wrap: wrap;
+  overflow-x: auto;
+  flex-wrap: nowrap;
+  gap: 8px;
   padding: 10px 0 10px 0;
   margin-top: -10px;
   /* Counter-act playlist padding to mask cards */
@@ -3322,283 +3324,8 @@ body.light .footer {
   /* Solid True Black to mask scrolling cards */
 }
 
-.modifier-chip-row {
-  display: flex !important;
-  gap: 8px !important;
-  overflow-x: auto !important;
-  padding: 8px 0 !important;
-  margin-bottom: 5px !important;
-  scrollbar-width: auto !important;
-}
-
-.modifier-chip-row::-webkit-scrollbar {
-  height: 4px !important;
-}
-
-.modifier-chip-row::-webkit-scrollbar-track {
-  background: transparent !important;
-}
-
-.modifier-chip-row::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.12) !important;
-  border-radius: 10px !important;
-  background-clip: padding-box !important;
-}
-
-.modifier-chip-row::-webkit-scrollbar-thumb:hover {
-  background: var(--accent) !important;
-}
-
-.modifier-chip {
-  padding: 4px 12px;
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 20px;
-  font-size: calc(9px * var(--text-scale));
-  color: var(--text);
-  opacity: 0.6;
-  white-space: nowrap;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-family: "Share Tech Mono", monospace;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-.modifier-chip:hover,
-.modifier-chip.active {
-  opacity: 1;
-  border-color: var(--accent);
-  color: var(--accent);
-  background: rgba(255, 255, 255, 0.03);
-}
-
-.custom-prompt-actions button {
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  opacity: 0.7;
-  background: transparent !important;
-  box-shadow: none !important;
-  /* Eliminate Interaction Glow */
-}
-
-.custom-prompt-actions button:hover {
-  opacity: 1;
-  border-color: var(--accent) !important;
-  color: var(--accent) !important;
-  box-shadow: none !important;
-  background: rgba(255, 255, 255, 0.05) !important;
-}
-
-.filter-chip {
-  padding: 4px 10px;
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 20px;
-  font-size: calc(9px * var(--text-scale));
-  color: var(--text);
-  opacity: 0.7;
-
-  .footer-actions {
-    padding-top: 12px !important;
-    padding-bottom: 12px !important;
-  }
-}
-
-/* â”€â”€ VOLUME POPOVER (FOOTER) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
-.footer-volume-ctrl {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.vol-popover {
-  position: absolute;
-  bottom: 100%;
-  right: 0;
-  margin-bottom: 15px;
-  background: rgba(20, 20, 20, 0.9);
-
-
-  border: 1.5px solid var(--border);
-  border-radius: 14px;
-  padding: 14px;
-  width: 180px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.05);
-  opacity: 0;
-  visibility: hidden;
-  transform: translateY(15px);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  z-index: 4000;
-  backdrop-filter: blur(40px);
-  -webkit-backdrop-filter: blur(40px);
-
-}
-
-/* â”€â”€ INTEGRATED FOOTER VOLUME ROW (Overlay Mode) â”€â”€ */
-.footer-volume-row {
+.pl-discovery-filters::-webkit-scrollbar {
   display: none;
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: var(--panel) !important;
-  /* Total opacity to prevent background bleed */
-  padding: 0 20px;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  /* Primary Z-axis overlay */
-  animation: slideUpFooter 0.25s ease-out;
-  box-shadow: 0 -5px 25px rgba(0, 0, 0, 0.4);
-}
-
-.footer-volume-row.show {
-  display: flex;
-  /* Overriding none */
-}
-
-.vol-row-inner {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  width: 100%;
-  max-width: 800px;
-  margin: 0 auto;
-}
-
-.vol-row-icon {
-  color: var(--accent);
-  font-size: 24px !important;
-  opacity: 0.9;
-}
-
-#volSlider {
-  flex: 1;
-  -webkit-appearance: none;
-  height: 6px;
-  /* Thickened for industrial touch precision */
-  background: var(--border);
-  border-radius: 3px;
-  outline: none;
-  cursor: pointer;
-}
-
-#volSlider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 24px;
-  /* Enlarged for tablet/mobile ergonomic parity */
-  height: 24px;
-  border-radius: 50%;
-  background: var(--accent);
-  box-shadow: 0 0 15px var(--accent);
-  border: 2px solid #fff;
-  cursor: pointer;
-}
-
-@keyframes slideUpFooter {
-  from {
-    transform: translateY(20px);
-    opacity: 0;
-  }
-
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-@media (max-width: 480px) {
-  .footer-volume-row {
-    padding: 0 15px;
-  }
-}
-
-/* --- DISCOVERY HUB (GRID VIEW) --- */
-.pl-discovery-filters {
-  display: flex;
-  overflow: visible; flex-wrap: wrap;
-  padding: 10px 0 10px 0;
-  margin-top: -10px;
-  /* Counter-act playlist padding to mask cards */
-  margin-bottom: 8px;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-  border-bottom: 1px solid var(--border);
-  position: sticky;
-  top: 0;
-  z-index: 200;
-  background: #05070a !important;
-  /* Solid True Black to mask scrolling cards */
-}
-
-.modifier-chip-row {
-  display: flex !important;
-  gap: 8px !important;
-  overflow-x: auto !important;
-  padding: 8px 0 !important;
-  margin-bottom: 5px !important;
-  scrollbar-width: auto !important;
-}
-
-.modifier-chip-row::-webkit-scrollbar {
-  height: 4px !important;
-}
-
-.modifier-chip-row::-webkit-scrollbar-track {
-  background: transparent !important;
-}
-
-.modifier-chip-row::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.12) !important;
-  border-radius: 10px !important;
-  background-clip: padding-box !important;
-}
-
-.modifier-chip-row::-webkit-scrollbar-thumb:hover {
-  background: var(--accent) !important;
-}
-
-.modifier-chip {
-  padding: 4px 12px;
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 20px;
-  font-size: calc(9px * var(--text-scale));
-  color: var(--text);
-  opacity: 0.6;
-  white-space: nowrap;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-family: "Share Tech Mono", monospace;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-.modifier-chip:hover,
-.modifier-chip.active {
-  opacity: 1;
-  border-color: var(--accent);
-  color: var(--accent);
-  background: rgba(255, 255, 255, 0.03);
-}
-
-.custom-prompt-actions button {
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  opacity: 0.7;
-  background: transparent !important;
-  box-shadow: none !important;
-  /* Eliminate Interaction Glow */
-}
-
-.custom-prompt-actions button:hover {
-  opacity: 1;
-  border-color: var(--accent) !important;
-  color: var(--accent) !important;
-  box-shadow: none !important;
-  background: rgba(255, 255, 255, 0.05) !important;
 }
 
 .filter-chip {
@@ -3610,6 +3337,7 @@ body.light .footer {
   color: var(--text);
   opacity: 0.7;
   white-space: nowrap;
+  flex-shrink: 0;
   cursor: pointer;
   transition: all 0.2s ease;
   font-family: "Share Tech Mono", monospace;
@@ -3636,10 +3364,10 @@ body.light .footer {
   color: var(--text) !important;
 }
 
-
 body.light .filter-chip {
   border-color: rgba(0, 0, 0, 0.1);
 }
+
 
 .pl-discovery-grid {
   display: grid;
