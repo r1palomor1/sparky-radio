@@ -582,6 +582,7 @@ body.light .header {
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
 }
 
 .np-side-favicon-wrap img {
@@ -2105,6 +2106,7 @@ body.light .preset-label {
   justify-content: center;
   overflow: hidden;
   flex-shrink: 0;
+  position: relative;
 }
 
 .pl-favicon-col img,
@@ -3446,6 +3448,99 @@ body.light .filter-chip {
   height: 100%;
   object-fit: contain;
   padding: 12px;
+}
+
+.pl-card-gradient {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.05);
+}
+
+.pl-card-gradient-text {
+  font-family: 'Orbitron', 'Share Tech Mono', monospace;
+  font-size: calc(18px * var(--text-scale));
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.95);
+  letter-spacing: 1.5px;
+  text-shadow: 0 4px 10px rgba(0, 0, 0, 0.3), 0 0 15px rgba(255, 255, 255, 0.1);
+  text-transform: uppercase;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* Parent container overrides for precise scales */
+.card-favicon-wrap .pl-card-gradient-text {
+  font-size: calc(26px * var(--text-scale));
+  letter-spacing: 2px;
+}
+
+.np-side-favicon-wrap .pl-card-gradient-text {
+  font-size: calc(30px * var(--text-scale));
+  letter-spacing: 3px;
+}
+
+.pl-favicon-col .pl-card-gradient-text {
+  font-size: calc(18px * var(--text-scale));
+  letter-spacing: 1px;
+}
+
+/* Hover micro-animations */
+.pl-discovery-card:hover .pl-card-gradient,
+.pl-item:hover .pl-card-gradient {
+  filter: brightness(1.15);
+}
+
+.pl-discovery-card:hover .pl-card-gradient-text,
+.pl-item:hover .pl-card-gradient-text {
+  transform: scale(1.08);
+  text-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), 0 0 20px rgba(255, 255, 255, 0.25);
+}
+
+.pl-genre-overlay-icon {
+  position: absolute;
+  bottom: 5px;
+  right: 5px;
+  width: 14px;
+  height: 14px;
+  color: rgba(255, 255, 255, 0.35);
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  pointer-events: none;
+}
+
+/* Parent scale overrides */
+.card-favicon-wrap .pl-genre-overlay-icon {
+  width: 20px;
+  height: 20px;
+  bottom: 8px;
+  right: 8px;
+}
+
+.np-side-favicon-wrap .pl-genre-overlay-icon {
+  width: 26px;
+  height: 26px;
+  bottom: 10px;
+  right: 10px;
+}
+
+.pl-favicon-col .pl-genre-overlay-icon {
+  width: 16px;
+  height: 16px;
+  bottom: 5px;
+  right: 5px;
+}
+
+/* Hover effects */
+.pl-discovery-card:hover .pl-genre-overlay-icon,
+.pl-item:hover .pl-genre-overlay-icon {
+  color: rgba(255, 255, 255, 0.75);
+  transform: scale(1.1) translateY(-1px);
+  filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.2));
 }
 
 .card-info {

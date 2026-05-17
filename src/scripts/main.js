@@ -1386,11 +1386,79 @@ function renderCurrent() {
 }
 
 // â•â• RENDERERS â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-function renderFavicon(st) {
-  if (st.favicon && st.favicon.trim() !== '') {
-    return `<img class="pl-favicon" src="${esc(st.favicon)}" onerror="this.onerror=null; const s=document.createElement('span'); s.className='material-symbols-outlined pl-favicon-fallback'; s.textContent='radio'; this.replaceWith(s);">`;
+function getGenreIconSVG(tags, name) {
+  const t = String(tags || '').toLowerCase();
+  const n = String(name || '').toLowerCase();
+  
+  if (t.includes('j-pop') || t.includes('jpop') || t.includes('japan') || n.includes('j-pop') || n.includes('jpop')) {
+    return `<svg class="pl-genre-overlay-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>`;
   }
-  return `<span class="material-symbols-outlined pl-favicon-fallback">radio</span>`;
+  if (t.includes('country') || t.includes('folk') || t.includes('bluegrass') || n.includes('country') || n.includes('folk')) {
+    return `<svg class="pl-genre-overlay-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 17.5c2.5-1 5.5-1 8.5-1s6 0 8.5 1c-1.5-1-3-1.5-4.5-1.5-1.2 0-2-.8-2-2v-2.5c0-1.8-1-2.5-2.5-2.5S7.5 9.7 7.5 11.5V14c0 1.2-.8 2-2 2-1.5 0-3 .5-4.5 1.5z"/></svg>`;
+  }
+  if (t.includes('electronic') || t.includes('dance') || t.includes('techno') || t.includes('synth') || t.includes('house') || t.includes('trance') || t.includes('ambient') || n.includes('dance') || n.includes('synth')) {
+    return `<svg class="pl-genre-overlay-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"></path><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path></svg>`;
+  }
+  if (t.includes('rock') || t.includes('metal') || t.includes('grunge') || n.includes('rock') || n.includes('metal')) {
+    return `<svg class="pl-genre-overlay-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>`;
+  }
+  if (t.includes('pop') || t.includes('top 40') || t.includes('hits') || n.includes('pop')) {
+    return `<svg class="pl-genre-overlay-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"></path><path d="M19 10v1a7 7 0 0 1-14 0v-1"></path><line x1="12" y1="18" x2="12" y2="22"></line></svg>`;
+  }
+  if (t.includes('talk') || t.includes('news') || t.includes('podcast') || t.includes('info') || t.includes('spoken') || n.includes('talk') || n.includes('news')) {
+    return `<svg class="pl-genre-overlay-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.9 19.1C1 15.2 1 8.8 4.9 4.9M19.1 4.9c3.9 3.9 3.9 10.3 0 14.2M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.5M16.2 7.8c2.3 2.3 2.3 6.1 0 8.5"></path><circle cx="12" cy="12" r="2"></circle></svg>`;
+  }
+  return `<svg class="pl-genre-overlay-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>`;
+}
+
+function renderFavicon(st) {
+  const seed = String(st.tags || st.category || st.name || 'Radio').split(',')[0].trim();
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) {
+    hash = seed.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const h = Math.abs(hash) % 360;
+  const s = 65;
+  const l = 40;
+  const h2 = (h + 35) % 360;
+  const l2 = 25;
+  
+  let initials = 'RA';
+  if (st.name) {
+    const clean = String(st.name).trim().replace(/^[^a-zA-Z0-9]+/, '');
+    if (clean) {
+      const words = clean.split(/\s+/).filter(w => w.length > 0);
+      if (words.length >= 2 && /[a-zA-Z0-9]/.test(words[0][0]) && /[a-zA-Z0-9]/.test(words[1][0])) {
+        initials = (words[0][0] + words[1][0]).toUpperCase();
+      } else {
+        const alphaNums = clean.replace(/[^a-zA-Z0-9]/g, '');
+        initials = alphaNums.length >= 2 ? alphaNums.slice(0, 2).toUpperCase() : clean.slice(0, 2).toUpperCase();
+      }
+    }
+  }
+
+  const gradientStyle = `background: linear-gradient(135deg, hsl(${h}, ${s}%, ${l}%) 0%, hsl(${h2}, ${s}%, ${l2}%) 100%);`;
+  const genreOverlay = getGenreIconSVG(st.tags, st.name);
+
+  if (st.favicon && st.favicon.trim() !== '') {
+    return `
+      <img class="pl-favicon" src="${esc(st.favicon)}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+      <div class="pl-card-gradient" style="${gradientStyle} display: none;">
+        <span class="pl-card-gradient-text">${esc(initials)}</span>
+        ${genreOverlay}
+      </div>
+    `;
+  }
+  return `
+    <div class="pl-card-gradient" style="${gradientStyle} display: flex;">
+      <span class="pl-card-gradient-text">${esc(initials)}</span>
+      ${genreOverlay}
+    </div>
+  `;
+}
+
+function renderDiscoveryFavicon(st) {
+  return renderFavicon(st);
 }
 
 function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
@@ -1997,7 +2065,7 @@ function renderDiscoveryFavs(pl) {
     return `
       <div class="pl-discovery-card${actv ? ' active' : ''}${rescued}${ambientClass}" data-sid="${st.sparkyId || ''}" data-uuid="${st.stationuuid || ''}" data-url="${st.url || ''}"${ambientStyle}>
         <div class="card-favicon-wrap">
-          ${renderFavicon(st)}
+          ${renderDiscoveryFavicon(st)}
         </div>
         <div class="card-info">
           <div class="card-name">${esc(st.name)}</div>
