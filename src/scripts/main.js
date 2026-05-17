@@ -190,7 +190,7 @@ function updateDeploymentUI() {
     hour: 'numeric',
     minute: 'numeric',
     hour12: true
-  }).format(modDate).replace(',', ' Â·');
+  }).format(modDate).replace(',', ' \u00B7');
   tsEl.textContent = ts;
 }
 
@@ -200,6 +200,109 @@ let audioCtx, analyser, srcNode;
 let freqData;
 let smoothedBands = new Float32Array(128); // Pre-init for high-density bars
 let sortTooltipTimeout;
+
+// == R-E2: STREAM HEALTH PASSIVE MONITOR SYSTEM ==
+const healthCache = {};
+const pingQueue = [];
+let activePings = 0;
+const MAX_CONCURRENT_PINGS = 2;
+
+function processPingQueue() {
+  if (pingQueue.length === 0 || activePings >= MAX_CONCURRENT_PINGS) return;
+
+  const { url, element } = pingQueue.shift();
+  if (healthCache[url] !== undefined) {
+    applyHealthBadge(element, healthCache[url]);
+    processPingQueue();
+    return;
+  }
+
+  activePings++;
+  const start = Date.now();
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 1000);
+
+  fetch(url, { method: 'HEAD', mode: 'no-cors', signal: controller.signal })
+    .then(() => {
+      clearTimeout(timeoutId);
+      const latency = Date.now() - start;
+      let status = null;
+      if (latency >= 300) {
+        status = { type: 'slow', label: '⚠️ Slow' };
+      } else {
+        status = { type: 'good' };
+      }
+      healthCache[url] = status;
+      applyHealthBadge(element, status);
+    })
+    .catch(() => {
+      clearTimeout(timeoutId);
+      const status = { type: 'offline', label: '❌ Offline' };
+      healthCache[url] = status;
+      applyHealthBadge(element, status);
+    })
+    .finally(() => {
+      activePings--;
+      processPingQueue();
+    });
+}
+
+function applyHealthBadge(element, status) {
+  if (!status || status.type === 'good') return;
+
+  const statsContainer = element.querySelector('.pl-item-stats, .card-stats');
+  if (!statsContainer) return;
+
+  if (statsContainer.querySelector('.pl-health-badge')) return;
+
+  const badge = document.createElement('span');
+  badge.className = `pl-health-badge ${status.type}`;
+  badge.textContent = status.label;
+
+  if (statsContainer.classList.contains('card-stats')) {
+    const removeBtn = statsContainer.querySelector('.pl-remove, .card-remove');
+    if (removeBtn) {
+      statsContainer.insertBefore(badge, removeBtn);
+    } else {
+      statsContainer.appendChild(badge);
+    }
+  } else {
+    statsContainer.appendChild(badge);
+  }
+}
+
+let healthObserver = null;
+function initHealthObserver() {
+  if (!window.IntersectionObserver) return;
+  if (healthObserver) healthObserver.disconnect();
+
+  healthObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const el = entry.target;
+        const url = el.dataset.url;
+        if (!url) return;
+
+        if (healthCache[url] === undefined) {
+          if (!pingQueue.some(item => item.url === url)) {
+            pingQueue.push({ url, element: el });
+            processPingQueue();
+          }
+        } else {
+          applyHealthBadge(el, healthCache[url]);
+        }
+        healthObserver.unobserve(el);
+      }
+    });
+  }, {
+    root: document.getElementById('playlist'),
+    rootMargin: '40px',
+    threshold: 0.1
+  });
+
+  const cards = document.querySelectorAll('.pl-item, .pl-discovery-card');
+  cards.forEach(card => healthObserver.observe(card));
+}
 
 // â•â• THEME INITIALIZATION â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 if (window.initThemeEngine) {
@@ -1160,9 +1263,9 @@ function updateNowPlaying(st) {
       const location = st.countrycode || st.country || 'Global';
       const genre = (st.tags || 'Various').split(',')[0].trim();
       const hdBadge = (Number(st?.bitrate || 0) >= 128) ? '<span class="hd-badge-inline" style="margin-left: 8px; vertical-align: middle;">HD</span>' : '';
-      sm.innerHTML = `${location.toUpperCase()} Â· ${genre}${hdBadge}`;
+      sm.innerHTML = `${location.toUpperCase()} \u00B7 ${genre}${hdBadge}`;
     } else {
-      sm.textContent = 'â€”';
+      sm.textContent = '—';
     }
   }
 
@@ -1462,13 +1565,13 @@ function renderStations() {
     const ambientStyle = actv && st.favicon && st.favicon.trim() !== '' ? ` style="--ambient-bg: url('${esc(st.favicon)}');"` : '';
     const ambientClass = actv && st.favicon && st.favicon.trim() !== '' ? ' has-ambient-bg' : '';
 
-    return `<div class="pl-item${actv ? ' active' : ''}${rescued}${ambientClass}" data-idx="${i}"${ambientStyle}>
+    return `<div class="pl-item${actv ? ' active' : ''}${rescued}${ambientClass}" data-idx="${i}" data-url="${st.url || st.url_resolved || ''}" data-uuid="${st.stationuuid || st.id || ''}"${ambientStyle}>
       <div class="pl-favicon-col">
         ${renderFavicon(st)}
       </div>
       <div class="pl-main-col">
         <div class="pl-item-name">${esc(st.name)}</div>
-        <div class="pl-item-meta">${esc(st.countrycode || '--')} Â· ${esc(finalTags)}</div>
+        <div class="pl-item-meta">${esc(st.countrycode || '--')} \u00B7 ${esc(finalTags)}</div>
         <div class="pl-item-stats">
           <span class="pl-stat-power" style="color:${primary.color}"><span class="material-symbols-outlined" style="font-size:12px; vertical-align:middle;">${primary.icon}</span> ${primary.val}</span>
           ${(Number(st.bitrate || 0) >= 128) ? '<span class="hd-badge-inline">HD</span>' : ''}
@@ -1519,6 +1622,7 @@ function renderStations() {
     });
   });
   lastRenderedList = displayStations;
+  initHealthObserver();
 }
 
 function renderFavs() {
@@ -1626,7 +1730,7 @@ function renderFavs() {
       </div>
       <div class="pl-main-col">
         <div class="pl-item-name">${esc(st.name)}</div>
-        <div class="pl-item-meta">${esc(st.countrycode || '--')} Â· ${esc(finalTags)}</div>
+        <div class="pl-item-meta">${esc(st.countrycode || '--')} \u00B7 ${esc(finalTags)}</div>
         <div class="pl-item-stats">
           <span class="pl-stat-power" style="color:${primary.color}"><span class="material-symbols-outlined" style="font-size:12px; vertical-align:middle;">${primary.icon}</span> ${primary.val}</span>
           ${(Number(st.bitrate || 0) >= 128) ? '<span class="hd-badge-inline">HD</span>' : ''}
@@ -1754,6 +1858,7 @@ function renderFavs() {
   lastRenderedList = displayFavs;
   bindListChips(pl);
   scrollActiveChipIntoView(pl);
+  initHealthObserver();
 }
 
 function bindListChips(pl) {
@@ -1848,7 +1953,7 @@ function renderGroupedFavs(pl) {
               <div class="pl-favicon-col">${renderFavicon(st)}</div>
               <div class="pl-main-col">
                 <div class="pl-item-name">${esc(st.name)}</div>
-                <div class="pl-item-meta">${esc(st.countrycode || '--')} Â· ${esc(finalTags)}</div>
+                <div class="pl-item-meta">${esc(st.countrycode || '--')} \u00B7 ${esc(finalTags)}</div>
                 <div class="pl-item-stats">
                   <span class="pl-stat-power" style="color:${primary.color}"><span class="material-symbols-outlined" style="font-size:12px; vertical-align:middle;">${primary.icon}</span> ${primary.val}</span>
                   ${(Number(st.bitrate || 0) >= 128) ? '<span class="hd-badge-inline">HD</span>' : ''}
@@ -1907,6 +2012,7 @@ function renderGroupedFavs(pl) {
 
   // Re-bind station actions (same as standard list)
   bindStationActions(pl, favs);
+  initHealthObserver();
 }
 
 function renderDiscoveryFavs(pl) {
@@ -1966,7 +2072,7 @@ function renderDiscoveryFavs(pl) {
     const pwr = Math.min(100, Math.round(rank * 100));
 
     const tagArr = (st.tags || '').split(',').map(t => t.trim()).filter(t => t);
-    const finalTags = tagArr.slice(0, 2).join(' Â· ') || 'Radio';
+    const finalTags = tagArr.slice(0, 2).join(' \u00B7 ') || 'Radio';
     const rescued = st.isRescued ? ' rescued' : '';
 
     let statVal = `<span class="material-symbols-outlined" style="font-size:12px; vertical-align:middle;">bolt</span> ${pwr}%`;
@@ -2127,6 +2233,7 @@ function renderDiscoveryFavs(pl) {
   });
 
   lastRenderedList = displayFavs;
+  initHealthObserver();
 }
 
 
@@ -2584,14 +2691,14 @@ function loadFilterOptions() {
 
   cCont.innerHTML = finalC.map(c => {
     const name = CTRY_NAMES[c] || c;
-    const display = c === 'ALL' ? 'All countries' : `${name} Â· ${c}`;
+    const display = c === 'ALL' ? 'All countries' : `${name} \u00B7 ${c}`;
     return `<div class="preset-opt" data-val="${c}">${display}</div>`;
   }).join('');
 
   lCont.innerHTML = finalL.map(l => {
     const name = l.charAt(0).toUpperCase() + l.slice(1);
     const code = l === 'ALL' ? 'ALL' : l.substring(0, 3).toUpperCase();
-    const display = l === 'ALL' ? 'All languages' : `${name} Â· ${code}`;
+    const display = l === 'ALL' ? 'All languages' : `${name} \u00B7 ${code}`;
     return `<div class="preset-opt" data-val="${l}">${display}</div>`;
   }).join('');
 
@@ -2679,14 +2786,14 @@ function loadSettingsOptions() {
 
   dcCont.innerHTML = CTRY_LIST.map(c => {
     const name = CTRY_NAMES[c] || c;
-    const display = c === 'ALL' ? 'All countries' : `${name} Â· ${c}`;
+    const display = c === 'ALL' ? 'All countries' : `${name} \u00B7 ${c}`;
     return `<div class="preset-opt${c === defC ? ' active' : ''}" data-val="${c}">${display}</div>`;
   }).join('');
 
   dlCont.innerHTML = LANG_LIST.map(l => {
     const name = l.charAt(0).toUpperCase() + l.slice(1);
     const code = l === 'ALL' ? 'ALL' : l.substring(0, 3).toUpperCase();
-    const display = l === 'ALL' ? 'All languages' : `${name} Â· ${code}`;
+    const display = l === 'ALL' ? 'All languages' : `${name} \u00B7 ${code}`;
     return `<div class="preset-opt${l === defL ? ' active' : ''}" data-val="${l}">${display}</div>`;
   }).join('');
 
@@ -4365,7 +4472,7 @@ function syncAudioOnlyCard() {
     const parts = [];
     if (item.channel)  parts.push(item.channel);
     if (item.duration) parts.push(item.duration);
-    metaEl.textContent = parts.join(' Â· ');
+    metaEl.textContent = parts.join(' \u00B7 ');
   } else {
     thumbEl.src = '';
     titleEl.textContent = document.getElementById('ytNpTitle')?.textContent || '';

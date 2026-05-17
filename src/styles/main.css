@@ -4500,3 +4500,31 @@ body.light .filter-chip {
   visibility: hidden;
   pointer-events: none;
 }
+
+/* R-E2: Stream Health Latency Badges */
+.pl-health-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: calc(8px * var(--text-scale));
+  font-weight: 800;
+  padding: 0px 3px;
+  border-radius: 3px;
+  vertical-align: middle;
+  margin-left: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.pl-health-badge.slow {
+  background: rgba(255, 170, 0, 0.12);
+  color: #ffaa00;
+  border: 1px solid rgba(255, 170, 0, 0.3);
+  box-shadow: 0 0 8px rgba(255, 170, 0, 0.08);
+}
+.pl-health-badge.offline {
+  background: rgba(255, 51, 51, 0.12);
+  color: #ff3333;
+  border: 1px solid rgba(255, 51, 51, 0.3);
+  box-shadow: 0 0 8px rgba(255, 51, 51, 0.08);
+}

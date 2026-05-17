@@ -218,8 +218,9 @@
 - [0550c1b] **[Video - Optimization]** Extract shared `shortenMetadata()` (V-O7)
 - [b8143c5] **[Radio - UI Upgrade]** playing card panel ambient favicon glow (R-U2)
 *(Updates 14-15 deployed for testing)*
-- [x] **[Video - UI Upgrade]** NP panel ambient favicon glow (V-U11)
-- [x] **[Video - UI Upgrade]** playing card panel ambient favicon glow (V-U12)
+- [aa192d9] **[Video - UI Upgrade]** NP panel ambient favicon glow (V-U11)
+- [aa192d9] **[Video - UI Upgrade]** playing card panel ambient favicon glow (V-U12)
+
 
 **Phase 2: Strategic**
 - [ ] **[Radio - Enhancement]** Station stream health indicator (R-E2)
