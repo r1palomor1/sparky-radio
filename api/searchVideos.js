@@ -1,4 +1,4 @@
-import { Innertube } from 'youtubei.js';
+import { getYoutubeClient } from './youtube.js';
 import { findToken, extractString, extractThumbnail, shortenMetadata } from './utils.js';
 
 // Recursive helper to find ALL video objects
@@ -39,7 +39,7 @@ export default async function handler(req, res) {
 
     try {
         const { query, continuation } = req.query;
-        const youtube = await Innertube.create();
+        const youtube = await getYoutubeClient();
 
         if (query) {
             const response = await youtube.actions.execute('/search', {

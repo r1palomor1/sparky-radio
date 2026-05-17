@@ -1,4 +1,4 @@
-import { Innertube } from 'youtubei.js';
+import { getYoutubeClient } from './youtube.js';
 import { shortenMetadata, absoluteToRelative } from './utils.js';
 
 export default async function handler(req, res) {
@@ -12,7 +12,7 @@ export default async function handler(req, res) {
         const { id } = req.query;
         if (!id) return res.status(400).json({ error: 'ID required' });
 
-        const youtube = await Innertube.create();
+        const youtube = await getYoutubeClient();
 
         // PATH A: getInfo — most complete, includes primary_info (relative date) + microformat
         const info = await youtube.getInfo(id);

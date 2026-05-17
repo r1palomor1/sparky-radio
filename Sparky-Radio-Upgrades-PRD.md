@@ -64,7 +64,7 @@
 | R-U2 | **EQ fader needle glow on active preset** — add a `box-shadow` pulse on the active fader knob using the theme's `--accent` color; idle faders remain flat. | EQ panel feels industrial but static; micro-animation makes it feel alive. | 🟡 Medium | 🟢 Low |
 | R-U3 | **Visualizer color reactive to theme** — currently hardcoded bar fill; tie bar color to `var(--accent)` and interpolate intensity with a `hsl()` shift. | Full theme support (6 themes + user custom) but visualizer stays the same cyan. | 🟡 Medium | 🟢 Low |
 | R-U4 | **Station card hover "preview" ripple** — on card hover/tap, add a subtle circular ripple expanding from tap point before starting playback. | Eliminates the uncertainty of "did my tap register?" common on mobile touch. | 🔥 High | 🟢 Low |
-| R-U5 | **Favorites grid card art** — in Discovery mode, replace the fallback `radio` icon with a gradient tile generated from the station's primary tag color (deterministic hash → HSL). | Blank icon tiles dominate; colored gradient art makes discovery mode visually scannable. | 🔥 High | 🟡 Medium |
+| R-U5 | **Favorites grid card art** — in Discovery mode, replace the fallback `radio` icon with a gradient tile generated from the station's primary tag color (deterministic hash → HSL). **(Completed - Commit 86dcf80)** | Blank icon tiles dominate; colored gradient art makes discovery mode visually scannable. | 🔥 High | 🟡 Medium |
 | R-U6 | **Collapsible NP panel on scroll** — when user scrolls the station list down, the `.now-playing` panel collapses to a thin "mini-player" strip showing favicon + name + stop button; expands on tap. | Maximizes content area on small screens without changing the DOM structure. | 🔥 High | 🟡 Medium |
 | R-U7 | **Haptic feedback patterns per action** — current `triggerHaptic()` is a flat 10ms vibrate. Use `[10, 50, 10]` for add-to-favs, `[5]` for filter chip, `[30]` for play start. | Differentiated haptics provide tactile confirmation matching action severity. | 🟡 Medium | 🟢 Low |
 | R-U8 | **Category chip row animation** — when switching category filter chips in List mode, slide-transition the station list with a horizontal swipe micro-animation (`transform: translateX`). | Current re-render is instant; animation establishes spatial context. | 🟡 Medium | 🟡 Medium |
@@ -183,7 +183,7 @@
 
 - **R-E4** Auto-resume on network reconnect
 - **R-U6** Collapsible mini-player on scroll
-- **R-U5** Favorites grid card gradient art
+- **R-U5** Favorites grid card gradient art **(Completed - Commit 86dcf80)**
 - **V-O1** Innertube singleton across API handlers
 - **V-O2** Full-queue server-side hydration
 - **V-O5** Prefetch race condition fix
@@ -228,8 +228,8 @@
 - [Removed] **[Radio - Enhancement]** Station stream health indicator (R-E2) - removed due to passive ping CORS/method incompatibilities
 - [a1c9b2f] **[Radio - Enhancement]** Auto-resume on network reconnect (R-E4)
 - [1bdcb84] **[Radio - UI Upgrade]** Collapsible mini-player on scroll (R-U6)
-- [ ] **[Radio - UI Upgrade]** Favorites grid card gradient art (R-U5)
-- [ ] **[Video - Optimization]** Innertube singleton across API handlers (V-O1)
+- [86dcf80] **[Radio - UI Upgrade]** Favorites grid card gradient art (R-U5)
+- [0477b38] **[Video - Optimization]** Innertube singleton across API handlers (V-O1)
 - [ ] **[Video - Optimization]** Full-queue server-side hydration (V-O2)
 - [ ] **[Video - Optimization]** Prefetch race condition fix (V-O5)
 - [ ] **[Video - Optimization]** Cancel stale requests on new search (V-O6)
