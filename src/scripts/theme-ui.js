@@ -139,7 +139,10 @@
 
         if (!themeDialogOverlay) return;
         themeDialogOverlay.style.display = 'flex';
-        if (themeDialogTitle) themeDialogTitle.textContent = 'Theme Studio';
+        if (themeDialogTitle) {
+            themeDialogTitle.textContent = 'Theme Studio';
+            themeDialogTitle.style.paddingRight = '75px';
+        }
 
         // Add Signature Mode Toggle to header if not present
         const titleWrapper = document.querySelector('.custom-prompt-title-wrapper');

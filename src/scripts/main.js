@@ -3449,7 +3449,9 @@ const sparkyYtState = {
   isAudioOnly: false,
   isShuffleActive: false,
   tempQueuePlayedIds: new Set(), // Track played IDs for pulsing logic
-  loopMode: 'none' // 'none' | 'one'
+  loopMode: 'none', // 'none' | 'one'
+  relatedVideos: [], // For related videos overlay
+  relatedSortMode: 'relevance' // Sort order: relevance | views
 };
 
 const YT_FAVS_KEY = 'sparky_yt_favorites';
@@ -3463,6 +3465,7 @@ const CINEMA_TIMEOUT_MS = 20000;
 function wakeFromCinemaMode() {
   document.querySelector('.app').classList.remove('immersive-cinema-mode');
   if (document.getElementById('cinemaWakeZone')) document.getElementById('cinemaWakeZone').classList.remove('is-cinema');
+  document.getElementById('btnYtCinemaToggle')?.classList.remove('active');
   resetCinemaTimer();
 }
 
@@ -3488,6 +3491,7 @@ function resetCinemaTimer() {
       app.classList.add('immersive-cinema-mode');
       document.querySelector('.now-playing')?.classList.remove('compact-video');
       if (document.getElementById('cinemaWakeZone')) document.getElementById('cinemaWakeZone').classList.add('is-cinema');
+      document.getElementById('btnYtCinemaToggle')?.classList.add('active');
     }, CINEMA_TIMEOUT_MS);
   }
 }
@@ -3501,6 +3505,7 @@ function toggleCinemaMode() {
     app.classList.add('immersive-cinema-mode');
     document.querySelector('.now-playing')?.classList.remove('compact-video');
     if (document.getElementById('cinemaWakeZone')) document.getElementById('cinemaWakeZone').classList.add('is-cinema');
+    document.getElementById('btnYtCinemaToggle')?.classList.add('active');
     clearTimeout(cinemaModeTimer); // Disable auto-timer when manually forcing it
   }
 }
@@ -4666,6 +4671,168 @@ function closeYtQueue() {
   }
 }
 
+function toggleYtRelated() {
+  resetCinemaTimer();
+  const overlay = document.getElementById('ytRelatedOverlay');
+  if (!overlay) return;
+
+  const isOpen = !overlay.classList.contains('hidden');
+  if (isOpen) {
+    overlay.classList.add('hidden');
+  } else {
+    overlay.classList.remove('hidden');
+    fetchRelatedVideos();
+  }
+}
+
+function closeYtRelated() {
+  resetCinemaTimer();
+  const overlay = document.getElementById('ytRelatedOverlay');
+  if (overlay) {
+    overlay.classList.add('hidden');
+  }
+}
+
+async function fetchRelatedVideos() {
+  const currentItem = sparkyYtState.currentQueue[sparkyYtState.queueIndex] 
+    || sparkyYtState.temporaryQueue.find(v => v.id === sparkyYtState.currentItemId);
+  
+  if (!currentItem || !currentItem.id) {
+    console.warn('[YT Related DEBUG] No current video in state. currentQueue:', sparkyYtState.currentQueue, 'queueIndex:', sparkyYtState.queueIndex, 'currentItemId:', sparkyYtState.currentItemId);
+    return;
+  }
+
+  try {
+    console.log(`[YT Related DEBUG] Fetching from API for: ${currentItem.id} ("${currentItem.title}")`);
+    const res = await fetch(`/api/hydrateTags?id=${encodeURIComponent(currentItem.id)}`);
+    console.log('[YT Related DEBUG] HTTP Response Status:', res.status, 'OK:', res.ok);
+    
+    if (!res.ok) throw new Error(`API fetch failed with status ${res.status}`);
+    
+    const data = await res.json();
+    console.log('[YT Related DEBUG] JSON data received from API:', data);
+    
+    const related = data.related_videos || [];
+    console.log('[YT Related DEBUG] Parsed related_videos from data:', related);
+    
+    sparkyYtState.relatedVideos = related.slice(0, 12); // Limit to 12
+    console.log(`[YT Related DEBUG] State relatedVideos assigned. Length: ${sparkyYtState.relatedVideos.length}`, sparkyYtState.relatedVideos);
+    
+    renderYtRelated();
+    syncYtRelatedBtn();
+  } catch (err) {
+    console.error('[YT Related DEBUG] Fetch error occurred:', err);
+    const errEl = document.getElementById('ytRelatedList');
+    if (errEl) errEl.innerHTML = `<div class="pl-empty">Failed to load related videos: ${err.message}</div>`;
+  }
+}
+
+function renderYtRelated() {
+  const container = document.getElementById('ytRelatedList');
+  const countEl = document.getElementById('ytRelatedCount');
+  console.log('[YT Related DEBUG] renderYtRelated triggered. Container exists:', !!container, 'Count element exists:', !!countEl);
+  if (!container) return;
+
+  let related = sparkyYtState.relatedVideos || [];
+  console.log('[YT Related DEBUG] renderYtRelated array state:', related);
+  
+  if (!related.length) {
+    console.warn('[YT Related DEBUG] No related videos in state. Rendering empty state.');
+    container.innerHTML = '<div class="pl-empty">No related videos available</div>';
+    if (countEl) countEl.textContent = '0';
+    return;
+  }
+
+  // Apply sorting
+  if (sparkyYtState.relatedSortMode === 'views') {
+    related = [...related].sort((a, b) => {
+      const viewsA = parseYtViews(a.views);
+      const viewsB = parseYtViews(b.views);
+      return viewsB - viewsA;
+    });
+  }
+  // Default relevance: use original order
+
+  if (countEl) countEl.textContent = related.length;
+
+  container.innerHTML = '';
+  related.forEach((item) => {
+    const isFav = isYtFav(item.id);
+    const isInQueue = sparkyYtState.temporaryQueue.some(v => v.id === item.id);
+
+    const el = document.createElement('div');
+    el.className = 'yt-card yt-related-card';
+    el.dataset.id = item.id;
+    el.dataset.thumb = item.thumb || item.thumbnail;
+    el.innerHTML = `
+      <img src="${item.thumb || item.thumbnail}" class="yt-card-thumb" alt="" loading="lazy">
+      <div class="yt-card-info">
+        <div class="yt-card-title">${item.title}</div>
+        <div class="yt-card-channel">
+          <span class="desktop-only">${item.views || ''}${item.duration ? (item.views ? ' &middot; ' : '') + item.duration : ''}${item.channel ? (item.views || item.duration ? ' &middot; ' : '') + item.channel : ''}</span>
+          <span class="mobile-stats">${item.views || ''}${item.channel ? (item.views ? ' &middot; ' : '') + item.channel : ''}</span>
+        </div>
+      </div>
+      <div class="yt-card-actions">
+        <button class="yt-card-fav${isFav ? ' active' : ''}" title="${isFav ? 'Remove from Hub' : 'Save to Hub'}">
+          <span class="material-symbols-outlined">favorite</span>
+        </button>
+        <button class="yt-card-add${isInQueue ? ' active' : ''}" data-id="${item.id}" title="${isInQueue ? 'Remove from Queue' : 'Queue Video'}">
+          <span class="material-symbols-outlined">${isInQueue ? 'remove_from_queue' : 'add_to_queue'}</span>
+        </button>
+      </div>
+    `;
+
+    // Queue on body click
+    el.onclick = (e) => {
+      if (e.target.closest('.yt-card-fav') || e.target.closest('.yt-card-add')) return;
+      addYtToTempQueue(item);
+      console.log(`[YT Related] Queued: ${item.title}`);
+    };
+
+    // Fav button
+    const favBtn = el.querySelector('.yt-card-fav');
+    if (favBtn) {
+      favBtn.onclick = (e) => {
+        e.stopPropagation();
+        toggleYtFav(item);
+      };
+    }
+
+    // Queue button
+    const queueBtn = el.querySelector('.yt-card-add');
+    if (queueBtn) {
+      queueBtn.onclick = (e) => {
+        e.stopPropagation();
+        if (sparkyYtState.temporaryQueue.some(v => v.id === item.id)) {
+          removeFromYtTempQueue(item.id, true);
+        } else {
+          addToYtTempQueue(item, queueBtn);
+        }
+      };
+    }
+
+    container.appendChild(el);
+  });
+}
+
+function syncYtRelatedBtn() {
+  const btn = document.getElementById('btnYtRelated');
+  if (!btn) return;
+
+  // Show button only if we have a current video
+  const hasCurrentVideo = sparkyYtState.currentQueue.length > 0 && sparkyYtState.queueIndex >= 0;
+  btn.classList.toggle('hidden', !hasCurrentVideo);
+
+  // Highlight if overlay is open
+  const isOverlayOpen = !document.getElementById('ytRelatedOverlay').classList.contains('hidden');
+  btn.classList.toggle('active', isOverlayOpen);
+
+  // Style button with solid accent theme color if recommendations are loaded and overlay is closed
+  const hasRelated = sparkyYtState.relatedVideos && sparkyYtState.relatedVideos.length > 0;
+  btn.classList.toggle('available', hasRelated && !isOverlayOpen);
+}
+
 function syncAudioOnlyCard() {
   const placeholder = document.getElementById('yt-audio-only-placeholder');
   if (!placeholder || placeholder.classList.contains('hidden')) return;
@@ -4913,6 +5080,9 @@ async function playYtItem(item) {
     syncYtQueueBtn();
   }
 
+  // Clear previous related videos on load to reset reactive theme state
+  sparkyYtState.relatedVideos = [];
+  syncYtRelatedBtn();
   pauseRadioForYt();
   highlightYtCard(item.id, true);
 
@@ -5005,6 +5175,10 @@ async function playYtItem(item) {
   } else {
     pendingPlayItem = item;
     loadYtIframeApi();
+  }
+
+  if (item.type !== 'playlist') {
+    fetchRelatedVideos().catch(err => console.error('[YT] Background related fetch failed:', err));
   }
 
   sparkyLog(`[YT] Playing ${item.type}: ${item.title}`);
@@ -5194,6 +5368,8 @@ ytSearchInput?.addEventListener('blur', () => {
 });
 
 document.getElementById('btnYtQueue')?.addEventListener('click', toggleYtQueue);
+document.getElementById('btnYtRelated')?.addEventListener('click', toggleYtRelated);
+document.getElementById('btnYtRelatedClose')?.addEventListener('click', closeYtRelated);
 document.getElementById('btnYtCinemaToggle')?.addEventListener('click', toggleCinemaMode);
 document.getElementById('btnYtQueueClear')?.addEventListener('click', clearYtTempQueue);
 document.getElementById('btnYtAudioOnly')?.addEventListener('click', toggleYtAudioOnly);
@@ -5218,9 +5394,41 @@ if (ytSortTrigger) {
   });
 }
 
+// YT RELATED SORT LOGIC
+const ytRelatedSortTrigger = document.getElementById('ytRelatedSortTrigger');
+const ytRelatedSortOptions = document.getElementById('ytRelatedSortOptions');
+const ytRelatedSortLabel = document.getElementById('ytRelatedSortLabel');
+
+if (ytRelatedSortTrigger) {
+  ytRelatedSortTrigger.addEventListener('click', (e) => {
+    e.stopPropagation();
+    ytRelatedSortOptions.classList.toggle('show');
+  });
+
+  document.querySelectorAll('#ytRelatedSortOptions .preset-opt').forEach(opt => {
+    opt.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const sortMode = opt.dataset.sort;
+      sparkyYtState.relatedSortMode = sortMode;
+
+      // Update label & active state
+      document.querySelectorAll('#ytRelatedSortOptions .preset-opt').forEach(o => o.classList.remove('active'));
+      opt.classList.add('active');
+      if (ytRelatedSortLabel) ytRelatedSortLabel.textContent = opt.textContent;
+
+      // Re-render with new sort
+      renderYtRelated();
+      ytRelatedSortOptions.classList.remove('show');
+    });
+  });
+}
+
 document.addEventListener('click', (e) => {
   if (ytSortOptions && !ytSortTrigger.contains(e.target)) {
     ytSortOptions.classList.remove('show');
+  }
+  if (ytRelatedSortOptions && !ytRelatedSortTrigger.contains(e.target)) {
+    ytRelatedSortOptions.classList.remove('show');
   }
 });
 
