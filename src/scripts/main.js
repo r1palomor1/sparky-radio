@@ -3421,6 +3421,8 @@ async function healFavoritesFavicons() {
 const sparkyYtState = {
   isModeActive: false,
   playerInstance: null,
+  activeAbortController: null,
+  activePrefetchAbortController: null,
   currentQueue: [],
   originalQueue: [],
   temporaryQueue: [], // User-built manual queue
@@ -3627,8 +3629,18 @@ function toggleYtMode(activate) {
   }
 
   // Pause YT when returning to radio
-  if (!activate && sparkyYtState.playerInstance) {
-    try { sparkyYtState.playerInstance.pauseVideo(); } catch (e) { /* player may not be ready */ }
+  if (!activate) {
+    if (sparkyYtState.playerInstance) {
+      try { sparkyYtState.playerInstance.pauseVideo(); } catch (e) { /* player may not be ready */ }
+    }
+    if (sparkyYtState.activeAbortController) {
+      sparkyYtState.activeAbortController.abort();
+      sparkyYtState.activeAbortController = null;
+    }
+    if (sparkyYtState.activePrefetchAbortController) {
+      sparkyYtState.activePrefetchAbortController.abort();
+      sparkyYtState.activePrefetchAbortController = null;
+    }
   }
 
   localStorage.setItem('sparky_yt_mode_active', activate ? '1' : '0');
@@ -3641,6 +3653,17 @@ function switchYtTab(mode) {
   const npPanel = document.querySelector('.now-playing');
   if (npPanel) npPanel.classList.remove('compact');
   wakeFromCinemaMode(); // Wake up when switching tabs
+
+  // Abort in-flight page fetches/prefetches on tab switches
+  if (sparkyYtState.activeAbortController) {
+    sparkyYtState.activeAbortController.abort();
+    sparkyYtState.activeAbortController = null;
+  }
+  if (sparkyYtState.activePrefetchAbortController) {
+    sparkyYtState.activePrefetchAbortController.abort();
+    sparkyYtState.activePrefetchAbortController = null;
+  }
+
   sparkyYtState.currentSubMode = mode;
   document.querySelectorAll('.yt-tab').forEach(t => t.classList.toggle('active', t.dataset.mode === mode));
 
@@ -3953,6 +3976,20 @@ async function fetchNextYtPage(isAppending = true) {
     return;
   }
 
+  // Cancel any active searches/prefetches if this is a NEW search fetch
+  if (!isAppending) {
+    if (sparkyYtState.activeAbortController) {
+      console.log('[YT] Aborting active search fetch for new search...');
+      sparkyYtState.activeAbortController.abort();
+      sparkyYtState.activeAbortController = null;
+    }
+    if (sparkyYtState.activePrefetchAbortController) {
+      console.log('[YT] Aborting active prefetch fetch for new search...');
+      sparkyYtState.activePrefetchAbortController.abort();
+      sparkyYtState.activePrefetchAbortController = null;
+    }
+  }
+
   cache.isFetchingMore = true;
 
   // Show "Loading more" footer if appending
@@ -3970,6 +4007,9 @@ async function fetchNextYtPage(isAppending = true) {
     }
   }
 
+  const controller = new AbortController();
+  sparkyYtState.activeAbortController = controller;
+
   try {
     let url = '';
     if (cache.continuation) {
@@ -3986,12 +4026,16 @@ async function fetchNextYtPage(isAppending = true) {
     }
 
     console.log(`[YT-FETCH] Fetching URL: ${url.length > 150 ? url.substring(0, 150) + '...' : url}`);
-    const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
 
     const res = await fetch(url, { signal: controller.signal });
     clearTimeout(timeoutId);
     console.log(`[YT-FETCH] Response received: ${res.status} ${res.statusText}`);
+
+    if (sparkyYtState.activeAbortController !== controller) {
+      console.log('[YT-FETCH] Stale fetch ignored.');
+      return;
+    }
 
     if (!res.ok) {
       let errData = {};
@@ -4010,6 +4054,10 @@ async function fetchNextYtPage(isAppending = true) {
       prefetchNextYtPage();
     }
   } catch (err) {
+    if (err.name === 'AbortError') {
+      console.log('[YT] Fetch aborted.');
+      return;
+    }
     console.error('[YT] Fetch error:', err);
     if (!isAppending) {
       showYtError('Search failed. Check your connection and try again.');
@@ -4018,6 +4066,9 @@ async function fetchNextYtPage(isAppending = true) {
       if (loader) loader.innerHTML = `<div style="color:var(--accent2)">Retry failed — scroll to try again</div>`;
     }
   } finally {
+    if (sparkyYtState.activeAbortController === controller) {
+      sparkyYtState.activeAbortController = null;
+    }
     cache.isFetchingMore = false;
   }
 }
@@ -4030,17 +4081,39 @@ async function prefetchNextYtPage() {
 
   if (!cache.continuation || cache.prefetchedPage || cache.isFetchingMore) return;
 
+  if (sparkyYtState.activePrefetchAbortController) {
+    sparkyYtState.activePrefetchAbortController.abort();
+    sparkyYtState.activePrefetchAbortController = null;
+  }
+
+  const controller = new AbortController();
+  sparkyYtState.activePrefetchAbortController = controller;
+
   console.log(`[YT] Prefetching next page for ${mode}...`);
   try {
     const api = (mode === 'playlists') ? 'fetchPlaylist' : 'searchVideos';
     const url = `${YT_API_BASE}/api/${api}?continuation=${encodeURIComponent(cache.continuation)}`;
-    const res = await fetch(url);
+    const res = await fetch(url, { signal: controller.signal });
+    
+    if (sparkyYtState.activePrefetchAbortController !== controller) {
+      console.log('[YT] Stale prefetch ignored.');
+      return;
+    }
+
     if (res.ok) {
       cache.prefetchedPage = await res.json();
       console.log(`[YT] Prefetch successful for ${mode}`);
     }
   } catch (e) {
+    if (e.name === 'AbortError') {
+      console.log('[YT] Prefetch aborted.');
+      return;
+    }
     console.warn('[YT] Prefetch failed:', e.message);
+  } finally {
+    if (sparkyYtState.activePrefetchAbortController === controller) {
+      sparkyYtState.activePrefetchAbortController = null;
+    }
   }
 }
 
