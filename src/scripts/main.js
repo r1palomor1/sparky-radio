@@ -4805,11 +4805,37 @@ function renderYtRelated() {
       </div>
     `;
 
-    // Queue on body click
+    // Play on body click
     el.onclick = (e) => {
       if (e.target.closest('.yt-card-fav') || e.target.closest('.yt-card-add')) return;
-      addYtToTempQueue(item);
-      console.log(`[YT Related] Queued: ${item.title}`);
+
+      const relatedQueue = related.map(v => ({
+        id: v.id,
+        type: 'video',
+        title: v.title,
+        channel: v.channel || '',
+        thumb: v.thumb || v.thumbnail || `https://i.ytimg.com/vi/${v.id}/mqdefault.jpg`,
+        duration: v.duration || '',
+        views: v.views || '',
+        published: v.published || ''
+      }));
+
+      const index = related.indexOf(item);
+
+      sparkyYtState.activePlaylistId = null;
+      const btnQueue = document.getElementById('btnYtQueue');
+      if (btnQueue) btnQueue.classList.add('hidden');
+
+      sparkyYtState.currentQueue = relatedQueue;
+      sparkyYtState.originalQueue = [...relatedQueue];
+      sparkyYtState.queueIndex = index;
+      sparkyYtState.isShuffleActive = false;
+
+      const btnShuffle = document.getElementById('btnYtShuffle');
+      if (btnShuffle) btnShuffle.classList.remove('active');
+
+      playYtItem(relatedQueue[index]);
+      console.log(`[YT Related] Playing: ${item.title}`);
     };
 
     // Fav button
