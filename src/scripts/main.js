@@ -2481,7 +2481,7 @@ async function searchStations(q, isManual = false) {
       }
 
       const mirrorIndicator = document.getElementById('mirrorIndicator');
-      if (mirrorIndicator) mirrorIndicator.textContent = (isEscalated ? 'ðŸŒ ' : '') + srv.split('.')[0].toUpperCase();
+      if (mirrorIndicator) mirrorIndicator.textContent = (isEscalated ? '🌐 ' : '') + srv.split('.')[0].toUpperCase();
 
       const maxClicks = Math.max(...filtered.map(s => Number(s.clickcount || 0)), 1);
       const maxVotes = Math.max(...filtered.map(s => Number(s.votes || 0)), 1);
@@ -2496,8 +2496,8 @@ async function searchStations(q, isManual = false) {
   if (success) {
     renderStations();
   } else if (pl) {
-    const fallbackMsg = q ? `NO STATIONS FOUND FOR "${q.toUpperCase()}"<br><span style="font-size:10px; color:var(--dim)">TRY SEARCHING BY GENRE (E.G. REGGAETON, ROCK)</span>` : 'âš  ALL MIRRORS UNREACHABLE';
-    pl.innerHTML = `<div class="pl-empty"><div class="pl-empty-icon">ðŸ“¡</div><div>${fallbackMsg}</div></div>`;
+    const fallbackMsg = q ? `NO STATIONS FOUND FOR "${q.toUpperCase()}"<br><span style="font-size:10px; color:var(--dim)">TRY SEARCHING BY GENRE (E.G. REGGAETON, ROCK)</span>` : '⚠️ ALL MIRRORS UNREACHABLE';
+    pl.innerHTML = `<div class="pl-empty"><div class="pl-empty-icon">📡</div><div>${fallbackMsg}</div></div>`;
   }
   isSearching = false;
 }
@@ -3179,6 +3179,25 @@ document.addEventListener('DOMContentLoaded', () => {
   let ignoreScrollCollapse = false;
   let lastRadioScrollTop = 0;
   let lastScrollTop = 0;
+  let compactInactivityTimer = null;
+  const INACTIVITY_TIME = 15000; // 15s inactivity auto-restore
+
+  function resetCompactInactivityTimer() {
+    if (compactInactivityTimer) clearTimeout(compactInactivityTimer);
+    if (!npPanel) return;
+    compactInactivityTimer = setTimeout(() => {
+      if (npPanel.classList.contains('compact-radio') || npPanel.classList.contains('compact-video')) {
+        npPanel.classList.remove('compact-radio', 'compact-video');
+        lastRadioScrollTop = 0;
+        lastScrollTop = 0;
+      }
+    }, INACTIVITY_TIME);
+  }
+
+  // Bind interaction events to restore standard view after 15s inactivity
+  ['click', 'keydown', 'mousemove', 'touchstart'].forEach(evt => {
+    window.addEventListener(evt, resetCompactInactivityTimer, { passive: true });
+  });
 
   function handleRadioScrollCollapse(e) {
     if (!npPanel || ignoreScrollCollapse) return;
@@ -3199,6 +3218,7 @@ document.addEventListener('DOMContentLoaded', () => {
       npPanel.classList.remove('compact-radio');
     }
     lastRadioScrollTop = scrollTop;
+    resetCompactInactivityTimer();
   }
 
   function handleVideoScrollCollapse(e) {
@@ -3217,6 +3237,7 @@ document.addEventListener('DOMContentLoaded', () => {
       npPanel.classList.remove('compact-video');
     }
     lastScrollTop = scrollTop;
+    resetCompactInactivityTimer();
   }
 
   if (playlistContainer) {
@@ -3244,6 +3265,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         ignoreScrollCollapse = true;
         npPanel.classList.remove('compact-radio', 'compact-video');
+        if (compactInactivityTimer) clearTimeout(compactInactivityTimer);
         
         // Wake up from immersive cinema mode to ensure main UI is fully restored
         if (isCompactVideo && typeof wakeFromCinemaMode === 'function') {

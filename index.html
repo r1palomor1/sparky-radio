@@ -198,6 +198,8 @@
               </button>
               <button id="btnYtQueue" class="btn-yt-queue hidden" title="View Temporary Queue">
                 <span class="material-symbols-outlined">music_history</span>
+              </button>              <button id="btnYtRelated" class="btn-yt-queue hidden" title="View Related Videos">
+                <span class="material-symbols-outlined">stock_media</span>
               </button>
             </div>
           </div>
@@ -380,6 +382,34 @@
           <div id="ytQueueProgressBar" class="yt-queue-progress-bar"></div>
         </div>
         <div id="ytQueueList" class="yt-queue-list">
+          <!-- JS populated -->
+        </div>
+      </div>
+
+      <!-- Related Videos Overlay (Left-sliding) -->
+      <div id="ytRelatedOverlay" class="yt-related-overlay hidden">
+        <div class="yt-related-header">
+          <div class="yt-related-header-left">
+            <div style="display: flex; align-items: center; gap: 4px; color: var(--accent); opacity: 0.8;">
+              <span class="material-symbols-outlined" style="font-size: 16px;">stock_media</span>
+              <span id="ytRelatedCount" class="yt-related-count" style="margin: 0;">0</span>
+            </div>
+            <div class="preset-dropdown-wrap" style="min-width: 80px; width: fit-content;">
+              <div class="preset-trigger" id="ytRelatedSortTrigger" style="height: 24px; font-size: 10px; padding: 0 8px; width: 100%; justify-content: space-between; gap: 8px;">
+                <span class="material-symbols-outlined" style="font-size: 14px;">sort</span>
+                <span id="ytRelatedSortLabel">Relevance</span>
+              </div>
+              <div class="preset-options" id="ytRelatedSortOptions" style="width: 100%;">
+                <div class="preset-opt active" data-sort="relevance">Relevance</div>
+                <div class="preset-opt" data-sort="views">Views</div>
+              </div>
+            </div>
+          </div>
+          <button class="yt-related-close-btn" id="btnYtRelatedClose" title="Close Related Videos">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+        <div id="ytRelatedList" class="yt-related-list">
           <!-- JS populated -->
         </div>
       </div>

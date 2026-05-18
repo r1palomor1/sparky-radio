@@ -4117,12 +4117,6 @@ body.light .filter-chip {
   100% { transform: scale(0.9);  opacity: 0.5; }
 }
 
-#btnYtAudioOnly.active {
-  color: var(--accent);
-  filter: brightness(0.7);
-}
-
-
 .yt-np-meta {
   display: flex;
   flex-direction: column;
@@ -4145,23 +4139,36 @@ body.light .filter-chip {
 .btn-yt-queue {
   background: none;
   border: none;
-  color: var(--dim);
+  color: var(--accent);
+  opacity: 0.55;
   padding: 6px;
   border-radius: 4px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s;
+  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.btn-yt-queue:hover {
+  color: var(--accent) !important;
+  opacity: 0.95;
+  transform: scale(1.18);
 }
 .btn-yt-queue.active {
   color: var(--accent) !important;
   filter: none !important;
   opacity: 1 !important;
+  text-shadow: 0 0 10px var(--accent);
 }
 #btnYtNpFav.active {
   color: #ff5252 !important;
   filter: none;
+}
+
+.btn-yt-queue.available {
+  color: var(--accent) !important;
+  opacity: 0.8;
+  filter: none !important;
 }
 
 .btn-yt-queue.pulse {
@@ -4169,9 +4176,9 @@ body.light .filter-chip {
 }
 
 @keyframes queueReminder {
-  0% { transform: scale(1); color: var(--subdim); filter: drop-shadow(0 0 0 rgba(0, 255, 136, 0)); opacity: 0.6; }
-  50% { transform: scale(1.25); color: var(--accent); filter: drop-shadow(0 0 15px rgba(0, 255, 136, 0.8)); opacity: 1; }
-  100% { transform: scale(1); color: var(--subdim); filter: drop-shadow(0 0 0 rgba(0, 255, 136, 0)); opacity: 0.6; }
+  0% { transform: scale(1); opacity: 0.55; text-shadow: none; }
+  50% { transform: scale(1.22); opacity: 1; text-shadow: 0 0 15px var(--accent); }
+  100% { transform: scale(1); opacity: 0.55; text-shadow: none; }
 }
 
 .btn-yt-queue .material-symbols-outlined { font-size: 20px; }
@@ -4330,6 +4337,21 @@ body.light .filter-chip {
   border: 1px solid transparent;
 }
 .yt-queue-list::-webkit-scrollbar-thumb:hover {
+  background: var(--accent);
+}
+
+.yt-related-list::-webkit-scrollbar {
+  width: 4px;
+}
+.yt-related-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+.yt-related-list::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 10px;
+  border: 1px solid transparent;
+}
+.yt-related-list::-webkit-scrollbar-thumb:hover {
   background: var(--accent);
 }
 
@@ -4596,6 +4618,80 @@ body.light .filter-chip {
   visibility: hidden;
   pointer-events: none;
 }
+
+/* ── YT Related Videos Overlay (Left-sliding) ────────────────────────────────────── */
+.yt-related-overlay {
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.4s;
+  transform: translateX(0);
+  visibility: visible;
+  pointer-events: auto;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(6, 12, 24, 0.99);
+  backdrop-filter: blur(20px);
+  z-index: 1900;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+}
+
+.yt-related-overlay.hidden {
+  display: flex !important;
+  transform: translateX(-100%);
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.yt-related-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 10px 10px 12px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.yt-related-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--accent);
+  font-family: 'Orbitron', sans-serif;
+  font-size: calc(11px * var(--text-scale));
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+.yt-related-close-btn {
+  background: none;
+  border: none;
+  color: var(--dim);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  transition: color 0.2s;
+}
+
+.yt-related-close-btn:hover {
+  color: var(--accent);
+}
+
+.yt-related-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
 
 
 

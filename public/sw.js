@@ -1,9 +1,7 @@
-const CACHE_NAME = 'sparky-radio';
+const CACHE_NAME = 'sparky-radio-v2.34';
 const ASSETS = [
   '/',
   '/index.html',
-  '/src/scripts/main.js',
-  '/src/styles/main.css',
   '/material-symbols.css',
   '/icon-192.png',
   '/icon-512.png',
