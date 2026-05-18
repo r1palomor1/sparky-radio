@@ -230,7 +230,7 @@
 - [1bdcb84] **[Radio - UI Upgrade]** Collapsible mini-player on scroll (R-U6)
 - [86dcf80] **[Radio - UI Upgrade]** Favorites grid card gradient art (R-U5)
 - [0477b38] **[Video - Optimization]** Innertube singleton across API handlers (V-O1)
-- [ ] **[Video - Optimization]** Full-queue server-side hydration (V-O2)
+- [Completed] **[Video - Optimization]** Full-queue server-side hydration (V-O2)
 - [ ] **[Video - Optimization]** Prefetch race condition fix (V-O5)
 - [ ] **[Video - Optimization]** Cancel stale requests on new search (V-O6)
 - [ ] **[Video - Enhancement]** Related videos sidebar (V-E4)

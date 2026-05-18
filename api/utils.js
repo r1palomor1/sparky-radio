@@ -2,13 +2,22 @@
  * Shared utilities for YouTube API handlers
  */
 
-// MULTI-STAGE TOKEN HUNTER (Broad + Targeted)
+// TARGETED PAGINATION TOKEN HUNTER (Prevents accidental chip/tab matching loops)
 export function findToken(obj) {
     if (!obj || typeof obj !== 'object') return null;
-    if (obj.continuationCommand?.payload?.token) return obj.continuationCommand.payload.token;
-    if (obj.continuation) return obj.continuation;
-    if (obj.token && typeof obj.token === 'string' && obj.token.length > 20) return obj.token;
 
+    // A pagination continuation token is structurally ALWAYS housed inside a continuationItemRenderer.
+    // By restricting extraction to these nodes, we avoid picking up static search filter/tab tokens.
+    if (obj.continuationItemRenderer) {
+        const endpoint = obj.continuationItemRenderer.continuationEndpoint || obj.continuationItemRenderer.navigationEndpoint;
+        if (endpoint?.continuationCommand?.token) {
+            return endpoint.continuationCommand.token;
+        }
+        if (obj.continuationItemRenderer.token) return obj.continuationItemRenderer.token;
+        if (obj.continuationItemRenderer.continuationCommand?.token) return obj.continuationItemRenderer.continuationCommand.token;
+    }
+
+    // Traverse recursively through key children
     for (const key in obj) {
         if (Object.prototype.hasOwnProperty.call(obj, key)) {
             const token = findToken(obj[key]);

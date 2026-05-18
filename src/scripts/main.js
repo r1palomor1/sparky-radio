@@ -3177,6 +3177,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const ytResultsContainer = document.getElementById('ytResults');
   const ytHubContainer = document.getElementById('ytHub');
   let ignoreScrollCollapse = false;
+  let lastRadioScrollTop = 0;
+  let lastScrollTop = 0;
 
   function handleRadioScrollCollapse(e) {
     if (!npPanel || ignoreScrollCollapse) return;
@@ -3190,11 +3192,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const scrollTop = e.currentTarget.scrollTop;
-    if (scrollTop > 120) {
+    // Only collapse if scrolling down
+    if (scrollTop > 120 && scrollTop > lastRadioScrollTop) {
       npPanel.classList.add('compact-radio');
     } else if (scrollTop <= 10) {
       npPanel.classList.remove('compact-radio');
     }
+    lastRadioScrollTop = scrollTop;
   }
 
   function handleVideoScrollCollapse(e) {
@@ -3206,11 +3210,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const scrollTop = e.currentTarget.scrollTop;
-    if (scrollTop > 50) {
+    // Only collapse if scrolling down
+    if (scrollTop > 50 && scrollTop > lastScrollTop) {
       npPanel.classList.add('compact-video');
     } else if (scrollTop <= 10) {
       npPanel.classList.remove('compact-video');
     }
+    lastScrollTop = scrollTop;
   }
 
   if (playlistContainer) {
@@ -3223,7 +3229,7 @@ document.addEventListener('DOMContentLoaded', () => {
     ytHubContainer.addEventListener('scroll', handleVideoScrollCollapse, { passive: true });
   }
 
-  // Allow tapping compact player to expand it back to full and scroll to top
+  // Allow tapping compact player to expand it back to full
   if (npPanel) {
     npPanel.addEventListener('click', (e) => {
       // Don't expand if clicking interactive links or buttons (like stop/play buttons)
@@ -3239,22 +3245,23 @@ document.addEventListener('DOMContentLoaded', () => {
         ignoreScrollCollapse = true;
         npPanel.classList.remove('compact-radio', 'compact-video');
         
-        // Scroll active container back to top
-        if (typeof sparkyYtState !== 'undefined' && sparkyYtState.isModeActive) {
-          if (sparkyYtState.currentSubMode === 'hub') {
-            if (ytHubContainer) ytHubContainer.scrollTo({ top: 0, behavior: 'smooth' });
-          } else {
-            if (ytResultsContainer) ytResultsContainer.scrollTo({ top: 0, behavior: 'smooth' });
-          }
-        } else {
-          if (playlistContainer) {
-            playlistContainer.scrollTo({ top: 0, behavior: 'smooth' });
-          }
+        // Wake up from immersive cinema mode to ensure main UI is fully restored
+        if (isCompactVideo && typeof wakeFromCinemaMode === 'function') {
+          wakeFromCinemaMode();
+        }
+
+        // Lock scroll thresholds to prevent immediate re-collapse on minor scrolls
+        if (isCompactVideo && ytResultsContainer) {
+          lastScrollTop = ytResultsContainer.scrollTop;
+        } else if (isCompactVideo && ytHubContainer) {
+          lastScrollTop = ytHubContainer.scrollTop;
+        } else if (isCompactRadio && playlistContainer) {
+          lastRadioScrollTop = playlistContainer.scrollTop;
         }
 
         setTimeout(() => {
           ignoreScrollCollapse = false;
-        }, 800); // 800ms locks the ignore flag until smooth scroll is fully complete
+        }, 300); // 300ms lock protects against touch release vibrations
       }
     });
   }
@@ -3461,6 +3468,12 @@ function resetCinemaTimer() {
   clearTimeout(cinemaModeTimer);
   if (!sparkyYtState.isModeActive) return;
   if (!sparkyYtState.playerInstance) return;
+
+  // Suppress automatic cinema mode entry if the video player is in compact mode
+  const npPanel = document.querySelector('.now-playing');
+  if (npPanel && (npPanel.classList.contains('compact-video') || npPanel.classList.contains('compact-radio'))) {
+    return;
+  }
 
   const app = document.querySelector('.app');
   // Don't auto-rehide if user manually exited by pausing, but we handle that via paused state below.
@@ -4074,12 +4087,12 @@ function processYtPage(data, isAppending) {
       if (el) {
         const endMsg = document.createElement('div');
         endMsg.className = 'yt-end-results';
-        endMsg.innerHTML = 'â€” End of results â€”';
+        endMsg.innerHTML = '— End of results —';
         el.appendChild(endMsg);
       }
     }
   } else if (!isAppending) {
-    showYtError('No results found â€” try a different search.');
+    showYtError('No results found — try a different search.');
   }
 }
 
@@ -4175,27 +4188,34 @@ async function hydrateYtQueueTags() {
   const queue = sparkyYtState.currentQueue;
   if (!queue || !queue.length) return;
 
-  const BATCH_SIZE = 5;
   const toHydrate = queue.filter(item => !item.views || !item.published);
   if (!toHydrate.length) return;
 
-  async function hydrateOne(item) {
-    if (item.views && item.published) return;
-    try {
-      const res = await fetch(`${YT_API_BASE}/api/hydrateTags?id=${item.id}`);
-      if (!res.ok) return;
-      const tags = await res.json();
-      // Mutate state directly â€” renderYtQueue() reads from these objects
-      if (tags.views)     item.views     = tags.views;
-      if (tags.published) item.published = tags.published;
-    } catch (e) { /* silent */ }
-  }
+  const CHUNK_SIZE = 15;
+  console.log(`[YT] Batch hydrating ${toHydrate.length} items in chunks of ${CHUNK_SIZE}...`);
 
-  // Process in batches; re-render the queue drawer once per batch so
-  // the display always reflects the latest hydrated state values.
-  for (let i = 0; i < toHydrate.length; i += BATCH_SIZE) {
-    await Promise.all(toHydrate.slice(i, i + BATCH_SIZE).map(hydrateOne));
-    renderYtQueue(); // single repaint per batch â€” reads updated item.views / item.published
+  for (let i = 0; i < toHydrate.length; i += CHUNK_SIZE) {
+    const chunk = toHydrate.slice(i, i + CHUNK_SIZE);
+    const ids = chunk.map(item => item.id).join(',');
+
+    try {
+      const res = await fetch(`${YT_API_BASE}/api/hydrateTags?ids=${encodeURIComponent(ids)}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data && Array.isArray(data.results)) {
+          data.results.forEach(result => {
+            const item = queue.find(q => q.id === result.id);
+            if (item) {
+              if (result.views)     item.views     = result.views;
+              if (result.published) item.published = result.published;
+            }
+          });
+          renderYtQueue();
+        }
+      }
+    } catch (e) {
+      console.warn('[YT] Batch chunk hydration failed:', e.message);
+    }
   }
 }
 
@@ -4520,6 +4540,20 @@ function highlightYtCard(id, shouldScroll = false) {
 
       // Only scroll if NOT visible, preventing the 'jump' on direct click
       if (!isVisible) {
+        // Prevent scrolling elements inside hidden views/overlays, which causes browser viewport shift regressions
+        if (container.id === 'ytQueueList') {
+          const overlay = document.getElementById('ytQueueOverlay');
+          if (overlay && overlay.classList.contains('hidden')) return;
+        }
+        if (container.id === 'ytResults') {
+          const results = document.getElementById('ytResults');
+          if (results && results.classList.contains('hidden')) return;
+        }
+        if (container.id === 'ytHub') {
+          const hub = document.getElementById('ytHub');
+          if (hub && hub.classList.contains('hidden')) return;
+        }
+
         activeCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       }
     }, 50);
@@ -4775,7 +4809,11 @@ function renderYtQueue() {
     container.appendChild(el);
 
     if (isActive) {
-      setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 100);
+      // Prevent scrolling the active item if the queue list overlay is hidden to avoid viewport shifts
+      const overlay = document.getElementById('ytQueueOverlay');
+      if (overlay && !overlay.classList.contains('hidden')) {
+        setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 100);
+      }
     }
   });
 }
@@ -4860,7 +4898,7 @@ async function playYtItem(item) {
   const titleEl = document.getElementById('ytNpTitle');
   const channelEl = document.getElementById('ytNpChannel');
   if (titleEl) titleEl.textContent = item.title || 'Loading...';
-  if (channelEl) channelEl.textContent = item.type === 'playlist' ? 'â–¶ Playlist' : 'â–¶ Video';
+  if (channelEl) channelEl.textContent = item.type === 'playlist' ? '▶ Playlist' : '▶ Video';
 
   // Update/Inject NP heart button
   let btnFav = document.getElementById('btnYtNpFav');
