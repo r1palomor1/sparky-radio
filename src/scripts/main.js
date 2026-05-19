@@ -3783,6 +3783,11 @@ function toggleYtMode(activate) {
   if (eqBtn) eqBtn.style.display = activate ? 'none' : '';
   if (eqRack) eqRack.style.display = activate ? 'none' : '';
 
+  const castBtn = document.getElementById('castBtn');
+  if (castBtn) {
+    castBtn.style.display = activate ? 'none' : 'inline-block';
+  }
+
   // Footer icon swap
   const icon = document.getElementById('modeToggleIcon');
   const btn = document.getElementById('btnModeToggle');

@@ -50,13 +50,11 @@
 | R-E8 | **Export/Import include EQ presets** — current export schema (`version:2`) contains favorites and usageStats but omits `sparky_eq_presets` and `sparky_custom_categories`. | Users lose custom EQ tuning when migrating devices. | 🟡 Medium | 🟢 Low |
 | R-E9 | **"Play Similar" action on Now Playing** — query radio-browser by the playing station's primary tag to surface genre-adjacent stations. | Contextual discovery without leaving the NP panel. | 🔥 High | 🟡 Medium |
 | R-E10 | **"Station of the Day" cold-start banner** — on first daily load, feature one trending station pulled from radio-browser's `/stations/topclick` endpoint. | Empty-state screen on first launch is generic; a curated pick drives engagement. | 🟡 Medium | 🟡 Medium |
-| R-E11 | **Native Google Cast SDK integration** — embed `<google-cast-launcher>` and initialize Cast Web SDK with the default media receiver to cast direct audio streams to Nest devices. | Allows casting stream audio directly from within the app rather than manually casting system-wide. | 🔥 High | 🟡 Medium |
+| R-E11 | **Native Google Cast SDK integration (Radio Only)** — embed `<google-cast-launcher>` and initialize Cast Web SDK with the default media receiver to cast direct audio streams to Nest devices. Only active in Radio Mode due to YouTube streaming restrictions. | Allows casting stream audio directly from within the app rather than manually casting system-wide. | 🔥 High | 🟡 Medium |
 
 ---
 
 ### 1.3 UI Upgrade Ideas
-
-> All items preserve existing functionality.
 
 | # | Idea | Details | Impact | Effort |
 |---|------|---------|--------|--------|
@@ -124,8 +122,6 @@
 
 ### 2.3 UI Upgrade Ideas
 
-> All items preserve existing functionality.
-
 | # | Idea | Details | Impact | Effort |
 |---|------|---------|--------|--------|
 | V-U1 | **Cinema Mode auto-dim gradient overlay** — replace the abrupt `opacity: 0.2` footer fade with a cinematic vignette using a `linear-gradient` mask from transparent to near-black at the screen edges. | Current footer hide is jarring on dim-lit viewing; gradient feels native to cinema interfaces. | 🔥 High | 🟢 Low |
@@ -191,7 +187,7 @@
 - **V-E4** Related videos sidebar
 - **V-U4** Active queue item now-playing bar
 - **V-U7** Hybrid search suggestions dropdown
-- **R-E11** Native Google Cast SDK integration
+- **R-E11** Native Google Cast SDK integration (Radio Only)
 
 ### 🏗️ Architectural — Must Plan Carefully
 - **R-O2** Targeted DOM patching (replace innerHTML redraws)
@@ -236,7 +232,7 @@
 - [8d2efc5] **[Video - Enhancement]** Related videos sidebar (V-E4)
 - [Skipped] **[Video - UI Upgrade]** Active queue item now-playing bar (V-U4) - skipped; active card highlight and ambient favicon glow already satisfy this requirement
 - [28f81ef] **[Video - UI Upgrade]** Hybrid search suggestions dropdown (V-U7)
-- [1a696fb] **[Radio - Enhancement]** Native Google Cast SDK integration (R-E11)
+- [1a696fb] **[Radio - Enhancement]** Native Google Cast SDK integration (R-E11) *(Restricted to Radio Mode)*
 
 **Phase 3: Architectural**
 - [ ] **[Radio - Optimization]** Targeted DOM patching (R-O2)
