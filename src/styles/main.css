@@ -5064,3 +5064,22 @@ body.light .filter-chip {
 .now-playing:not(.compact-radio):not(.compact-video) {
   animation: normalRestored 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
+
+/* --- GOOGLE CAST LAUNCHER --- */
+google-cast-launcher {
+  --connected-color: var(--accent);
+  --disconnected-color: var(--dim);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  opacity: 0.8;
+  transition: opacity 0.2s, filter 0.2s;
+  vertical-align: middle;
+}
+google-cast-launcher:hover {
+  opacity: 1;
+  filter: drop-shadow(0 0 8px var(--accent));
+}

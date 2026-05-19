@@ -15,6 +15,7 @@
   <link rel="stylesheet" href="./src/styles/main.css">
   <link rel="stylesheet" href="./src/styles/theme-engine.css">
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  <script src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1"></script>
   <meta name="theme-color" id="metaThemeColor" content="#061021">
   <script>
     (function() {
@@ -87,6 +88,7 @@
       </div>
 
       <div class="header-right">
+        <google-cast-launcher id="castBtn" style="cursor:pointer; display:inline-block; vertical-align:middle;"></google-cast-launcher>
         <button id="themeBtn" title="Change Theme" style="background:transparent; border:none; color:var(--accent); cursor:pointer; display:flex; align-items:center; padding:4px;">
           <span class="material-symbols-outlined" style="font-size: 20px;">palette</span>
         </button>

@@ -163,6 +163,7 @@ let textScale = parseFloat(localStorage.getItem('sparky_text_scale')) || 1.0;
 let shuffle = false;
 let repeat = false;
 let rafId, hls;
+let isCasting = false;
 let filterCountry = 'ALL';
 let filterLang = 'ALL';
 let panelColor = localStorage.getItem('sparky_panel_color') || '#061021';
@@ -1089,6 +1090,103 @@ function idleViz() {
 }
 idleViz();
 
+// --- GOOGLE CAST FUNCTIONS ---
+window.__onGCastApiAvailable = function (isAvailable) {
+  if (isAvailable) {
+    initializeCastApi();
+  }
+};
+
+function initializeCastApi() {
+  const castContext = cast.framework.CastContext.getInstance();
+  castContext.setOptions({
+    receiverApplicationId: chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID,
+    autoJoinPolicy: chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED
+  });
+
+  castContext.addEventListener(
+    cast.framework.CastContextEventType.SESSION_STATE_CHANGED,
+    (event) => {
+      switch (event.sessionState) {
+        case cast.framework.SessionState.SESSION_STARTED:
+          console.log('[CAST] Session started');
+          isCasting = true;
+          const vol = document.getElementById('volSlider').value;
+          const castSession = castContext.getCurrentSession();
+          if (castSession) {
+            castSession.setVolume(vol / 100);
+          }
+          if (isPlaying && currentSrc) {
+            audioEl.pause();
+            audioEl.src = '';
+            if (hls) { hls.destroy(); hls = null; }
+            castPlayStation(currentSrc);
+          } else if (currentSrc) {
+            castPlayStation(currentSrc);
+          }
+          break;
+        case cast.framework.SessionState.SESSION_ENDED:
+          console.log('[CAST] Session ended');
+          const wasPlaying = isPlaying;
+          isCasting = false;
+          if (wasPlaying && currentSrc) {
+            playStationObj(currentSrc);
+          } else {
+            stopPlayback();
+          }
+          break;
+      }
+    }
+  );
+}
+
+function castPlayStation(st) {
+  const castSession = cast.framework.CastContext.getInstance().getCurrentSession();
+  if (!castSession) return;
+  const url = st.url_resolved || st.url;
+  
+  const mediaInfo = new chrome.cast.media.MediaInfo(url, 'audio/mp3');
+  mediaInfo.metadata = new chrome.cast.media.MusicTrackMediaMetadata();
+  mediaInfo.metadata.title = st.name;
+  mediaInfo.metadata.artist = st.tags || 'Sparky Radio';
+  if (st.favicon) {
+    mediaInfo.metadata.images = [{ url: st.favicon }];
+  }
+  
+  const request = new chrome.cast.media.LoadRequest(mediaInfo);
+  castSession.loadMedia(request).then(
+    () => {
+      console.log('[CAST] Load success');
+      isPlaying = true;
+      setStatus('playing', 'Casting');
+      syncPlayBtns();
+      cancelAnimationFrame(rafId);
+      castViz();
+    },
+    (err) => {
+      console.error('[CAST] Load error', err);
+      setStatus('error', 'Cast Error');
+    }
+  );
+}
+
+function castViz() {
+  cancelAnimationFrame(rafId);
+  let t = 0;
+  (function tick() {
+    if (!isCasting || !isPlaying) return;
+    rafId = requestAnimationFrame(tick);
+    t += 0.15;
+    vizBars.forEach((b, i) => {
+      const val = Math.abs(Math.sin(t + i * 0.1)) * 0.4 + Math.abs(Math.cos(t * 0.7 + i * 0.25)) * 0.4;
+      const minH = 2;
+      const maxH = 26;
+      const h = minH + (val * maxH);
+      b.style.height = h.toFixed(1) + 'px';
+    });
+  })();
+}
+
 // â•â• STATUS â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 function setStatus(state, txt) {
   const dot = document.getElementById('statusDot');
@@ -1281,6 +1379,15 @@ function playStationObj(st) {
   if (audioCtx?.state === 'suspended') audioCtx.resume();
   initAudio();
   setTimeout(() => debugLayout('AFTER-RADIO-PLAY'), 300);
+
+  if (isCasting) {
+    setStatus('buffering', 'Casting...');
+    updateNowPlaying(st);
+    updateMediaSession(st);
+    castPlayStation(st);
+    return;
+  }
+
   if (hls) { hls.destroy(); hls = null; }
   audioEl.pause();
   const url = st.url_resolved || st.url;
@@ -1349,6 +1456,20 @@ function playAtIndex(idx) {
 }
 
 function stopPlayback() {
+  if (isCasting) {
+    const castSession = cast.framework.CastContext.getInstance().getCurrentSession();
+    if (castSession) {
+      const media = castSession.getMediaSession();
+      if (media) {
+        try { media.stop(null, () => {}, () => {}); } catch(e) {}
+      }
+    }
+    isPlaying = false;
+    setStatus('', 'Idle');
+    syncPlayBtns();
+    idleViz(); renderCurrent();
+    return;
+  }
   audioEl.pause(); audioEl.src = '';
   isPlaying = false;
   wasPlayingBeforeOffline = false; // Reset network reconnect state on manual stop
@@ -1358,6 +1479,20 @@ function stopPlayback() {
 }
 
 function togglePlay() {
+  if (isCasting) {
+    const castSession = cast.framework.CastContext.getInstance().getCurrentSession();
+    if (castSession) {
+      const media = castSession.getMediaSession();
+      if (media) {
+        if (isPlaying) {
+          media.pause(null, () => { isPlaying = false; syncPlayBtns(); idleViz(); }, () => {});
+        } else {
+          media.play(null, () => { isPlaying = true; syncPlayBtns(); castViz(); }, () => {});
+        }
+      }
+    }
+    return;
+  }
   if (isPlaying) stopPlayback();
   else if (currentSrc) playStationObj(currentSrc);
   else if (activeTab === 'stations' && stations.length) playAtIndex(0);
@@ -2960,6 +3095,12 @@ document.addEventListener('DOMContentLoaded', () => {
     volSlider.oninput = (e) => {
       const v = e.target.value;
       audioEl.volume = v / 100;
+      if (isCasting) {
+        const castSession = cast.framework.CastContext.getInstance().getCurrentSession();
+        if (castSession) {
+          castSession.setVolume(v / 100);
+        }
+      }
       if (sparkyYtState.playerInstance && typeof sparkyYtState.playerInstance.setVolume === 'function') {
         sparkyYtState.playerInstance.setVolume(v);
       }
