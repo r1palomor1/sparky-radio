@@ -234,6 +234,7 @@
 - [28f81ef] **[Video - UI Upgrade]** Hybrid search suggestions dropdown (V-U7)
 - [1a696fb] **[Radio - Enhancement]** Native Google Cast SDK integration (R-E11) *(Restricted to Radio Mode)*
 - [608182a] **[Radio - Enhancement]** Persistent recent search history & hybrid Favorites discovery dropdown (R-E12)
+- [cfdae88] **[Radio - UI Upgrade]** Major Radio Cinema Mode visual overhaul & automated idle triggers (R-U8)
 
 **Phase 3: Architectural**
 - [55932d7] **[Radio - Optimization]** Targeted DOM patching (R-O2)
