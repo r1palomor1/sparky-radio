@@ -1503,6 +1503,25 @@ function togglePlay() {
 }
 
 function scrollToActive() {
+  if (activeTab === 'stations') {
+    const pl = document.getElementById('playlist');
+    if (pl && lastRenderedList) {
+      const activeIdx = lastRenderedList.findIndex(st => {
+        return currentSrc && (
+          (st.stationuuid && currentSrc.stationuuid === st.stationuuid) ||
+          (st.sparkyId && currentSrc.sparkyId === st.sparkyId) ||
+          (norm(currentSrc.url) === norm(st.url_resolved || st.url)) ||
+          (norm(currentSrc.url_resolved) === norm(st.url_resolved || st.url))
+        );
+      });
+      if (activeIdx !== -1) {
+        const ROW_HEIGHT = 98;
+        pl.scrollTo({ top: activeIdx * ROW_HEIGHT - (pl.clientHeight / 2) + (ROW_HEIGHT / 2), behavior: 'smooth' });
+        return;
+      }
+    }
+  }
+
   const activeEl = document.querySelector('.pl-item.active, .pl-discovery-card.active');
   if (!activeEl) return;
 
@@ -1658,57 +1677,76 @@ function renderStations() {
   const mT = Math.max(...displayStations.map(s => s.clicktrend || 0), 1);
 
   const currentFavs = loadFavs();
-  
-  // R-O2 Targeted DOM Patching Optimization
-  const existingItems = pl.querySelectorAll('.pl-item');
-  let matches = existingItems.length === displayStations.length;
-  if (matches) {
-    for (let i = 0; i < displayStations.length; i++) {
-      const el = existingItems[i];
-      const st = displayStations[i];
-      if (el.getAttribute('data-url') !== (st.url || st.url_resolved || '') || 
-          el.getAttribute('data-uuid') !== (st.stationuuid || st.id || '')) {
-        matches = false;
-        break;
+
+  // R-O6: Virtualization Layout Calculations
+  const ROW_HEIGHT = 98;
+  const scrollTop = pl.scrollTop;
+  const viewportHeight = pl.clientHeight || 500;
+  const startIndex = Math.max(0, Math.floor(scrollTop / ROW_HEIGHT) - 5);
+  const endIndex = Math.min(displayStations.length - 1, Math.floor((scrollTop + viewportHeight) / ROW_HEIGHT) + 5);
+
+  const lastStart = parseInt(pl.dataset.lastStart);
+  const lastEnd = parseInt(pl.dataset.lastEnd);
+  const lastLen = parseInt(pl.dataset.lastLen);
+
+  const rangeChanged = lastStart !== startIndex || lastEnd !== endIndex || lastLen !== displayStations.length;
+
+  // R-O2 Targeted DOM Patching Optimization inside the visible slice
+  if (!rangeChanged) {
+    const existingItems = pl.querySelectorAll('.pl-item');
+    let matches = existingItems.length === (endIndex - startIndex + 1);
+    if (matches) {
+      for (let idx = 0; idx < existingItems.length; idx++) {
+        const el = existingItems[idx];
+        const i = startIndex + idx;
+        const st = displayStations[i];
+        if (el.getAttribute('data-url') !== (st.url || st.url_resolved || '') || 
+            el.getAttribute('data-uuid') !== (st.stationuuid || st.id || '')) {
+          matches = false;
+          break;
+        }
       }
+    }
+
+    if (matches) {
+      existingItems.forEach((el, idx) => {
+        const i = startIndex + idx;
+        const st = displayStations[i];
+        const actv = !!(currentSrc && (
+          (st.stationuuid && currentSrc.stationuuid === st.stationuuid) ||
+          (st.sparkyId && currentSrc.sparkyId === st.sparkyId) ||
+          (norm(currentSrc.url) === norm(st.url_resolved || st.url)) ||
+          (norm(currentSrc.url_resolved) === norm(st.url_resolved || st.url))
+        ));
+        
+        const wasActive = el.classList.contains('active');
+        if (actv !== wasActive) {
+          el.classList.toggle('active', actv);
+        }
+        
+        const hasFavicon = st.favicon && st.favicon.trim() !== '';
+        if (actv && hasFavicon) {
+          el.style.setProperty('--ambient-bg', `url('${esc(st.favicon)}')`);
+          el.classList.add('has-ambient-bg');
+        } else {
+          el.style.removeProperty('--ambient-bg');
+          el.classList.remove('has-ambient-bg');
+        }
+        
+        const favd = isFav(st, currentFavs);
+        const heart = el.querySelector('.pl-heart');
+        if (heart) {
+          heart.classList.toggle('is-fav', favd);
+        }
+      });
+      lastRenderedList = displayStations;
+      return;
     }
   }
 
-  if (matches) {
-    existingItems.forEach((el, i) => {
-      const st = displayStations[i];
-      const actv = !!(currentSrc && (
-        (st.stationuuid && currentSrc.stationuuid === st.stationuuid) ||
-        (st.sparkyId && currentSrc.sparkyId === st.sparkyId) ||
-        (norm(currentSrc.url) === norm(st.url_resolved || st.url)) ||
-        (norm(currentSrc.url_resolved) === norm(st.url_resolved || st.url))
-      ));
-      
-      const wasActive = el.classList.contains('active');
-      if (actv !== wasActive) {
-        el.classList.toggle('active', actv);
-      }
-      
-      const hasFavicon = st.favicon && st.favicon.trim() !== '';
-      if (actv && hasFavicon) {
-        el.style.setProperty('--ambient-bg', `url('${esc(st.favicon)}')`);
-        el.classList.add('has-ambient-bg');
-      } else {
-        el.style.removeProperty('--ambient-bg');
-        el.classList.remove('has-ambient-bg');
-      }
-      
-      const favd = isFav(st, currentFavs);
-      const heart = el.querySelector('.pl-heart');
-      if (heart) {
-        heart.classList.toggle('is-fav', favd);
-      }
-    });
-    lastRenderedList = displayStations;
-    return;
-  }
-
-  pl.innerHTML = displayStations.map((st, i) => {
+  // Render the visible window slice
+  const visibleItemsHtml = displayStations.slice(startIndex, endIndex + 1).map((st, sliceIdx) => {
+    const i = startIndex + sliceIdx;
     const actv = currentSrc && (
       (st.stationuuid && currentSrc.stationuuid === st.stationuuid) ||
       (st.sparkyId && currentSrc.sparkyId === st.sparkyId) ||
@@ -1733,7 +1771,9 @@ function renderStations() {
     const finalTags = dispTags.slice(0, 3).join(', ') || 'Radio';
     const rescued = st.isRescued ? ' rescued' : '';
 
-    const ambientStyle = actv && st.favicon && st.favicon.trim() !== '' ? ` style="--ambient-bg: url('${esc(st.favicon)}');"` : '';
+    const ambientStyle = actv && st.favicon && st.favicon.trim() !== '' 
+      ? ` style="--ambient-bg: url('${esc(st.favicon)}'); position: absolute; top: ${i * ROW_HEIGHT}px; left: 0; right: 0; margin-bottom: 0;"` 
+      : ` style="position: absolute; top: ${i * ROW_HEIGHT}px; left: 0; right: 0; margin-bottom: 0;"`;
     const ambientClass = actv && st.favicon && st.favicon.trim() !== '' ? ' has-ambient-bg' : '';
 
     return `<div class="pl-item${actv ? ' active' : ''}${rescued}${ambientClass}" data-idx="${i}" data-url="${st.url || st.url_resolved || ''}" data-uuid="${st.stationuuid || st.id || ''}"${ambientStyle}>
@@ -1750,48 +1790,81 @@ function renderStations() {
         </div>
       </div>
       <div class="pl-actions-col">
-        <button class="pl-action-btn pl-heart-btn" data-fav="${i}" title="Toggle Favorite">
+        <button class="pl-action-btn pl-heart-btn" title="Toggle Favorite">
           <span class="material-symbols-outlined pl-heart${favd ? ' is-fav' : ''}">favorite</span>
         </button>
-        <button class="pl-action-btn pl-remove" data-rmst="${i}" title="Remove Station">
+        <button class="pl-action-btn pl-remove" title="Remove Station">
           <span class="material-symbols-outlined">delete</span>
         </button>
       </div>
     </div>`;
-
-
   }).join('');
-  pl.querySelectorAll('.pl-item').forEach((el, idx) => {
-    el.onclick = (e) => {
-      if (e.target.closest('button')) return;
-      playStationObj(displayStations[idx]);
-    };
-  });
-  pl.querySelectorAll('.pl-heart-btn').forEach(btn => btn.onclick = (e) => {
-    e.stopPropagation();
-    const st = displayStations[btn.dataset.fav];
-    if (isFav(st)) {
-      removeFavByUrl(st.url_resolved || st.url);
-      renderStations();
-    } else {
-      const suggested = getSuggestedCategory(st);
-      openEditModal(st.name, st.url_resolved || st.url, suggested, st.favicon || '', (newName, newUrl, newCat, newFav) => {
-        if (newName && newUrl) {
-          const finalCat = (newCat === 'Select Category') ? 'Undefined' : newCat;
-          addFav(st, newName, newUrl, finalCat, newFav);
-          renderStations();
-        }
-      }, "ADD TO FAVORITES", "ADD FAVORITES", "category");
-    }
-  });
-  pl.querySelectorAll('.pl-remove').forEach(btn => btn.onclick = (e) => {
-    e.stopPropagation(); const idx = parseInt(btn.dataset.rmst);
-    sparkyConfirm(`Remove [${displayStations[idx].name}]?`, () => {
-      const targetUrl = displayStations[idx].url;
-      stations = stations.filter(s => s.url !== targetUrl);
-      renderStations();
+
+  const totalHeight = displayStations.length * ROW_HEIGHT;
+  pl.innerHTML = `<div class="pl-virtual-spacer" style="height: ${totalHeight}px; position: relative; width: 100%; overflow: hidden;">${visibleItemsHtml}</div>`;
+
+  pl.dataset.lastStart = startIndex;
+  pl.dataset.lastEnd = endIndex;
+  pl.dataset.lastLen = displayStations.length;
+
+  // Set up high-performance scroll listener to re-slice viewport
+  if (!pl.dataset.scrollBound) {
+    pl.addEventListener('scroll', () => {
+      if (activeTab === 'stations') {
+        renderStations();
+      }
     });
-  });
+    pl.dataset.scrollBound = 'true';
+  }
+
+  // Set up unified event delegation on the playlist scroll container
+  if (!pl.dataset.delegatedStations) {
+    pl.addEventListener('click', (e) => {
+      if (activeTab !== 'stations') return;
+      const item = e.target.closest('.pl-item');
+      if (!item) return;
+
+      const idx = parseInt(item.getAttribute('data-idx'));
+      if (isNaN(idx) || !lastRenderedList || !lastRenderedList[idx]) return;
+
+      const st = lastRenderedList[idx];
+
+      const heartBtn = e.target.closest('.pl-heart-btn');
+      if (heartBtn) {
+        e.stopPropagation();
+        if (isFav(st)) {
+          removeFavByUrl(st.url_resolved || st.url);
+          renderStations();
+        } else {
+          const suggested = getSuggestedCategory(st);
+          openEditModal(st.name, st.url_resolved || st.url, suggested, st.favicon || '', (newName, newUrl, newCat, newFav) => {
+            if (newName && newUrl) {
+              const finalCat = (newCat === 'Select Category') ? 'Undefined' : newCat;
+              addFav(st, newName, newUrl, finalCat, newFav);
+              renderStations();
+            }
+          }, "ADD TO FAVORITES", "ADD FAVORITES", "category");
+        }
+        return;
+      }
+
+      const removeBtn = e.target.closest('.pl-remove');
+      if (removeBtn) {
+        e.stopPropagation();
+        sparkyConfirm(`Remove [${st.name}]?`, () => {
+          const targetUrl = st.url;
+          stations = stations.filter(s => s.url !== targetUrl);
+          renderStations();
+        });
+        return;
+      }
+
+      if (e.target.closest('button')) return;
+      playStationObj(st);
+    });
+    pl.dataset.delegatedStations = 'true';
+  }
+
   lastRenderedList = displayStations;
 }
 

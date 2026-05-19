@@ -234,9 +234,13 @@ body.light .app {
   }
 
   .logo-title {
-    font-size: calc(13px * var(--text-scale));
-    letter-spacing: 2px;
+    font-size: calc(12.5px * var(--text-scale));
+    letter-spacing: 0.5px;
     white-space: nowrap;
+    gap: 0px;
+  }
+  .logo-accent {
+    margin-right: 5px;
   }
 
   .app.stats-compact .badge-clicks,
@@ -250,8 +254,8 @@ body.light .app {
   background: var(--bg);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
-  padding: 6px 15px;
-  /* Added horizontal padding for breathability */
+  padding: 6px 0px;
+  /* Aligned perfectly with Now Playing card bounds */
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -268,11 +272,11 @@ body.light .header {
 .logo-title {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 0px;
   font-family: 'Orbitron', monospace;
   font-weight: 900;
-  font-size: calc(17px * var(--text-scale));
-  letter-spacing: 4px;
+  font-size: calc(16.5px * var(--text-scale));
+  letter-spacing: 2px;
   color: var(--text);
   line-height: 1;
   text-transform: uppercase;
@@ -282,13 +286,18 @@ body.light .header {
 .logo-accent {
   color: var(--accent);
   filter: var(--accent-correction);
+  margin-right: 8px;
   transition: filter 0.3s ease;
 }
 
 @media (max-width: 480px) {
   .logo-title {
-    font-size: calc(14.5px * var(--text-scale));
-    letter-spacing: 1px;
+    font-size: calc(13px * var(--text-scale));
+    letter-spacing: 0.5px;
+    gap: 0px;
+  }
+  .logo-accent {
+    margin-right: 5px;
   }
 
   .header-right {
@@ -792,7 +801,7 @@ body.light .header {
 .bolt-icon {
   color: var(--accent);
   font-size: 24px;
-  margin-right: 4px;
+  margin-right: 2px;
   filter: drop-shadow(0 0 8px rgba(var(--accent-rgb, 0, 242, 255), 0.3));
   font-variation-settings: 'FILL' 1;
   display: flex;

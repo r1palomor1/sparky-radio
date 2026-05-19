@@ -235,8 +235,8 @@
 - [1a696fb] **[Radio - Enhancement]** Native Google Cast SDK integration (R-E11) *(Restricted to Radio Mode)*
 
 **Phase 3: Architectural**
-- [ ] **[Radio - Optimization]** Targeted DOM patching (R-O2)
-- [ ] **[Radio - Optimization]** Virtualized station list (R-O6)
+- [55932d7] **[Radio - Optimization]** Targeted DOM patching (R-O2)
+- [Pending Commit] **[Radio - Optimization]** Virtualized station list (R-O6)
 - [e921efa] **[Video - Downgrade]** Replace recursive `findToken()` (V-D1)
 - [ ] **[Video - Downgrade]** Replace recursive renderer scanners (V-D2)
 
