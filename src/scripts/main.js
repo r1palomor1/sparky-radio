@@ -4746,7 +4746,9 @@ function toggleYtRelated() {
     overlay.classList.add('hidden');
   } else {
     overlay.classList.remove('hidden');
-    fetchRelatedVideos();
+    if (!sparkyYtState.relatedVideos || !sparkyYtState.relatedVideos.length) {
+      fetchRelatedVideos();
+    }
   }
 }
 
