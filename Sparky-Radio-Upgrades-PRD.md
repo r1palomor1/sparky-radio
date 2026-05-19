@@ -235,7 +235,7 @@
 - [d4a2fd7] **[Video - Optimization]** Cancel stale requests on new search (V-O6)
 - [8d2efc5] **[Video - Enhancement]** Related videos sidebar (V-E4)
 - [Skipped] **[Video - UI Upgrade]** Active queue item now-playing bar (V-U4) - skipped; active card highlight and ambient favicon glow already satisfy this requirement
-- [ ] **[Video - UI Upgrade]** Hybrid search suggestions dropdown (V-U7)
+- [28f81ef] **[Video - UI Upgrade]** Hybrid search suggestions dropdown (V-U7)
 - [ ] **[Radio - Enhancement]** Native Google Cast SDK integration (R-E11)
 
 **Phase 3: Architectural**

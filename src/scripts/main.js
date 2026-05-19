@@ -1473,7 +1473,7 @@ function renderStations() {
   const pl = document.getElementById('playlist');
   if (!pl || activeTab !== 'stations') return;
   if (!stations.length) {
-    pl.innerHTML = '<div class="pl-empty"><div class="pl-empty-icon">ðŸ“»</div><div>No stations loaded</div></div>'; return;
+    pl.innerHTML = '<div class="pl-empty"><div class="pl-empty-icon"><span class="material-symbols-outlined" style="font-size: 32px; opacity: 0.6;">radio</span></div><div>No stations loaded</div></div>'; return;
   }
   let displayStations = [...stations];
   if (searchQuery) {
@@ -1508,7 +1508,7 @@ function renderStations() {
   if (stations.length > 0 && !displayStations.length) {
     const sb = document.getElementById('stationsBadge');
     if (sb) sb.textContent = '0';
-    pl.innerHTML = '<div class="pl-empty"><div class="pl-empty-icon">ðŸ”</div><div>No matching stations</div></div>';
+    pl.innerHTML = '<div class="pl-empty"><div class="pl-empty-icon"><span class="material-symbols-outlined" style="font-size: 32px; opacity: 0.6;">search</span></div><div>No matching stations</div></div>';
     return;
   }
 
@@ -2497,7 +2497,7 @@ async function searchStations(q, isManual = false) {
     renderStations();
   } else if (pl) {
     const fallbackMsg = q ? `NO STATIONS FOUND FOR "${q.toUpperCase()}"<br><span style="font-size:10px; color:var(--dim)">TRY SEARCHING BY GENRE (E.G. REGGAETON, ROCK)</span>` : '⚠️ ALL MIRRORS UNREACHABLE';
-    pl.innerHTML = `<div class="pl-empty"><div class="pl-empty-icon">📡</div><div>${fallbackMsg}</div></div>`;
+    pl.innerHTML = `<div class="pl-empty"><div class="pl-empty-icon"><span class="material-symbols-outlined" style="font-size: 32px; opacity: 0.6;">sensors</span></div><div>${fallbackMsg}</div></div>`;
   }
   isSearching = false;
 }
@@ -5830,3 +5830,50 @@ function sortYtQueueLocal(mode) {
   
   renderYtQueue();
 }
+
+/* V-O6: Dynamic Self-Healing Mojibake Autorecover System */
+function autoRepairEncoding() {
+  const repairMap = {
+    'ðŸ“»': '📻',
+    'ðŸ” ': '🔍',
+    'ðŸ📡': '📡',
+    'âœ…': '✅',
+    'âš': '⚠️',
+  };
+  
+  function walkAndRepair(node) {
+    if (node.nodeType === Node.TEXT_NODE) {
+      let text = node.nodeValue;
+      let changed = false;
+      for (const [garbled, clean] of Object.entries(repairMap)) {
+        if (text.includes(garbled)) {
+          text = text.replaceAll(garbled, clean);
+          changed = true;
+        }
+      }
+      if (changed) node.nodeValue = text;
+    } else if (node.nodeType === Node.ELEMENT_NODE) {
+      if (node.tagName !== 'SCRIPT' && node.tagName !== 'STYLE') {
+        node.childNodes.forEach(walkAndRepair);
+      }
+    }
+  }
+
+  const runRepair = () => {
+    if (!document.body) return;
+    walkAndRepair(document.body);
+    const observer = new MutationObserver((mutations) => {
+      for (const mutation of mutations) {
+        mutation.addedNodes.forEach(walkAndRepair);
+      }
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+  };
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', runRepair);
+  } else {
+    runRepair();
+  }
+}
+autoRepairEncoding();
