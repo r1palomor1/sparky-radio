@@ -1658,6 +1658,56 @@ function renderStations() {
   const mT = Math.max(...displayStations.map(s => s.clicktrend || 0), 1);
 
   const currentFavs = loadFavs();
+  
+  // R-O2 Targeted DOM Patching Optimization
+  const existingItems = pl.querySelectorAll('.pl-item');
+  let matches = existingItems.length === displayStations.length;
+  if (matches) {
+    for (let i = 0; i < displayStations.length; i++) {
+      const el = existingItems[i];
+      const st = displayStations[i];
+      if (el.getAttribute('data-url') !== (st.url || st.url_resolved || '') || 
+          el.getAttribute('data-uuid') !== (st.stationuuid || st.id || '')) {
+        matches = false;
+        break;
+      }
+    }
+  }
+
+  if (matches) {
+    existingItems.forEach((el, i) => {
+      const st = displayStations[i];
+      const actv = !!(currentSrc && (
+        (st.stationuuid && currentSrc.stationuuid === st.stationuuid) ||
+        (st.sparkyId && currentSrc.sparkyId === st.sparkyId) ||
+        (norm(currentSrc.url) === norm(st.url_resolved || st.url)) ||
+        (norm(currentSrc.url_resolved) === norm(st.url_resolved || st.url))
+      ));
+      
+      const wasActive = el.classList.contains('active');
+      if (actv !== wasActive) {
+        el.classList.toggle('active', actv);
+      }
+      
+      const hasFavicon = st.favicon && st.favicon.trim() !== '';
+      if (actv && hasFavicon) {
+        el.style.setProperty('--ambient-bg', `url('${esc(st.favicon)}')`);
+        el.classList.add('has-ambient-bg');
+      } else {
+        el.style.removeProperty('--ambient-bg');
+        el.classList.remove('has-ambient-bg');
+      }
+      
+      const favd = isFav(st, currentFavs);
+      const heart = el.querySelector('.pl-heart');
+      if (heart) {
+        heart.classList.toggle('is-fav', favd);
+      }
+    });
+    lastRenderedList = displayStations;
+    return;
+  }
+
   pl.innerHTML = displayStations.map((st, i) => {
     const actv = currentSrc && (
       (st.stationuuid && currentSrc.stationuuid === st.stationuuid) ||
@@ -1814,6 +1864,72 @@ function renderFavs() {
       `).join('')}
     </div>
   `;
+
+  // R-O2 Targeted DOM Patching Optimization
+  const existingItems = pl.querySelectorAll('.pl-item');
+  const filterChipsRow = pl.querySelector('.list-mode-filters');
+  let matches = filterChipsRow && existingItems.length === displayFavs.length;
+  if (matches) {
+    for (let i = 0; i < displayFavs.length; i++) {
+      const el = existingItems[i];
+      const st = displayFavs[i];
+      if (el.getAttribute('data-sid') !== (st.sparkyId || '') || 
+          el.getAttribute('data-uuid') !== (st.stationuuid || '') || 
+          el.getAttribute('data-url') !== (st.url || '')) {
+        matches = false;
+        break;
+      }
+    }
+  }
+
+  if (matches) {
+    existingItems.forEach((el, i) => {
+      const st = displayFavs[i];
+      const actv = !!(currentSrc && (
+        (st.stationuuid && currentSrc.stationuuid === st.stationuuid) ||
+        (st.sparkyId && currentSrc.sparkyId === st.sparkyId) ||
+        (norm(currentSrc.url) === norm(st.url_resolved || st.url)) ||
+        (norm(currentSrc.url_resolved) === norm(st.url_resolved || st.url))
+      ));
+      
+      const wasActive = el.classList.contains('active');
+      if (actv !== wasActive) {
+        el.classList.toggle('active', actv);
+      }
+      
+      const hasFavicon = st.favicon && st.favicon.trim() !== '';
+      if (actv && hasFavicon) {
+        el.style.setProperty('--ambient-bg', `url('${esc(st.favicon)}')`);
+        el.classList.add('has-ambient-bg');
+      } else {
+        el.style.removeProperty('--ambient-bg');
+        el.classList.remove('has-ambient-bg');
+      }
+      
+      // Update play counts if in RECENT chip and count has changed
+      if (discoveryCategoryFilter === 'RECENT') {
+        const stats = loadUsage();
+        const id = st.stationuuid || st.id || `${st.name}_${st.url}`;
+        const newCount = stats[id]?.count || 0;
+        const pwrStat = el.querySelector('.pl-stat-power');
+        if (pwrStat) {
+          const expectedText = `${newCount} plays`;
+          if (!pwrStat.textContent.includes(expectedText)) {
+            pwrStat.innerHTML = `<span class="material-symbols-outlined" style="font-size:12px; vertical-align:middle;">bolt</span> ${expectedText}`;
+          }
+        }
+      }
+      
+      const favd = st.isFav ?? isFav(st);
+      const heart = el.querySelector('.pl-heart');
+      if (heart) {
+        heart.classList.toggle('is-fav', favd);
+      }
+    });
+    lastRenderedList = displayFavs;
+    scrollActiveChipIntoView(pl);
+    return;
+  }
 
   pl.innerHTML = chipsHtml + displayFavs.map((st, i) => {
     const actv = currentSrc && (
@@ -2022,6 +2138,50 @@ function renderGroupedFavs(pl) {
   const mV = Math.max(...favs.map(s => s.votes || 0), 1);
   const mT = Math.max(...favs.map(s => s.clicktrend || 0), 1);
 
+  // R-O2 Targeted DOM Patching Optimization
+  const existingItems = pl.querySelectorAll('.pl-item');
+  const headers = pl.querySelectorAll('.pl-category-header');
+  let matches = headers.length > 0 && existingItems.length === lastRenderedList.length;
+  if (matches) {
+    for (let i = 0; i < lastRenderedList.length; i++) {
+      const el = existingItems[i];
+      const st = lastRenderedList[i];
+      if (el.getAttribute('data-sid') !== (st.sparkyId || '') || 
+          el.getAttribute('data-uuid') !== (st.stationuuid || '') || 
+          el.getAttribute('data-url') !== (st.url || '')) {
+        matches = false;
+        break;
+      }
+    }
+  }
+
+  if (matches) {
+    existingItems.forEach((el, i) => {
+      const st = lastRenderedList[i];
+      const actv = !!(currentSrc && (
+        (st.stationuuid && currentSrc.stationuuid === st.stationuuid) ||
+        (st.sparkyId && currentSrc.sparkyId === st.sparkyId) ||
+        (norm(currentSrc.url) === norm(st.url_resolved || st.url)) ||
+        (norm(currentSrc.url_resolved) === norm(st.url_resolved || st.url))
+      ));
+      
+      const wasActive = el.classList.contains('active');
+      if (actv !== wasActive) {
+        el.classList.toggle('active', actv);
+      }
+      
+      const hasFavicon = st.favicon && st.favicon.trim() !== '';
+      if (actv && hasFavicon) {
+        el.style.setProperty('--ambient-bg', `url('${esc(st.favicon)}')`);
+        el.classList.add('has-ambient-bg');
+      } else {
+        el.style.removeProperty('--ambient-bg');
+        el.classList.remove('has-ambient-bg');
+      }
+    });
+    return;
+  }
+
   pl.innerHTML = sortedCats.map(cat => {
     const catFavs = groups[cat];
     const isRecent = cat === 'RECENT';
@@ -2165,6 +2325,73 @@ function renderDiscoveryFavs(pl) {
     });
   } else {
     displayFavs.sort((a, b) => (b.votes || 0) - (a.votes || 0));
+  }
+
+  // R-O2 Targeted DOM Patching Optimization
+  const existingCards = pl.querySelectorAll('.pl-discovery-card');
+  const grid = pl.querySelector('.pl-discovery-grid');
+  const chips = pl.querySelector('.pl-discovery-filters');
+  let matches = grid && chips && existingCards.length === displayFavs.length;
+  if (matches) {
+    for (let i = 0; i < displayFavs.length; i++) {
+      const el = existingCards[i];
+      const st = displayFavs[i];
+      if (el.getAttribute('data-sid') !== (st.sparkyId || '') || 
+          el.getAttribute('data-uuid') !== (st.stationuuid || '') || 
+          el.getAttribute('data-url') !== (st.url || '')) {
+        matches = false;
+        break;
+      }
+    }
+  }
+
+  if (matches) {
+    existingCards.forEach((el, i) => {
+      const st = displayFavs[i];
+      const actv = !!(currentSrc && (
+        (st.stationuuid && currentSrc.stationuuid === st.stationuuid) ||
+        (st.sparkyId && currentSrc.sparkyId === st.sparkyId) ||
+        (norm(currentSrc.url) === norm(st.url_resolved || st.url)) ||
+        (norm(currentSrc.url_resolved) === norm(st.url_resolved || st.url))
+      ));
+      
+      const wasActive = el.classList.contains('active');
+      if (actv !== wasActive) {
+        el.classList.toggle('active', actv);
+      }
+      
+      const hasFavicon = st.favicon && st.favicon.trim() !== '';
+      if (actv && hasFavicon) {
+        el.style.setProperty('--ambient-bg', `url('${esc(st.favicon)}')`);
+        el.classList.add('has-ambient-bg');
+      } else {
+        el.style.removeProperty('--ambient-bg');
+        el.classList.remove('has-ambient-bg');
+      }
+      
+      // Update play counts if in RECENT chip and count has changed
+      if (discoveryCategoryFilter === 'RECENT') {
+        const stats = loadUsage();
+        const id = st.stationuuid || st.id || `${st.name}_${st.url}`;
+        const newCount = stats[id]?.count || 0;
+        const pwrStat = el.querySelector('.card-stat-pwr');
+        if (pwrStat) {
+          const expectedText = `${newCount} plays`;
+          if (!pwrStat.textContent.includes(expectedText)) {
+            pwrStat.innerHTML = `<span class="material-symbols-outlined" style="font-size:12px; vertical-align:middle;">bolt</span> ${expectedText}`;
+          }
+        }
+      }
+      
+      const favd = isFav(st);
+      const heart = el.querySelector('.pl-heart');
+      if (heart) {
+        heart.classList.toggle('is-fav', favd);
+      }
+    });
+    lastRenderedList = displayFavs;
+    scrollActiveChipIntoView(pl);
+    return;
   }
 
   let html = `
