@@ -4026,7 +4026,20 @@ function openYtSearchDropdown() {
   const plEmpty = document.querySelector('#ytResults .pl-empty');
   if (plEmpty) plEmpty.classList.add('hidden');
 
-  document.querySelector('.app')?.classList.add('yt-search-focused');
+  const app = document.querySelector('.app');
+  if (app && !app.classList.contains('yt-search-focused')) {
+    app.classList.add('yt-search-focused');
+    
+    // Safeguard focus sequence against layout-reflow induced blurs on mobile/tablet
+    const input = document.getElementById('ytSearchInput');
+    if (input) {
+      setTimeout(() => {
+        if (document.activeElement !== input) {
+          input.focus();
+        }
+      }, 50);
+    }
+  }
 }
 
 function closeYtSearchDropdown() {
@@ -5747,13 +5760,22 @@ ytSearchInput?.addEventListener('input', () => {
     autocompleteDebounce = setTimeout(() => fetchAutocomplete(query), 300);
   }
 });
+
+let ytSearchBlurTimeout = null;
 ytSearchInput?.addEventListener('focus', () => {
+  if (ytSearchBlurTimeout) {
+    clearTimeout(ytSearchBlurTimeout);
+    ytSearchBlurTimeout = null;
+  }
   populateYtSearchDropdown();
   renderDropdownRecents();
   openYtSearchDropdown();
 });
 ytSearchInput?.addEventListener('blur', () => {
-  setTimeout(() => closeYtSearchDropdown(), 200);
+  ytSearchBlurTimeout = setTimeout(() => {
+    closeYtSearchDropdown();
+    ytSearchBlurTimeout = null;
+  }, 250);
 });
 ytSearchInput?.addEventListener('click', () => {
   if (!sparkyYtState.dropdownOpen) {
