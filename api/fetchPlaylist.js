@@ -1,74 +1,105 @@
 import { getYoutubeClient } from './youtube.js';
 import { findToken, extractString, extractThumbnail, shortenMetadata } from './utils.js';
 
-// Forensic Playlist Hunter
-function findPlaylists(obj, results = []) {
-    if (!obj || typeof obj !== 'object') return results;
+// Structured, flat playlist search parser (V-D2)
+function findPlaylists(data) {
+    const results = [];
+    if (!data) return results;
 
-    const isPlaylist = (obj.type === 'Playlist') ||
-        (obj.playlistRenderer) ||
-        (obj.lockupViewModel?.contentType === 'LOCKUP_CONTENT_TYPE_PLAYLIST') ||
-        (typeof obj.playlistId === 'string' && (obj.title || obj.titleText));
+    let items = [];
 
-    if (isPlaylist) {
-        const renderer = obj.playlistRenderer || (obj.type === 'Playlist' ? obj : null);
-        const luv = obj.lockupViewModel;
-
-        if (renderer) {
-            results.push({
-                playlist_id: renderer.playlistId || renderer.id,
-                title: extractString(renderer.title) || 'Unknown Playlist',
-                thumbnail: extractThumbnail(renderer.thumbnail || renderer.thumbnails),
-                video_count: extractString(renderer.video_count || renderer.videoCountText) || 'N/A',
-                type: 'playlist'
-            });
-        } else if (luv) {
-            let vCount = 'N/A';
-            const overlays = luv.contentImage?.collectionThumbnailViewModel?.primaryThumbnail?.thumbnailViewModel?.overlays ||
-                luv.contentImage?.thumbnailViewModel?.overlays;
-
-            if (Array.isArray(overlays)) {
-                for (const o of overlays) {
-                    const badge = o.thumbnailOverlayBadgeViewModel?.thumbnailBadges?.[0]?.thumbnailBadgeViewModel ||
-                        o.thumbnailBadgeViewModel;
-                    if (badge?.text && (badge.text.toLowerCase().includes('video') || /\d+/.test(badge.text))) {
-                        vCount = badge.text;
-                        break;
-                    }
-                }
+    // Path A: Standard search results structure
+    const sectionListContents = data.contents?.twoColumnSearchResultsRenderer?.primaryContents?.sectionListRenderer?.contents;
+    if (Array.isArray(sectionListContents)) {
+        for (const section of sectionListContents) {
+            if (section.itemSectionRenderer?.contents) {
+                items.push(...section.itemSectionRenderer.contents);
             }
+        }
+    }
 
-            if (vCount === 'N/A') {
-                const lines = luv.metadata?.lockupMetadataViewModel?.metadataLines;
-                if (lines) {
-                    for (const line of lines) {
-                        const content = line.contentMetadataViewModel?.metadata?.[0]?.content;
-                        if (content && (content.toLowerCase().includes('video') || /\d+/.test(content))) {
-                            vCount = content;
+    // Path B: Continuation search results structure
+    const continuationItems = data.onResponseReceivedCommands?.[0]?.appendContinuationItemsAction?.continuationItems;
+    if (Array.isArray(continuationItems)) {
+        items.push(...continuationItems);
+    }
+
+    // Path C: Alternative Continuation structure
+    const sectionListContinuation = data.continuationContents?.sectionListContinuation?.contents;
+    if (Array.isArray(sectionListContinuation)) {
+        for (const section of sectionListContinuation) {
+            if (section.itemSectionRenderer?.contents) {
+                items.push(...section.itemSectionRenderer.contents);
+            }
+        }
+    }
+
+    // Path D: Direct array fallback
+    if (items.length === 0 && Array.isArray(data)) {
+        items = data;
+    }
+
+    // Process top-level items flatly to ignore shelf items and ads
+    for (const item of items) {
+        if (!item || typeof item !== 'object') continue;
+
+        const isPlaylist = (item.type === 'Playlist') ||
+            (item.playlistRenderer) ||
+            (item.lockupViewModel?.contentType === 'LOCKUP_CONTENT_TYPE_PLAYLIST') ||
+            (typeof item.playlistId === 'string' && (item.title || item.titleText));
+
+        if (isPlaylist) {
+            const renderer = item.playlistRenderer || (item.type === 'Playlist' ? item : null);
+            const luv = item.lockupViewModel;
+
+            if (renderer) {
+                results.push({
+                    playlist_id: renderer.playlistId || renderer.id,
+                    title: extractString(renderer.title) || 'Unknown Playlist',
+                    thumbnail: extractThumbnail(renderer.thumbnail || renderer.thumbnails),
+                    video_count: extractString(renderer.video_count || renderer.videoCountText) || 'N/A',
+                    type: 'playlist'
+                });
+            } else if (luv) {
+                let vCount = 'N/A';
+                const overlays = luv.contentImage?.collectionThumbnailViewModel?.primaryThumbnail?.thumbnailViewModel?.overlays ||
+                    luv.contentImage?.thumbnailViewModel?.overlays;
+
+                if (Array.isArray(overlays)) {
+                    for (const o of overlays) {
+                        const badge = o.thumbnailOverlayBadgeViewModel?.thumbnailBadges?.[0]?.thumbnailBadgeViewModel ||
+                            o.thumbnailBadgeViewModel;
+                        if (badge?.text && (badge.text.toLowerCase().includes('video') || /\d+/.test(badge.text))) {
+                            vCount = badge.text;
                             break;
                         }
                     }
                 }
+
+                if (vCount === 'N/A') {
+                    const lines = luv.metadata?.lockupMetadataViewModel?.metadataLines;
+                    if (lines) {
+                        for (const line of lines) {
+                            const content = line.contentMetadataViewModel?.metadata?.[0]?.content;
+                            if (content && (content.toLowerCase().includes('video') || /\d+/.test(content))) {
+                                vCount = content;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                results.push({
+                    playlist_id: luv.contentId,
+                    title: extractString(luv.metadata?.lockupMetadataViewModel?.title) || 'Unknown Playlist',
+                    thumbnail: extractThumbnail(luv.contentImage?.collectionThumbnailViewModel?.primaryThumbnail?.thumbnailViewModel || luv.contentImage?.thumbnailViewModel),
+                    video_count: vCount,
+                    type: 'playlist'
+                });
             }
-
-            results.push({
-                playlist_id: luv.contentId,
-                title: extractString(luv.metadata?.lockupMetadataViewModel?.title) || 'Unknown Playlist',
-                thumbnail: extractThumbnail(luv.contentImage?.collectionThumbnailViewModel?.primaryThumbnail?.thumbnailViewModel || luv.contentImage?.thumbnailViewModel),
-                video_count: vCount,
-                type: 'playlist'
-            });
-        }
-        return results;
-    }
-
-    if (Array.isArray(obj)) {
-        for (const item of obj) findPlaylists(item, results);
-    } else {
-        for (const key in obj) {
-            if (Object.prototype.hasOwnProperty.call(obj, key)) findPlaylists(obj[key], results);
         }
     }
+
     return results;
 }
 
@@ -105,11 +136,9 @@ export default async function handler(req, res) {
             const hydrationPool = rawVideos.slice(0, 20);
             const hydratedVideos = await Promise.all(hydrationPool.map(async (v) => {
                 try {
-                    // getBasicInfo is faster but getInfo is more complete
                     const info = await youtube.getBasicInfo(v.id);
                     const basic = info.basic_info;
 
-                    // Fallbacks for different Innertube versions
                     const viewsStr = basic.view_count?.toString() || '';
                     const dateStr = info.primary_info?.relative_date?.text || 
                                      info.primary_info?.published?.text || 
