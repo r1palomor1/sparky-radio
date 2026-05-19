@@ -2830,6 +2830,14 @@ const syncPlayBtns = () => {
       playBtnFooter.innerHTML = `<span class="material-symbols-outlined">${fallbackIcon}</span>`;
     }
   }
+
+  // Update Radio Cinema Mode play states in real-time
+  if (typeof updateRadioCinemaDetails === 'function') {
+    updateRadioCinemaDetails();
+  }
+  if (typeof resetCinemaTimer === 'function') {
+    resetCinemaTimer();
+  }
 };
 
 const updateVolFill = (el) => {
@@ -3840,6 +3848,9 @@ document.addEventListener('DOMContentLoaded', () => {
         npPanel.classList.remove('compact-radio', 'compact-video');
         lastRadioScrollTop = 0;
         lastScrollTop = 0;
+        if (typeof resetCinemaTimer === 'function') {
+          resetCinemaTimer();
+        }
       }
     }, INACTIVITY_TIME);
   }
@@ -4086,9 +4097,9 @@ async function healFavoritesFavicons() {
 }
 
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-// â•‘  SPARKY YT MODULE â€” Phase 2: State Manager & DOM Toggling  â•‘
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ————————————————————————————————————————————————————————————————————————————————
+//   SPARKY YT MODULE — Phase 2: State Manager & DOM Toggling  
+// ————————————————————————————————————————————————————————————————————————————————
 
 const sparkyYtState = {
   isModeActive: false,
@@ -4117,7 +4128,7 @@ const sparkyYtState = {
     prefetchedPage: null
   },
   activePlaylistId: null,
-  currentItemId: null,  // Tracks last played item â€” used to restore highlight after tab switch
+  currentItemId: null,  // Tracks last played item — used to restore highlight after tab switch
   isAudioOnly: false,
   isShuffleActive: false,
   tempQueuePlayedIds: new Set(), // Track played IDs for pulsing logic
@@ -4144,30 +4155,140 @@ function wakeFromCinemaMode() {
   resetCinemaTimer();
 }
 
+function updateRadioCinemaDetails() {
+  const st = currentSrc;
+  if (!st) return;
+
+  const titleEl = document.getElementById('radioCinemaTitle');
+  const metaEl = document.getElementById('radioCinemaMeta');
+  const thumbEl = document.getElementById('radioCinemaThumbContainer');
+  const bgBlur = document.getElementById('radioCinemaBgBlur');
+
+  if (titleEl) titleEl.textContent = st.name;
+  if (metaEl) {
+    const loc = st.countrycode || st.country || '';
+    const tags = st.tags || st.category || '';
+    const parts = [loc, tags].filter(p => p.trim() !== '');
+    metaEl.textContent = parts.join(' · ');
+  }
+
+  if (thumbEl) {
+    thumbEl.innerHTML = renderRadioCinemaFavicon(st);
+  }
+
+  if (bgBlur) {
+    if (st.favicon && st.favicon.trim() !== '') {
+      bgBlur.style.setProperty('--ambient-bg', `url("${esc(st.favicon)}")`);
+      bgBlur.style.removeProperty('background');
+    } else {
+      const seed = String(st.tags || st.category || st.name || 'Radio').split(',')[0].trim();
+      let hash = 0;
+      for (let i = 0; i < seed.length; i++) {
+        hash = seed.charCodeAt(i) + ((hash << 5) - hash);
+      }
+      const h = Math.abs(hash) % 360;
+      const s = 65;
+      const l = 40;
+      const h2 = (h + 35) % 360;
+      const l2 = 25;
+      const gradientStyle = `linear-gradient(135deg, hsl(${h}, ${s}%, ${l}%) 0%, hsl(${h2}, ${s}%, ${l2}%) 100%)`;
+      bgBlur.style.setProperty('background', gradientStyle);
+      bgBlur.style.removeProperty('--ambient-bg');
+    }
+  }
+
+  const playBtn = document.getElementById('btnRadioCinemaPlay');
+  if (playBtn) {
+    const icon = playBtn.querySelector('.material-symbols-outlined');
+    if (icon) {
+      icon.textContent = isPlaying ? 'stop' : 'play_arrow';
+    }
+  }
+
+  const vizContainer = document.getElementById('radioCinemaViz');
+  if (vizContainer) {
+    vizContainer.classList.toggle('active', isPlaying);
+  }
+}
+
+function renderRadioCinemaFavicon(st) {
+  const seed = String(st.tags || st.category || st.name || 'Radio').split(',')[0].trim();
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) {
+    hash = seed.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const h = Math.abs(hash) % 360;
+  const s = 65;
+  const l = 40;
+  const h2 = (h + 35) % 360;
+  const l2 = 25;
+  
+  let initials = 'RA';
+  if (st.name) {
+    const clean = String(st.name).trim().replace(/^[^a-zA-Z0-9]+/, '');
+    if (clean) {
+      const words = clean.split(/\s+/).filter(w => w.length > 0);
+      if (words.length >= 2 && /[a-zA-Z0-9]/.test(words[0][0]) && /[a-zA-Z0-9]/.test(words[1][0])) {
+        initials = (words[0][0] + words[1][0]).toUpperCase();
+      } else {
+        const alphaNums = clean.replace(/[^a-zA-Z0-9]/g, '');
+        initials = alphaNums.length >= 2 ? alphaNums.slice(0, 2).toUpperCase() : clean.slice(0, 2).toUpperCase();
+      }
+    }
+  }
+
+  const gradientStyle = `background: linear-gradient(135deg, hsl(${h}, ${s}%, ${l}%) 0%, hsl(${h2}, ${s}%, ${l2}%) 100%);`;
+  const genreOverlay = getGenreIconSVG(st.tags, st.name);
+
+  if (st.favicon && st.favicon.trim() !== '') {
+    return `
+      <img class="radio-cinema-thumb" src="${esc(st.favicon)}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+      <div class="radio-cinema-card-gradient" style="${gradientStyle} display: none;">
+        <span class="radio-cinema-card-gradient-text">${esc(initials)}</span>
+        ${genreOverlay}
+      </div>
+    `;
+  }
+  return `
+    <div class="radio-cinema-card-gradient" style="${gradientStyle} display: flex;">
+      <span class="radio-cinema-card-gradient-text">${esc(initials)}</span>
+      ${genreOverlay}
+    </div>
+  `;
+}
+
 function resetCinemaTimer() {
   clearTimeout(cinemaModeTimer);
-  if (!sparkyYtState.isModeActive) return;
-  if (!sparkyYtState.playerInstance) return;
-
-  // Suppress automatic cinema mode entry if the video player is in compact mode
   const npPanel = document.querySelector('.now-playing');
   if (npPanel && (npPanel.classList.contains('compact-video') || npPanel.classList.contains('compact-radio'))) {
     return;
   }
 
   const app = document.querySelector('.app');
-  // Don't auto-rehide if user manually exited by pausing, but we handle that via paused state below.
-  const state = typeof sparkyYtState.playerInstance.getPlayerState === 'function' ?
-    sparkyYtState.playerInstance.getPlayerState() : -1;
 
-  if (state === YT.PlayerState.PLAYING) {
-    cinemaModeTimer = setTimeout(() => {
-      lastCinemaTriggerTime = Date.now();
-      app.classList.add('immersive-cinema-mode');
-      document.querySelector('.now-playing')?.classList.remove('compact-video');
-      if (document.getElementById('cinemaWakeZone')) document.getElementById('cinemaWakeZone').classList.add('is-cinema');
-      document.getElementById('btnYtCinemaToggle')?.classList.add('active');
-    }, CINEMA_TIMEOUT_MS);
+  if (sparkyYtState.isModeActive) {
+    if (!sparkyYtState.playerInstance) return;
+    const state = typeof sparkyYtState.playerInstance.getPlayerState === 'function' ?
+      sparkyYtState.playerInstance.getPlayerState() : -1;
+
+    if (state === YT.PlayerState.PLAYING) {
+      cinemaModeTimer = setTimeout(() => {
+        lastCinemaTriggerTime = Date.now();
+        app.classList.add('immersive-cinema-mode');
+        document.querySelector('.now-playing')?.classList.remove('compact-video');
+        if (document.getElementById('cinemaWakeZone')) document.getElementById('cinemaWakeZone').classList.add('is-cinema');
+        document.getElementById('btnYtCinemaToggle')?.classList.add('active');
+      }, CINEMA_TIMEOUT_MS);
+    }
+  } else {
+    if (isPlaying) {
+      cinemaModeTimer = setTimeout(() => {
+        lastCinemaTriggerTime = Date.now();
+        app.classList.add('immersive-cinema-mode');
+        document.querySelector('.now-playing')?.classList.remove('compact-radio');
+        updateRadioCinemaDetails();
+      }, CINEMA_TIMEOUT_MS);
+    }
   }
 }
 
@@ -4178,19 +4299,24 @@ function toggleCinemaMode() {
   } else {
     lastCinemaTriggerTime = Date.now();
     app.classList.add('immersive-cinema-mode');
-    document.querySelector('.now-playing')?.classList.remove('compact-video');
-    if (document.getElementById('cinemaWakeZone')) document.getElementById('cinemaWakeZone').classList.add('is-cinema');
-    document.getElementById('btnYtCinemaToggle')?.classList.add('active');
-    clearTimeout(cinemaModeTimer); // Disable auto-timer when manually forcing it
+    
+    if (sparkyYtState.isModeActive) {
+      document.querySelector('.now-playing')?.classList.remove('compact-video');
+      if (document.getElementById('cinemaWakeZone')) document.getElementById('cinemaWakeZone').classList.add('is-cinema');
+      document.getElementById('btnYtCinemaToggle')?.classList.add('active');
+    } else {
+      document.querySelector('.now-playing')?.classList.remove('compact-radio');
+      updateRadioCinemaDetails();
+    }
+    clearTimeout(cinemaModeTimer);
   }
 }
 
-// â”€â”€ Wake Button Isolated Logic â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Wake Button Isolated Logic ─────────────────────────────────
 const wakeZone = document.getElementById('cinemaWakeZone');
 if (wakeZone) {
   ['click', 'touchstart'].forEach(evt => {
     wakeZone.addEventListener(evt, (e) => {
-      // Prevent bleed to elements behind the wake button
       e.preventDefault();
       e.stopPropagation();
       wakeFromCinemaMode();
@@ -4198,15 +4324,69 @@ if (wakeZone) {
   });
 }
 
-// â”€â”€ General Idle Detection (Reset Timer) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+const radioCinemaWake = document.getElementById('radioCinemaWakeOverlay');
+if (radioCinemaWake) {
+  ['click', 'touchstart'].forEach(evt => {
+    radioCinemaWake.addEventListener(evt, (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      wakeFromCinemaMode();
+    }, { passive: false });
+  });
+}
+
+// ── Radio Cinema Control Handlers ──────────────────────────────
+const btnRadioCinemaPrev = document.getElementById('btnRadioCinemaPrev');
+const btnRadioCinemaPlay = document.getElementById('btnRadioCinemaPlay');
+const btnRadioCinemaNext = document.getElementById('btnRadioCinemaNext');
+const btnRadioCinemaCast = document.getElementById('btnRadioCinemaCast');
+
+if (btnRadioCinemaPrev) {
+  btnRadioCinemaPrev.addEventListener('click', (e) => {
+    e.stopPropagation();
+    playPrevious();
+    resetCinemaTimer();
+  });
+}
+if (btnRadioCinemaPlay) {
+  btnRadioCinemaPlay.addEventListener('click', (e) => {
+    e.stopPropagation();
+    togglePlay();
+    resetCinemaTimer();
+  });
+}
+if (btnRadioCinemaNext) {
+  btnRadioCinemaNext.addEventListener('click', (e) => {
+    e.stopPropagation();
+    playNext();
+    resetCinemaTimer();
+  });
+}
+if (btnRadioCinemaCast) {
+  btnRadioCinemaCast.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const realCastBtn = document.getElementById('castBtn');
+    if (realCastBtn) {
+      const castBtnButton = realCastBtn.querySelector('button') || realCastBtn;
+      castBtnButton.click();
+    }
+    resetCinemaTimer();
+  });
+}
+
+// ── General Idle Detection (Reset Timer) ──────────────────────
 ['click', 'touchstart'].forEach(evt => {
   document.addEventListener(evt, (e) => {
-    // If the wake button handled it above, this won't trigger for the button
     if (e.target.closest('#btnYtCinemaToggle') || e.target.closest('.youtube-iframe-container')) return;
+    if (e.target.closest('.radio-cinema-controls')) return;
+
     const app = document.querySelector('.app');
 
-    // Only wake up if the user explicitly clicked the background UI (like the footer)
-    if (app.classList.contains('immersive-cinema-mode') && !e.target.closest('#sparky-yt-player-wrap')) {
+    if (app.classList.contains('immersive-cinema-mode')) {
+      if (sparkyYtState.isModeActive && e.target.closest('#sparky-yt-player-wrap')) {
+        resetCinemaTimer();
+        return;
+      }
       wakeFromCinemaMode();
     } else {
       resetCinemaTimer();
@@ -4264,6 +4444,11 @@ function toggleYtMode(activate) {
   // sparkyLog(`Action: toggleYtMode(${activate})`);
   // debugLayout('BEFORE-TOGGLE');
   sparkyYtState.isModeActive = activate;
+
+  const app = document.querySelector('.app');
+  if (app) {
+    app.classList.toggle('yt-mode-active', activate);
+  }
 
   const logoText = document.getElementById('mainLogoText');
   if (logoText) {

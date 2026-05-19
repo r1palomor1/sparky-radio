@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>SPARKY Â· Internet Radio</title>
+  <title>SPARKY · Internet Radio</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link
     href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Outfit:wght@400;700;900&family=Inter:wght@400;700;900&family=Archivo:wght@400;700;800;900&display=swap"
@@ -34,6 +34,7 @@
     /* --- IMMERSIVE CINEMA MODE --- */
     .app.immersive-cinema-mode .header, 
     .app.immersive-cinema-mode #yt-view, 
+    .app.immersive-cinema-mode #radio-view,
     .app.immersive-cinema-mode .np-header, 
     .app.immersive-cinema-mode .np-body, 
     .app.immersive-cinema-mode .np-meta, 
@@ -73,6 +74,429 @@
     
     .app.immersive-cinema-mode .footer:hover {
       opacity: 1;
+    }
+
+    /* --- RADIO CINEMA PLACEHOLDER --- */
+    #radio-cinema-placeholder {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      height: 100%;
+      position: relative;
+      z-index: 10;
+      overflow: hidden;
+      padding: 30px 24px calc(80px + env(safe-area-inset-bottom)) 24px;
+      box-sizing: border-box;
+      background: #05070c;
+    }
+
+    .app.immersive-cinema-mode:not(.yt-mode-active) #radio-cinema-placeholder {
+      display: flex !important;
+    }
+
+    .radio-cinema-bg-blur {
+      position: absolute;
+      top: -20%;
+      left: -20%;
+      width: 140%;
+      height: 140%;
+      background-image: var(--ambient-bg);
+      background-size: cover;
+      background-position: center;
+      filter: blur(80px) saturate(1.8) brightness(0.35);
+      opacity: 0.85;
+      z-index: 1;
+      pointer-events: none;
+      transition: background-image 0.8s ease;
+    }
+
+    .radio-cinema-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      height: 100%;
+      max-width: 420px;
+      margin: 0 auto;
+      z-index: 20;
+      position: relative;
+    }
+
+    .radio-cinema-glow-wrapper {
+      position: relative;
+      width: 88vw;
+      height: 88vw;
+      max-width: 320px;
+      max-height: 320px;
+      aspect-ratio: 1 / 1;
+      border-radius: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      margin-top: auto;
+      margin-bottom: 24px;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    @media (min-height: 720px) {
+      .radio-cinema-glow-wrapper {
+        max-width: 370px;
+        max-height: 370px;
+        margin-bottom: 32px;
+      }
+      .radio-cinema-glass-card {
+        max-width: 370px !important;
+      }
+    }
+
+    .radio-cinema-glow-wrapper::before {
+      content: '';
+      position: absolute;
+      top: 15px;
+      left: 15px;
+      right: 15px;
+      bottom: 15px;
+      background: var(--accent);
+      opacity: 0.65;
+      filter: blur(35px) saturate(1.8);
+      border-radius: 28px;
+      z-index: -1;
+      transition: all 0.5s ease;
+    }
+
+    .radio-cinema-thumb {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 28px;
+      border: 2px solid rgba(255, 255, 255, 0.12);
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
+      background: var(--panel);
+    }
+
+    .radio-cinema-card-gradient {
+      width: 100%;
+      height: 100%;
+      border-radius: 28px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid rgba(255, 255, 255, 0.12);
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .radio-cinema-card-gradient-text {
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 900;
+      font-size: 56px;
+      color: #fff;
+      letter-spacing: 2px;
+      opacity: 0.95;
+      text-shadow: 0 0 35px rgba(0,0,0,0.5);
+    }
+
+    .radio-cinema-card-gradient svg {
+      position: absolute;
+      bottom: 18px;
+      right: 18px;
+      width: 28px;
+      height: 28px;
+      fill: #fff;
+      opacity: 0.35;
+    }
+
+    .radio-cinema-glass-card {
+      width: 88vw;
+      max-width: 320px;
+      background: rgba(255, 255, 255, 0.04);
+      backdrop-filter: blur(40px) saturate(1.2);
+      -webkit-backdrop-filter: blur(40px) saturate(1.2);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 28px;
+      padding: 24px;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      margin-top: 0;
+      margin-bottom: auto;
+      position: relative; /* Support absolute children */
+    }
+
+    .radio-cinema-info-row {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      width: 100%;
+      gap: 12px;
+    }
+
+    .radio-cinema-meta-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      width: 100%;
+      overflow: hidden;
+      padding-right: 44px; /* Prevent overlap with top-right cast button */
+      box-sizing: border-box;
+    }
+
+    .radio-cinema-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: calc(18px * var(--text-scale));
+      font-weight: 800;
+      color: #fff;
+      text-align: left;
+      width: 100%;
+      white-space: normal;
+      word-wrap: break-word;
+      line-height: 1.3;
+      letter-spacing: -0.5px;
+    }
+
+    .radio-cinema-meta {
+      font-family: 'Outfit', sans-serif;
+      font-size: calc(13px * var(--text-scale));
+      color: rgba(255, 255, 255, 0.55);
+      text-align: left;
+      width: 100%;
+      white-space: nowrap; /* Do not wrap tags */
+      overflow: hidden;
+      text-overflow: ellipsis; /* Truncate tags with ellipsis */
+      line-height: 1.3;
+      margin-top: 6px;
+      font-weight: 500;
+      letter-spacing: 0.2px;
+    }
+
+    .radio-cinema-visualizer {
+      display: flex;
+      align-items: flex-end;
+      justify-content: center; /* Center visualizer bars */
+      gap: 3.5px;
+      height: 20px;
+      width: 100%; /* Take full width to center correctly */
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      flex-shrink: 0;
+      margin-top: 4px;
+    }
+
+    .radio-cinema-visualizer.active {
+      opacity: 0.85;
+    }
+
+    .cinema-bar {
+      width: 2.5px;
+      height: 3px;
+      background: var(--accent);
+      border-radius: 1px;
+      animation: cinemaBarWave 1.2s ease-in-out infinite alternate;
+      animation-play-state: paused;
+    }
+
+    .radio-cinema-visualizer.active .cinema-bar {
+      animation-play-state: running;
+    }
+
+    .cinema-bar:nth-child(2)  { animation-delay: 0.15s; height: 6px; }
+    .cinema-bar:nth-child(3)  { animation-delay: 0.3s;  height: 12px; }
+    .cinema-bar:nth-child(4)  { animation-delay: 0.45s; height: 18px; }
+    .cinema-bar:nth-child(5)  { animation-delay: 0.6s;  height: 10px; }
+    .cinema-bar:nth-child(6)  { animation-delay: 0.75s; height: 14px; }
+    .cinema-bar:nth-child(7)  { animation-delay: 0.9s;  height: 6px; }
+    .cinema-bar:nth-child(8)  { animation-delay: 1.05s; height: 10px; }
+    .cinema-bar:nth-child(9)  { animation-delay: 1.2s;  height: 4px; }
+    .cinema-bar:nth-child(10) { animation-delay: 1.35s; height: 8px; }
+
+    @keyframes cinemaBarWave {
+      0% { height: 3px; }
+      100% { height: 20px; }
+    }
+
+    .radio-cinema-seekbar-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      gap: 12px;
+      margin-top: 4px;
+    }
+
+    .cinema-time {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.4);
+      min-width: 32px;
+    }
+
+    .cinema-seekbar {
+      flex: 1;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 2px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cinema-seekbar-fill {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: 25%;
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+      border-radius: 2px;
+    }
+
+    .cinema-time-total {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 11px;
+      color: var(--accent);
+      font-weight: bold;
+      letter-spacing: 0.5px;
+    }
+
+    .radio-cinema-controls {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 32px;
+      width: 100%;
+      padding: 0 8px;
+      box-sizing: border-box;
+      z-index: 30;
+    }
+
+    #btnRadioCinemaCast {
+      position: absolute;
+      top: 18px;
+      right: 18px;
+      z-index: 40;
+    }
+
+    .radio-cinema-btn {
+      background: transparent;
+      border: none;
+      color: rgba(255, 255, 255, 0.7);
+      border-radius: 50%;
+      width: 48px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .radio-cinema-btn:hover {
+      color: #fff;
+      transform: scale(1.15);
+    }
+
+    .radio-cinema-btn.secondary {
+      color: rgba(255, 255, 255, 0.4);
+    }
+
+    .radio-cinema-btn.secondary:hover {
+      color: var(--accent);
+    }
+
+    .radio-cinema-play-btn {
+      background: var(--accent);
+      border: none;
+      color: var(--bg);
+      border-radius: 50%;
+      width: 68px;
+      height: 68px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    }
+
+    .radio-cinema-play-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+    }
+
+    .radio-cinema-btn .material-symbols-outlined {
+      font-size: 32px;
+    }
+
+    .radio-cinema-btn.secondary .material-symbols-outlined {
+      font-size: 24px;
+    }
+
+    .radio-cinema-play-btn .material-symbols-outlined {
+      font-size: 38px;
+    }
+
+    .app.immersive-cinema-mode:not(.yt-mode-active) .now-playing::before {
+      content: '';
+      position: absolute;
+      top: -10%; left: -10%; right: -10%; bottom: -10%;
+      background-image: var(--ambient-bg);
+      background-size: cover;
+      background-position: center;
+      opacity: 0.15;
+      filter: blur(80px) saturate(1.8);
+      z-index: 1;
+      pointer-events: none;
+      transition: background-image 0.8s ease;
+    }
+
+    .radio-cinema-wake-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 35; /* Sit on top of radio-cinema-container (z-index: 20) and controls (z-index: 30) */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none; /* Let all touch events pass straight to elements underneath */
+    }
+
+    .radio-cinema-hand {
+      position: absolute;
+      bottom: 18px; /* Completely below the shifted glass card */
+      right: 28px; /* Aligned with viewport margins */
+      font-size: 28px;
+      color: var(--dim);
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      width: 56px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+      animation: pulseSlow 4s infinite ease-in-out;
+      transition: all 0.3s ease;
+      pointer-events: none;
+    }
+
+    .radio-cinema-wake-overlay:hover .radio-cinema-hand {
+      background: rgba(0, 0, 0, 0.8);
+      transform: scale(1.1);
+      color: var(--accent);
+      border-color: var(--accent);
     }
   </style>
 </head>
@@ -120,7 +544,7 @@
           <div class="np-name-container">
             <div id="npName" class="np-name">Select a station</div>
           </div>
-          <div class="np-sub-meta" id="npSubMeta">Location Â· Genre</div>
+          <div class="np-sub-meta" id="npSubMeta">Location · Genre</div>
 
           <!-- INTEGRATED VISUALIZER -->
           <div class="np-viz-container">
@@ -201,6 +625,74 @@
                 <span class="material-symbols-outlined">music_history</span>
               </button>              <button id="btnYtRelated" class="btn-yt-queue hidden" title="View Related Videos">
                 <span class="material-symbols-outlined">stock_media</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RADIO CINEMA PLACEHOLDER -->
+      <div id="radio-cinema-placeholder" class="radio-cinema-placeholder">
+        <!-- Ambient blurred backdrop glow -->
+        <div class="radio-cinema-bg-blur" id="radioCinemaBgBlur"></div>
+
+        <!-- Interactive background wake overlay -->
+        <div class="radio-cinema-wake-overlay" id="radioCinemaWakeOverlay" title="Tap outside controls to wake UI">
+          <span class="material-symbols-outlined radio-cinema-hand">touch_app</span>
+        </div>
+        
+        <div class="radio-cinema-container">
+          <div class="radio-cinema-glow-wrapper" id="radioCinemaThumbContainer">
+            <!-- Dynamic img or gradient generated in JS -->
+          </div>
+          
+          <div class="radio-cinema-glass-card">
+            <!-- Cast button absolutely positioned in the top right corner -->
+            <button id="btnRadioCinemaCast" class="radio-cinema-btn secondary" title="Toggle Cast">
+              <span class="material-symbols-outlined">cast</span>
+            </button>
+
+            <!-- Title & Metadata + Visualizer stacked below -->
+            <div class="radio-cinema-info-row">
+              <div class="radio-cinema-meta-wrap">
+                <div id="radioCinemaTitle" class="radio-cinema-title">SELECT A STATION</div>
+                <div id="radioCinemaMeta" class="radio-cinema-meta">Location · Genre</div>
+              </div>
+              
+              <!-- Animated voice/spectrum waveform (premium 10-bar format) -->
+              <div class="radio-cinema-visualizer" id="radioCinemaViz">
+                <div class="cinema-bar"></div>
+                <div class="cinema-bar"></div>
+                <div class="cinema-bar"></div>
+                <div class="cinema-bar"></div>
+                <div class="cinema-bar"></div>
+                <div class="cinema-bar"></div>
+                <div class="cinema-bar"></div>
+                <div class="cinema-bar"></div>
+                <div class="cinema-bar"></div>
+                <div class="cinema-bar"></div>
+              </div>
+            </div>
+
+            <!-- Premium Mockup Seekbar Progress Slider -->
+            <div class="radio-cinema-seekbar-wrap">
+              <span class="cinema-time">0:00</span>
+              <div class="cinema-seekbar">
+                <div class="cinema-seekbar-fill" id="radioCinemaSeekbarFill"></div>
+              </div>
+              <span class="cinema-time-total">LIVE</span>
+            </div>
+
+            <!-- Cinema Mode Playback Controls (Centred prev/play/next) -->
+            <div class="radio-cinema-controls">
+              <button id="btnRadioCinemaPrev" class="radio-cinema-btn" title="Previous Station">
+                <span class="material-symbols-outlined">skip_previous</span>
+              </button>
+              <button id="btnRadioCinemaPlay" class="radio-cinema-play-btn" title="Play/Stop">
+                <span class="material-symbols-outlined">play_arrow</span>
+              </button>
+              <button id="btnRadioCinemaNext" class="radio-cinema-btn" title="Next Station">
+                <span class="material-symbols-outlined">skip_next</span>
               </button>
             </div>
           </div>
@@ -464,7 +956,7 @@
       </div>
 
       <div class="footer-layout">
-        <!-- MODE TOGGLE: Radio â†” Video -->
+        <!-- MODE TOGGLE: Radio ⇆ Video -->
         <button class="btn btn-footer-nav btn-mode-toggle" id="btnModeToggle" title="Switch to Video Mode">
           <span class="material-symbols-outlined" id="modeToggleIcon">radio</span>
         </button>
@@ -496,12 +988,12 @@
       <div class="modal-header">FAVICON GUIDE</div>
       <div style="font-size:calc(11px * var(--text-scale)); line-height:1.5; font-family:'Share Tech Mono', monospace; color:var(--text)">
         <div style="color:var(--accent); margin-bottom:8px; border-bottom:1px solid var(--border); padding-bottom:4px">FAVICON STANDARDS</div>
-        â€¢ Use SQUARE (1:1) aspect ratio<br>
-        â€¢ 64x64px or 128x128px recommended<br>
-        â€¢ PNG, SVG, or WEBP (transparency preferred)<br><br>
+        • Use SQUARE (1:1) aspect ratio<br>
+        • 64x64px or 128x128px recommended<br>
+        • PNG, SVG, or WEBP (transparency preferred)<br><br>
         <div style="color:var(--accent); margin-bottom:8px; border-bottom:1px solid var(--border); padding-bottom:4px">QUICK SOURCES</div>
-        â€¢ Clearbit: logo.clearbit.com/domain.com<br>
-        â€¢ Google: google.com/s2/favicons?domain=domain.com&sz=128<br><br>
+        • Clearbit: logo.clearbit.com/domain.com<br>
+        • Google: google.com/s2/favicons?domain=domain.com&sz=128<br><br>
         <div style="color:var(--dim); font-size:calc(9px * var(--text-scale))">TIP: Right-click any image online and select "Copy Image Address" to paste here.</div>
       </div>
       <div class="modal-footer" style="margin-top:20px;">
