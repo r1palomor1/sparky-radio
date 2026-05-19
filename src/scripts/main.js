@@ -1107,6 +1107,9 @@ function initializeCastApi() {
   castContext.addEventListener(
     cast.framework.CastContextEventType.SESSION_STATE_CHANGED,
     (event) => {
+      if (typeof sparkyYtState !== 'undefined' && sparkyYtState.isModeActive) {
+        return;
+      }
       switch (event.sessionState) {
         case cast.framework.SessionState.SESSION_STARTED:
           console.log('[CAST] Session started');
@@ -3797,6 +3800,17 @@ function toggleYtMode(activate) {
       isPlaying = false; // Reset global playing state so UI updates
       syncPlayBtns();
     }
+    if (isCasting) {
+      try {
+        const castContext = cast.framework.CastContext.getInstance();
+        const castSession = castContext?.getCurrentSession();
+        if (castSession) {
+          castSession.endSession(true);
+        }
+      } catch (e) {}
+      isCasting = false;
+    }
+    setStatus('', 'Idle');
   }
 
   // Pause YT when returning to radio
@@ -3811,6 +3825,11 @@ function toggleYtMode(activate) {
     if (sparkyYtState.activePrefetchAbortController) {
       sparkyYtState.activePrefetchAbortController.abort();
       sparkyYtState.activePrefetchAbortController = null;
+    }
+    if (isPlaying && currentSrc) {
+      setStatus('playing', isCasting ? 'Casting' : 'Playing');
+    } else {
+      setStatus('', 'Idle');
     }
   }
 
@@ -5498,12 +5517,16 @@ function onYtStateChange(event) {
     isPlaying = true; // Update global state for UI sync
     syncPlayBtns();
     resetCinemaTimer(); // Start/refresh cinema timer when playback begins
+    setStatus('playing', 'Playing');
+  } else if (event.data === YT.PlayerState.BUFFERING) {
+    setStatus('buffering', 'Buffering');
   } else if (event.data === YT.PlayerState.PAUSED || event.data === YT.PlayerState.ENDED) {
     isPlaying = false; // Update global state for UI sync
     syncPlayBtns();
     if (Date.now() - lastCinemaTriggerTime > 1000) {
       wakeFromCinemaMode(); // Auto-wake if paused or ended, ignore instantaneous layout reflow pause pings
     }
+    setStatus('', 'Idle');
     if (event.data === YT.PlayerState.ENDED) {
       if (sparkyYtState.loopMode === 'one') {
         console.log('[YT] Loop Active: Restarting current video');

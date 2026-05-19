@@ -236,7 +236,7 @@
 - [8d2efc5] **[Video - Enhancement]** Related videos sidebar (V-E4)
 - [Skipped] **[Video - UI Upgrade]** Active queue item now-playing bar (V-U4) - skipped; active card highlight and ambient favicon glow already satisfy this requirement
 - [28f81ef] **[Video - UI Upgrade]** Hybrid search suggestions dropdown (V-U7)
-- [ ] **[Radio - Enhancement]** Native Google Cast SDK integration (R-E11)
+- [1a696fb] **[Radio - Enhancement]** Native Google Cast SDK integration (R-E11)
 
 **Phase 3: Architectural**
 - [ ] **[Radio - Optimization]** Targeted DOM patching (R-O2)
