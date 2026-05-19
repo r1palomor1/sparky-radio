@@ -4877,7 +4877,7 @@ function renderYtRelated() {
       const btnShuffle = document.getElementById('btnYtShuffle');
       if (btnShuffle) btnShuffle.classList.remove('active');
 
-      playYtItem(relatedQueue[index]);
+      playYtItem(relatedQueue[index], true);
       console.log(`[YT Related] Playing: ${item.title}`);
     };
 
@@ -5159,7 +5159,7 @@ function syncYtNpFav() {
 }
 
 // â”€â”€ 3.2: Lazy Player Loading â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-async function playYtItem(item) {
+async function playYtItem(item, isFromRelated = false) {
   sparkyLog(`Action: playYtItem(${item.id}) - ${item.title}`);
   debugLayout('BEFORE-PLAY');
 
@@ -5171,9 +5171,11 @@ async function playYtItem(item) {
     syncYtQueueBtn();
   }
 
-  // Clear previous related videos on load to reset reactive theme state
-  sparkyYtState.relatedVideos = [];
-  syncYtRelatedBtn();
+  // Clear previous related videos on load to reset reactive theme state (only if not playing from related itself)
+  if (!isFromRelated) {
+    sparkyYtState.relatedVideos = [];
+    syncYtRelatedBtn();
+  }
   pauseRadioForYt();
   highlightYtCard(item.id, true);
 
@@ -5268,7 +5270,7 @@ async function playYtItem(item) {
     loadYtIframeApi();
   }
 
-  if (item.type !== 'playlist') {
+  if (item.type !== 'playlist' && !isFromRelated) {
     fetchRelatedVideos().catch(err => console.error('[YT] Background related fetch failed:', err));
   }
 
