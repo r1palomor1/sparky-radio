@@ -4025,6 +4025,8 @@ function openYtSearchDropdown() {
 
   const plEmpty = document.querySelector('#ytResults .pl-empty');
   if (plEmpty) plEmpty.classList.add('hidden');
+
+  document.querySelector('.app')?.classList.add('yt-search-focused');
 }
 
 function closeYtSearchDropdown() {
@@ -4038,6 +4040,8 @@ function closeYtSearchDropdown() {
     const plEmpty = document.querySelector('#ytResults .pl-empty');
     if (plEmpty) plEmpty.classList.remove('hidden');
   }
+
+  document.querySelector('.app')?.classList.remove('yt-search-focused');
 }
 
 function loadYtRecentSearches() {

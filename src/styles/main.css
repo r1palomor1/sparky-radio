@@ -5083,3 +5083,10 @@ google-cast-launcher:hover {
   opacity: 1;
   filter: drop-shadow(0 0 8px var(--accent));
 }
+
+/* --- PREMIUM MOBILE SEARCH GATING AND OVERLAY --- */
+@media (max-width: 1024px) {
+  .app.yt-search-focused .now-playing {
+    display: none !important;
+  }
+}
