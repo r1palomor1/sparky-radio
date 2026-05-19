@@ -16,6 +16,10 @@
    - [2.2 Enhancement Ideas](#22-enhancement-ideas)
    - [2.3 UI Upgrade Ideas](#23-ui-upgrade-ideas)
    - [2.4 Downgrade Ideas](#24-downgrade-ideas)
+3. [Proposed Roadmap Upgrades](#-proposed-roadmap-upgrades)
+   - [3.1 Phase 4: Next-Gen UI & Audio Controls](#31-phase-4-next-gen-ui--audio-controls)
+   - [3.2 Phase 5: Smart Playback & Contextual Autonomy](#32-phase-5-smart-playback--contextual-autonomy)
+   - [3.3 Phase 6: Architecture, Workers & Performance Shielding](#33-phase-6-architecture-workers--performance-shielding)
 
 ---
 
@@ -241,6 +245,35 @@
 - [cc264ec] **[Radio - Optimization]** Virtualized station list (R-O6)
 - [e921efa] **[Video - Downgrade]** Replace recursive `findToken()` (V-D1)
 - [d1ea0d4] **[Video - Downgrade]** Replace recursive renderer scanners (V-D2)
+
+---
+
+## 🔮 Proposed Roadmap Upgrades
+
+### 3.1 Phase 4: Next-Gen UI & Audio Controls (Proposed)
+
+| # | Idea | Details / Why | Impact | Effort |
+|---|------|---------------|--------|--------|
+| R-U13 | **Dynamic Soundwave Morphing** | Transition the CSS-based visualizer in the Now Playing panel to a high-density `<canvas>` visualizer linked to the `AnalyserNode` of the active `AudioContext`. Slowly morphs into a gentle breathing wave when paused. | 🔥 High | 🟡 Medium |
+| R-U14 | **Adaptive Ambient Shadow Sampling** | Implement real-time color extraction from active station/video thumbnails using an offscreen canvas to dynamically drive HSL shadow and backlighting glows. | 🔥 High | 🟡 Medium |
+| R-U15 | **Swipe-to-Expand Bottom Sheet Mini-Player** | Enhance the collapsible mini-player into a fluid, gesture-driven bottom sheet. Swipe up to expand to full-rack console, swipe down to collapse. | 🔥 High | 🔴 High |
+| R-E13 | **Haptic Frequency Sync (Tactile Pulse)** | Leverage the Web Vibration API to dispatch low-frequency, microscopic tactile ticks synchronized with the rhythm or volume shifts (optional, user-toggled). | 🟡 Medium | 🟢 Low |
+| R-E14 | **Smart Sleep Timer & Fade-Out Control** | Circular dial setting to set countdown. Automatically performs a smooth cubic-bezier volume drop-off over a 2-minute window prior to pausing. | 🟡 Medium | 🟢 Low |
+
+### 3.2 Phase 5: Smart Playback & Contextual Autonomy (Proposed)
+
+| # | Idea | Details / Why | Impact | Effort |
+|---|------|---------------|--------|--------|
+| R-E15 | **Genre-Specific Adaptive EQ Autosave** | Save user-adjusted EQ presets per active genre tags. EQ dynamically swaps to "Jazz" when playing Jazz, and "Rock" when playing Rock. | 🔥 High | 🟡 Medium |
+| V-E11 | **Smart-Queue Autoplay (Infinite Discovery)** | Automatically query adjacent recommended or related videos when the user-defined temporary YouTube queue runs dry to keep playback flowing. | 🔥 High | 🟡 Medium |
+| R-E16 | **Ambient Offline Soundscape Loop** | Cache a minimal sound loop (retro static/lo-fi loop) to play during network dropouts while the self-healing vault completes its rescue run. | 🟡 Medium | 🟢 Low |
+
+### 3.3 Phase 6: Architecture, Workers & Performance Shielding (Proposed)
+
+| # | Idea | Details / Why | Impact | Effort |
+|---|------|---------------|--------|--------|
+| R-O9 | **Web Worker API Payload Offloading** | Move recursive parser runs and large JSON payload parsing (e.g. 250+ radio station lists) to background Web Workers to maintain a locked 60fps scrolling UI. | 🔥 High | 🟡 Medium |
+| R-O10 | **Offline Asset Strategy & Service Workers** | Complete offline caching strategy for index.html, local CSS, SVGs, and scripts to enable instant boot times and UI retrieval under spotty connectivity. | 🔥 High | 🟡 Medium |
 
 ---
 

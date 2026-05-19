@@ -204,6 +204,7 @@ function updateDeploymentUI() {
 let audioCtx, analyser, srcNode;
 let freqData;
 let smoothedBands = new Float32Array(128); // Pre-init for high-density bars
+let cinemaSmoothedBands = new Float32Array(32); // Pre-init for cinema visualizer
 let sortTooltipTimeout;
 
 
@@ -1079,6 +1080,43 @@ function drawViz() {
 
     bar.style.height = h.toFixed(1) + 'px';
   });
+
+  // Sync Cinema visualizer bars (10-bar configuration) (R-U8)
+  const cinemaBars = document.querySelectorAll('.radio-cinema-visualizer .cinema-bar');
+  if (cinemaBars.length > 0) {
+    const cinemaBarCount = cinemaBars.length;
+    cinemaBars.forEach((bar, i) => {
+      const t0 = i / cinemaBarCount;
+      const t1 = (i + 1) / cinemaBarCount;
+
+      const startBin = Math.floor(minBin + Math.pow(t0, 1.4) * (maxBin - minBin));
+      const endBin = Math.floor(minBin + Math.pow(t1, 1.4) * (maxBin - minBin));
+
+      let val = getBandEnergy(freqData, startBin, Math.max(startBin, endBin));
+
+      // Dynamic Range Expansion
+      const tilt = 1 + (i / cinemaBarCount) * 0.6;
+      val *= tilt;
+
+      // Sharpen the peaks
+      let normVal = val / 255;
+      normVal = Math.pow(normVal, 1.3);
+
+      // Visual smoothing: matching standard visualizer kinetics
+      const prev = cinemaSmoothedBands[i] || 0;
+      const attack = 0.8;
+      const decay = 0.1;
+      cinemaSmoothedBands[i] = normVal > prev
+        ? lerp(prev, normVal, attack)
+        : lerp(prev, normVal, decay);
+
+      const minH = 3;
+      const maxH = 20;
+      const h = minH + (cinemaSmoothedBands[i] * (maxH - minH));
+
+      bar.style.height = h.toFixed(1) + 'px';
+    });
+  }
 }
 
 function idleViz() {
@@ -1086,6 +1124,9 @@ function idleViz() {
   (function tick() {
     rafId = requestAnimationFrame(tick); t += .05;
     vizBars.forEach((b, i) => { b.style.height = (2 + Math.abs(Math.sin(t + i * .2)) * 6) + 'px'; });
+    
+    const cinemaBars = document.querySelectorAll('.radio-cinema-visualizer .cinema-bar');
+    cinemaBars.forEach((b, i) => { b.style.height = (3 + Math.abs(Math.sin(t + i * .25)) * 5) + 'px'; });
   })();
 }
 idleViz();
