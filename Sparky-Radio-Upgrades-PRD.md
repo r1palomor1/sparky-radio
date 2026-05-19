@@ -233,12 +233,13 @@
 - [Skipped] **[Video - UI Upgrade]** Active queue item now-playing bar (V-U4) - skipped; active card highlight and ambient favicon glow already satisfy this requirement
 - [28f81ef] **[Video - UI Upgrade]** Hybrid search suggestions dropdown (V-U7)
 - [1a696fb] **[Radio - Enhancement]** Native Google Cast SDK integration (R-E11) *(Restricted to Radio Mode)*
+- [Pending Commit] **[Radio - Enhancement]** Persistent recent search history dropdown (R-E12)
 
 **Phase 3: Architectural**
 - [55932d7] **[Radio - Optimization]** Targeted DOM patching (R-O2)
-- [Pending Commit] **[Radio - Optimization]** Virtualized station list (R-O6)
+- [cc264ec] **[Radio - Optimization]** Virtualized station list (R-O6)
 - [e921efa] **[Video - Downgrade]** Replace recursive `findToken()` (V-D1)
-- [ ] **[Video - Downgrade]** Replace recursive renderer scanners (V-D2)
+- [d1ea0d4] **[Video - Downgrade]** Replace recursive renderer scanners (V-D2)
 
 ---
 

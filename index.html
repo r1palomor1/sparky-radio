@@ -222,8 +222,20 @@
       <div class="search-area" id="searchArea">
         <div class="search-wrap">
           <span class="search-icon">&#128269;</span>
-          <input type="text" id="searchInput" placeholder="Search e.g. Top +Charts ; Rock -Indie" />
+          <input type="text" id="searchInput" placeholder="Search e.g. Top +Charts ; Rock -Indie" autocomplete="off" />
           <button class="search-clear" id="btnSearchClear" title="Clear search">&#10006;</button>
+          <div id="radioRecentSearches" class="radio-recent-searches hidden">
+            <!-- Tier 1: Recent Searches -->
+            <div class="dropdown-tier" id="radioTierRecents">
+              <div class="tier-label">Recent</div>
+              <div class="tier-items" id="radioRecentsItems"></div>
+            </div>
+            <!-- Tier 2: Favorites Matches -->
+            <div class="dropdown-tier" id="radioTierFavs">
+              <div class="tier-label">In Your Favorites</div>
+              <div class="tier-items" id="radioFavsItems"></div>
+            </div>
+          </div>
         </div>
         <button class="btn btn-search" id="btnSearch">Scan</button>
       </div>

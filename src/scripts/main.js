@@ -2839,11 +2839,182 @@ const updateVolFill = (el) => {
 };
 
 // â•â• SEARCH â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ═══ RADIO RECENT SEARCHES ═════════════════════════
+const RADIO_RECENT_SEARCHES_KEY = 'sparky_radio_recent_searches';
+
+function loadRadioRecentSearches() {
+  try {
+    return JSON.parse(localStorage.getItem(RADIO_RECENT_SEARCHES_KEY)) || [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function saveRadioRecentSearch(query) {
+  if (!query) return;
+  let searches = loadRadioRecentSearches();
+  searches = searches.filter(s => s.toLowerCase() !== query.toLowerCase());
+  searches.unshift(query);
+  searches = searches.slice(0, 3);
+  localStorage.setItem(RADIO_RECENT_SEARCHES_KEY, JSON.stringify(searches));
+}
+
+function removeRadioRecentSearch(query) {
+  let searches = loadRadioRecentSearches();
+  searches = searches.filter(s => s !== query);
+  localStorage.setItem(RADIO_RECENT_SEARCHES_KEY, JSON.stringify(searches));
+  renderRadioRecentSearches();
+}
+
+function renderRadioRecentSearches() {
+  const container = document.getElementById('radioRecentSearches');
+  if (!container) return;
+
+  const input = document.getElementById('searchInput');
+  const query = input ? input.value.trim() : '';
+
+  const tierRecents = document.getElementById('radioTierRecents');
+  const tierFavs = document.getElementById('radioTierFavs');
+  const recentsItems = document.getElementById('radioRecentsItems');
+  const favsItems = document.getElementById('radioFavsItems');
+
+  if (!query) {
+    // Empty state: show recent searches, hide favorites matches
+    tierFavs.style.display = 'none';
+    const searches = loadRadioRecentSearches();
+    if (!searches.length) {
+      tierRecents.style.display = 'none';
+      container.classList.add('hidden');
+      return;
+    }
+
+    tierRecents.style.display = 'block';
+    recentsItems.innerHTML = searches.map(s => `
+      <div class="radio-recent-item" data-query="${s.replace(/"/g, '&quot;')}">
+        <span class="material-symbols-outlined" style="font-size: 16px; margin-right: 8px; color: var(--dim); vertical-align: middle; flex-shrink: 0;">history</span>
+        <span class="radio-recent-text">${s}</span>
+        <span class="radio-recent-remove" title="Remove">&times;</span>
+      </div>
+    `).join('');
+
+    recentsItems.querySelectorAll('.radio-recent-item').forEach(item => {
+      const textEl = item.querySelector('.radio-recent-text');
+      if (textEl) {
+        textEl.onclick = (e) => {
+          e.stopPropagation();
+          input.value = item.dataset.query;
+          if (window.syncSearchUI) window.syncSearchUI();
+          switchTab('stations');
+          searchStations(item.dataset.query, true);
+          container.classList.add('hidden');
+        };
+      }
+
+      const removeBtn = item.querySelector('.radio-recent-remove');
+      if (removeBtn) {
+        removeBtn.onclick = (e) => {
+          e.stopPropagation();
+          removeRadioRecentSearch(item.dataset.query);
+          input.focus();
+        };
+      }
+
+      item.onclick = (e) => {
+        if (e.target.classList.contains('radio-recent-remove')) return;
+        input.value = item.dataset.query;
+        if (window.syncSearchUI) window.syncSearchUI();
+        switchTab('stations');
+        searchStations(item.dataset.query, true);
+        container.classList.add('hidden');
+      };
+    });
+  } else {
+    // Searching/Typing state: hide recents, show matching favorites
+    tierRecents.style.display = 'none';
+    
+    // Find matching favorites in the global `favs` array
+    const qLower = query.toLowerCase();
+    const matchingFavs = (favs || []).filter(f => {
+      const nameMatch = f.name && f.name.toLowerCase().includes(qLower);
+      const tagsMatch = f.tags && f.tags.toLowerCase().includes(qLower);
+      const catMatch = f.category && f.category.toLowerCase().includes(qLower);
+      return nameMatch || tagsMatch || catMatch;
+    }).slice(0, 3);
+
+    if (!matchingFavs.length) {
+      tierFavs.style.display = 'none';
+      container.classList.add('hidden');
+      return;
+    }
+
+    tierFavs.style.display = 'block';
+    favsItems.innerHTML = matchingFavs.map(f => `
+      <div class="radio-fav-dropdown-item" data-id="${f.sparkyId || f.stationuuid || ''}">
+        <span class="material-symbols-outlined" style="font-size: 16px; margin-right: 8px; color: var(--fav); vertical-align: middle; flex-shrink: 0;">favorite</span>
+        <span class="radio-recent-text" style="flex: 1; font-weight: 500;">${f.name}</span>
+      </div>
+    `).join('');
+
+    favsItems.querySelectorAll('.radio-fav-dropdown-item').forEach((item, index) => {
+      item.onclick = (e) => {
+        e.stopPropagation();
+        const favStation = matchingFavs[index];
+        if (favStation) {
+          playStationObj(favStation);
+          container.classList.add('hidden');
+          if (input) input.value = '';
+          if (window.syncSearchUI) window.syncSearchUI();
+        }
+      };
+    });
+  }
+}
+
+function openRadioSearchDropdown() {
+  const dropdown = document.getElementById('radioRecentSearches');
+  if (!dropdown) return;
+  
+  const input = document.getElementById('searchInput');
+  const query = input ? input.value.trim() : '';
+
+  if (!query) {
+    const searches = loadRadioRecentSearches();
+    if (searches.length > 0) {
+      dropdown.classList.remove('hidden');
+    } else {
+      dropdown.classList.add('hidden');
+    }
+  } else {
+    const qLower = query.toLowerCase();
+    const matchingFavs = (favs || []).filter(f => {
+      const nameMatch = f.name && f.name.toLowerCase().includes(qLower);
+      const tagsMatch = f.tags && f.tags.toLowerCase().includes(qLower);
+      const catMatch = f.category && f.category.toLowerCase().includes(qLower);
+      return nameMatch || tagsMatch || catMatch;
+    }).slice(0, 3);
+
+    if (matchingFavs.length > 0) {
+      dropdown.classList.remove('hidden');
+    } else {
+      dropdown.classList.add('hidden');
+    }
+  }
+}
+
+// ═══ SEARCH ══════════════════════════════════════
+function closeRadioSearchDropdown() {
+  const dropdown = document.getElementById('radioRecentSearches');
+  if (dropdown) dropdown.classList.add('hidden');
+}
+
 async function searchStations(q, isManual = false) {
   if (isSearching) return;
   searchQuery = (q || "").trim();
 
   localStorage.setItem('sparky_last_query', q || '');
+  if (isManual && searchQuery) {
+    saveRadioRecentSearch(searchQuery);
+  }
   const hasFilters = filterCountry !== 'ALL' || filterLang !== 'ALL' || filterHiFi;
   if (!q && !hasFilters && !isManual) { stations = []; renderStations(); return; }
   if (q === '' && !isManual) { stations = []; renderStations(); return; } // Explicit empty = clear
@@ -3310,7 +3481,11 @@ document.addEventListener('DOMContentLoaded', () => {
     btnSearchClear.style.display = searchInput.value ? 'flex' : 'none';
   };
 
-  searchInput.oninput = toggleSearchClear;
+  searchInput.oninput = () => {
+    toggleSearchClear();
+    renderRadioRecentSearches();
+    openRadioSearchDropdown();
+  };
   searchInput.onkeypress = (e) => {
     if (e.key === 'Enter') {
       // New Search Intent: Clear HD filter
@@ -3319,8 +3494,38 @@ document.addEventListener('DOMContentLoaded', () => {
       if (btn) btn.classList.remove('active');
       switchTab('stations');
       searchStations(searchInput.value, true);
+      closeRadioSearchDropdown();
     }
   };
+
+  let radioSearchBlurTimeout = null;
+  searchInput.addEventListener('focus', () => {
+    if (radioSearchBlurTimeout) {
+      clearTimeout(radioSearchBlurTimeout);
+      radioSearchBlurTimeout = null;
+    }
+    renderRadioRecentSearches();
+    openRadioSearchDropdown();
+  });
+
+  searchInput.addEventListener('blur', () => {
+    radioSearchBlurTimeout = setTimeout(() => {
+      closeRadioSearchDropdown();
+      radioSearchBlurTimeout = null;
+    }, 250);
+  });
+
+  searchInput.addEventListener('click', () => {
+    renderRadioRecentSearches();
+    openRadioSearchDropdown();
+  });
+
+  document.addEventListener('click', (e) => {
+    const searchWrap = document.querySelector('.search-wrap');
+    if (searchWrap && !searchWrap.contains(e.target)) {
+      closeRadioSearchDropdown();
+    }
+  });
 
   btnSearchClear.onclick = () => {
     searchInput.value = '';
@@ -3328,6 +3533,7 @@ document.addEventListener('DOMContentLoaded', () => {
     toggleSearchClear();
     document.getElementById('presetTrigger').textContent = 'Quick-Tune';
     searchStations('', false); // Explicit clear
+    closeRadioSearchDropdown();
   };
 
   // Expose toggle for programmatic use
@@ -3431,7 +3637,7 @@ document.addEventListener('DOMContentLoaded', () => {
     filterHiFi = false;
     const btn = document.getElementById('btnHifi');
     if (btn) btn.classList.remove('active');
-    expandFilters(); if (q) { switchTab('stations'); searchStations(q); }
+    expandFilters(); if (q) { switchTab('stations'); searchStations(q, true); closeRadioSearchDropdown(); }
   });
 
   bind('btnPlayFooter', () => { if (typeof sparkyYtState !== 'undefined' && sparkyYtState.isModeActive) toggleYtPlay(); else togglePlay(); });
