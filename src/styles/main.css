@@ -1392,6 +1392,148 @@ input[type=range]::-moz-range-thumb {
   box-shadow: 0 10px 20px rgba(0,0,0,0.5);
 }
 
+/* V-U7: 3-Tier Hybrid Search Dropdown */
+.yt-search-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  max-height: 60vh;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+  animation: fadeInDown 0.15s ease-out;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.yt-search-dropdown.hidden {
+  display: none;
+}
+
+.dropdown-tier {
+  display: flex;
+  flex-direction: column;
+  border-bottom: 1px solid var(--border);
+  width: 100%;
+}
+
+.dropdown-tier:last-child {
+  border-bottom: none;
+}
+
+.tier-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--dim);
+  padding: 8px 12px 4px 12px;
+  letter-spacing: 0.5px;
+  font-family: 'Share Tech Mono', monospace;
+}
+
+.tier-items {
+  display: flex;
+  flex-direction: column;
+  padding: 4px 0;
+  width: 100%;
+}
+
+.tier-empty {
+  font-size: 12px;
+  color: var(--dim);
+  padding: 8px 12px;
+  font-style: italic;
+  text-align: center;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+  transition: background 0.15s;
+  min-height: 44px;
+  background: var(--panel);
+  color: var(--text);
+  box-sizing: border-box;
+}
+
+.dropdown-item-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+  cursor: pointer;
+  height: 100%;
+}
+
+.dropdown-item-remove {
+  background: none;
+  border: none;
+  color: var(--dim);
+  padding: 4px 8px;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  border-radius: 4px;
+  transition: all 0.2s;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dropdown-item-remove:hover {
+  color: var(--accent2);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.dropdown-item:active {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.dropdown-item-icon {
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.dropdown-item-text {
+  font-size: 13px;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: 'Share Tech Mono', monospace;
+  flex: 1;
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .yt-recent-item {
   display: flex;
   align-items: center;
@@ -3679,6 +3821,7 @@ body.light .filter-chip {
   flex-shrink: 0;
   gap: 8px;
   position: relative;
+  z-index: 100;
 }
 
 .yt-search-main {

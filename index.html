@@ -311,6 +311,25 @@
           </div>
           <button class="btn btn-search" id="btnYtSearch">Search</button>
         </div>
+        <!-- V-U7: 3-Tier Hybrid Search Dropdown -->
+        <div id="ytSearchDropdown" class="yt-search-dropdown hidden">
+          <!-- Tier 1: Recent Searches -->
+          <div class="dropdown-tier" id="dropdownTierRecents">
+            <div class="tier-label">Recent</div>
+            <div class="tier-items" id="tierRecentsItems"></div>
+          </div>
+          <!-- Tier 2: Autocomplete Suggestions -->
+          <div class="dropdown-tier" id="dropdownTierAutocomplete" style="display:none;">
+            <div class="tier-label">Suggestions</div>
+            <div class="tier-items" id="tierAutocompleteItems"></div>
+          </div>
+          <!-- Tier 3: Smart Context Suggestions (Hidden) -->
+          <div class="dropdown-tier" id="dropdownTierSmart" style="display:none;">
+            <div class="tier-label">Explore</div>
+            <div class="tier-items" id="tierSmartItems"></div>
+          </div>
+        </div>
+        <!-- Legacy recent searches (kept for backward compat, will be hidden) -->
         <div id="ytRecentSearches" class="yt-recent-searches hidden"></div>
         
         <!-- PERSISTENT FILTERS (Always Visible in Video Mode) -->

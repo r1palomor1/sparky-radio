@@ -3473,7 +3473,10 @@ const sparkyYtState = {
   tempQueuePlayedIds: new Set(), // Track played IDs for pulsing logic
   loopMode: 'none', // 'none' | 'one'
   relatedVideos: [], // For related videos overlay
-  relatedSortMode: 'relevance' // Sort order: relevance | views
+  relatedSortMode: 'relevance', // Sort order: relevance | views
+  dropdownOpen: false, // V-U7: Dropdown visibility state
+  autocompleteResults: [], // V-U7: Tier 2 autocomplete results
+  smartSuggestions: [] // V-U7: Tier 3 context suggestions
 };
 
 const YT_FAVS_KEY = 'sparky_yt_favorites';
@@ -3739,7 +3742,9 @@ function clearYtResults() {
 
   const el = document.getElementById('ytResults');
   if (!el) return;
-  el.innerHTML = `<div class="pl-empty">
+  
+  const isHidden = sparkyYtState.dropdownOpen ? ' hidden' : '';
+  el.innerHTML = `<div class="pl-empty${isHidden}">
     <div class="pl-empty-icon">&#9654;&#65039;</div>
     <div>Search for ${mode === 'playlists' ? 'playlists' : 'videos'} above</div>
   </div>`;
@@ -3838,6 +3843,38 @@ let pendingPlayItem = null;
 // â”€â”€ Recent Searches Logic â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const RECENT_SEARCHES_KEY = 'sparky_yt_recent_searches';
 
+/* V-U7: Get recents filtered by mode */
+function getRecentsByMode(mode) {
+  const allRecents = loadYtRecentSearches();
+  // For now, return all recents for both modes
+  // Future: can add metadata to track video vs playlist searches
+  return allRecents;
+}
+
+/* V-U7: Dropdown state management */
+function openYtSearchDropdown() {
+  const dropdown = document.getElementById('ytSearchDropdown');
+  if (dropdown && !dropdown.classList.contains('hidden')) return; // Already open
+  dropdown?.classList.remove('hidden');
+  sparkyYtState.dropdownOpen = true;
+
+  const plEmpty = document.querySelector('#ytResults .pl-empty');
+  if (plEmpty) plEmpty.classList.add('hidden');
+}
+
+function closeYtSearchDropdown() {
+  const dropdown = document.getElementById('ytSearchDropdown');
+  if (dropdown && dropdown.classList.contains('hidden')) return; // Already closed
+  dropdown?.classList.add('hidden');
+  sparkyYtState.dropdownOpen = false;
+
+  const query = document.getElementById('ytSearchInput')?.value?.trim() || '';
+  if (query === '') {
+    const plEmpty = document.querySelector('#ytResults .pl-empty');
+    if (plEmpty) plEmpty.classList.remove('hidden');
+  }
+}
+
 function loadYtRecentSearches() {
   try {
     return JSON.parse(localStorage.getItem(RECENT_SEARCHES_KEY)) || [];
@@ -3860,7 +3897,7 @@ function removeYtRecentSearch(query) {
   let searches = loadYtRecentSearches();
   searches = searches.filter(s => s !== query);
   localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(searches));
-  renderYtRecentSearches();
+  renderDropdownRecents();
 }
 
 function renderYtRecentSearches() {
@@ -3916,11 +3953,17 @@ function renderYtRecentSearches() {
 }
 
 // â”€â”€ 3.1: Search â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-async function runYtSearch() {
+async function runYtSearch(skipRecent = false, queryToSave = null) {
+  if (typeof skipRecent === 'object') skipRecent = false;
+
   let query = document.getElementById('ytSearchInput')?.value?.trim();
   if (!query) return;
 
-  saveYtRecentSearch(query);
+  if (queryToSave && queryToSave.trim() !== '') {
+    saveYtRecentSearch(queryToSave);
+  } else if (!skipRecent) {
+    saveYtRecentSearch(query);
+  }
 
   const mode = sparkyYtState.currentSubMode; // 'videos' | 'playlists'
 
@@ -5371,24 +5414,182 @@ const toggleYtSearchClear = () => {
   }
 };
 
-document.getElementById('btnYtSearch')?.addEventListener('click', runYtSearch);
+/* V-U7: Render Tier 1 - Recent Searches (3 items, show recents tier only) */
+function renderDropdownRecents() {
+  const tierItems = document.getElementById('tierRecentsItems');
+  const tierRecents = document.getElementById('dropdownTierRecents');
+  const tierAutocomplete = document.getElementById('dropdownTierAutocomplete');
+  if (!tierItems || !tierRecents) return;
+  
+  const recents = getRecentsByMode(sparkyYtState.currentSubMode).slice(0, 3);
+  tierRecents.style.display = 'flex';
+  if (tierAutocomplete) tierAutocomplete.style.display = 'none';
+  
+  if (!recents.length) {
+    tierItems.innerHTML = '<div class="tier-empty">No recent searches</div>';
+    return;
+  }
+  tierItems.innerHTML = recents.map(query => `
+    <div class="dropdown-item dropdown-recent-item" data-query="${query.replace(/"/g, '&quot;')}">
+      <div class="dropdown-item-left">
+        <span class="dropdown-item-icon material-symbols-outlined" style="font-size: 16px;">history</span>
+        <span class="dropdown-item-text">${query}</span>
+      </div>
+      <button class="dropdown-item-remove" title="Remove search">&times;</button>
+    </div>
+  `).join('');
+  
+  tierItems.querySelectorAll('.dropdown-recent-item').forEach(el => {
+    const leftArea = el.querySelector('.dropdown-item-left');
+    if (leftArea) {
+      leftArea.addEventListener('click', (e) => {
+        e.stopPropagation();
+        selectDropdownItem(el.dataset.query, false);
+      });
+    }
+    const removeBtn = el.querySelector('.dropdown-item-remove');
+    if (removeBtn) {
+      removeBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        removeYtRecentSearch(el.dataset.query);
+      });
+    }
+  });
+}
+
+/* V-U7: Render Tier 2 - Autocomplete (hide recents tier when showing suggestions) */
+function renderDropdownAutocomplete() {
+  const tierContainer = document.getElementById('dropdownTierAutocomplete');
+  const tierItems = document.getElementById('tierAutocompleteItems');
+  const tierRecents = document.getElementById('dropdownTierRecents');
+  if (!tierItems || !tierContainer) return;
+  
+  const results = sparkyYtState.autocompleteResults || [];
+  const typedQuery = document.getElementById('ytSearchInput')?.value?.trim() || '';
+
+  if (!results.length) {
+    tierContainer.style.display = 'none';
+    if (tierRecents) {
+      if (typedQuery === '') {
+        tierRecents.style.display = 'flex';
+      } else {
+        tierRecents.style.display = 'none';
+      }
+    }
+    return;
+  }
+  tierContainer.style.display = 'flex';
+  if (tierRecents) tierRecents.style.display = 'none';
+  tierItems.innerHTML = results.slice(0, 5).map(sugg => `
+    <div class="dropdown-item" data-query="${sugg.replace(/"/g, '&quot;')}">
+      <span class="dropdown-item-icon material-symbols-outlined" style="font-size: 16px;">search</span>
+      <span class="dropdown-item-text">${sugg}</span>
+    </div>
+  `).join('');
+  tierItems.querySelectorAll('.dropdown-item').forEach(el => {
+    el.addEventListener('click', () => {
+      const typedQuery = document.getElementById('ytSearchInput')?.value?.trim();
+      selectDropdownItem(el.dataset.query, true, typedQuery);
+    });
+  });
+}
+
+/* V-U7: Populate dropdown (recents only on focus) */
+function populateYtSearchDropdown() {
+  renderDropdownRecents();
+}
+
+/* V-U7: Select item */
+function selectDropdownItem(query, skipRecent = false, typedQuery = null) {
+  if (ytSearchInput) {
+    clearTimeout(autocompleteDebounce);
+    if (autocompleteAbortController) {
+      autocompleteAbortController.abort();
+    }
+    ytSearchInput.value = query;
+    toggleYtSearchClear();
+    runYtSearch(skipRecent, typedQuery);
+    closeYtSearchDropdown();
+  }
+}
+
+/* V-U7: Debounced autocomplete */
+let autocompleteDebounce = null;
+let autocompleteAbortController = null;
+async function fetchAutocomplete(query) {
+  if (!query.trim() || query.length < 2) {
+    sparkyYtState.autocompleteResults = [];
+    renderDropdownAutocomplete();
+    return;
+  }
+  if (autocompleteAbortController) {
+    autocompleteAbortController.abort();
+  }
+  autocompleteAbortController = new AbortController();
+  const signal = autocompleteAbortController.signal;
+
+  try {
+    const mode = sparkyYtState.currentSubMode;
+    const endpoint = mode === 'playlists' ? '/api/fetchPlaylist' : '/api/searchVideos';
+    const response = await fetch(`${endpoint}?query=${encodeURIComponent(query)}&limit=5`, { signal });
+    const data = await response.json();
+    const suggestions = (mode === 'playlists' 
+      ? data.playlist_results?.map(p => p.title) 
+      : data.video_results?.map(v => v.title)) || [];
+    sparkyYtState.autocompleteResults = suggestions.slice(0, 5);
+    renderDropdownAutocomplete();
+  } catch (e) {
+    if (e.name !== 'AbortError') {
+      console.error('[V-U7] Autocomplete:', e);
+    }
+  }
+}
+
+document.getElementById('btnYtSearch')?.addEventListener('click', () => runYtSearch(false));
 ytSearchInput?.addEventListener('keydown', e => {
-  if (e.key === 'Enter') runYtSearch();
+  if (e.key === 'Enter') {
+    runYtSearch();
+    closeYtSearchDropdown();
+  }
 });
 ytSearchInput?.addEventListener('input', () => {
   toggleYtSearchClear();
-  if (ytSearchInput.value.trim() === '') {
-    renderYtRecentSearches();
-    document.getElementById('ytRecentSearches')?.classList.remove('hidden');
+  const query = ytSearchInput.value.trim();
+  if (query === '') {
+    clearTimeout(autocompleteDebounce);
+    if (autocompleteAbortController) {
+      autocompleteAbortController.abort();
+    }
+    sparkyYtState.autocompleteResults = [];
+    populateYtSearchDropdown();
   } else {
-    document.getElementById('ytRecentSearches')?.classList.add('hidden');
+    const tierRecents = document.getElementById('dropdownTierRecents');
+    if (tierRecents) tierRecents.style.display = 'none';
+    
+    clearTimeout(autocompleteDebounce);
+    autocompleteDebounce = setTimeout(() => fetchAutocomplete(query), 300);
   }
 });
-
+ytSearchInput?.addEventListener('focus', () => {
+  populateYtSearchDropdown();
+  renderDropdownRecents();
+  openYtSearchDropdown();
+});
+ytSearchInput?.addEventListener('blur', () => {
+  setTimeout(() => closeYtSearchDropdown(), 200);
+});
 ytSearchInput?.addEventListener('click', () => {
-  if (ytSearchInput.value.trim() === '') {
-    renderYtRecentSearches();
-    document.getElementById('ytRecentSearches')?.classList.remove('hidden');
+  if (!sparkyYtState.dropdownOpen) {
+    populateYtSearchDropdown();
+    renderDropdownRecents();
+    openYtSearchDropdown();
+  }
+});
+document.addEventListener('click', (e) => {
+  const dropdown = document.getElementById('ytSearchDropdown');
+  const searchWrap = document.getElementById('ytSearchWrap');
+  if (dropdown && searchWrap && !searchWrap.contains(e.target)) {
+    closeYtSearchDropdown();
   }
 });
 
@@ -5396,24 +5597,14 @@ btnYtSearchClear?.addEventListener('click', () => {
   if (ytSearchInput) {
     ytSearchInput.value = '';
     toggleYtSearchClear();
-    renderYtRecentSearches();
-    document.getElementById('ytRecentSearches')?.classList.remove('hidden');
+    populateYtSearchDropdown();
+    renderDropdownRecents();
+    openYtSearchDropdown();
     ytSearchInput.focus();
     clearYtResults();
   }
 });
 
-ytSearchInput?.addEventListener('focus', () => {
-  renderYtRecentSearches();
-  document.getElementById('ytRecentSearches')?.classList.remove('hidden');
-});
-
-ytSearchInput?.addEventListener('blur', () => {
-  // Delay so chip click works
-  setTimeout(() => {
-    document.getElementById('ytRecentSearches')?.classList.add('hidden');
-  }, 200);
-});
 
 document.getElementById('btnYtQueue')?.addEventListener('click', toggleYtQueue);
 document.getElementById('btnYtRelated')?.addEventListener('click', toggleYtRelated);
