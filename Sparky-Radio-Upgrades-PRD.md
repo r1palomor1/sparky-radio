@@ -253,14 +253,14 @@
 **Phase 4: Next-Gen UI & Audio Controls**
 - [51a5296] **[Radio - UI Upgrade]** Dynamic Soundwave Morphing (R-U13) — Canvas GPU spectrum with breathing paused wave.
 - [ae051ca] **[Radio - UI Upgrade]** Adaptive Ambient Shadow Glow Sampling (R-U14) — Color extraction for dynamic shadow backdrop.
-- [Proposed] **[Radio - UI Upgrade]** Swipe-to-Expand Bottom Sheet Mini-Player (R-U15) — Collapsible gesture mini-player sheet.
-- [Proposed] **[Radio - Enhancement]** Haptic Frequency Sync (Tactile Pulse) (R-E13) — Physical vibration sync with rhythms.
-- [Proposed] **[Radio - Enhancement]** Smart Sleep Timer & Fade-Out Control (R-E14) — Circular sleep timer dial with smooth cubic-bezier volume drop.
+- [Skipped] **[Radio - UI Upgrade]** Swipe-to-Expand Bottom Sheet Mini-Player (R-U15) — Collapsible gesture mini-player sheet.
+- [Skipped] **[Radio - Enhancement]** Haptic Frequency Sync (Tactile Pulse) (R-E13) — Physical vibration sync with rhythms.
+- [a91c1ab → ecf5355] **[Radio - Enhancement]** Smart Sleep Timer & Fade-Out Control (R-E14) — Linear range slider sleep timer with cubic-bezier fade-out and cinema timeout.
 
 **Phase 5: Smart Playback & Contextual Autonomy**
-- [Proposed] **[Radio - Enhancement]** Genre-Specific Adaptive EQ Autosave (R-E15) — Save/restore custom EQ presets per active genre tag.
-- [Proposed] **[Video - Enhancement]** Smart-Queue Autoplay (Infinite Discovery) (V-E11) — Queue related content when queue runs dry.
-- [Proposed] **[Radio - Enhancement]** Ambient Offline Soundscape Loop (R-E16) — Retro static/lo-fi loop during vault rescues.
+- [Skipped] **[Radio - Enhancement]** Genre-Specific Adaptive EQ Autosave (R-E15) — Save/restore custom EQ presets per active genre tag.
+- [b1a07bf] **[Video - Enhancement]** Smart-Queue Autoplay (Infinite Discovery) (V-E11) — Auto-fetch related videos when queue exhausts; appends to queue with toast notification.
+- [Skipped] **[Radio - Enhancement]** Ambient Offline Soundscape Loop (R-E16) — Retro static/lo-fi loop during vault rescues.
 
 **Phase 6: Architecture, Workers & Performance Shielding**
 - [Proposed] **[Radio - Optimization]** Web Worker API Payload Offloading (R-O9) — Move station parsing to background Web Workers.
