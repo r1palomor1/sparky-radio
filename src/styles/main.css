@@ -5216,16 +5216,7 @@ google-cast-launcher:hover {
   z-index: 20;
 }
 
-.radio-cinema-glow-wrapper {
-  position: relative;
-  width: 200px;
-  height: 200px;
-  border-radius: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
+
 
 .radio-cinema-glow-wrapper::before {
   content: '';
@@ -5287,7 +5278,8 @@ google-cast-launcher:hover {
 }
 
 .radio-cinema-glass-card {
-  width: 100%;
+  width: 88vw;
+  max-width: 350px;
   background: rgba(255, 255, 255, 0.03);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
@@ -5383,25 +5375,7 @@ google-cast-launcher:hover {
   color: var(--accent);
 }
 
-.radio-cinema-play-btn {
-  background: var(--accent);
-  border: none;
-  color: var(--bg);
-  border-radius: 50%;
-  width: 64px;
-  height: 64px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  box-shadow: 0 4px 15px rgba(0, 242, 255, 0.4);
-}
 
-.radio-cinema-play-btn:hover {
-  transform: scale(1.1);
-  box-shadow: 0 6px 20px rgba(0, 242, 255, 0.6);
-}
 
 .radio-cinema-btn .material-symbols-outlined {
   font-size: 24px;
