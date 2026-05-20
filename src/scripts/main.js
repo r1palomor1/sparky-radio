@@ -6512,12 +6512,89 @@ function toggleYtPlay() {
   else p.playVideo();
 }
 
-function playYtNext() {
+// ── V-E11: SMART-QUEUE AUTOPLAY (INFINITE DISCOVERY) ──────────────────────────
+function showSmartQueueToast(count) {
+  let toast = document.getElementById('sparkySmartQueueToast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'sparkySmartQueueToast';
+    toast.style.cssText = `
+      position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(20px);
+      background: rgba(0,0,0,0.85); backdrop-filter: blur(12px);
+      color: var(--accent, #00f2ff); border: 1px solid var(--accent, #00f2ff);
+      border-radius: 20px; padding: 8px 18px; font-size: 12px; font-family: 'Share Tech Mono', monospace;
+      white-space: nowrap; z-index: 9999; opacity: 0;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      pointer-events: none;
+    `;
+    document.body.appendChild(toast);
+  }
+  toast.innerHTML = `<span style="margin-right:6px">&#9654;&#9654;</span> SMART QUEUE: ${count} related tracks added`;
+  requestAnimationFrame(() => {
+    toast.style.opacity = '1';
+    toast.style.transform = 'translateX(-50%) translateY(0)';
+  });
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateX(-50%) translateY(20px)';
+  }, 3500);
+}
+
+async function playYtNext() {
   const p = sparkyYtState.playerInstance;
   if (!p) return;
+
+  // Normal queue advance
   if (sparkyYtState.queueIndex < sparkyYtState.currentQueue.length - 1) {
     sparkyYtState.queueIndex++;
     playYtItem(sparkyYtState.currentQueue[sparkyYtState.queueIndex]);
+    return;
+  }
+
+  // ── Queue exhausted: trigger Smart-Queue Autoplay ──
+  console.log('[V-E11] Queue exhausted. Fetching related videos for Infinite Discovery...');
+  const currentItem = sparkyYtState.currentQueue[sparkyYtState.queueIndex]
+    || sparkyYtState.temporaryQueue.find(v => v.id === sparkyYtState.currentItemId);
+
+  if (!currentItem || !currentItem.id) {
+    console.warn('[V-E11] No current item to base related fetch on. Stopping.');
+    return;
+  }
+
+  try {
+    const res = await fetch(`/api/hydrateTags?id=${encodeURIComponent(currentItem.id)}`);
+    if (!res.ok) throw new Error(`API ${res.status}`);
+    const data = await res.json();
+    const related = (data.related_videos || []).filter(v => v.id && v.id !== currentItem.id);
+
+    if (!related.length) {
+      console.warn('[V-E11] No related videos found. Stopping playback.');
+      return;
+    }
+
+    // Normalize and append to queue (deduplicate against already-played IDs)
+    const existingIds = new Set(sparkyYtState.currentQueue.map(v => v.id));
+    const fresh = related
+      .filter(v => !existingIds.has(v.id))
+      .slice(0, 10)
+      .map(v => ({ ...v, type: 'video', thumb: v.thumbnail || v.thumb || '' }));
+
+    if (!fresh.length) {
+      console.warn('[V-E11] All related videos already in queue. Stopping.');
+      return;
+    }
+
+    sparkyYtState.currentQueue.push(...fresh);
+    sparkyYtState.relatedVideos = related.slice(0, 12); // Refresh the related panel too
+    syncYtRelatedBtn();
+
+    console.log(`[V-E11] Appended ${fresh.length} new tracks to queue. Advancing...`);
+    showSmartQueueToast(fresh.length);
+
+    sparkyYtState.queueIndex++;
+    playYtItem(sparkyYtState.currentQueue[sparkyYtState.queueIndex]);
+  } catch (err) {
+    console.error('[V-E11] Smart-Queue fetch failed:', err);
   }
 }
 
