@@ -3843,7 +3843,258 @@ document.addEventListener('DOMContentLoaded', () => {
     if (dm) dm.style.display = 'none';
   });
 
-  // â•â• INTERFACE SCALE BINDINGS â•â•
+  // ─── SMART SLEEP TIMER ENGINE (R-E14) ───
+  let sleepTimeRemaining = 0; // in seconds
+  let sleepCountdownInterval = null;
+  let originalSleepVolume = null;
+  let isDraggingSleepDial = false;
+
+  const sleepProgressCircle = document.getElementById('sleepProgressCircle');
+  const sleepHandleDot = document.getElementById('sleepHandleDot');
+  const sleepTimeDisplay = document.getElementById('sleepTimeDisplay');
+  const sleepTimerSvg = document.getElementById('sleepTimerSvg');
+  const sleepFadeToggle = document.getElementById('sleepFadeToggle');
+  const sleepCenterMoon = document.getElementById('sleepCenterMoon');
+
+  const maxSleepMinutes = 120;
+  const strokeCircumference = 263.89; // Circumference for r=42
+
+  function updateSleepUI(minutes) {
+    if (!sleepTimeDisplay || !sleepProgressCircle || !sleepHandleDot) return;
+
+    if (minutes === 0) {
+      sleepTimeDisplay.textContent = 'OFF';
+      if (sleepCenterMoon) {
+        sleepCenterMoon.style.opacity = '0.35';
+        sleepCenterMoon.style.transform = 'scale(1)';
+      }
+      sleepProgressCircle.style.strokeDashoffset = strokeCircumference;
+      // Position handle dot back to the top starting point (-90 deg rotation)
+      sleepHandleDot.setAttribute('cx', '92');
+      sleepHandleDot.setAttribute('cy', '50');
+      return;
+    }
+
+    // Format display string
+    if (minutes >= 60) {
+      const h = Math.floor(minutes / 60);
+      const m = minutes % 60;
+      sleepTimeDisplay.textContent = `${h}h ${m > 0 ? m + 'm' : ''}`;
+    } else {
+      sleepTimeDisplay.textContent = `${minutes} MIN`;
+    }
+
+    if (sleepCenterMoon) {
+      sleepCenterMoon.style.opacity = '0.85';
+      sleepCenterMoon.style.transform = 'scale(1.1)';
+    }
+
+    const percent = minutes / maxSleepMinutes;
+    const offset = strokeCircumference * (1 - percent);
+    sleepProgressCircle.style.strokeDashoffset = offset;
+
+    // Calculate handle coordinates along the circle path
+    const angle = 2 * Math.PI * percent;
+    const cx = 50 + 42 * Math.cos(angle);
+    const cy = 50 + 42 * Math.sin(angle);
+    sleepHandleDot.setAttribute('cx', cx);
+    sleepHandleDot.setAttribute('cy', cy);
+  }
+
+  function handleSleepTimerExpired() {
+    console.log('[SLEEP TIMER] Timer expired. Tearing down playback.');
+    
+    // Smooth fade back to initial user volume setting
+    if (typeof stopPlayback === 'function') {
+      stopPlayback();
+    } else if (audioEl) {
+      audioEl.pause();
+    }
+    
+    if (typeof stopYtPlayback === 'function') {
+      stopYtPlayback();
+    } else if (sparkyYtState && sparkyYtState.playerInstance && typeof sparkyYtState.playerInstance.stopVideo === 'function') {
+      sparkyYtState.playerInstance.stopVideo();
+    }
+
+    // Restore volume settings fully
+    if (originalSleepVolume !== null && audioEl) {
+      audioEl.volume = originalSleepVolume;
+      const volSlider = document.getElementById('volSlider');
+      if (volSlider) volSlider.value = Math.round(originalSleepVolume * 100);
+      originalSleepVolume = null;
+    }
+
+    sleepTimeRemaining = 0;
+    if (sleepCountdownInterval) clearInterval(sleepCountdownInterval);
+    updateSleepUI(0);
+  }
+
+  function tickSleepTimer() {
+    if (sleepTimeRemaining <= 0) {
+      handleSleepTimerExpired();
+      return;
+    }
+
+    sleepTimeRemaining--;
+
+    // Update display countdown
+    const min = Math.floor(sleepTimeRemaining / 60);
+    const sec = sleepTimeRemaining % 60;
+    
+    if (sleepTimeDisplay) {
+      sleepTimeDisplay.textContent = `${min}:${sec.toString().padStart(2, '0')}`;
+    }
+
+    // Progress circle visual tracking
+    const totalDurationSeconds = maxSleepMinutes * 60;
+    const currentPercent = sleepTimeRemaining / totalDurationSeconds;
+    if (sleepProgressCircle) {
+      sleepProgressCircle.style.strokeDashoffset = strokeCircumference * (1 - currentPercent);
+    }
+    if (sleepHandleDot) {
+      const angle = 2 * Math.PI * currentPercent;
+      const cx = 50 + 42 * Math.cos(angle);
+      const cy = 50 + 42 * Math.sin(angle);
+      sleepHandleDot.setAttribute('cx', cx);
+      sleepHandleDot.setAttribute('cy', cy);
+    }
+
+    // cubic-bezier volume drop curve over final 60 seconds
+    const shouldFade = sleepFadeToggle ? sleepFadeToggle.checked : true;
+    if (shouldFade && sleepTimeRemaining <= 60 && sleepTimeRemaining > 0) {
+      if (originalSleepVolume === null && audioEl) {
+        originalSleepVolume = audioEl.volume;
+      }
+      
+      if (originalSleepVolume !== null && audioEl) {
+        const progress = sleepTimeRemaining / 60; // 1 down to 0
+        // S-curve cubic-bezier ease-in-out volume scale
+        const easeProgress = progress * progress * (3 - 2 * progress);
+        const targetVol = originalSleepVolume * easeProgress;
+        audioEl.volume = targetVol;
+        
+        // Sync volume slider track indicator dynamically
+        const volSlider = document.getElementById('volSlider');
+        if (volSlider) volSlider.value = Math.round(targetVol * 100);
+      }
+    }
+  }
+
+  function startSleepTimer(minutes) {
+    if (sleepCountdownInterval) clearInterval(sleepCountdownInterval);
+    
+    if (originalSleepVolume !== null && audioEl) {
+      audioEl.volume = originalSleepVolume;
+      originalSleepVolume = null;
+    }
+
+    sleepTimeRemaining = minutes * 60;
+    console.log(`[SLEEP TIMER] Starting countdown for ${minutes} minutes.`);
+    sleepCountdownInterval = setInterval(tickSleepTimer, 1000);
+  }
+
+  function stopSleepTimer() {
+    if (sleepCountdownInterval) clearInterval(sleepCountdownInterval);
+    sleepTimeRemaining = 0;
+    
+    if (originalSleepVolume !== null && audioEl) {
+      audioEl.volume = originalSleepVolume;
+      const volSlider = document.getElementById('volSlider');
+      if (volSlider) volSlider.value = Math.round(originalSleepVolume * 100);
+      originalSleepVolume = null;
+    }
+
+    updateSleepUI(0);
+    console.log('[SLEEP TIMER] Sleep timer manually disabled.');
+  }
+
+  // Mouse/Touch physics-based circular drag calculations
+  if (sleepTimerSvg) {
+    function calculateAngleFromEvent(e) {
+      const rect = sleepTimerSvg.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      
+      const dx = clientX - centerX;
+      const dy = clientY - centerY;
+      
+      // Angle relative to positive X-axis
+      let angle = Math.atan2(dy, dx);
+      
+      // Compensate for the rotated SVG (-90 deg)
+      angle += Math.PI / 2;
+      if (angle < 0) angle += 2 * Math.PI;
+      
+      return angle;
+    }
+
+    function processDragEvent(e) {
+      const angle = calculateAngleFromEvent(e);
+      let percent = angle / (2 * Math.PI);
+      
+      // Clamp edge threshold snapping
+      if (percent < 0.02) percent = 0;
+      if (percent > 0.98) percent = 1;
+
+      // Scale up in precise 5-minute increments for premium tactile feedback
+      const rawMinutes = percent * maxSleepMinutes;
+      let minutes = Math.round(rawMinutes / 5) * 5;
+      
+      // Safeguard threshold
+      if (percent > 0 && minutes === 0) minutes = 5;
+
+      updateSleepUI(minutes);
+      
+      if (minutes > 0) {
+        startSleepTimer(minutes);
+      } else {
+        stopSleepTimer();
+      }
+    }
+
+    sleepTimerSvg.addEventListener('mousedown', (e) => {
+      isDraggingSleepDial = true;
+      if (sleepHandleDot) sleepHandleDot.style.cursor = 'grabbing';
+      processDragEvent(e);
+      e.preventDefault();
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (!isDraggingSleepDial) return;
+      processDragEvent(e);
+    });
+
+    window.addEventListener('mouseup', () => {
+      if (!isDraggingSleepDial) return;
+      isDraggingSleepDial = false;
+      if (sleepHandleDot) sleepHandleDot.style.cursor = 'grab';
+    });
+
+    // Touch event listeners for seamless Mobile and PWA wrappers
+    sleepTimerSvg.addEventListener('touchstart', (e) => {
+      isDraggingSleepDial = true;
+      if (sleepHandleDot) sleepHandleDot.style.cursor = 'grabbing';
+      processDragEvent(e);
+    }, { passive: false });
+
+    window.addEventListener('touchmove', (e) => {
+      if (!isDraggingSleepDial) return;
+      processDragEvent(e);
+      if (e.cancelable) e.preventDefault();
+    }, { passive: false });
+
+    window.addEventListener('touchend', () => {
+      if (!isDraggingSleepDial) return;
+      isDraggingSleepDial = false;
+      if (sleepHandleDot) sleepHandleDot.style.cursor = 'grab';
+    });
+  }
+
+  // ═══ INTERFACE SCALE BINDINGS ═══
   bind('textScaleSlider', (e) => applyTextScale(parseFloat(e.target.value)), 'oninput');
   bind('btnResetScale', () => applyTextScale(1.0));
 
@@ -4269,7 +4520,7 @@ const YT_TEMP_QUEUE_KEY = 'sparky_yt_temp_queue';
 
 /* --- IMMERSIVE CINEMA MODE --- */
 let cinemaModeTimer = null;
-const CINEMA_TIMEOUT_MS = 20000;
+const CINEMA_TIMEOUT_MS = 12000;
 
 function wakeFromCinemaMode() {
   document.querySelector('.app').classList.remove('immersive-cinema-mode');

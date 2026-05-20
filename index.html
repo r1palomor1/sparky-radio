@@ -1042,8 +1042,44 @@
           <button class="btn btn-sm btn-action" style="font-size: calc(8px * var(--text-scale)); padding: 2px 8px;"
             id="btnResetScale">RESET TO 1x</button>
         </div>
-
       </div>
+
+      <!-- SLEEP TIMER & FADE-OUT CONTROL (R-E14) -->
+      <div style="border-top: 1px solid var(--border); padding-top: 15px; margin-bottom: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <div style="font-size: calc(10px * var(--text-scale)); color: var(--accent); letter-spacing: 1.5px; font-weight: 500;">
+            SLEEP TIMER</div>
+          <div id="sleepTimeDisplay" style="font-size: calc(11px * var(--text-scale)); color: var(--text); font-weight: 400; font-family: 'Share Tech Mono', monospace; letter-spacing: 0.5px;">OFF</div>
+        </div>
+        
+        <!-- Premium SVG Dial Container -->
+        <div class="sleep-dial-container" style="display: flex; justify-content: center; align-items: center; margin: 15px 0; position: relative; height: 100px;">
+          <svg width="100" height="100" viewBox="0 0 100 100" style="transform: rotate(-90deg); overflow: visible;" id="sleepTimerSvg">
+            <!-- Background circle track -->
+            <circle cx="50" cy="50" r="42" stroke="var(--border)" stroke-width="5" fill="transparent" />
+            <!-- Active progress circle -->
+            <circle cx="50" cy="50" r="42" stroke="var(--accent)" stroke-width="5" fill="transparent" 
+              stroke-dasharray="263.89" stroke-dashoffset="263.89" id="sleepProgressCircle" style="transition: stroke-dashoffset 0.15s ease;" />
+            <!-- Draggable indicator dot -->
+            <circle cx="92" cy="50" r="6" fill="var(--text)" id="sleepHandleDot" style="cursor: grab; transition: fill 0.2s, filter 0.2s;" />
+          </svg>
+          <!-- Center moon icon inside the dial -->
+          <span class="material-symbols-outlined" id="sleepCenterMoon" style="position: absolute; font-size: 24px; color: var(--accent); opacity: 0.35; pointer-events: none; transition: opacity 0.3s, transform 0.3s;">bedtime</span>
+        </div>
+        
+        <!-- Cubic-Bezier Fade-out Switch -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px;">
+          <div style="display: flex; flex-direction: column; gap: 2px;">
+            <div style="font-size: calc(9px * var(--text-scale)); color: var(--text); font-weight: 500;">SMOOTH FADE-OUT</div>
+            <div style="font-size: calc(7px * var(--text-scale)); color: var(--dim); letter-spacing: 0.5px;">60s cubic-bezier volume drop</div>
+          </div>
+          <label class="switch" style="position: relative; display: inline-block; width: 34px; height: 20px;">
+            <input type="checkbox" id="sleepFadeToggle" checked style="opacity: 0; width: 0; height: 0;">
+            <span class="slider round" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--border); transition: .3s; border-radius: 20px;"></span>
+          </label>
+        </div>
+      </div>
+
       <div style="border-top: 1px solid var(--border); padding-top: 15px; margin-bottom: 20px;">
         <div
           style="font-size: calc(10px * var(--text-scale)); color: var(--accent); letter-spacing: 1.5px; font-weight: 500; margin-bottom: 12px;">

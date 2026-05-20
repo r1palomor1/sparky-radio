@@ -5451,3 +5451,29 @@ google-cast-launcher:hover {
   color: var(--accent);
   border-color: var(--accent);
 }
+
+/* --- SLEEP TIMER DIAL & SWITCH TOGGLE (R-E14) --- */
+.sleep-dial-container svg {
+  overflow: visible;
+}
+#sleepHandleDot:hover {
+  fill: var(--accent) !important;
+  filter: drop-shadow(0 0 4px var(--accent));
+}
+.switch input:checked + .slider {
+  background-color: var(--accent) !important;
+}
+.switch input:checked + .slider:before {
+  transform: translateX(14px);
+}
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 14px;
+  width: 14px;
+  left: 3px;
+  bottom: 3px;
+  background-color: var(--bg);
+  transition: .3s;
+  border-radius: 50%;
+}
