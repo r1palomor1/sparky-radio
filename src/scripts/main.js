@@ -1054,7 +1054,8 @@ function resizeCanvas(canvas) {
 }
 
 function getThemeAccent() {
-  const styles = getComputedStyle(document.documentElement);
+  const npPanel = document.querySelector('.now-playing');
+  const styles = npPanel ? getComputedStyle(npPanel) : getComputedStyle(document.documentElement);
   return styles.getPropertyValue('--accent').trim() || '#00f2ff';
 }
 
@@ -1340,17 +1341,8 @@ function updateNowPlaying(st) {
 
   if (favEl) favEl.innerHTML = st ? renderFavicon(st) : '';
   
-  // R-U1: Ambient favicon glow for Now Playing panel
-  const npPanel = document.querySelector('.now-playing');
-  if (npPanel) {
-    if (st && st.favicon && st.favicon.trim() !== '') {
-      npPanel.style.setProperty('--ambient-bg', `url("${esc(st.favicon)}")`);
-      npPanel.classList.add('has-ambient-bg');
-    } else {
-      npPanel.style.removeProperty('--ambient-bg');
-      npPanel.classList.remove('has-ambient-bg');
-    }
-  }
+  // R-U1 & R-U14: Dynamic Adaptive Ambient Glow for Now Playing panel
+  updateAmbientGlow(st ? st.favicon : null);
 
   nm.textContent = st ? st.name : 'SELECT A STATION';
 
@@ -4456,15 +4448,19 @@ if (wakeZone) {
 }
 
 const radioCinemaWake = document.getElementById('radioCinemaWakeOverlay');
-if (radioCinemaWake) {
+const radioCinemaHand = document.querySelector('.radio-cinema-hand');
+const bindWake = (el) => {
+  if (!el) return;
   ['click', 'touchstart'].forEach(evt => {
-    radioCinemaWake.addEventListener(evt, (e) => {
+    el.addEventListener(evt, (e) => {
       e.preventDefault();
       e.stopPropagation();
       wakeFromCinemaMode();
     }, { passive: false });
   });
-}
+};
+bindWake(radioCinemaWake);
+bindWake(radioCinemaHand);
 
 // ── Radio Cinema Control Handlers ──────────────────────────────
 const btnRadioCinemaPrev = document.getElementById('btnRadioCinemaPrev');
@@ -6185,18 +6181,8 @@ async function playYtItem(item, isFromRelated = false) {
   pauseRadioForYt();
   highlightYtCard(item.id, true);
 
-  // V-U11: Ambient favicon glow for Now Playing panel
-  const npPanel = document.querySelector('.now-playing');
-  if (npPanel) {
-    const thumb = item.thumb || item.thumbnail || (item.thumbnail_url);
-    if (thumb) {
-      npPanel.style.setProperty('--ambient-bg', `url("${esc(thumb)}")`);
-      npPanel.classList.add('has-ambient-bg');
-    } else {
-      npPanel.style.removeProperty('--ambient-bg');
-      npPanel.classList.remove('has-ambient-bg');
-    }
-  }
+  // V-U11 & R-U14: Dynamic Adaptive Ambient Glow for Now Playing panel
+  updateAmbientGlow(item.thumb || item.thumbnail || item.thumbnail_url);
 
   // Handle Playlist Expansion
   if (item.type === 'playlist') {
@@ -6850,6 +6836,202 @@ function sortYtQueueLocal(mode) {
   }
   
   renderYtQueue();
+}
+
+/* R-U14: Adaptive Ambient Shadow Glow Sampling Engine */
+function extractDominantColor(imgUrl, callback) {
+  if (!imgUrl) {
+    callback(null);
+    return;
+  }
+  const img = new Image();
+  img.crossOrigin = "Anonymous";
+  img.onload = function() {
+    try {
+      const canvas = document.createElement('canvas');
+      canvas.width = 16;
+      canvas.height = 16;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        callback(null);
+        return;
+      }
+      ctx.drawImage(img, 0, 0, 16, 16);
+      const data = ctx.getImageData(0, 0, 16, 16).data;
+      
+      let rSum = 0, gSum = 0, bSum = 0, count = 0;
+      for (let i = 0; i < data.length; i += 4) {
+        const r = data[i];
+        const g = data[i+1];
+        const b = data[i+2];
+        const a = data[i+3];
+        if (a < 128) continue; // Skip semi-transparent pixels
+        
+        // Skip gray/white/black pixels to get a saturated dominant color if possible
+        const max = Math.max(r, g, b);
+        const min = Math.min(r, g, b);
+        if (max - min < 20 && (max > 220 || max < 35)) continue;
+        
+        rSum += r;
+        gSum += g;
+        bSum += b;
+        count++;
+      }
+      
+      if (count === 0) {
+        for (let i = 0; i < data.length; i += 4) {
+          rSum += data[i];
+          gSum += data[i+1];
+          bSum += data[i+2];
+          count++;
+        }
+      }
+      
+      const r = Math.round(rSum / count);
+      const g = Math.round(gSum / count);
+      const b = Math.round(bSum / count);
+      
+      callback(rgbToHsl(r, g, b));
+    } catch (e) {
+      callback(null);
+    }
+  };
+  img.onerror = function() {
+    callback(null);
+  };
+  img.src = imgUrl;
+}
+
+function rgbToHsl(r, g, b) {
+  r /= 255; g /= 255; b /= 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  let h, s, l = (max + min) / 2;
+
+  if (max === min) {
+    h = s = 0;
+  } else {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    switch (max) {
+      case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+      case g: h = (b - r) / d + 2; break;
+      case b: h = (r - g) / d + 4; break;
+    }
+    h /= 6;
+  }
+  return {
+    h: Math.round(h * 360),
+    s: Math.round(s * 100),
+    l: Math.round(l * 100)
+  };
+}
+
+function getActiveThemeModifier() {
+  const themeName = localStorage.getItem('sparky_theme_name') || 'rabbit';
+  if (themeName.includes(':')) {
+    const parts = themeName.split(':');
+    return parts[parts.length - 1] || 'Bold';
+  }
+  return 'Bold';
+}
+
+function adjustHslForModifier(h, s, l) {
+  const mod = getActiveThemeModifier().toLowerCase();
+  let newS = s;
+  let newL = l;
+  
+  switch (mod) {
+    case 'none':
+      newS = s;
+      newL = l;
+      break;
+    case 'bold':
+    case 'vibrant':
+    case 'warm':
+      newS = Math.min(100, Math.max(75, s));
+      newL = Math.min(60, Math.max(40, l));
+      break;
+    case 'cool':
+      h = Math.round((h + 200) / 2);
+      newS = Math.min(100, Math.max(65, s));
+      newL = Math.min(65, Math.max(45, l));
+      break;
+    case 'darker':
+      newS = Math.min(80, Math.max(45, s));
+      newL = Math.min(25, Math.max(12, l));
+      break;
+    case 'lighter':
+      newS = Math.min(85, Math.max(50, s));
+      newL = Math.min(88, Math.max(75, l));
+      break;
+    case 'glow':
+    case 'neon':
+      newS = 98;
+      newL = 52;
+      break;
+    case 'muted':
+    case 'monochrome':
+      newS = Math.min(25, Math.max(8, s));
+      newL = Math.min(45, Math.max(30, l));
+      break;
+    case 'pastel':
+      newS = Math.min(48, Math.max(25, s));
+      newL = Math.min(82, Math.max(70, l));
+      break;
+    case 'metallic':
+      newS = Math.min(30, Math.max(12, s));
+      newL = Math.min(60, Math.max(45, l));
+      break;
+    case 'vintage':
+      h = Math.round((h + 35) / 2);
+      newS = Math.min(65, Math.max(35, s));
+      newL = Math.min(55, Math.max(40, l));
+      break;
+    default:
+      newS = s;
+      newL = l;
+      break;
+  }
+  
+  return { h, s: newS, l: newL };
+}
+
+function hslToRgbString(h, s, l) {
+  s /= 100;
+  l /= 100;
+  const k = n => (n + h / 30) % 12;
+  const a = s * Math.min(l, 1 - l);
+  const f = n => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+  const r = Math.round(255 * f(0));
+  const g = Math.round(255 * f(8));
+  const b = Math.round(255 * f(4));
+  return `${r}, ${g}, ${b}`;
+}
+
+function updateAmbientGlow(imageUrl) {
+  const npPanel = document.querySelector('.now-playing');
+  if (!npPanel) return;
+
+  if (imageUrl && imageUrl.trim() !== '') {
+    npPanel.style.setProperty('--ambient-bg', `url("${esc(imageUrl)}")`);
+    npPanel.classList.add('has-ambient-bg');
+
+    extractDominantColor(imageUrl, (hsl) => {
+      if (hsl) {
+        const finalHsl = adjustHslForModifier(hsl.h, hsl.s, hsl.l);
+        npPanel.style.setProperty('--accent', `hsl(${finalHsl.h}, ${finalHsl.s}%, ${finalHsl.l}%)`);
+        npPanel.style.setProperty('--accent-glow', `rgba(${hslToRgbString(finalHsl.h, finalHsl.s, finalHsl.l)}, 0.35)`);
+      } else {
+        npPanel.style.removeProperty('--accent');
+        npPanel.style.removeProperty('--accent-glow');
+      }
+    });
+  } else {
+    npPanel.style.removeProperty('--ambient-bg');
+    npPanel.classList.remove('has-ambient-bg');
+    npPanel.style.removeProperty('--accent');
+    npPanel.style.removeProperty('--accent-glow');
+  }
 }
 
 /* V-O6: Dynamic Self-Healing Mojibake Autorecover System */

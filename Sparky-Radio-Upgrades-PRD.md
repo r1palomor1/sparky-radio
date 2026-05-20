@@ -250,30 +250,21 @@
 
 ## 🔮 Proposed Roadmap Upgrades
 
-### 3.1 Phase 4: Next-Gen UI & Audio Controls (Proposed)
+**Phase 4: Next-Gen UI & Audio Controls**
+- [51a5296] **[Radio - UI Upgrade]** Dynamic Soundwave Morphing (R-U13) — Canvas GPU spectrum with breathing paused wave.
+- [ae051ca] **[Radio - UI Upgrade]** Adaptive Ambient Shadow Glow Sampling (R-U14) — Color extraction for dynamic shadow backdrop.
+- [Proposed] **[Radio - UI Upgrade]** Swipe-to-Expand Bottom Sheet Mini-Player (R-U15) — Collapsible gesture mini-player sheet.
+- [Proposed] **[Radio - Enhancement]** Haptic Frequency Sync (Tactile Pulse) (R-E13) — Physical vibration sync with rhythms.
+- [Proposed] **[Radio - Enhancement]** Smart Sleep Timer & Fade-Out Control (R-E14) — Circular sleep timer dial with smooth cubic-bezier volume drop.
 
-| # | Idea | Details / Why | Impact | Effort |
-|---|------|---------------|--------|--------|
-| R-U13 | **Dynamic Soundwave Morphing** | Transition the CSS-based visualizer in the Now Playing panel to a high-density `<canvas>` visualizer linked to the `AnalyserNode` of the active `AudioContext`. Slowly morphs into a gentle breathing wave when paused. | 🔥 High | 🟡 Medium |
-| R-U14 | **Adaptive Ambient Shadow Sampling** | Implement real-time color extraction from active station/video thumbnails using an offscreen canvas to dynamically drive HSL shadow and backlighting glows. | 🔥 High | 🟡 Medium |
-| R-U15 | **Swipe-to-Expand Bottom Sheet Mini-Player** | Enhance the collapsible mini-player into a fluid, gesture-driven bottom sheet. Swipe up to expand to full-rack console, swipe down to collapse. | 🔥 High | 🔴 High |
-| R-E13 | **Haptic Frequency Sync (Tactile Pulse)** | Leverage the Web Vibration API to dispatch low-frequency, microscopic tactile ticks synchronized with the rhythm or volume shifts (optional, user-toggled). | 🟡 Medium | 🟢 Low |
-| R-E14 | **Smart Sleep Timer & Fade-Out Control** | Circular dial setting to set countdown. Automatically performs a smooth cubic-bezier volume drop-off over a 2-minute window prior to pausing. | 🟡 Medium | 🟢 Low |
+**Phase 5: Smart Playback & Contextual Autonomy**
+- [Proposed] **[Radio - Enhancement]** Genre-Specific Adaptive EQ Autosave (R-E15) — Save/restore custom EQ presets per active genre tag.
+- [Proposed] **[Video - Enhancement]** Smart-Queue Autoplay (Infinite Discovery) (V-E11) — Queue related content when queue runs dry.
+- [Proposed] **[Radio - Enhancement]** Ambient Offline Soundscape Loop (R-E16) — Retro static/lo-fi loop during vault rescues.
 
-### 3.2 Phase 5: Smart Playback & Contextual Autonomy (Proposed)
-
-| # | Idea | Details / Why | Impact | Effort |
-|---|------|---------------|--------|--------|
-| R-E15 | **Genre-Specific Adaptive EQ Autosave** | Save user-adjusted EQ presets per active genre tags. EQ dynamically swaps to "Jazz" when playing Jazz, and "Rock" when playing Rock. | 🔥 High | 🟡 Medium |
-| V-E11 | **Smart-Queue Autoplay (Infinite Discovery)** | Automatically query adjacent recommended or related videos when the user-defined temporary YouTube queue runs dry to keep playback flowing. | 🔥 High | 🟡 Medium |
-| R-E16 | **Ambient Offline Soundscape Loop** | Cache a minimal sound loop (retro static/lo-fi loop) to play during network dropouts while the self-healing vault completes its rescue run. | 🟡 Medium | 🟢 Low |
-
-### 3.3 Phase 6: Architecture, Workers & Performance Shielding (Proposed)
-
-| # | Idea | Details / Why | Impact | Effort |
-|---|------|---------------|--------|--------|
-| R-O9 | **Web Worker API Payload Offloading** | Move recursive parser runs and large JSON payload parsing (e.g. 250+ radio station lists) to background Web Workers to maintain a locked 60fps scrolling UI. | 🔥 High | 🟡 Medium |
-| R-O10 | **Offline Asset Strategy & Service Workers** | Complete offline caching strategy for index.html, local CSS, SVGs, and scripts to enable instant boot times and UI retrieval under spotty connectivity. | 🔥 High | 🟡 Medium |
+**Phase 6: Architecture, Workers & Performance Shielding**
+- [Proposed] **[Radio - Optimization]** Web Worker API Payload Offloading (R-O9) — Move station parsing to background Web Workers.
+- [Proposed] **[Radio - Optimization]** Offline Asset Strategy & Service Workers (R-O10) — Complete asset caching for offline boot.
 
 ---
 

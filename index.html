@@ -67,11 +67,23 @@
       flex: 1;
     }
 
-    .app.immersive-cinema-mode .footer {
+    .app.immersive-cinema-mode:not(.yt-mode-active) .footer {
       opacity: 0 !important;
       pointer-events: none !important;
       transform: translateY(100%);
       transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .app.immersive-cinema-mode.yt-mode-active .footer {
+      opacity: 0.15 !important;
+      pointer-events: auto !important;
+      transform: none !important;
+      transition: opacity 0.3s ease, transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .app.immersive-cinema-mode.yt-mode-active .footer:hover,
+    .app.immersive-cinema-mode.yt-mode-active .footer:focus-within {
+      opacity: 0.85 !important;
     }
 
     /* --- RADIO CINEMA PLACEHOLDER --- */
@@ -471,10 +483,22 @@
       box-shadow: 0 4px 12px rgba(0,0,0,0.5);
       animation: pulseSlow 4s infinite ease-in-out;
       transition: all 0.3s ease;
-      pointer-events: none;
+      pointer-events: auto !important; /* Ensure it receives clicks */
+      cursor: pointer;
     }
 
-    .radio-cinema-wake-overlay:hover .radio-cinema-hand {
+    /* Invisible padded wrapper around the icon to expand touch area */
+    .radio-cinema-hand::before {
+      content: '';
+      position: absolute;
+      top: -20px;
+      left: -20px;
+      right: -20px;
+      bottom: -20px;
+      border-radius: 50%;
+    }
+
+    .radio-cinema-hand:hover {
       background: rgba(0, 0, 0, 0.8);
       transform: scale(1.1);
       color: var(--accent);
