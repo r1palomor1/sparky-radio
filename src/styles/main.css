@@ -1189,21 +1189,21 @@ input[type=range]:hover {
 /* Webkit Thumb */
 input[type=range]::-webkit-slider-thumb {
   -webkit-appearance: none;
-  width: 18px;
-  height: 18px;
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
   background: var(--accent);
   border: 2px solid #fff;
   cursor: pointer;
-  box-shadow: 0 0 12px var(--accent), 0 2px 4px rgba(0, 0, 0, 0.4);
-  margin-top: -6px;
+  box-shadow: 0 0 6px var(--accent), 0 1px 3px rgba(0, 0, 0, 0.4);
+  margin-top: -3px;
   /* Center on 6px track */
   transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 input[type=range]:active::-webkit-slider-thumb {
   transform: scale(1.2);
-  box-shadow: 0 0 20px var(--accent), 0 4px 8px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 0 10px var(--accent), 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 /* Firefox Fill */
@@ -1214,13 +1214,13 @@ input[type=range]::-moz-range-progress {
 }
 
 input[type=range]::-moz-range-thumb {
-  width: 18px;
-  height: 18px;
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
   background: var(--accent);
   border: 2px solid #fff;
   cursor: pointer;
-  box-shadow: 0 0 12px var(--accent);
+  box-shadow: 0 0 6px var(--accent);
 }
 
 

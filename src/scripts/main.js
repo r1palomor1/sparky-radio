@@ -3808,14 +3808,14 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   bind('presetTrigger', (e) => { e.stopPropagation(); document.getElementById('presetOptions')?.classList.toggle('show'); });
 
-  // â•â• BACKDROP CLICK LISTENER â•â•
+  // â• â•  BACKDROP CLICK LISTENER â• â• 
   window.addEventListener('click', () => {
     ['presetOptions', 'filterCountryOptions', 'filterLangOptions', 'defaultCountryOptions', 'defaultLangOptions', 'statsModeOptions'].forEach(id => {
       document.getElementById(id)?.classList.remove('show');
     });
   });
 
-  // â•â• SYSTEM & UTILITY BINDINGS (SAFE) â•â•
+  // â• â•  SYSTEM & UTILITY BINDINGS (SAFE) â• â• 
   bind('btnCopyLogs', () => window.copyLogs());
   bind('btnAuditFavs', () => window.auditFavs());
   bind('btnExportFavs', handleExport);
@@ -3847,58 +3847,24 @@ document.addEventListener('DOMContentLoaded', () => {
   let sleepTimeRemaining = 0; // in seconds
   let sleepCountdownInterval = null;
   let originalSleepVolume = null;
-  let isDraggingSleepDial = false;
 
-  const sleepProgressCircle = document.getElementById('sleepProgressCircle');
-  const sleepHandleDot = document.getElementById('sleepHandleDot');
   const sleepTimeDisplay = document.getElementById('sleepTimeDisplay');
-  const sleepTimerSvg = document.getElementById('sleepTimerSvg');
+  const sleepTimeSlider = document.getElementById('sleepTimeSlider');
   const sleepFadeToggle = document.getElementById('sleepFadeToggle');
-  const sleepCenterMoon = document.getElementById('sleepCenterMoon');
 
-  const maxSleepMinutes = 120;
-  const strokeCircumference = 263.89; // Circumference for r=42
+  const maxSleepMinutes = 60;
 
   function updateSleepUI(minutes) {
-    if (!sleepTimeDisplay || !sleepProgressCircle || !sleepHandleDot) return;
+    if (!sleepTimeDisplay) return;
 
     if (minutes === 0) {
       sleepTimeDisplay.textContent = 'OFF';
-      if (sleepCenterMoon) {
-        sleepCenterMoon.style.opacity = '0.35';
-        sleepCenterMoon.style.transform = 'scale(1)';
-      }
-      sleepProgressCircle.style.strokeDashoffset = strokeCircumference;
-      // Position handle dot back to the top starting point (-90 deg rotation)
-      sleepHandleDot.setAttribute('cx', '92');
-      sleepHandleDot.setAttribute('cy', '50');
+      if (sleepTimeSlider) sleepTimeSlider.value = 0;
       return;
     }
 
-    // Format display string
-    if (minutes >= 60) {
-      const h = Math.floor(minutes / 60);
-      const m = minutes % 60;
-      sleepTimeDisplay.textContent = `${h}h ${m > 0 ? m + 'm' : ''}`;
-    } else {
-      sleepTimeDisplay.textContent = `${minutes} MIN`;
-    }
-
-    if (sleepCenterMoon) {
-      sleepCenterMoon.style.opacity = '0.85';
-      sleepCenterMoon.style.transform = 'scale(1.1)';
-    }
-
-    const percent = minutes / maxSleepMinutes;
-    const offset = strokeCircumference * (1 - percent);
-    sleepProgressCircle.style.strokeDashoffset = offset;
-
-    // Calculate handle coordinates along the circle path
-    const angle = 2 * Math.PI * percent;
-    const cx = 50 + 42 * Math.cos(angle);
-    const cy = 50 + 42 * Math.sin(angle);
-    sleepHandleDot.setAttribute('cx', cx);
-    sleepHandleDot.setAttribute('cy', cy);
+    sleepTimeDisplay.textContent = `${minutes} MIN`;
+    if (sleepTimeSlider) sleepTimeSlider.value = minutes;
   }
 
   function handleSleepTimerExpired() {
@@ -3946,18 +3912,9 @@ document.addEventListener('DOMContentLoaded', () => {
       sleepTimeDisplay.textContent = `${min}:${sec.toString().padStart(2, '0')}`;
     }
 
-    // Progress circle visual tracking
-    const totalDurationSeconds = maxSleepMinutes * 60;
-    const currentPercent = sleepTimeRemaining / totalDurationSeconds;
-    if (sleepProgressCircle) {
-      sleepProgressCircle.style.strokeDashoffset = strokeCircumference * (1 - currentPercent);
-    }
-    if (sleepHandleDot) {
-      const angle = 2 * Math.PI * currentPercent;
-      const cx = 50 + 42 * Math.cos(angle);
-      const cy = 50 + 42 * Math.sin(angle);
-      sleepHandleDot.setAttribute('cx', cx);
-      sleepHandleDot.setAttribute('cy', cy);
+    // Update slider track to match remaining time visually
+    if (sleepTimeSlider) {
+      sleepTimeSlider.value = Math.ceil(sleepTimeRemaining / 60);
     }
 
     // cubic-bezier volume drop curve over final 60 seconds
@@ -4009,88 +3966,16 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('[SLEEP TIMER] Sleep timer manually disabled.');
   }
 
-  // Mouse/Touch physics-based circular drag calculations
-  if (sleepTimerSvg) {
-    function calculateAngleFromEvent(e) {
-      const rect = sleepTimerSvg.getBoundingClientRect();
-      const centerX = rect.left + rect.width / 2;
-      const centerY = rect.top + rect.height / 2;
-      
-      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-      
-      const dx = clientX - centerX;
-      const dy = clientY - centerY;
-      
-      // Angle relative to positive X-axis
-      let angle = Math.atan2(dy, dx);
-      
-      // Compensate for the rotated SVG (-90 deg)
-      angle += Math.PI / 2;
-      if (angle < 0) angle += 2 * Math.PI;
-      
-      return angle;
-    }
-
-    function processDragEvent(e) {
-      const angle = calculateAngleFromEvent(e);
-      let percent = angle / (2 * Math.PI);
-      
-      // Clamp edge threshold snapping
-      if (percent < 0.02) percent = 0;
-      if (percent > 0.98) percent = 1;
-
-      // Scale up in precise 5-minute increments for premium tactile feedback
-      const rawMinutes = percent * maxSleepMinutes;
-      let minutes = Math.round(rawMinutes / 5) * 5;
-      
-      // Safeguard threshold
-      if (percent > 0 && minutes === 0) minutes = 5;
-
+  // Slider event listener
+  if (sleepTimeSlider) {
+    sleepTimeSlider.addEventListener('input', (e) => {
+      const minutes = parseInt(e.target.value, 10);
       updateSleepUI(minutes);
-      
       if (minutes > 0) {
         startSleepTimer(minutes);
       } else {
         stopSleepTimer();
       }
-    }
-
-    sleepTimerSvg.addEventListener('mousedown', (e) => {
-      isDraggingSleepDial = true;
-      if (sleepHandleDot) sleepHandleDot.style.cursor = 'grabbing';
-      processDragEvent(e);
-      e.preventDefault();
-    });
-
-    window.addEventListener('mousemove', (e) => {
-      if (!isDraggingSleepDial) return;
-      processDragEvent(e);
-    });
-
-    window.addEventListener('mouseup', () => {
-      if (!isDraggingSleepDial) return;
-      isDraggingSleepDial = false;
-      if (sleepHandleDot) sleepHandleDot.style.cursor = 'grab';
-    });
-
-    // Touch event listeners for seamless Mobile and PWA wrappers
-    sleepTimerSvg.addEventListener('touchstart', (e) => {
-      isDraggingSleepDial = true;
-      if (sleepHandleDot) sleepHandleDot.style.cursor = 'grabbing';
-      processDragEvent(e);
-    }, { passive: false });
-
-    window.addEventListener('touchmove', (e) => {
-      if (!isDraggingSleepDial) return;
-      processDragEvent(e);
-      if (e.cancelable) e.preventDefault();
-    }, { passive: false });
-
-    window.addEventListener('touchend', () => {
-      if (!isDraggingSleepDial) return;
-      isDraggingSleepDial = false;
-      if (sleepHandleDot) sleepHandleDot.style.cursor = 'grab';
     });
   }
 
