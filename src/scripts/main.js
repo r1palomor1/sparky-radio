@@ -1023,7 +1023,10 @@ function initAudio() {
 }
 
 // â•â• VISUALIZER â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-const vizBars = document.querySelectorAll('.visualizer .bar');
+// ══ VISUALIZER ════════════════════════════
+const vizCanvas = document.getElementById('mainViz');
+const vizCtx = vizCanvas ? vizCanvas.getContext('2d') : null;
+const BAR_COUNT = 64; // High-density spectrum capacity
 
 function lerp(a, b, t) {
   return a + (b - a) * t;
@@ -1038,52 +1041,88 @@ function getBandEnergy(data, start, end) {
   return count ? sum / count : 0;
 }
 
+function resizeCanvas(canvas) {
+  if (!canvas) return;
+  const rect = canvas.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  const width = Math.floor(rect.width * dpr);
+  const height = Math.floor(rect.height * dpr);
+  if (canvas.width !== width || canvas.height !== height) {
+    canvas.width = width;
+    canvas.height = height;
+  }
+}
+
+function getThemeAccent() {
+  const styles = getComputedStyle(document.documentElement);
+  return styles.getPropertyValue('--accent').trim() || '#00f2ff';
+}
+
 function drawViz() {
   rafId = requestAnimationFrame(drawViz);
-  if (!analyser || !freqData) return;
+  
+  if (vizCanvas && vizCtx) {
+    resizeCanvas(vizCanvas);
+    const width = vizCanvas.width;
+    const height = vizCanvas.height;
+    vizCtx.clearRect(0, 0, width, height);
 
-  analyser.getByteFrequencyData(freqData);
+    const accentColor = getThemeAccent();
+    vizCtx.strokeStyle = accentColor;
+    vizCtx.shadowColor = accentColor;
+    vizCtx.shadowBlur = 8 * (window.devicePixelRatio || 1);
 
-  const totalBins = analyser.frequencyBinCount;
-  const barCount = vizBars.length;
-  const minBin = 1;
-  const maxBin = Math.min(totalBins - 1, 120); // Focus on musical range
+    if (analyser && freqData) {
+      analyser.getByteFrequencyData(freqData);
 
-  vizBars.forEach((bar, i) => {
-    const t0 = i / barCount;
-    const t1 = (i + 1) / barCount;
+      const totalBins = analyser.frequencyBinCount;
+      const minBin = 1;
+      const maxBin = Math.min(totalBins - 1, 120);
 
-    const startBin = Math.floor(minBin + Math.pow(t0, 1.4) * (maxBin - minBin));
-    const endBin = Math.floor(minBin + Math.pow(t1, 1.4) * (maxBin - minBin));
+      const barWidth = (width / BAR_COUNT) * 0.6;
+      const gap = (width / BAR_COUNT) * 0.4;
+      vizCtx.lineWidth = barWidth;
+      vizCtx.lineCap = 'round';
 
-    let val = getBandEnergy(freqData, startBin, Math.max(startBin, endBin));
+      vizCtx.beginPath();
+      for (let i = 0; i < BAR_COUNT; i++) {
+        const t0 = i / BAR_COUNT;
+        const t1 = (i + 1) / BAR_COUNT;
 
-    // Dynamic Range Expansion (High-Fidelity "Tips and Valleys")
-    const tilt = 1 + (i / barCount) * 0.6;
-    val *= tilt;
+        const startBin = Math.floor(minBin + Math.pow(t0, 1.4) * (maxBin - minBin));
+        const endBin = Math.floor(minBin + Math.pow(t1, 1.4) * (maxBin - minBin));
 
-    // Sharpen the peaks (Power curve)
-    let normVal = val / 255;
-    normVal = Math.pow(normVal, 1.3); // Sharper contrast
+        let val = getBandEnergy(freqData, startBin, Math.max(startBin, endBin));
+        const tilt = 1 + (i / BAR_COUNT) * 0.6;
+        val *= tilt;
 
-    // Visual smoothing: Snappy attack, smooth decay
-    const prev = smoothedBands[i] || 0;
-    const attack = 0.8;
-    const decay = 0.1;
-    smoothedBands[i] = normVal > prev
-      ? lerp(prev, normVal, attack)
-      : lerp(prev, normVal, decay);
+        let normVal = val / 255;
+        normVal = Math.pow(normVal, 1.3);
 
-    const minH = 2;
-    const maxH = 28;
-    const h = minH + (smoothedBands[i] * maxH);
+        const prev = smoothedBands[i] || 0;
+        const attack = 0.8;
+        const decay = 0.1;
+        smoothedBands[i] = normVal > prev
+          ? lerp(prev, normVal, attack)
+          : lerp(prev, normVal, decay);
 
-    bar.style.height = h.toFixed(1) + 'px';
-  });
+        const h = (smoothedBands[i] || 0) * (height * 0.8) + 2;
+        const x = i * (barWidth + gap) + barWidth / 2;
+        const y1 = (height - h) / 2;
+        const y2 = (height + h) / 2;
+        vizCtx.moveTo(x, y1);
+        vizCtx.lineTo(x, y2);
+      }
+      vizCtx.stroke();
+    }
+  }
 
   // Sync Cinema visualizer bars (10-bar configuration) (R-U8)
   const cinemaBars = document.querySelectorAll('.radio-cinema-visualizer .cinema-bar');
-  if (cinemaBars.length > 0) {
+  if (cinemaBars.length > 0 && analyser && freqData) {
+    const totalBins = analyser.frequencyBinCount;
+    const minBin = 1;
+    const maxBin = Math.min(totalBins - 1, 120);
     const cinemaBarCount = cinemaBars.length;
     cinemaBars.forEach((bar, i) => {
       const t0 = i / cinemaBarCount;
@@ -1093,16 +1132,12 @@ function drawViz() {
       const endBin = Math.floor(minBin + Math.pow(t1, 1.4) * (maxBin - minBin));
 
       let val = getBandEnergy(freqData, startBin, Math.max(startBin, endBin));
-
-      // Dynamic Range Expansion
       const tilt = 1 + (i / cinemaBarCount) * 0.6;
       val *= tilt;
 
-      // Sharpen the peaks
       let normVal = val / 255;
       normVal = Math.pow(normVal, 1.3);
 
-      // Visual smoothing: matching standard visualizer kinetics
       const prev = cinemaSmoothedBands[i] || 0;
       const attack = 0.8;
       const decay = 0.1;
@@ -1120,13 +1155,46 @@ function drawViz() {
 }
 
 function idleViz() {
-  cancelAnimationFrame(rafId); let t = 0;
+  cancelAnimationFrame(rafId);
+  let t = 0;
   (function tick() {
-    rafId = requestAnimationFrame(tick); t += .05;
-    vizBars.forEach((b, i) => { b.style.height = (2 + Math.abs(Math.sin(t + i * .2)) * 6) + 'px'; });
-    
+    rafId = requestAnimationFrame(tick);
+    t += 0.05;
+
+    if (vizCanvas && vizCtx) {
+      resizeCanvas(vizCanvas);
+      const width = vizCanvas.width;
+      const height = vizCanvas.height;
+      vizCtx.clearRect(0, 0, width, height);
+
+      const accentColor = getThemeAccent();
+      vizCtx.strokeStyle = accentColor;
+      vizCtx.lineWidth = 3 * (window.devicePixelRatio || 1);
+      vizCtx.lineCap = 'round';
+      vizCtx.shadowColor = accentColor;
+      vizCtx.shadowBlur = 10 * (window.devicePixelRatio || 1);
+
+      vizCtx.beginPath();
+      for (let x = 0; x <= width; x += 4) {
+        const angle = (x / width) * Math.PI * 2;
+        const amplitude = (height * 0.35) * (0.4 + Math.sin(t) * 0.1);
+        const y = height / 2 +
+                  Math.sin(angle * 1.5 - t) * amplitude +
+                  Math.cos(angle * 3 + t * 1.5) * (amplitude * 0.3) +
+                  Math.sin(angle * 0.5 + t * 0.5) * (amplitude * 0.15);
+        if (x === 0) {
+          vizCtx.moveTo(x, y);
+        } else {
+          vizCtx.lineTo(x, y);
+        }
+      }
+      vizCtx.stroke();
+    }
+
     const cinemaBars = document.querySelectorAll('.radio-cinema-visualizer .cinema-bar');
-    cinemaBars.forEach((b, i) => { b.style.height = (3 + Math.abs(Math.sin(t + i * .25)) * 5) + 'px'; });
+    cinemaBars.forEach((b, i) => {
+      b.style.height = (3 + Math.abs(Math.sin(t + i * 0.25)) * 5) + 'px';
+    });
   })();
 }
 idleViz();
@@ -1221,13 +1289,35 @@ function castViz() {
     if (!isCasting || !isPlaying) return;
     rafId = requestAnimationFrame(tick);
     t += 0.15;
-    vizBars.forEach((b, i) => {
-      const val = Math.abs(Math.sin(t + i * 0.1)) * 0.4 + Math.abs(Math.cos(t * 0.7 + i * 0.25)) * 0.4;
-      const minH = 2;
-      const maxH = 26;
-      const h = minH + (val * maxH);
-      b.style.height = h.toFixed(1) + 'px';
-    });
+
+    if (vizCanvas && vizCtx) {
+      resizeCanvas(vizCanvas);
+      const width = vizCanvas.width;
+      const height = vizCanvas.height;
+      vizCtx.clearRect(0, 0, width, height);
+
+      const accentColor = getThemeAccent();
+      vizCtx.strokeStyle = accentColor;
+      vizCtx.shadowColor = accentColor;
+      vizCtx.shadowBlur = 8 * (window.devicePixelRatio || 1);
+
+      const barWidth = (width / BAR_COUNT) * 0.6;
+      const gap = (width / BAR_COUNT) * 0.4;
+      vizCtx.lineWidth = barWidth;
+      vizCtx.lineCap = 'round';
+
+      vizCtx.beginPath();
+      for (let i = 0; i < BAR_COUNT; i++) {
+        const val = Math.abs(Math.sin(t + i * 0.1)) * 0.4 + Math.abs(Math.cos(t * 0.7 + i * 0.25)) * 0.4;
+        const h = 2 + (val * (height * 0.7));
+        const x = i * (barWidth + gap) + barWidth / 2;
+        const y1 = (height - h) / 2;
+        const y2 = (height + h) / 2;
+        vizCtx.moveTo(x, y1);
+        vizCtx.lineTo(x, y2);
+      }
+      vizCtx.stroke();
+    }
   })();
 }
 
@@ -4248,7 +4338,7 @@ function updateRadioCinemaDetails() {
 
   const vizContainer = document.getElementById('radioCinemaViz');
   if (vizContainer) {
-    vizContainer.classList.toggle('active', isPlaying);
+    vizContainer.classList.toggle('active', currentSrc !== null);
   }
 }
 
