@@ -4642,6 +4642,7 @@ if (btnRadioCinemaCast) {
   document.addEventListener(evt, (e) => {
     if (e.target.closest('#btnYtCinemaToggle') || e.target.closest('.youtube-iframe-container')) return;
     if (e.target.closest('.radio-cinema-controls')) return;
+    if (e.target.closest('.footer')) return;
 
     const app = document.querySelector('.app');
 
@@ -6484,7 +6485,10 @@ function onYtStateChange(event) {
     isPlaying = false; // Update global state for UI sync
     syncPlayBtns();
     if (Date.now() - lastCinemaTriggerTime > 1000) {
-      wakeFromCinemaMode(); // Auto-wake if paused or ended, ignore instantaneous layout reflow pause pings
+      const app = document.querySelector('.app');
+      if (!app?.classList.contains('immersive-cinema-mode')) {
+        wakeFromCinemaMode(); // Auto-wake if paused or ended (but not in cinema mode), ignore instantaneous layout reflow pause pings
+      }
     }
     setStatus('', 'Idle');
     if (event.data === YT.PlayerState.ENDED) {
