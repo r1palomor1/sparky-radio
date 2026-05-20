@@ -734,8 +734,7 @@ body.light .header {
 
 .np-name.scrolling {
   animation: np-ticker var(--ticker-duration, 10s) linear infinite;
-  padding-right: 50px;
-  /* Gap before restart */
+  /* Seamless JS-based loop replacement */
 }
 
 @keyframes np-ticker {

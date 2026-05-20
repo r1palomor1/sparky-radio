@@ -160,6 +160,7 @@ let isPlaying = false;
 let activeSearchPreset = '';
 let favs = []; // Global synced favorites list
 let textScale = parseFloat(localStorage.getItem('sparky_text_scale')) || 1.0;
+let isAutoScrolling = false; // Flag to prevent compact mode during programmatic scroll
 let shuffle = false;
 let repeat = false;
 let rafId, hls;
@@ -359,7 +360,8 @@ function loadFavs() {
 }
 function saveFavs(f) { 
   localStorage.setItem(FAV_KEY, JSON.stringify(f));
-  _favsCache = null; 
+  _favsCache = null;
+  refreshFavBadge();
 }
 
 function norm(u) {
@@ -1344,7 +1346,7 @@ function updateNowPlaying(st) {
   // R-U1 & R-U14: Dynamic Adaptive Ambient Glow for Now Playing panel
   updateAmbientGlow(st ? st.favicon : null);
 
-  nm.textContent = st ? st.name : 'SELECT A STATION';
+  nm.textContent = st ? st.name.trim() : 'SELECT A STATION';
 
   if (catNameEl && catIconEl) {
     const fav = findFavMatch(st);
@@ -1377,11 +1379,18 @@ function updateNowPlaying(st) {
     const isOverflowing = nm.scrollWidth > (container.clientWidth + 2);
 
     if (isOverflowing) {
-      const scrollDist = nm.scrollWidth + 60; // Extra buffer
-      const speed = 25; // Slower for industrial elegance
-      const duration = scrollDist / speed;
+      const gap = '\u00A0\u00A0\u00A0\u00A0 \u2022 \u00A0\u00A0\u00A0\u00A0'; // 4 spaces, bullet, 4 spaces
+      const trimmedName = st ? st.name.trim() : 'SELECT A STATION';
+      
+      nm.textContent = trimmedName + gap;
+      const singleWidth = nm.scrollWidth;
 
-      nm.style.setProperty('--ticker-end', `-${scrollDist}px`);
+      nm.textContent = trimmedName + gap + trimmedName + gap;
+
+      const speed = 25; // Slower for industrial elegance
+      const duration = singleWidth / speed;
+
+      nm.style.setProperty('--ticker-end', `-${singleWidth}px`);
       nm.style.setProperty('--ticker-duration', `${duration}s`);
       nm.classList.add('scrolling');
     }
@@ -1430,6 +1439,7 @@ function jumpToCategoryShortcut(st) {
   renderFavs();
 
   setTimeout(() => {
+    isAutoScrolling = true;
     const sid = fav.sparkyId;
     const el = document.querySelector(`.pl-item[data-sid="${sid}"]`);
     if (el) {
@@ -1441,6 +1451,7 @@ function jumpToCategoryShortcut(st) {
       const catEl = document.querySelector(`.pl-category-header[data-cat="${cat}"]`);
       if (catEl) catEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
+    setTimeout(() => { isAutoScrolling = false; }, 500); // Wait for scroll to complete
   }, 200);
 }
 
@@ -1463,13 +1474,19 @@ function jumpToStation(st) {
     }
 
     setTimeout(() => {
-      const sid = favMatch.sparkyId;
-      const el = document.querySelector(`.pl-item[data-sid="${sid}"], .pl-discovery-card[data-sid="${sid}"]`);
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        el.classList.add('jump-highlight');
-        setTimeout(() => el.classList.remove('jump-highlight'), 2000);
-      }
+      scrollToActive();
+      // Wait for smooth scroll / virtual render
+      let attempts = 0;
+      const highlightInterval = setInterval(() => {
+        const el = document.querySelector('.pl-item.active, .pl-discovery-card.active');
+        if (el) {
+          el.classList.add('jump-highlight');
+          setTimeout(() => el.classList.remove('jump-highlight'), 2000);
+          clearInterval(highlightInterval);
+        }
+        attempts++;
+        if (attempts > 10) clearInterval(highlightInterval); // Stop after 1 second
+      }, 100);
     }, 200);
     return;
   }
@@ -1480,12 +1497,19 @@ function jumpToStation(st) {
     // Navigate within Discovery
     switchTab('stations');
     setTimeout(() => {
-      const el = document.querySelector(`.pl-item[data-idx="${discoveryMatchIdx}"]`);
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        el.classList.add('jump-highlight');
-        setTimeout(() => el.classList.remove('jump-highlight'), 2000);
-      }
+      scrollToActive();
+      // Wait for smooth scroll / virtual render
+      let attempts = 0;
+      const highlightInterval = setInterval(() => {
+        const el = document.querySelector('.pl-item.active, .pl-discovery-card.active');
+        if (el) {
+          el.classList.add('jump-highlight');
+          setTimeout(() => el.classList.remove('jump-highlight'), 2000);
+          clearInterval(highlightInterval);
+        }
+        attempts++;
+        if (attempts > 10) clearInterval(highlightInterval); // Stop after 1 second
+      }, 100);
     }, 200);
     return;
   }
@@ -1638,8 +1662,10 @@ function scrollToActive() {
         );
       });
       if (activeIdx !== -1) {
+        isAutoScrolling = true;
         const ROW_HEIGHT = 98;
         pl.scrollTo({ top: activeIdx * ROW_HEIGHT - (pl.clientHeight / 2) + (ROW_HEIGHT / 2), behavior: 'smooth' });
+        setTimeout(() => { isAutoScrolling = false; }, 500);
         return;
       }
     }
@@ -1657,7 +1683,9 @@ function scrollToActive() {
     localStorage.setItem('sparky_collapsed_cats', JSON.stringify(collapsedCategories));
   }
 
+  isAutoScrolling = true;
   activeEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  setTimeout(() => { isAutoScrolling = false; }, 500);
 }
 
 function renderCurrent() {
@@ -1753,6 +1781,8 @@ function renderStations() {
   const pl = document.getElementById('playlist');
   if (!pl || activeTab !== 'stations') return;
   if (!stations.length) {
+    const sb = document.getElementById('stationsBadge');
+    if (sb) sb.textContent = '0';
     pl.innerHTML = '<div class="pl-empty"><div class="pl-empty-icon"><span class="material-symbols-outlined" style="font-size: 32px; opacity: 0.6;">radio</span></div><div>No stations loaded</div></div>'; return;
   }
   let displayStations = [...stations];
@@ -4120,7 +4150,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   function handleRadioScrollCollapse(e) {
-    if (!npPanel || ignoreScrollCollapse) return;
+    if (!npPanel || ignoreScrollCollapse || isAutoScrolling) return;
     if (typeof sparkyYtState !== 'undefined' && sparkyYtState.isModeActive) return;
 
     // Viewport-agnostic card count safety gate: do not compact if list is short (<= 10 cards)
