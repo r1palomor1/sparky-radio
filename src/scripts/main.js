@@ -4473,6 +4473,56 @@ function resetFooterCinemaTimer() {
   }, 4000);
 }
 
+/* --- PREMIUM CINEMA TOASTS & ONBOARDING CONTROLLER --- */
+function showCinemaToast(message) {
+  const existing = document.getElementById('sparky-cinema-toast');
+  if (existing) existing.remove();
+
+  const toast = document.createElement('div');
+  toast.id = 'sparky-cinema-toast';
+  toast.className = 'cinema-toast';
+  toast.innerHTML = `
+    <span class="material-symbols-outlined cinema-toast-icon">info</span>
+    <span class="cinema-toast-text">${message}</span>
+  `;
+  
+  document.body.appendChild(toast);
+
+  // Trigger reflow
+  toast.offsetHeight;
+  toast.classList.add('visible');
+
+  setTimeout(() => {
+    toast.classList.remove('visible');
+    setTimeout(() => toast.remove(), 400);
+  }, 3500);
+}
+
+function startCinemaLandscapeOnboarding() {
+  if (window.cinemaFullscreenReminderInterval) {
+    clearInterval(window.cinemaFullscreenReminderInterval);
+    window.cinemaFullscreenReminderInterval = null;
+  }
+
+  const isLandscape = window.matchMedia("(orientation: landscape)").matches;
+  if (!isLandscape) return;
+
+  const count = parseInt(localStorage.getItem('sparky_cinema_fs_count') || '0', 10);
+  if (count >= 3) return;
+
+  showCinemaToast('Tap screen for Fullscreen');
+
+  window.cinemaFullscreenReminderInterval = setInterval(() => {
+    const isFullscreen = !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement);
+    if (!isFullscreen && document.querySelector('.app')?.classList.contains('immersive-cinema-mode') && window.matchMedia("(orientation: landscape)").matches) {
+      showCinemaToast('Tap screen for Fullscreen');
+    } else {
+      clearInterval(window.cinemaFullscreenReminderInterval);
+      window.cinemaFullscreenReminderInterval = null;
+    }
+  }, 45000);
+}
+
 function wakeFromCinemaMode() {
   document.querySelector('.app').classList.remove('immersive-cinema-mode');
   if (document.getElementById('cinemaWakeZone')) document.getElementById('cinemaWakeZone').classList.remove('is-cinema');
@@ -4483,6 +4533,12 @@ function wakeFromCinemaMode() {
   if (footerCinemaTimer) {
     clearTimeout(footerCinemaTimer);
     footerCinemaTimer = null;
+  }
+
+  // Clear fullscreen reminder intervals when exiting cinema mode
+  if (window.cinemaFullscreenReminderInterval) {
+    clearInterval(window.cinemaFullscreenReminderInterval);
+    window.cinemaFullscreenReminderInterval = null;
   }
   
   resetCinemaTimer();
@@ -4611,6 +4667,9 @@ function resetCinemaTimer() {
         document.querySelector('.now-playing')?.classList.remove('compact-video');
         if (document.getElementById('cinemaWakeZone')) document.getElementById('cinemaWakeZone').classList.add('is-cinema');
         document.getElementById('btnYtCinemaToggle')?.classList.add('active');
+
+        // Start fullscreen landscape onboarding reminder
+        startCinemaLandscapeOnboarding();
       }, CINEMA_TIMEOUT_MS);
     }
   } else {
@@ -4639,18 +4698,8 @@ function toggleCinemaMode() {
       if (document.getElementById('cinemaWakeZone')) document.getElementById('cinemaWakeZone').classList.add('is-cinema');
       document.getElementById('btnYtCinemaToggle')?.classList.add('active');
 
-      // Request true fullscreen in landscape cinema mode
-      if (window.matchMedia("(orientation: landscape)").matches && np) {
-        if (np.requestFullscreen) {
-          np.requestFullscreen().catch(err => console.log(err));
-        } else if (np.webkitRequestFullscreen) {
-          np.webkitRequestFullscreen();
-        } else if (np.mozRequestFullScreen) {
-          np.mozRequestFullScreen();
-        } else if (np.msRequestFullscreen) {
-          np.msRequestFullscreen();
-        }
-      }
+      // Start fullscreen landscape onboarding reminder
+      startCinemaLandscapeOnboarding();
     } else {
       document.querySelector('.now-playing')?.classList.remove('compact-radio');
       updateRadioCinemaDetails();
@@ -4690,6 +4739,16 @@ if (wakeZone) {
 
       if (isLandscape) {
         if (!isFullscreen) {
+          // Increment storage count
+          let count = parseInt(localStorage.getItem('sparky_cinema_fs_count') || '0', 10);
+          localStorage.setItem('sparky_cinema_fs_count', count + 1);
+
+          // Clear reminder interval
+          if (window.cinemaFullscreenReminderInterval) {
+            clearInterval(window.cinemaFullscreenReminderInterval);
+            window.cinemaFullscreenReminderInterval = null;
+          }
+
           // Enter fullscreen
           const np = document.querySelector('.now-playing');
           if (np) {
@@ -4703,8 +4762,9 @@ if (wakeZone) {
               np.msRequestFullscreen();
             }
           }
+          showCinemaToast('Tap screen for controls');
         } else {
-          // Exit fullscreen and wake up
+          // Exit fullscreen
           if (document.exitFullscreen) {
             document.exitFullscreen().catch(err => console.log(err));
           } else if (document.webkitExitFullscreen) {
@@ -4714,27 +4774,27 @@ if (wakeZone) {
           } else if (document.msExitFullscreen) {
             document.msExitFullscreen();
           }
-          wakeFromCinemaMode();
+          resetFooterCinemaTimer();
         }
       } else {
-        // Portrait mode: normal wake up behavior
-        wakeFromCinemaMode();
+        // Portrait mode: normal wake up behavior (wakes footer controls)
+        resetFooterCinemaTimer();
       }
     }, { passive: false });
   });
 }
 
-// Exit cinema mode if the user natively cancels browser fullscreen
+// Wake footer controls if the user natively cancels browser fullscreen while in cinema mode
 ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange'].forEach(evt => {
   document.addEventListener(evt, () => {
     const isFullscreen = !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement);
     if (!isFullscreen && document.querySelector('.app')?.classList.contains('immersive-cinema-mode')) {
-      wakeFromCinemaMode();
+      resetFooterCinemaTimer();
     }
   });
 });
 
-// Automatically exit fullscreen and wake Cinema Mode if device is rotated back to portrait
+// Automatically exit fullscreen and wake controls if device is rotated back to portrait
 try {
   window.matchMedia("(orientation: portrait)").addEventListener('change', (e) => {
     if (e.matches) {
@@ -4751,12 +4811,12 @@ try {
         }
       }
       if (document.querySelector('.app')?.classList.contains('immersive-cinema-mode')) {
-        wakeFromCinemaMode();
+        resetFooterCinemaTimer();
       }
     }
   });
 } catch (err) {
-  // Fallback for older browsers that do not support addEventListener on MediaQueryList directly
+  // Fallback for older browsers
   window.addEventListener('resize', () => {
     if (window.innerHeight > window.innerWidth) { // Portrait
       const isFullscreen = !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement);
@@ -4766,7 +4826,25 @@ try {
         }
       }
       if (document.querySelector('.app')?.classList.contains('immersive-cinema-mode')) {
-        wakeFromCinemaMode();
+        resetFooterCinemaTimer();
+      }
+    }
+  });
+}
+
+// Start landscape onboarding if rotated from portrait to landscape while already in cinema mode
+try {
+  window.matchMedia("(orientation: landscape)").addEventListener('change', (e) => {
+    if (e.matches && document.querySelector('.app')?.classList.contains('immersive-cinema-mode')) {
+      startCinemaLandscapeOnboarding();
+    }
+  });
+} catch (err) {
+  // Fallback resize listener
+  window.addEventListener('resize', () => {
+    if (window.innerWidth > window.innerHeight) { // Landscape
+      if (document.querySelector('.app')?.classList.contains('immersive-cinema-mode')) {
+        startCinemaLandscapeOnboarding();
       }
     }
   });
