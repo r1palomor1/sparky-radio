@@ -5113,7 +5113,7 @@ function switchYtTab(mode) {
 
     // 1. If we ALREADY have results for this tab, just show them (instant restore)
     if (cache.results && cache.results.length > 0) {
-      if (input) input.value = cache.query;
+      if (input) { input.value = cache.query; const _cb = document.getElementById('btnYtSearchClear'); if (_cb) _cb.style.display = input.value ? 'flex' : 'none'; }
       if (mode === 'playlists') renderYtPlaylistResults(cache.results);
       else renderYtVideoResults(cache.results);
       // Re-apply active highlight â€” render wipes innerHTML so .active class is lost
