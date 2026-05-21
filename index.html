@@ -524,6 +524,103 @@
       opacity: 0 !important;
       pointer-events: none !important;
     }
+
+    /* --- PREMIUM LANDSCAPE OPTIMIZATIONS FOR CINEMA MODE --- */
+    @media (orientation: landscape) {
+      /* Expand the app boundary to take up the full screen in cinema mode */
+      .app.immersive-cinema-mode {
+        max-width: 100% !important;
+        width: 100vw !important;
+        height: 100dvh !important;
+        max-height: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        border: none !important;
+        border-radius: 0 !important;
+      }
+
+      /* Compact Footer for Landscape Video Cinema */
+      .app.immersive-cinema-mode.yt-mode-active .footer {
+        min-height: 48px !important;
+        height: 48px !important;
+        padding: 0 16px !important;
+        padding-bottom: env(safe-area-inset-bottom) !important;
+      }
+      
+      .app.immersive-cinema-mode.yt-mode-active .footer .footer-layout {
+        height: 100% !important;
+        justify-content: center !important;
+        gap: 24px !important;
+      }
+
+      .app.immersive-cinema-mode.yt-mode-active .footer .btn-footer-nav,
+      .app.immersive-cinema-mode.yt-mode-active .footer .btn-footer-play {
+        height: 34px !important;
+        min-width: 34px !important;
+        margin: 0 !important;
+      }
+      
+      .app.immersive-cinema-mode.yt-mode-active .footer .btn-footer-nav .material-symbols-outlined,
+      .app.immersive-cinema-mode.yt-mode-active .footer .btn-footer-play .material-symbols-outlined {
+        font-size: 22px !important;
+      }
+      
+      .app.immersive-cinema-mode.yt-mode-active .footer .footer-volume-row {
+        display: none !important; /* Hide integrated volume slider in landscape cinema to save height */
+      }
+
+      /* Landscape Cinema Wake Zone Safeguards */
+      .app.immersive-cinema-mode .cinema-wake-zone {
+        height: calc(90px + env(safe-area-inset-bottom)) !important;
+      }
+      .app.immersive-cinema-mode .cinema-wake-hand {
+        bottom: 16px !important;
+        right: 16px !important;
+        width: 48px !important;
+        height: 48px !important;
+      }
+      .app.immersive-cinema-mode .cinema-wake-hand .material-symbols-outlined {
+        font-size: 24px !important;
+      }
+
+      /* Premium Split Landscape Mode for Radio Cinema */
+      .app.immersive-cinema-mode:not(.yt-mode-active) #radio-cinema-placeholder {
+        padding: 20px 24px !important;
+      }
+      
+      .app.immersive-cinema-mode:not(.yt-mode-active) .radio-cinema-container {
+        flex-direction: row !important;
+        max-width: 960px !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 40px !important;
+        height: 100% !important;
+      }
+      
+      .app.immersive-cinema-mode:not(.yt-mode-active) .radio-cinema-glow-wrapper {
+        width: 42dvh !important;
+        height: 42dvh !important;
+        max-width: 260px !important;
+        max-height: 260px !important;
+        margin: 0 !important;
+        flex-shrink: 0 !important;
+      }
+      
+      .app.immersive-cinema-mode:not(.yt-mode-active) .radio-cinema-glass-card {
+        flex: 1 !important;
+        max-width: 440px !important;
+        margin: 0 !important;
+        padding: 20px 24px !important;
+        gap: 16px !important;
+      }
+
+      .app.immersive-cinema-mode:not(.yt-mode-active) .radio-cinema-hand {
+        bottom: 16px !important;
+        right: 16px !important;
+        width: 48px !important;
+        height: 48px !important;
+      }
+    }
   </style>
 </head>
 
