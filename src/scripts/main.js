@@ -4634,9 +4634,23 @@ function toggleCinemaMode() {
     app.classList.add('immersive-cinema-mode');
     
     if (sparkyYtState.isModeActive) {
-      document.querySelector('.now-playing')?.classList.remove('compact-video');
+      const np = document.querySelector('.now-playing');
+      np?.classList.remove('compact-video');
       if (document.getElementById('cinemaWakeZone')) document.getElementById('cinemaWakeZone').classList.add('is-cinema');
       document.getElementById('btnYtCinemaToggle')?.classList.add('active');
+
+      // Request true fullscreen in landscape cinema mode
+      if (window.matchMedia("(orientation: landscape)").matches && np) {
+        if (np.requestFullscreen) {
+          np.requestFullscreen().catch(err => console.log(err));
+        } else if (np.webkitRequestFullscreen) {
+          np.webkitRequestFullscreen();
+        } else if (np.mozRequestFullScreen) {
+          np.mozRequestFullScreen();
+        } else if (np.msRequestFullscreen) {
+          np.msRequestFullscreen();
+        }
+      }
     } else {
       document.querySelector('.now-playing')?.classList.remove('compact-radio');
       updateRadioCinemaDetails();
@@ -4670,8 +4684,91 @@ if (wakeZone) {
       e.preventDefault();
       e.stopPropagation();
       recordWakeTap();
-      wakeFromCinemaMode();
+
+      const isLandscape = window.matchMedia("(orientation: landscape)").matches;
+      const isFullscreen = !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement);
+
+      if (isLandscape) {
+        if (!isFullscreen) {
+          // Enter fullscreen
+          const np = document.querySelector('.now-playing');
+          if (np) {
+            if (np.requestFullscreen) {
+              np.requestFullscreen().catch(err => console.log(err));
+            } else if (np.webkitRequestFullscreen) {
+              np.webkitRequestFullscreen();
+            } else if (np.mozRequestFullScreen) {
+              np.mozRequestFullScreen();
+            } else if (np.msRequestFullscreen) {
+              np.msRequestFullscreen();
+            }
+          }
+        } else {
+          // Exit fullscreen and wake up
+          if (document.exitFullscreen) {
+            document.exitFullscreen().catch(err => console.log(err));
+          } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen();
+          } else if (document.mozCancelFullScreen) {
+            document.mozCancelFullScreen();
+          } else if (document.msExitFullscreen) {
+            document.msExitFullscreen();
+          }
+          wakeFromCinemaMode();
+        }
+      } else {
+        // Portrait mode: normal wake up behavior
+        wakeFromCinemaMode();
+      }
     }, { passive: false });
+  });
+}
+
+// Exit cinema mode if the user natively cancels browser fullscreen
+['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange'].forEach(evt => {
+  document.addEventListener(evt, () => {
+    const isFullscreen = !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement);
+    if (!isFullscreen && document.querySelector('.app')?.classList.contains('immersive-cinema-mode')) {
+      wakeFromCinemaMode();
+    }
+  });
+});
+
+// Automatically exit fullscreen and wake Cinema Mode if device is rotated back to portrait
+try {
+  window.matchMedia("(orientation: portrait)").addEventListener('change', (e) => {
+    if (e.matches) {
+      const isFullscreen = !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement);
+      if (isFullscreen) {
+        if (document.exitFullscreen) {
+          document.exitFullscreen().catch(() => {});
+        } else if (document.webkitExitFullscreen) {
+          document.webkitExitFullscreen();
+        } else if (document.mozCancelFullScreen) {
+          document.mozCancelFullScreen();
+        } else if (document.msExitFullscreen) {
+          document.msExitFullscreen();
+        }
+      }
+      if (document.querySelector('.app')?.classList.contains('immersive-cinema-mode')) {
+        wakeFromCinemaMode();
+      }
+    }
+  });
+} catch (err) {
+  // Fallback for older browsers that do not support addEventListener on MediaQueryList directly
+  window.addEventListener('resize', () => {
+    if (window.innerHeight > window.innerWidth) { // Portrait
+      const isFullscreen = !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement);
+      if (isFullscreen) {
+        if (document.exitFullscreen) {
+          document.exitFullscreen().catch(() => {});
+        }
+      }
+      if (document.querySelector('.app')?.classList.contains('immersive-cinema-mode')) {
+        wakeFromCinemaMode();
+      }
+    }
   });
 }
 
