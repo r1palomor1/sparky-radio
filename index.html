@@ -634,7 +634,12 @@
       background: transparent !important;
     }
 
-    .now-playing:fullscreen {
+    .now-playing:fullscreen,
+    .now-playing:-webkit-full-screen,
+    .now-playing.simulated-fullscreen {
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
       width: 100vw !important;
       height: 100vh !important;
       max-width: none !important;
@@ -648,9 +653,12 @@
       align-items: center !important;
       border: none !important;
       border-radius: 0 !important;
+      z-index: 9999999 !important;
     }
 
-    .now-playing:fullscreen .sparky-yt-player-wrap {
+    .now-playing:fullscreen .sparky-yt-player-wrap,
+    .now-playing:-webkit-full-screen .sparky-yt-player-wrap,
+    .now-playing.simulated-fullscreen .sparky-yt-player-wrap {
       width: 100% !important;
       height: 100% !important;
       flex: 1 !important;
@@ -658,37 +666,9 @@
       margin: 0 !important;
     }
 
-    .now-playing:fullscreen .yt-player-container-inner {
-      width: 100% !important;
-      height: 100% !important;
-      max-width: none !important;
-      max-height: none !important;
-    }
-
-    /* Webkit Fullscreen Overrides */
-    .now-playing:-webkit-full-screen {
-      width: 100vw !important;
-      height: 100vh !important;
-      max-width: none !important;
-      max-height: none !important;
-      background: #000 !important;
-      padding: 0 !important;
-      margin: 0 !important;
-      display: flex !important;
-      flex-direction: column !important;
-      justify-content: center !important;
-      align-items: center !important;
-      border: none !important;
-      border-radius: 0 !important;
-    }
-    .now-playing:-webkit-full-screen .sparky-yt-player-wrap {
-      width: 100% !important;
-      height: 100% !important;
-      flex: 1 !important;
-      padding: 0 !important;
-      margin: 0 !important;
-    }
-    .now-playing:-webkit-full-screen .yt-player-container-inner {
+    .now-playing:fullscreen .yt-player-container-inner,
+    .now-playing:-webkit-full-screen .yt-player-container-inner,
+    .now-playing.simulated-fullscreen .yt-player-container-inner {
       width: 100% !important;
       height: 100% !important;
       max-width: none !important;

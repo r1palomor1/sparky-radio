@@ -4513,7 +4513,8 @@ function startCinemaLandscapeOnboarding() {
   showCinemaToast('Tap screen for Fullscreen');
 
   window.cinemaFullscreenReminderInterval = setInterval(() => {
-    const isFullscreen = !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement);
+    const np = document.querySelector('.now-playing');
+    const isFullscreen = np ? np.classList.contains('simulated-fullscreen') : false;
     if (!isFullscreen && document.querySelector('.app')?.classList.contains('immersive-cinema-mode') && window.matchMedia("(orientation: landscape)").matches) {
       showCinemaToast('Tap screen for Fullscreen');
     } else {
@@ -4527,6 +4528,7 @@ function wakeFromCinemaMode() {
   document.querySelector('.app').classList.remove('immersive-cinema-mode');
   if (document.getElementById('cinemaWakeZone')) document.getElementById('cinemaWakeZone').classList.remove('is-cinema');
   document.getElementById('btnYtCinemaToggle')?.classList.remove('active');
+  document.querySelector('.now-playing')?.classList.remove('simulated-fullscreen');
   
   const footer = document.querySelector('.footer');
   if (footer) footer.classList.remove('woken');
@@ -4735,7 +4737,8 @@ if (wakeZone) {
       recordWakeTap();
 
       const isLandscape = window.matchMedia("(orientation: landscape)").matches;
-      const isFullscreen = !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement);
+      const np = document.querySelector('.now-playing');
+      const isFullscreen = np ? np.classList.contains('simulated-fullscreen') : false;
 
       if (isLandscape) {
         if (!isFullscreen) {
@@ -4749,67 +4752,31 @@ if (wakeZone) {
             window.cinemaFullscreenReminderInterval = null;
           }
 
-          // Enter fullscreen
-          const np = document.querySelector('.now-playing');
+          // Enter simulated fullscreen
           if (np) {
-            if (np.requestFullscreen) {
-              np.requestFullscreen().catch(err => console.log(err));
-            } else if (np.webkitRequestFullscreen) {
-              np.webkitRequestFullscreen();
-            } else if (np.mozRequestFullScreen) {
-              np.mozRequestFullScreen();
-            } else if (np.msRequestFullscreen) {
-              np.msRequestFullscreen();
-            }
+            np.classList.add('simulated-fullscreen');
           }
           showCinemaToast('Tap screen for controls');
         } else {
-          // Exit fullscreen
-          if (document.exitFullscreen) {
-            document.exitFullscreen().catch(err => console.log(err));
-          } else if (document.webkitExitFullscreen) {
-            document.webkitExitFullscreen();
-          } else if (document.mozCancelFullScreen) {
-            document.mozCancelFullScreen();
-          } else if (document.msExitFullscreen) {
-            document.msExitFullscreen();
+          // Exit simulated fullscreen
+          if (np) {
+            np.classList.remove('simulated-fullscreen');
           }
           resetFooterCinemaTimer();
         }
       } else {
-        // Portrait mode: normal wake up behavior (wakes footer controls)
-        resetFooterCinemaTimer();
+        // Portrait mode: tap wake area exits cinema mode back to main UI
+        wakeFromCinemaMode();
       }
     }, { passive: false });
   });
 }
 
-// Wake footer controls if the user natively cancels browser fullscreen while in cinema mode
-['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange'].forEach(evt => {
-  document.addEventListener(evt, () => {
-    const isFullscreen = !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement);
-    if (!isFullscreen && document.querySelector('.app')?.classList.contains('immersive-cinema-mode')) {
-      resetFooterCinemaTimer();
-    }
-  });
-});
-
-// Automatically exit fullscreen and wake controls if device is rotated back to portrait
+// Automatically exit simulated fullscreen and wake controls if device is rotated back to portrait
 try {
   window.matchMedia("(orientation: portrait)").addEventListener('change', (e) => {
     if (e.matches) {
-      const isFullscreen = !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement);
-      if (isFullscreen) {
-        if (document.exitFullscreen) {
-          document.exitFullscreen().catch(() => {});
-        } else if (document.webkitExitFullscreen) {
-          document.webkitExitFullscreen();
-        } else if (document.mozCancelFullScreen) {
-          document.mozCancelFullScreen();
-        } else if (document.msExitFullscreen) {
-          document.msExitFullscreen();
-        }
-      }
+      document.querySelector('.now-playing')?.classList.remove('simulated-fullscreen');
       if (document.querySelector('.app')?.classList.contains('immersive-cinema-mode')) {
         resetFooterCinemaTimer();
       }
@@ -4819,12 +4786,7 @@ try {
   // Fallback for older browsers
   window.addEventListener('resize', () => {
     if (window.innerHeight > window.innerWidth) { // Portrait
-      const isFullscreen = !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement);
-      if (isFullscreen) {
-        if (document.exitFullscreen) {
-          document.exitFullscreen().catch(() => {});
-        }
-      }
+      document.querySelector('.now-playing')?.classList.remove('simulated-fullscreen');
       if (document.querySelector('.app')?.classList.contains('immersive-cinema-mode')) {
         resetFooterCinemaTimer();
       }
