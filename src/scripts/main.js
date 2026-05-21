@@ -4452,6 +4452,43 @@ const sparkyYtState = {
   smartSuggestions: [] // V-U7: Tier 3 context suggestions
 };
 
+function saveYtSessionState() {
+  const stateToSave = {
+    currentSubMode: sparkyYtState.currentSubMode,
+    currentItemId: sparkyYtState.currentItemId,
+    videoCache: {
+      query: sparkyYtState.videoCache.query,
+      results: sparkyYtState.videoCache.results
+    },
+    playlistCache: {
+      query: sparkyYtState.playlistCache.query,
+      results: sparkyYtState.playlistCache.results
+    }
+  };
+  localStorage.setItem('sparky_yt_session_state', JSON.stringify(stateToSave));
+}
+
+function restoreYtSessionState() {
+  try {
+    const saved = localStorage.getItem('sparky_yt_session_state');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (parsed.currentSubMode) sparkyYtState.currentSubMode = parsed.currentSubMode;
+      if (parsed.currentItemId) sparkyYtState.currentItemId = parsed.currentItemId;
+      if (parsed.videoCache) {
+        sparkyYtState.videoCache.query = parsed.videoCache.query || '';
+        sparkyYtState.videoCache.results = parsed.videoCache.results || [];
+      }
+      if (parsed.playlistCache) {
+        sparkyYtState.playlistCache.query = parsed.playlistCache.query || '';
+        sparkyYtState.playlistCache.results = parsed.playlistCache.results || [];
+      }
+    }
+  } catch (e) {
+    console.error('Error restoring YT session state:', e);
+  }
+}
+
 const YT_FAVS_KEY = 'sparky_yt_favorites';
 const YT_HISTORY_KEY = 'sparky_yt_history';
 const YT_TEMP_QUEUE_KEY = 'sparky_yt_temp_queue';
@@ -5053,6 +5090,7 @@ function switchYtTab(mode) {
   }
 
   sparkyYtState.currentSubMode = mode;
+  saveYtSessionState();
   document.querySelectorAll('.yt-tab').forEach(t => t.classList.toggle('active', t.dataset.mode === mode));
 
   const searchWrap = document.getElementById('ytSearchWrap');
@@ -5106,6 +5144,7 @@ function clearYtResults() {
     <div class="pl-empty-icon">&#9654;&#65039;</div>
     <div>Search for ${mode === 'playlists' ? 'playlists' : 'videos'} above</div>
   </div>`;
+  saveYtSessionState();
 }
 
 function renderYtHub() {
@@ -5183,8 +5222,12 @@ document.getElementById('btnModeToggle')?.addEventListener('click', () => {
 });
 
 // Restore last mode on reload
+restoreYtSessionState();
 if (localStorage.getItem('sparky_yt_mode_active') === '1') {
   toggleYtMode(true);
+  switchYtTab(sparkyYtState.currentSubMode);
+} else {
+  switchYtTab(sparkyYtState.currentSubMode);
 }
 
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
@@ -5606,6 +5649,7 @@ function processYtPage(data, isAppending) {
   } else if (!isAppending) {
     showYtError('No results found — try a different search.');
   }
+  saveYtSessionState();
 }
 
 function showYtError(msg) {
@@ -6535,6 +6579,7 @@ async function playYtItem(item, isFromRelated = false) {
   debugLayout('BEFORE-PLAY');
 
   sparkyYtState.currentItemId = item.id; // Persist so highlight survives tab switches
+  saveYtSessionState();
 
   // Track played status for temp queue pulsing logic
   if (sparkyYtState.temporaryQueue.some(v => v.id === item.id)) {
