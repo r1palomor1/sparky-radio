@@ -3623,6 +3623,21 @@ document.addEventListener('DOMContentLoaded', () => {
   bind('npLabel', (e) => { e.stopPropagation(); jumpToCategoryShortcut(currentSrc); });
   bind('npJumpArea', () => jumpToStation(currentSrc));
 
+  // Auto-blur footer buttons and trigger temporary brightening in cinema mode
+  const footerEl = document.querySelector('.footer');
+  if (footerEl) {
+    footerEl.addEventListener('click', (e) => {
+      const btn = e.target.closest('button');
+      if (btn) btn.blur();
+
+      if (document.querySelector('.app')?.classList.contains('immersive-cinema-mode')) {
+        if (typeof resetFooterCinemaTimer === 'function') {
+          resetFooterCinemaTimer();
+        }
+      }
+    }, { passive: true });
+  }
+
   // â•â• DEFAULTS TRIGGERS â•â•
   // â•â• DEFAULTS TRIGGERS (Safe Bindings) â•â•
   bind('defaultCountryTrigger', (e) => { e.stopPropagation(); document.getElementById('defaultCountryOptions')?.classList.toggle('show'); });
@@ -4437,10 +4452,31 @@ const YT_TEMP_QUEUE_KEY = 'sparky_yt_temp_queue';
 let cinemaModeTimer = null;
 const CINEMA_TIMEOUT_MS = 12000;
 
+let footerCinemaTimer = null;
+function resetFooterCinemaTimer() {
+  const footer = document.querySelector('.footer');
+  if (!footer) return;
+
+  footer.classList.add('woken');
+
+  if (footerCinemaTimer) clearTimeout(footerCinemaTimer);
+  footerCinemaTimer = setTimeout(() => {
+    footer.classList.remove('woken');
+  }, 4000);
+}
+
 function wakeFromCinemaMode() {
   document.querySelector('.app').classList.remove('immersive-cinema-mode');
   if (document.getElementById('cinemaWakeZone')) document.getElementById('cinemaWakeZone').classList.remove('is-cinema');
   document.getElementById('btnYtCinemaToggle')?.classList.remove('active');
+  
+  const footer = document.querySelector('.footer');
+  if (footer) footer.classList.remove('woken');
+  if (footerCinemaTimer) {
+    clearTimeout(footerCinemaTimer);
+    footerCinemaTimer = null;
+  }
+  
   resetCinemaTimer();
 }
 
@@ -4675,9 +4711,14 @@ if (btnRadioCinemaCast) {
     if (e.target.closest('.footer')) return;
 
     const app = document.querySelector('.app');
+    if (!app) return;
 
     if (app.classList.contains('immersive-cinema-mode')) {
       if (sparkyYtState.isModeActive && e.target.closest('#sparky-yt-player-wrap')) {
+        resetCinemaTimer();
+        return;
+      }
+      if (!sparkyYtState.isModeActive && e.target.closest('#radio-cinema-placeholder')) {
         resetCinemaTimer();
         return;
       }
@@ -6824,13 +6865,20 @@ ytSearchInput?.addEventListener('pointerdown', () => {
     clearTimeout(ytSearchBlurTimeout);
     ytSearchBlurTimeout = null;
   }
-  // Suppress any reflow-induced blur for 250ms after opening
+  // Suppress any reflow-induced blur for 500ms after opening to prevent double-clicks
   ytSearchBlurSuppressed = true;
-  setTimeout(() => { ytSearchBlurSuppressed = false; }, 250);
+  setTimeout(() => { ytSearchBlurSuppressed = false; }, 500);
 
   populateYtSearchDropdown();
   renderDropdownRecents();
   openYtSearchDropdown();
+  
+  // V-FIX: Explicitly ensure focus is taken prior to or immediately after layout reflow
+  setTimeout(() => {
+    if (document.activeElement !== ytSearchInput && ytSearchInput) {
+      ytSearchInput.focus();
+    }
+  }, 10);
 });
 ytSearchInput?.addEventListener('focus', () => {
   if (ytSearchBlurTimeout) {
@@ -6844,7 +6892,11 @@ ytSearchInput?.addEventListener('focus', () => {
   }
 });
 ytSearchInput?.addEventListener('blur', () => {
-  if (ytSearchBlurSuppressed) return; // Ignore reflow-induced blurs
+  if (ytSearchBlurSuppressed) {
+    // V-FIX: If the layout reflow caused a native blur due to pointerup landing outside, aggressively reclaim focus
+    setTimeout(() => { if (ytSearchInput) ytSearchInput.focus(); }, 10);
+    return;
+  }
   ytSearchBlurTimeout = setTimeout(() => {
     closeYtSearchDropdown();
     ytSearchBlurTimeout = null;
@@ -6858,6 +6910,7 @@ ytSearchInput?.addEventListener('click', () => {
   }
 });
 document.addEventListener('click', (e) => {
+  if (ytSearchBlurSuppressed) return; // Prevent layout-shift false clicks
   const dropdown = document.getElementById('ytSearchDropdown');
   const searchWrap = document.getElementById('ytSearchWrap');
   if (dropdown && searchWrap && !searchWrap.contains(e.target)) {

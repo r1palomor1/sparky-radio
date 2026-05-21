@@ -81,9 +81,20 @@
       transition: opacity 0.3s ease, transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    .app.immersive-cinema-mode.yt-mode-active .footer:hover,
-    .app.immersive-cinema-mode.yt-mode-active .footer:focus-within {
+    @media (hover: hover) {
+      .app.immersive-cinema-mode.yt-mode-active .footer:hover {
+        opacity: 0.85 !important;
+      }
+    }
+
+    .app.immersive-cinema-mode.yt-mode-active .footer:focus-within,
+    .app.immersive-cinema-mode.yt-mode-active .footer.woken {
       opacity: 0.85 !important;
+    }
+
+    /* Hide filters row completely when player is compact in Radio Mode to eliminate distractions */
+    .app:has(.compact-radio) .filters-area {
+      display: none !important;
     }
 
     /* --- RADIO CINEMA PLACEHOLDER --- */
