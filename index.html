@@ -81,13 +81,6 @@
       transition: opacity 0.3s ease, transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    @media (hover: hover) {
-      .app.immersive-cinema-mode.yt-mode-active .footer:hover {
-        opacity: 0.85 !important;
-      }
-    }
-
-    .app.immersive-cinema-mode.yt-mode-active .footer:focus-within,
     .app.immersive-cinema-mode.yt-mode-active .footer.woken {
       opacity: 0.85 !important;
     }
@@ -271,17 +264,28 @@
       box-sizing: border-box;
     }
 
+    .radio-cinema-title-container {
+      width: 100%;
+      overflow: hidden;
+      position: relative;
+    }
+
     .radio-cinema-title {
       font-family: 'Outfit', sans-serif;
       font-size: calc(18px * var(--text-scale));
       font-weight: 800;
       color: #fff;
       text-align: left;
-      width: 100%;
-      white-space: normal;
-      word-wrap: break-word;
-      line-height: 1.3;
-      letter-spacing: -0.5px;
+      white-space: nowrap;
+      display: inline-block;
+      will-change: transform;
+    }
+
+    .radio-cinema-title.scrolling {
+      animation: np-ticker var(--ticker-duration, 10s) linear infinite !important;
+      text-overflow: clip !important;
+      overflow: visible !important;
+      width: auto !important;
     }
 
     .radio-cinema-meta {
@@ -610,7 +614,9 @@
           <div id="sparky-yt-player"></div>          
           <!-- Cinema Mode Wake Zone Icon overlay -->
           <div id="cinemaWakeZone" class="cinema-wake-zone hidden" title="Tap to wake UI">
-            <span class="material-symbols-outlined">touch_app</span>
+            <div class="cinema-wake-hand">
+              <span class="material-symbols-outlined">touch_app</span>
+            </div>
           </div>
           <div id="yt-audio-only-placeholder" class="yt-audio-only-placeholder hidden">
             <div class="audio-mode-header">
@@ -669,7 +675,9 @@
             <!-- Title & Metadata + Visualizer stacked below -->
             <div class="radio-cinema-info-row">
               <div class="radio-cinema-meta-wrap">
-                <div id="radioCinemaTitle" class="radio-cinema-title">SELECT A STATION</div>
+                <div class="radio-cinema-title-container">
+                  <div id="radioCinemaTitle" class="radio-cinema-title">SELECT A STATION</div>
+                </div>
                 <div id="radioCinemaMeta" class="radio-cinema-meta">Location · Genre</div>
               </div>
               

@@ -1325,6 +1325,47 @@ function castViz() {
 }
 
 // â•â• STATUS â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+function applyConditionalScrolling(el, stName) {
+  if (!el) return;
+
+  el.classList.remove('scrolling');
+  el.style.removeProperty('--ticker-end');
+  el.style.removeProperty('--ticker-duration');
+  el.style.transform = 'none';
+  
+  const trimmedName = stName ? String(stName).trim() : 'SELECT A STATION';
+  el.textContent = trimmedName;
+
+  setTimeout(() => {
+    const container = el.parentElement;
+    if (!container) return;
+
+    // Reset before measurement
+    el.classList.remove('scrolling');
+    el.style.transform = 'none';
+
+    // Force a layout recalculation
+    void el.offsetWidth;
+
+    const isOverflowing = el.scrollWidth > (container.clientWidth + 2);
+
+    if (isOverflowing) {
+      const gap = '\u00A0\u00A0\u00A0\u00A0 \u2022 \u00A0\u00A0\u00A0\u00A0'; // 4 spaces, bullet, 4 spaces
+      el.textContent = trimmedName + gap;
+      const singleWidth = el.scrollWidth;
+
+      el.textContent = trimmedName + gap + trimmedName + gap;
+
+      const speed = 25; // Slower for industrial elegance
+      const duration = singleWidth / speed;
+
+      el.style.setProperty('--ticker-end', `-${singleWidth}px`);
+      el.style.setProperty('--ticker-duration', `${duration}s`);
+      el.classList.add('scrolling');
+    }
+  }, 150);
+}
+
 function setStatus(state, txt) {
   const dot = document.getElementById('statusDot');
   const text = document.getElementById('statusText');
@@ -1346,7 +1387,7 @@ function updateNowPlaying(st) {
   // R-U1 & R-U14: Dynamic Adaptive Ambient Glow for Now Playing panel
   updateAmbientGlow(st ? st.favicon : null);
 
-  nm.textContent = st ? st.name.trim() : 'SELECT A STATION';
+  applyConditionalScrolling(nm, st ? st.name : 'SELECT A STATION');
 
   if (catNameEl && catIconEl) {
     const fav = findFavMatch(st);
@@ -1359,42 +1400,7 @@ function updateNowPlaying(st) {
     }
   }
 
-  // CONDITIONAL SCROLLING LOGIC
-  nm.classList.remove('scrolling');
-  nm.style.removeProperty('--ticker-end');
-  nm.style.removeProperty('--ticker-duration');
 
-  // We need a small timeout to let the DOM update before measuring
-  setTimeout(() => {
-    const container = nm.parentElement;
-    if (!container) return;
-
-    // Reset before measurement
-    nm.classList.remove('scrolling');
-    nm.style.transform = 'none';
-
-    // Force a layout recalculation
-    void nm.offsetWidth;
-
-    const isOverflowing = nm.scrollWidth > (container.clientWidth + 2);
-
-    if (isOverflowing) {
-      const gap = '\u00A0\u00A0\u00A0\u00A0 \u2022 \u00A0\u00A0\u00A0\u00A0'; // 4 spaces, bullet, 4 spaces
-      const trimmedName = st ? st.name.trim() : 'SELECT A STATION';
-      
-      nm.textContent = trimmedName + gap;
-      const singleWidth = nm.scrollWidth;
-
-      nm.textContent = trimmedName + gap + trimmedName + gap;
-
-      const speed = 25; // Slower for industrial elegance
-      const duration = singleWidth / speed;
-
-      nm.style.setProperty('--ticker-end', `-${singleWidth}px`);
-      nm.style.setProperty('--ticker-duration', `${duration}s`);
-      nm.classList.add('scrolling');
-    }
-  }, 150);
 
   if (sm) {
     if (st) {
@@ -1665,7 +1671,7 @@ function scrollToActive() {
         isAutoScrolling = true;
         const ROW_HEIGHT = 98;
         pl.scrollTo({ top: activeIdx * ROW_HEIGHT - (pl.clientHeight / 2) + (ROW_HEIGHT / 2), behavior: 'smooth' });
-        setTimeout(() => { isAutoScrolling = false; }, 500);
+        setTimeout(() => { isAutoScrolling = false; }, 2500);
         return;
       }
     }
@@ -1685,7 +1691,7 @@ function scrollToActive() {
 
   isAutoScrolling = true;
   activeEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  setTimeout(() => { isAutoScrolling = false; }, 500);
+  setTimeout(() => { isAutoScrolling = false; }, 2500);
 }
 
 function renderCurrent() {
@@ -4229,6 +4235,7 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         
         ignoreScrollCollapse = true;
+        isAutoScrolling = true;
         npPanel.classList.remove('compact-radio', 'compact-video');
         if (compactInactivityTimer) clearTimeout(compactInactivityTimer);
         
@@ -4248,7 +4255,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         setTimeout(() => {
           ignoreScrollCollapse = false;
-        }, 300); // 300ms lock protects against touch release vibrations
+          isAutoScrolling = false;
+        }, 2500); // 2.5s lock protects against programmatic scroll and scroll inertia
       }
     });
   }
@@ -4489,7 +4497,7 @@ function updateRadioCinemaDetails() {
   const thumbEl = document.getElementById('radioCinemaThumbContainer');
   const bgBlur = document.getElementById('radioCinemaBgBlur');
 
-  if (titleEl) titleEl.textContent = st.name;
+  if (titleEl) applyConditionalScrolling(titleEl, st.name);
   if (metaEl) {
     const loc = st.countrycode || st.country || '';
     const tags = st.tags || st.category || '';
@@ -4638,12 +4646,30 @@ function toggleCinemaMode() {
 }
 
 // ── Wake Button Isolated Logic ─────────────────────────────────
+function updateTrainedState() {
+  const taps = parseInt(sessionStorage.getItem('sparky_wake_taps') || '0', 10);
+  if (taps >= 3) {
+    const radioHand = document.querySelector('.radio-cinema-hand');
+    const videoHand = document.querySelector('.cinema-wake-hand');
+    if (radioHand) radioHand.classList.add('trained');
+    if (videoHand) videoHand.classList.add('trained');
+  }
+}
+
+function recordWakeTap() {
+  let taps = parseInt(sessionStorage.getItem('sparky_wake_taps') || '0', 10);
+  taps++;
+  sessionStorage.setItem('sparky_wake_taps', taps);
+  updateTrainedState();
+}
+
 const wakeZone = document.getElementById('cinemaWakeZone');
 if (wakeZone) {
   ['click', 'touchstart'].forEach(evt => {
     wakeZone.addEventListener(evt, (e) => {
       e.preventDefault();
       e.stopPropagation();
+      recordWakeTap();
       wakeFromCinemaMode();
     }, { passive: false });
   });
@@ -4657,12 +4683,16 @@ const bindWake = (el) => {
     el.addEventListener(evt, (e) => {
       e.preventDefault();
       e.stopPropagation();
+      recordWakeTap();
       wakeFromCinemaMode();
     }, { passive: false });
   });
 };
 bindWake(radioCinemaWake);
 bindWake(radioCinemaHand);
+
+// Initialize trained state early
+setTimeout(updateTrainedState, 200);
 
 // ── Radio Cinema Control Handlers ──────────────────────────────
 const btnRadioCinemaPrev = document.getElementById('btnRadioCinemaPrev');
