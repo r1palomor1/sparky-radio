@@ -4675,21 +4675,21 @@ if (wakeZone) {
   });
 }
 
-const radioCinemaWake = document.getElementById('radioCinemaWakeOverlay');
-const radioCinemaHand = document.querySelector('.radio-cinema-hand');
-const bindWake = (el) => {
-  if (!el) return;
+const radioCinemaPlaceholder = document.getElementById('radio-cinema-placeholder');
+if (radioCinemaPlaceholder) {
   ['click', 'touchstart'].forEach(evt => {
-    el.addEventListener(evt, (e) => {
+    radioCinemaPlaceholder.addEventListener(evt, (e) => {
+      // If clicking interactive controls or the station cover art wrapper, let it function normally
+      if (e.target.closest('.radio-cinema-glass-card') || e.target.closest('.radio-cinema-glow-wrapper')) {
+        return;
+      }
       e.preventDefault();
       e.stopPropagation();
       recordWakeTap();
       wakeFromCinemaMode();
     }, { passive: false });
   });
-};
-bindWake(radioCinemaWake);
-bindWake(radioCinemaHand);
+}
 
 // Initialize trained state early
 setTimeout(updateTrainedState, 200);
