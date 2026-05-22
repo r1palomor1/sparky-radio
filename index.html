@@ -569,6 +569,136 @@
         display: none !important; /* Hide integrated volume slider in landscape cinema to save height */
       }
 
+      /* ── Premium Favs Hub Group Header styling ── */
+      .hub-group {
+        margin-top: 10px;
+        margin-bottom: 12px;
+      }
+      .hub-group-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        font-family: 'Share Tech Mono', monospace;
+        font-size: 11px;
+        font-weight: bold;
+        color: var(--accent);
+        background: rgba(255, 255, 255, 0.03);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+      .hub-group-header .material-symbols-outlined {
+        font-size: 14px;
+        color: var(--accent);
+        opacity: 0.8;
+      }
+      .hub-group-count {
+        margin-left: auto;
+        font-size: 9px;
+        opacity: 0.5;
+        font-weight: normal;
+        background: rgba(255, 255, 255, 0.08);
+        padding: 1px 6px;
+        border-radius: 10px;
+        color: var(--text);
+        letter-spacing: 0;
+      }
+      .hub-group-cards {
+        display: flex;
+        flex-direction: column;
+      }
+      .hub-group.collapsed .hub-group-cards {
+        max-height: 0;
+        display: none !important;
+      }
+      .hub-group-arrow {
+        margin-left: auto;
+        font-size: 16px;
+        transition: transform 0.2s ease;
+        opacity: 0.7;
+        color: var(--text);
+      }
+      .hub-group.collapsed .hub-group-arrow {
+        transform: rotate(-90deg);
+      }
+      .yt-tab {
+        flex-direction: column !important;
+        gap: 2px !important;
+        padding: 6px 4px !important;
+        height: auto !important;
+      }
+      .yt-tab .material-symbols-outlined {
+        font-size: 14px !important;
+      }
+      .yt-tab-count {
+        font-size: 9px;
+        opacity: 0.6;
+        margin-left: 0 !important;
+        margin-top: 2px;
+        font-weight: 500;
+        background: rgba(255, 255, 255, 0.1);
+        padding: 0px 4px;
+        border-radius: 4px;
+      }
+      .yt-tab.active .yt-tab-count {
+        opacity: 0.9;
+        color: var(--accent);
+        background: rgba(255, 255, 255, 0.15);
+      }
+      /* Align toolbar buttons with the standard card grid margins (12px) */
+      .playlist-header {
+        padding: 10px 12px !important;
+        background: #05070a !important;
+      }
+      /* Hub accordion group headers - clean card edge alignment */
+      .hub-group {
+        margin: 8px 12px !important;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.01);
+        overflow: hidden;
+      }
+      .hub-group-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 12px !important;
+        font-family: 'Share Tech Mono', monospace;
+        font-size: 13px !important;
+        font-weight: 700;
+        color: var(--accent);
+        background: rgba(255, 255, 255, 0.03);
+        cursor: pointer;
+        user-select: none;
+        transition: background 0.2s, color 0.2s;
+      }
+      .hub-group-header:hover {
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--text);
+      }
+      .hub-group-separator {
+        opacity: 0.4;
+        margin: 0 4px;
+      }
+      .hub-group-count {
+        font-size: 11px !important;
+        opacity: 0.6;
+        font-weight: 500;
+        color: var(--text);
+      }
+      /* Hub group cards inside the container also align nicely */
+      .hub-group-cards .yt-card {
+        margin: 0 !important;
+        border-radius: 0 !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+      }
+      .hub-group-cards .yt-card:last-child {
+        border-bottom: none;
+      }
+
+
+
       /* Landscape Cinema Wake Zone Safeguards */
       .app.immersive-cinema-mode .cinema-wake-zone {
         height: calc(90px + env(safe-area-inset-bottom)) !important;
@@ -1011,15 +1141,15 @@
       <div class="yt-tab-row">
         <button class="yt-tab active" id="ytTabVideos" data-mode="videos">
           <span class="material-symbols-outlined">play_circle</span>
-          Videos
+          <span class="yt-tab-label">Videos</span>
         </button>
         <button class="yt-tab" id="ytTabPlaylists" data-mode="playlists">
           <span class="material-symbols-outlined">playlist_play</span>
-          Playlists
+          <span class="yt-tab-label">Playlists</span>
         </button>
         <button class="yt-tab" id="ytTabHub" data-mode="hub">
           <span class="material-symbols-outlined">favorite</span>
-          Favs Hub
+          <span class="yt-tab-label">Favs Hub</span>
         </button>
       </div>
 

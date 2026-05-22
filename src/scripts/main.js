@@ -1210,49 +1210,57 @@ window.__onGCastApiAvailable = function (isAvailable) {
 };
 
 function initializeCastApi() {
-  const castContext = cast.framework.CastContext.getInstance();
-  castContext.setOptions({
-    receiverApplicationId: chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID,
-    autoJoinPolicy: chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED
-  });
+  if (typeof cast === 'undefined' || !cast.framework) {
+    console.warn('[CAST] Google Cast SDK not available.');
+    return;
+  }
+  try {
+    const castContext = cast.framework.CastContext.getInstance();
+    castContext.setOptions({
+      receiverApplicationId: chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID,
+      autoJoinPolicy: chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED
+    });
 
-  castContext.addEventListener(
-    cast.framework.CastContextEventType.SESSION_STATE_CHANGED,
-    (event) => {
-      if (typeof sparkyYtState !== 'undefined' && sparkyYtState.isModeActive) {
-        return;
+    castContext.addEventListener(
+      cast.framework.CastContextEventType.SESSION_STATE_CHANGED,
+      (event) => {
+        if (typeof sparkyYtState !== 'undefined' && sparkyYtState.isModeActive) {
+          return;
+        }
+        switch (event.sessionState) {
+          case cast.framework.SessionState.SESSION_STARTED:
+            console.log('[CAST] Session started');
+            isCasting = true;
+            const vol = document.getElementById('volSlider').value;
+            const castSession = castContext.getCurrentSession();
+            if (castSession) {
+              castSession.setVolume(vol / 100);
+            }
+            if (isPlaying && currentSrc) {
+              audioEl.pause();
+              audioEl.src = '';
+              if (hls) { hls.destroy(); hls = null; }
+              castPlayStation(currentSrc);
+            } else if (currentSrc) {
+              castPlayStation(currentSrc);
+            }
+            break;
+          case cast.framework.SessionState.SESSION_ENDED:
+            console.log('[CAST] Session ended');
+            const wasPlaying = isPlaying;
+            isCasting = false;
+            if (wasPlaying && currentSrc) {
+              playStationObj(currentSrc);
+            } else {
+              stopPlayback();
+            }
+            break;
+        }
       }
-      switch (event.sessionState) {
-        case cast.framework.SessionState.SESSION_STARTED:
-          console.log('[CAST] Session started');
-          isCasting = true;
-          const vol = document.getElementById('volSlider').value;
-          const castSession = castContext.getCurrentSession();
-          if (castSession) {
-            castSession.setVolume(vol / 100);
-          }
-          if (isPlaying && currentSrc) {
-            audioEl.pause();
-            audioEl.src = '';
-            if (hls) { hls.destroy(); hls = null; }
-            castPlayStation(currentSrc);
-          } else if (currentSrc) {
-            castPlayStation(currentSrc);
-          }
-          break;
-        case cast.framework.SessionState.SESSION_ENDED:
-          console.log('[CAST] Session ended');
-          const wasPlaying = isPlaying;
-          isCasting = false;
-          if (wasPlaying && currentSrc) {
-            playStationObj(currentSrc);
-          } else {
-            stopPlayback();
-          }
-          break;
-      }
-    }
-  );
+    );
+  } catch (err) {
+    console.error('[CAST] Failed to initialize cast context', err);
+  }
 }
 
 function castPlayStation(st) {
@@ -4449,7 +4457,9 @@ const sparkyYtState = {
   relatedSortMode: 'relevance', // Sort order: relevance | views
   dropdownOpen: false, // V-U7: Dropdown visibility state
   autocompleteResults: [], // V-U7: Tier 2 autocomplete results
-  smartSuggestions: [] // V-U7: Tier 3 context suggestions
+  smartSuggestions: [], // V-U7: Tier 3 context suggestions
+  hubSortMode: 'date', // 'date' | 'az' | 'artist'
+  hubGroupMode: 'list' // 'list' | 'grouped'
 };
 
 function saveYtSessionState() {
@@ -5129,6 +5139,7 @@ function switchYtTab(mode) {
       clearYtResults();
     }
   }
+  syncYtTabCounts();
 }
 
 function clearYtResults() {
@@ -5147,48 +5158,194 @@ function clearYtResults() {
   saveYtSessionState();
 }
 
-function renderYtHub() {
+function syncYtTabCounts() {
+  const vidTab = document.getElementById('ytTabVideos');
+  const plTab = document.getElementById('ytTabPlaylists');
+  const hubTab = document.getElementById('ytTabHub');
+
+  const vidCount = sparkyYtState.videoCache.results.length;
+  const plCount = sparkyYtState.playlistCache.results.length;
+  const hubCount = loadYtFavs().length;
+
+  if (vidTab) {
+    let countEl = vidTab.querySelector('.yt-tab-count');
+    if (!countEl) {
+      vidTab.insertAdjacentHTML('beforeend', `<span class="yt-tab-count"></span>`);
+      countEl = vidTab.querySelector('.yt-tab-count');
+    }
+    countEl.textContent = vidCount > 0 ? ` (${vidCount})` : '';
+  }
+
+  if (plTab) {
+    let countEl = plTab.querySelector('.yt-tab-count');
+    if (!countEl) {
+      plTab.insertAdjacentHTML('beforeend', `<span class="yt-tab-count"></span>`);
+      countEl = plTab.querySelector('.yt-tab-count');
+    }
+    countEl.textContent = plCount > 0 ? ` (${plCount})` : '';
+  }
+
+  if (hubTab) {
+    let countEl = hubTab.querySelector('.yt-tab-count');
+    if (!countEl) {
+      hubTab.insertAdjacentHTML('beforeend', `<span class="yt-tab-count"></span>`);
+      countEl = hubTab.querySelector('.yt-tab-count');
+    }
+    countEl.textContent = hubCount > 0 ? ` (${hubCount})` : '';
+  }
+}
+
+function _hubSortFavs(favs) {
+  const m = sparkyYtState.hubSortMode;
+  return [...favs].sort((a, b) => {
+    if (m === 'az') return (a.title || '').localeCompare(b.title || '');
+    if (m === 'artist') return (a.channel || '').localeCompare(b.channel || '');
+    return (b.addedAt || 0) - (a.addedAt || 0); // date (default)
+  });
+}
+
+function _hubCardHtml(item) {
+  const isAct = sparkyYtState.currentItemId === item.id || (sparkyYtState.activePlaylistId && item.id === sparkyYtState.activePlaylistId);
+  const ambientStyle = isAct && item.thumb ? ` style="--ambient-bg: url('${esc(item.thumb)}');"` : '';
+  const ambientClass = isAct && item.thumb ? ' has-ambient-bg' : '';
+  const inQueue = sparkyYtState.temporaryQueue.some(v => v.id === item.id);
+  return `<div class="yt-card${isAct ? ' active' : ''}${ambientClass}" data-id="${item.id}" data-type="${item.type}" data-title="${item.title.replace(/"/g, '&quot;')}" data-channel="${(item.channel || '').replace(/"/g, '&quot;')}" data-thumb="${item.thumb}" data-duration="${item.duration || ''}" data-views="${item.views || ''}" data-published="${item.published || ''}" data-video-count="${item.video_count || ''}"${ambientStyle}>
+    <img class="yt-card-thumb" src="${item.thumb}" alt="" loading="lazy">
+    <div class="yt-card-info">
+      <div class="yt-card-title">${item.title}</div>
+      <div class="yt-card-channel">
+        ${item.type === 'playlist' ? `Playlist${item.video_count ? ' &middot; ' + item.video_count : ''}` :
+          `<span class="desktop-only">${item.views || ''}${item.published ? (item.views ? ' &middot; ' : '') + item.published : ''}${item.duration ? (item.views || item.published ? ' &middot; ' : '') + item.duration : ''}${item.channel ? (item.views || item.published || item.duration ? ' &middot; ' : '') + item.channel : ''}</span>
+           <span class="mobile-stats">${item.views || ''}${item.published ? (item.views ? ' &middot; ' : '') + item.published : ''}${item.channel ? (item.views || item.published ? ' &middot; ' : '') + item.channel : ''}</span>`}
+      </div>
+    </div>
+    <div class="yt-card-actions">
+      <button class="yt-card-fav yt-card-delete active" data-id="${item.id}" title="Delete from Hub"><span class="material-symbols-outlined">delete</span></button>
+      <button class="yt-card-add yt-card-hub-queue${inQueue ? ' active' : ''}" data-id="${item.id}" title="${inQueue ? 'Remove from Queue' : 'Add to Queue'}"><span class="material-symbols-outlined">${inQueue ? 'remove_from_queue' : 'add_to_queue'}</span></button>
+    </div>
+  </div>`;
+}
+
+function renderYtHub(showTooltip = false) {
   const hub = document.getElementById('ytHub');
   if (!hub) return;
   const favs = loadYtFavs();
   if (!favs.length) {
-    hub.innerHTML = `<div class="pl-empty">
-      <div class="pl-empty-icon">&#128420;</div>
-      <div>No saved videos yet &mdash; heart a video to save it here in your Favs Hub</div>
-    </div>`;
+    hub.innerHTML = `<div class="pl-empty"><div class="pl-empty-icon">&#128420;</div><div>No saved videos yet &mdash; heart a video to save it here in your Favs Hub</div></div>`;
+    syncYtTabCounts();
     return;
   }
-  hub.innerHTML = favs.map(item => {
-    const isAct = sparkyYtState.currentItemId === item.id || (sparkyYtState.activePlaylistId && item.id === sparkyYtState.activePlaylistId);
-    const ambientStyle = isAct && item.thumb ? ` style="--ambient-bg: url('${esc(item.thumb)}');"` : '';
-    const ambientClass = isAct && item.thumb ? ' has-ambient-bg' : '';
 
-    return `
-    <div class="yt-card${isAct ? ' active' : ''}${ambientClass}" data-id="${item.id}" data-type="${item.type}" data-title="${item.title.replace(/"/g, '&quot;')}" data-channel="${(item.channel || '').replace(/"/g, '&quot;')}" data-thumb="${item.thumb}" data-duration="${item.duration || ''}" data-views="${item.views || ''}" data-published="${item.published || ''}" data-video-count="${item.video_count || ''}"${ambientStyle}>
-      <img class="yt-card-thumb" src="${item.thumb}" alt="" loading="lazy">
-      <div class="yt-card-info">
-        <div class="yt-card-title">${item.title}</div>
-        <div class="yt-card-channel">
-          ${item.type === 'playlist' ? 
-            `Playlist${item.video_count ? ' &middot; ' + item.video_count : ''}` :
-            `<span class="desktop-only">${item.views || ''}${item.published ? (item.views ? ' &middot; ' : '') + item.published : ''}${item.duration ? (item.views || item.published ? ' &middot; ' : '') + item.duration : ''}${item.channel ? (item.views || item.published || item.duration ? ' &middot; ' : '') + item.channel : ''}</span>
-             <span class="mobile-stats">${item.views || ''}${item.published ? (item.views ? ' &middot; ' : '') + item.published : ''}${item.channel ? (item.views || item.published ? ' &middot; ' : '') + item.channel : ''}</span>`
-          }
-        </div>
+  const sort = sparkyYtState.hubSortMode;
+  const group = sparkyYtState.hubGroupMode;
+  
+  // Icon and title based on group mode
+  const isGrouped = group === 'grouped';
+  const groupIcon = isGrouped ? 'grid_view' : 'format_list_bulleted';
+  const groupTitle = isGrouped ? 'Current View: Grouped' : 'Current View: List';
+
+  // Toolbar HTML Re-using the exact layout/classes from .playlist-header (aligned to edges, no label duplicate)
+  const toolbar = `
+  <div class="playlist-header" style="position: relative; background: #05070a !important; z-index: 300; display: flex; justify-content: space-between; align-items: center; padding: 10px 12px !important;">
+    <div class="pl-header-left" style="display: flex; align-items: center;">
+      <button class="pl-sort-btn" id="btnHubSortMode" title="Quick-Sort Mode" style="margin: 0 !important; padding: 0 !important; background: transparent; border: none;">
+        <span class="material-symbols-outlined">sort</span>
+      </button>
+    </div>
+    <div class="pl-header-right" style="display: flex; align-items: center;">
+      <button class="pl-view-btn" id="btnHubViewToggle" title="${groupTitle}" style="margin: 0 !important; padding: 0 !important; background: transparent; border: none;">
+        <span class="material-symbols-outlined" id="hubViewToggleIcon">${groupIcon}</span>
+      </button>
+    </div>
+    
+    <!-- Custom Sort Dropdown Tooltip matching the Radio style exactly -->
+    <div id="hubSortTooltip" class="pl-sort-tooltip">
+      <div class="pl-sort-row${sort === 'date' ? ' active' : ''}" data-hub-sort="date">
+        <span class="material-symbols-outlined" style="font-size:14px;">schedule</span>
+        <span class="sort-desc">DATE ADDED</span>
       </div>
-      <div class="yt-card-actions">
-        <button class="yt-card-fav yt-card-delete active" data-id="${item.id}" title="Delete from Hub">
-          <span class="material-symbols-outlined">delete</span>
-        </button>
-        <button class="yt-card-add yt-card-hub-queue${sparkyYtState.temporaryQueue.some(v => v.id === item.id) ? ' active' : ''}" data-id="${item.id}" title="${sparkyYtState.temporaryQueue.some(v => v.id === item.id) ? 'Remove from Queue' : 'Add to Queue'}">
-          <span class="material-symbols-outlined">${sparkyYtState.temporaryQueue.some(v => v.id === item.id) ? 'remove_from_queue' : 'add_to_queue'}</span>
-        </button>
+      <div class="pl-sort-row${sort === 'az' ? ' active' : ''}" data-hub-sort="az">
+        <span class="material-symbols-outlined" style="font-size:14px;">sort_by_alpha</span>
+        <span class="sort-desc">A-Z</span>
+      </div>
+      <div class="pl-sort-row${sort === 'artist' ? ' active' : ''}" data-hub-sort="artist">
+        <span class="material-symbols-outlined" style="font-size:14px;">person</span>
+        <span class="sort-desc">ARTIST</span>
       </div>
     </div>
-  `;}).join('');
+  </div>`;
 
-  // Standard listeners (play, fav, add) handle the Hub interactions via delegation in attachYtCardListeners
+  const sorted = _hubSortFavs(favs);
+  let cardsHtml = '';
+
+  if (isGrouped) {
+    // Group by channel
+    const groups = {};
+    sorted.forEach(item => {
+      const key = item.channel || 'Unknown Artist';
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(item);
+    });
+    // Artist (count) chevron layout. Initially collapsed.
+    cardsHtml = Object.entries(groups).map(([artist, items]) =>
+      `<div class="hub-group collapsed">
+        <div class="hub-group-header">
+          <span class="hub-group-artist">${artist} (${items.length})</span>
+          <span class="material-symbols-outlined hub-group-arrow">expand_more</span>
+        </div>
+        <div class="hub-group-cards">${items.map(_hubCardHtml).join('')}</div>
+      </div>`
+    ).join('');
+  } else {
+    cardsHtml = sorted.map(_hubCardHtml).join('');
+  }
+
+  hub.innerHTML = toolbar + cardsHtml;
+
+  // Exact Radio sort cycling logic: cycles sort mode directly and shows tooltip briefly
+  const sortBtn = hub.querySelector('#btnHubSortMode');
+  if (sortBtn) {
+    sortBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const modes = ['date', 'az', 'artist'];
+      const nextIdx = (modes.indexOf(sparkyYtState.hubSortMode) + 1) % modes.length;
+      sparkyYtState.hubSortMode = modes[nextIdx];
+      renderYtHub(true);
+    });
+  }
+
+  // Handle temporary sort tooltip visibility (1500ms autohide)
+  const tooltip = hub.querySelector('#hubSortTooltip');
+  if (showTooltip && tooltip) {
+    tooltip.classList.add('show');
+    if (window.hubSortTooltipTimeout) clearTimeout(window.hubSortTooltipTimeout);
+    window.hubSortTooltipTimeout = setTimeout(() => {
+      const t = document.getElementById('hubSortTooltip');
+      if (t) t.classList.remove('show');
+    }, 1500);
+  }
+
+  // Accordion Header Expansion Click Listener
+  hub.querySelectorAll('.hub-group-header').forEach(header => {
+    header.addEventListener('click', (e) => {
+      const groupEl = header.closest('.hub-group');
+      if (groupEl) {
+        groupEl.classList.toggle('collapsed');
+      }
+    });
+  });
+
+  // Group toggle listener
+  const groupBtn = hub.querySelector('#btnHubViewToggle');
+  if (groupBtn) {
+    groupBtn.addEventListener('click', () => {
+      sparkyYtState.hubGroupMode = sparkyYtState.hubGroupMode === 'grouped' ? 'list' : 'grouped';
+      renderYtHub();
+    });
+  }
+
   attachYtCardListeners(hub);
+  syncYtTabCounts();
 }
 
 
@@ -5698,6 +5855,7 @@ function renderYtVideoResults(videos, isAppending = false) {
 
   attachYtCardListeners(el);
   if (sparkyYtState.currentItemId) highlightYtCard(sparkyYtState.currentItemId);
+  syncYtTabCounts();
 }
 
 function renderYtPlaylistResults(playlists, isAppending = false) {
@@ -5738,6 +5896,7 @@ function renderYtPlaylistResults(playlists, isAppending = false) {
 
   attachYtCardListeners(el);
   if (sparkyYtState.currentItemId) highlightYtCard(sparkyYtState.currentItemId);
+  syncYtTabCounts();
 }
 
 async function hydrateYtQueueTags() {
@@ -5908,6 +6067,7 @@ function attachYtCardListeners(container) {
           sparkyConfirm(`Are you sure you want to remove [${item.title}] from Favorites?`, () => {
             removeYtFav(item.id);
             if (sparkyYtState.currentSubMode === 'hub') renderYtHub();
+            syncYtTabCounts();
           }, "DELETE FROM FAVS HUB");
           return;
         }
@@ -5921,6 +6081,7 @@ function attachYtCardListeners(container) {
           favBtn.classList.add('active');
           favBtn.title = 'Remove from Favs Hub';
         }
+        syncYtTabCounts();
       });
     }
 
