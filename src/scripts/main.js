@@ -5246,7 +5246,7 @@ function renderYtHub(showTooltip = false) {
 
   // Toolbar HTML Re-using the exact layout/classes from .playlist-header (aligned to edges, no label duplicate)
   const toolbar = `
-  <div class="playlist-header" style="position: relative; background: #05070a !important; z-index: 300; display: flex; justify-content: space-between; align-items: center; padding: 10px 12px !important;">
+  <div class="playlist-header" style="position: relative; background: #05070a !important; z-index: 300; display: flex; justify-content: space-between; align-items: center; padding: 10px 0px !important;">
     <div class="pl-header-left" style="display: flex; align-items: center;">
       <button class="pl-sort-btn" id="btnHubSortMode" title="Quick-Sort Mode" style="margin: 0 !important; padding: 0 !important; background: transparent; border: none;">
         <span class="material-symbols-outlined">sort</span>

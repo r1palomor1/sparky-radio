@@ -5488,3 +5488,37 @@ google-cast-launcher:hover {
   transition: .3s;
   border-radius: 50%;
 }
+
+/* Stacking tab button layout vertically to prevent Favs Hub tab overflow on mobile devices */
+@media (max-width: 480px) {
+  .yt-tab-row {
+    gap: 0;
+  }
+  .yt-tab {
+    flex-direction: column !important;
+    gap: 2px !important;
+    padding: 8px 4px !important;
+    height: auto !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+  .yt-tab .material-symbols-outlined {
+    font-size: 14px !important;
+  }
+  .yt-tab-count {
+    font-size: 9px !important;
+    opacity: 0.6;
+    margin-left: 0 !important;
+    margin-top: 2px !important;
+    font-weight: 500;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 0px 4px;
+    border-radius: 4px;
+    display: inline-block;
+  }
+  .yt-tab.active .yt-tab-count {
+    opacity: 0.9;
+    color: var(--accent);
+    background: rgba(255, 255, 255, 0.15);
+  }
+}
