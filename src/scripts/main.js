@@ -3885,7 +3885,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   bind('statusCluster', () => {
     const sm = document.getElementById('settingsModal');
-    if (sm) { sm.style.display = 'flex'; updateDeploymentUI(); }
+    if (sm) {
+      sm.style.display = 'flex';
+      updateDeploymentUI();
+      renderSettingsCustomGroups();
+    }
   });
   bind('btnSettingsClose', () => {
     const sm = document.getElementById('settingsModal');
@@ -5346,7 +5350,9 @@ function renderYtHub(showTooltip = false) {
     });
   }
 
-  // Assign Artist Group overlay click listener
+
+
+  // Assign Artist Group centered glass modal click listener
   hub.querySelectorAll('.yt-card-hub-assign').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -5357,66 +5363,76 @@ function renderYtHub(showTooltip = false) {
       const item = favs.find(f => f.id === cardId);
       if (!item) return;
 
-      // Toggle overlay if already exists
-      const existingOverlay = card.querySelector('.yt-card-artist-dropdown');
-      if (existingOverlay) {
-        existingOverlay.remove();
-        return;
-      }
-
-      // Collect all unique artists currently in the hub
-      const artistsSet = new Set();
+      // Collect all active artists currently in the hub
+      const activeArtists = new Set();
       favs.forEach(f => {
         const art = f.artistOverride || f.channel;
-        if (art) artistsSet.add(art);
+        if (art) activeArtists.add(art);
       });
-      const uniqueArtists = Array.from(artistsSet).sort();
 
-      // Create overlay HTML
-      const overlay = document.createElement('div');
-      overlay.className = 'yt-card-artist-dropdown';
-      overlay.innerHTML = `
-        <div class="artist-dropdown-header">
-          <span>Assign Artist Group</span>
-          <button class="artist-dropdown-close">&times;</button>
-        </div>
-        <div class="artist-dropdown-list">
-          ${uniqueArtists.map(art => `
-            <div class="artist-dropdown-item" data-artist="${art.replace(/"/g, '&quot;')}">${art}</div>
-          `).join('')}
-        </div>
-        <div class="artist-dropdown-new">
-          <input type="text" placeholder="New group..." class="artist-dropdown-input">
-          <button class="artist-dropdown-add-btn">Add</button>
+      // Load custom persistent groups
+      const customGroups = loadCustomGroups();
+
+      // Combine them for listing
+      const combinedArtists = Array.from(new Set([...activeArtists, ...customGroups])).sort();
+
+      // Create beautiful spacious centered modal instead of nested overlay
+      const modal = document.createElement('div');
+      modal.className = 'artist-assign-modal';
+
+      // Generate items HTML (pure selection list)
+      const itemsHtml = combinedArtists.map(art => `
+        <div class="artist-assign-item" data-artist="${art.replace(/"/g, '&quot;')}">${art}</div>
+      `).join('');
+
+      modal.innerHTML = `
+        <div class="artist-assign-content">
+          <div class="artist-assign-header">
+            <span>Assign Artist Group</span>
+            <button class="artist-assign-close">&times;</button>
+          </div>
+          <div class="artist-assign-body">
+            <div class="artist-assign-scroll-list">
+              ${itemsHtml}
+            </div>
+            <div class="artist-assign-footer">
+              <input type="text" placeholder="Create new group..." class="artist-assign-input">
+              <button class="artist-assign-add-btn">Add</button>
+            </div>
+          </div>
         </div>
       `;
 
       // Handle close
-      overlay.querySelector('.artist-dropdown-close').addEventListener('click', (ev) => {
-        ev.stopPropagation();
-        overlay.remove();
+      const closeModal = () => modal.remove();
+      modal.querySelector('.artist-assign-close').addEventListener('click', closeModal);
+      modal.addEventListener('click', (ev) => {
+        if (ev.target === modal) closeModal();
       });
 
       // Handle selection of existing artist
-      overlay.querySelectorAll('.artist-dropdown-item').forEach(opt => {
+      modal.querySelectorAll('.artist-assign-item').forEach(opt => {
         opt.addEventListener('click', (ev) => {
           ev.stopPropagation();
           const selected = opt.dataset.artist;
           item.artistOverride = selected;
           saveYtFavs(favs);
+          closeModal();
           renderYtHub();
         });
       });
 
       // Handle adding a brand new group/artist name
-      const input = overlay.querySelector('.artist-dropdown-input');
-      const addBtn = overlay.querySelector('.artist-dropdown-add-btn');
+      const input = modal.querySelector('.artist-assign-input');
+      const addBtn = modal.querySelector('.artist-assign-add-btn');
       
       const submitNewArtist = () => {
         const val = input.value.trim();
         if (val) {
+          addCustomGroup(val);
           item.artistOverride = val;
           saveYtFavs(favs);
+          closeModal();
           renderYtHub();
         }
       };
@@ -5432,7 +5448,7 @@ function renderYtHub(showTooltip = false) {
         submitNewArtist();
       });
 
-      card.appendChild(overlay);
+      document.body.appendChild(modal);
     });
   });
 
@@ -5441,6 +5457,86 @@ function renderYtHub(showTooltip = false) {
 }
 
 
+
+const CUSTOM_GROUPS_KEY = 'sparky_custom_groups';
+function loadCustomGroups() {
+  try { return JSON.parse(localStorage.getItem(CUSTOM_GROUPS_KEY)) || []; } catch { return []; }
+}
+function saveCustomGroups(groups) {
+  try { localStorage.setItem(CUSTOM_GROUPS_KEY, JSON.stringify(groups)); } catch (e) { console.error('[YT] Save custom groups failed:', e); }
+}
+function addCustomGroup(name) {
+  const groups = loadCustomGroups();
+  const trimmed = name.trim();
+  if (trimmed && !groups.includes(trimmed)) {
+    groups.push(trimmed);
+    saveCustomGroups(groups);
+  }
+}
+function removeCustomGroup(name) {
+  const groups = loadCustomGroups().filter(g => g !== name);
+  saveCustomGroups(groups);
+}
+
+function renderSettingsCustomGroups() {
+  const container = document.getElementById('settingsCustomGroupsList');
+  if (!container) return;
+
+  const customGroups = loadCustomGroups();
+  if (customGroups.length === 0) {
+    container.innerHTML = `
+      <div style="font-size: 10px; color: var(--dim); font-family: 'Share Tech Mono', monospace; text-align: center; padding: 10px 0;">NO CUSTOM GROUPS DEFINED</div>
+    `;
+    return;
+  }
+
+  const favs = loadYtFavs();
+
+  container.innerHTML = customGroups.map(group => {
+    // Check if group is empty or populated
+    const hasVideos = favs.some(f => f.artistOverride === group);
+    if (hasVideos) {
+      return `
+        <div class="settings-custom-group-item" style="display: flex; justify-content: space-between; align-items: center; padding: 6px 10px; background: rgba(255,255,255,0.03); border-radius: 4px; border: 1px solid rgba(255,255,255,0.05); font-family: 'Share Tech Mono', monospace; font-size: 11px; color: var(--text);">
+          <span>${group}</span>
+          <span class="custom-group-locked-badge" style="font-size: 9px; color: var(--accent); background: rgba(0, 242, 255, 0.1); border: 1px solid rgba(0, 242, 255, 0.2); padding: 1px 4px; border-radius: 4px; text-transform: uppercase; font-weight: bold; font-family: 'Share Tech Mono', monospace;">Active</span>
+        </div>
+      `;
+    } else {
+      return `
+        <div class="settings-custom-group-item" style="display: flex; justify-content: space-between; align-items: center; padding: 6px 10px; background: rgba(255,255,255,0.03); border-radius: 4px; border: 1px solid rgba(255,255,255,0.05); font-family: 'Share Tech Mono', monospace; font-size: 11px; color: var(--text);">
+          <span>${group}</span>
+          <button class="settings-custom-group-del-btn" data-artist="${group.replace(/"/g, '&quot;')}" style="background: none; border: none; color: rgba(255,255,255,0.4); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 2px; transition: color 0.2s;"><span class="material-symbols-outlined" style="font-size: 14px; pointer-events: none;">close</span></button>
+        </div>
+      `;
+    }
+  }).join('');
+
+  // Add click listeners to delete empty groups
+  container.querySelectorAll('.settings-custom-group-del-btn').forEach(btn => {
+    btn.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      const targetGroup = btn.dataset.artist;
+      sparkyConfirm(
+        `Are you sure you want to remove the custom group "${targetGroup}"?`,
+        () => {
+          removeCustomGroup(targetGroup);
+          // Reset any overrides that might match this group (safety fallback)
+          const currentFavs = loadYtFavs();
+          currentFavs.forEach(f => {
+            if (f.artistOverride === targetGroup) {
+              f.artistOverride = null;
+            }
+          });
+          saveYtFavs(currentFavs);
+          renderSettingsCustomGroups();
+          renderYtHub();
+        },
+        "REMOVE GROUP"
+      );
+    });
+  });
+}
 
 function isYtFav(id) { return loadYtFavs().some(f => f.id === id); }
 function addYtFav(item) {

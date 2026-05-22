@@ -5523,116 +5523,162 @@ google-cast-launcher:hover {
   }
 }
 
-/* --- YT CARD ARTIST OVERRIDE CONTEXTUAL DROPDOWN --- */
-.yt-card-artist-dropdown {
-  position: absolute;
+/* --- YT CARD ARTIST OVERRIDE CENTERING GLASS MODAL --- */
+.artist-assign-modal {
+  position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(10, 12, 18, 0.96) !important;
-  backdrop-filter: blur(12px) !important;
-  -webkit-backdrop-filter: blur(12px) !important;
-  z-index: 100 !important;
-  display: flex;
-  flex-direction: column;
-  padding: 10px 12px;
-  box-sizing: border-box;
-  color: #fff;
-  font-family: 'Outfit', sans-serif;
-  border-radius: 8px;
-}
-.artist-dropdown-header {
-  font-size: 11px;
-  font-weight: bold;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-  color: var(--accent);
-  margin-bottom: 8px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  padding-bottom: 4px;
-}
-.artist-dropdown-list {
-  flex: 1;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  margin-bottom: 8px;
-  padding-right: 2px;
-}
-.artist-dropdown-list::-webkit-scrollbar {
-  width: 4px;
-}
-.artist-dropdown-list::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 2px;
-}
-.artist-dropdown-item {
-  font-size: 11px;
-  padding: 6px 10px;
-  background: rgba(255, 255, 255, 0.04);
-  border-radius: 4px;
-  cursor: pointer;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  text-align: left;
-  transition: all 0.2s ease;
-  font-family: 'Share Tech Mono', monospace;
-}
-.artist-dropdown-item:hover {
-  background: rgba(255, 255, 255, 0.12);
-  color: var(--accent);
-}
-.artist-dropdown-new {
-  display: flex;
-  gap: 6px;
-  margin-top: auto;
-  align-items: center;
-}
-.artist-dropdown-input {
-  flex: 1;
-  background: rgba(255, 255, 255, 0.06) !important;
-  border: 1px solid rgba(255, 255, 255, 0.12) !important;
-  border-radius: 4px !important;
-  padding: 5px 8px !important;
-  font-size: 11px !important;
-  color: #fff !important;
-  outline: none !important;
-  font-family: 'Outfit', sans-serif !important;
-}
-.artist-dropdown-input:focus {
-  border-color: var(--accent) !important;
-}
-.artist-dropdown-add-btn {
-  background: var(--accent) !important;
-  border: none !important;
-  color: #000 !important;
-  font-weight: 800 !important;
-  font-size: 11px !important;
-  padding: 5px 10px !important;
-  border-radius: 4px !important;
-  cursor: pointer !important;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  font-family: 'Share Tech Mono', monospace !important;
-}
-.artist-dropdown-add-btn:hover {
-  background: #fff !important;
-}
-.artist-dropdown-close {
-  background: transparent;
-  border: none;
-  color: rgba(255,255,255,0.5);
-  font-size: 18px;
-  cursor: pointer;
+  background: rgba(5, 7, 10, 0.85);
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  z-index: 10000 !important;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 20px;
-  height: 20px;
+  padding: 20px;
+  box-sizing: border-box;
 }
-.artist-dropdown-close:hover {
-  color: #fff;
+.artist-assign-content {
+  background: rgba(10, 12, 18, 0.98) !important;
+  border: 1px solid var(--accent) !important;
+  border-radius: 12px !important;
+  width: 90vw !important;
+  max-width: 360px !important;
+  padding: 16px !important;
+  box-shadow: 0 8px 32px rgba(0, 242, 255, 0.25) !important;
+  display: flex;
+  flex-direction: column;
+  max-height: 80vh !important;
+  box-sizing: border-box !important;
+}
+.artist-assign-header {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  font-family: 'Orbitron', sans-serif !important;
+  color: var(--accent) !important;
+  font-size: 13px !important;
+  font-weight: bold !important;
+  letter-spacing: 1px !important;
+  text-transform: uppercase !important;
+  border-bottom: 1px solid rgba(255,255,255,0.1) !important;
+  padding-bottom: 8px !important;
+  margin-bottom: 12px !important;
+}
+.artist-assign-close {
+  background: transparent !important;
+  border: none !important;
+  color: rgba(255,255,255,0.5) !important;
+  font-size: 20px !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+.artist-assign-close:hover {
+  color: #fff !important;
+}
+.artist-assign-body {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+  overflow: hidden !important;
+  flex: 1 !important;
+}
+.artist-assign-scroll-list {
+  flex: 1 !important;
+  overflow-y: auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 6px !important;
+  max-height: 200px !important;
+  padding-right: 4px !important;
+}
+.artist-assign-scroll-list::-webkit-scrollbar {
+  width: 4px !important;
+}
+.artist-assign-scroll-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2) !important;
+  border-radius: 2px !important;
+}
+.artist-assign-item {
+  font-family: 'Outfit', sans-serif !important;
+  font-size: 13px !important;
+  padding: 8px 12px !important;
+  background: rgba(255,255,255,0.05) !important;
+  border-radius: 6px !important;
+  cursor: pointer !important;
+  color: #fff !important;
+  transition: all 0.2s ease !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  text-align: left !important;
+}
+.artist-assign-item:hover {
+  background: rgba(255,255,255,0.12) !important;
+  color: var(--accent) !important;
+}
+.artist-assign-item.custom-group-item {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  padding: 8px 12px !important;
+}
+.custom-group-delete-btn {
+  font-size: 14px !important;
+  color: rgba(255,255,255,0.4) !important;
+  cursor: pointer !important;
+  transition: color 0.2s ease !important;
+  padding: 2px !important;
+  margin-left: 8px !important;
+}
+.custom-group-delete-btn:hover {
+  color: #ff5555 !important;
+}
+.custom-group-locked-badge {
+  font-size: 9px !important;
+  color: var(--accent) !important;
+  background: rgba(0, 242, 255, 0.1) !important;
+  border: 1px solid rgba(0, 242, 255, 0.2) !important;
+  padding: 1px 4px !important;
+  border-radius: 4px !important;
+  text-transform: uppercase !important;
+  font-weight: bold !important;
+  font-family: 'Share Tech Mono', monospace !important;
+}
+.artist-assign-footer {
+  display: flex !important;
+  gap: 8px !important;
+  border-top: 1px solid rgba(255,255,255,0.1) !important;
+  padding-top: 12px !important;
+  align-items: center !important;
+}
+.artist-assign-input {
+  flex: 1 !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  border-radius: 6px !important;
+  padding: 8px 12px !important;
+  font-size: 12px !important;
+  color: #fff !important;
+  outline: none !important;
+  box-sizing: border-box !important;
+}
+.artist-assign-input:focus {
+  border-color: var(--accent) !important;
+}
+.artist-assign-add-btn {
+  background: var(--accent) !important;
+  border: none !important;
+  color: #000 !important;
+  font-weight: bold !important;
+  padding: 8px 16px !important;
+  border-radius: 6px !important;
+  cursor: pointer !important;
+  font-family: 'Share Tech Mono', monospace !important;
+  text-transform: uppercase !important;
+  font-size: 12px !important;
+}
+.artist-assign-add-btn:hover {
+  background: #fff !important;
 }
