@@ -5199,7 +5199,7 @@ function _hubSortFavs(favs) {
   const m = sparkyYtState.hubSortMode;
   return [...favs].sort((a, b) => {
     if (m === 'az') return (a.title || '').localeCompare(b.title || '');
-    if (m === 'artist') return (a.channel || '').localeCompare(b.channel || '');
+    if (m === 'artist') return (a.artistOverride || a.channel || '').localeCompare(b.artistOverride || b.channel || '');
     return (b.addedAt || 0) - (a.addedAt || 0); // date (default)
   });
 }
@@ -5209,18 +5209,20 @@ function _hubCardHtml(item) {
   const ambientStyle = isAct && item.thumb ? ` style="--ambient-bg: url('${esc(item.thumb)}');"` : '';
   const ambientClass = isAct && item.thumb ? ' has-ambient-bg' : '';
   const inQueue = sparkyYtState.temporaryQueue.some(v => v.id === item.id);
-  return `<div class="yt-card${isAct ? ' active' : ''}${ambientClass}" data-id="${item.id}" data-type="${item.type}" data-title="${item.title.replace(/"/g, '&quot;')}" data-channel="${(item.channel || '').replace(/"/g, '&quot;')}" data-thumb="${item.thumb}" data-duration="${item.duration || ''}" data-views="${item.views || ''}" data-published="${item.published || ''}" data-video-count="${item.video_count || ''}"${ambientStyle}>
+  const displayArtist = item.artistOverride || item.channel || 'Unknown Artist';
+  return `<div class="yt-card${isAct ? ' active' : ''}${ambientClass}" data-id="${item.id}" data-type="${item.type}" data-title="${item.title.replace(/"/g, '&quot;')}" data-channel="${displayArtist.replace(/"/g, '&quot;')}" data-thumb="${item.thumb}" data-duration="${item.duration || ''}" data-views="${item.views || ''}" data-published="${item.published || ''}" data-video-count="${item.video_count || ''}"${ambientStyle}>
     <img class="yt-card-thumb" src="${item.thumb}" alt="" loading="lazy">
     <div class="yt-card-info">
       <div class="yt-card-title">${item.title}</div>
       <div class="yt-card-channel">
         ${item.type === 'playlist' ? `Playlist${item.video_count ? ' &middot; ' + item.video_count : ''}` :
-          `<span class="desktop-only">${item.views || ''}${item.published ? (item.views ? ' &middot; ' : '') + item.published : ''}${item.duration ? (item.views || item.published ? ' &middot; ' : '') + item.duration : ''}${item.channel ? (item.views || item.published || item.duration ? ' &middot; ' : '') + item.channel : ''}</span>
-           <span class="mobile-stats">${item.views || ''}${item.published ? (item.views ? ' &middot; ' : '') + item.published : ''}${item.channel ? (item.views || item.published ? ' &middot; ' : '') + item.channel : ''}</span>`}
+          `<span class="desktop-only">${item.views || ''}${item.published ? (item.views ? ' &middot; ' : '') + item.published : ''}${item.duration ? (item.views || item.published ? ' &middot; ' : '') + item.duration : ''}${displayArtist ? (item.views || item.published || item.duration ? ' &middot; ' : '') + displayArtist : ''}</span>
+           <span class="mobile-stats">${item.views || ''}${item.published ? (item.views ? ' &middot; ' : '') + item.published : ''}${displayArtist ? (item.views || item.published ? ' &middot; ' : '') + displayArtist : ''}</span>`}
       </div>
     </div>
     <div class="yt-card-actions">
       <button class="yt-card-fav yt-card-delete active" data-id="${item.id}" title="Delete from Hub"><span class="material-symbols-outlined">delete</span></button>
+      <button class="yt-card-fav yt-card-hub-assign active" data-id="${item.id}" title="Assign Artist Group" style="color:var(--accent) !important;"><span class="material-symbols-outlined">person</span></button>
       <button class="yt-card-add yt-card-hub-queue${inQueue ? ' active' : ''}" data-id="${item.id}" title="${inQueue ? 'Remove from Queue' : 'Add to Queue'}"><span class="material-symbols-outlined">${inQueue ? 'remove_from_queue' : 'add_to_queue'}</span></button>
     </div>
   </div>`;
@@ -5279,10 +5281,10 @@ function renderYtHub(showTooltip = false) {
   let cardsHtml = '';
 
   if (isGrouped) {
-    // Group by channel
+    // Group by channel or artistOverride
     const groups = {};
     sorted.forEach(item => {
-      const key = item.channel || 'Unknown Artist';
+      const key = item.artistOverride || item.channel || 'Unknown Artist';
       if (!groups[key]) groups[key] = [];
       groups[key].push(item);
     });
@@ -5344,6 +5346,96 @@ function renderYtHub(showTooltip = false) {
     });
   }
 
+  // Assign Artist Group overlay click listener
+  hub.querySelectorAll('.yt-card-hub-assign').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const card = btn.closest('.yt-card');
+      if (!card) return;
+      const cardId = card.dataset.id;
+      const favs = loadYtFavs();
+      const item = favs.find(f => f.id === cardId);
+      if (!item) return;
+
+      // Toggle overlay if already exists
+      const existingOverlay = card.querySelector('.yt-card-artist-dropdown');
+      if (existingOverlay) {
+        existingOverlay.remove();
+        return;
+      }
+
+      // Collect all unique artists currently in the hub
+      const artistsSet = new Set();
+      favs.forEach(f => {
+        const art = f.artistOverride || f.channel;
+        if (art) artistsSet.add(art);
+      });
+      const uniqueArtists = Array.from(artistsSet).sort();
+
+      // Create overlay HTML
+      const overlay = document.createElement('div');
+      overlay.className = 'yt-card-artist-dropdown';
+      overlay.innerHTML = `
+        <div class="artist-dropdown-header">
+          <span>Assign Artist Group</span>
+          <button class="artist-dropdown-close">&times;</button>
+        </div>
+        <div class="artist-dropdown-list">
+          ${uniqueArtists.map(art => `
+            <div class="artist-dropdown-item" data-artist="${art.replace(/"/g, '&quot;')}">${art}</div>
+          `).join('')}
+        </div>
+        <div class="artist-dropdown-new">
+          <input type="text" placeholder="New group..." class="artist-dropdown-input">
+          <button class="artist-dropdown-add-btn">Add</button>
+        </div>
+      `;
+
+      // Handle close
+      overlay.querySelector('.artist-dropdown-close').addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        overlay.remove();
+      });
+
+      // Handle selection of existing artist
+      overlay.querySelectorAll('.artist-dropdown-item').forEach(opt => {
+        opt.addEventListener('click', (ev) => {
+          ev.stopPropagation();
+          const selected = opt.dataset.artist;
+          item.artistOverride = selected;
+          saveYtFavs(favs);
+          renderYtHub();
+        });
+      });
+
+      // Handle adding a brand new group/artist name
+      const input = overlay.querySelector('.artist-dropdown-input');
+      const addBtn = overlay.querySelector('.artist-dropdown-add-btn');
+      
+      const submitNewArtist = () => {
+        const val = input.value.trim();
+        if (val) {
+          item.artistOverride = val;
+          saveYtFavs(favs);
+          renderYtHub();
+        }
+      };
+
+      input.addEventListener('click', (ev) => ev.stopPropagation());
+      input.addEventListener('keydown', (ev) => {
+        ev.stopPropagation();
+        if (ev.key === 'Enter') submitNewArtist();
+      });
+
+      addBtn.addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        submitNewArtist();
+      });
+
+      card.appendChild(overlay);
+    });
+  });
+
   attachYtCardListeners(hub);
   syncYtTabCounts();
 }
@@ -5353,6 +5445,27 @@ function renderYtHub(showTooltip = false) {
 function isYtFav(id) { return loadYtFavs().some(f => f.id === id); }
 function addYtFav(item) {
   const f = loadYtFavs();
+
+  // Auto-extraction matching existing artists
+  if (!item.artistOverride && item.title) {
+    const dashIndex = item.title.indexOf('-');
+    const pipeIndex = item.title.indexOf('|');
+    const separatorIdx = dashIndex !== -1 ? dashIndex : pipeIndex;
+    if (separatorIdx > 0) {
+      const parsed = item.title.substring(0, separatorIdx).trim();
+      if (parsed.length > 1) {
+        // Collect all unique existing artists currently in the hub
+        const existingArtists = Array.from(new Set(f.map(x => x.artistOverride || x.channel).filter(Boolean)));
+        // Check for case-insensitive match
+        const match = existingArtists.find(a => a.toLowerCase() === parsed.toLowerCase());
+        if (match) {
+          item.artistOverride = match;
+          console.log(`[YT-FAV] Auto-assigned artist override: "${match}" matching title parsed artist "${parsed}"`);
+        }
+      }
+    }
+  }
+
   const idx = f.findIndex(x => x.id === item.id);
   if (idx !== -1) {
     f[idx] = { ...f[idx], ...item }; // Refresh metadata
