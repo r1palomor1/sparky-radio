@@ -199,8 +199,10 @@
       display: flex !important;
       flex-direction: column !important;
       gap: 6px !important;
-      max-height: 200px !important;
+      max-height: 320px !important;
       padding-right: 4px !important;
+      scrollbar-width: thin !important;
+      scrollbar-color: rgba(255, 255, 255, 0.2) transparent !important;
     }
     .artist-assign-scroll-list::-webkit-scrollbar {
       width: 4px !important;
@@ -1137,9 +1139,27 @@
                 <span class="material-symbols-outlined">headphones</span>
               </button>
               <button id="btnYtQueue" class="btn-yt-queue hidden" title="View Temporary Queue">
-                <span class="material-symbols-outlined">music_history</span>
+                <span class="material-symbols-outlined">playlist_play</span>
               </button>              <button id="btnYtRelated" class="btn-yt-queue hidden" title="View Related Videos">
-                <span class="material-symbols-outlined">stock_media</span>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="spark-custom-svg" style="width: 20px; height: 20px; vertical-align: middle;">
+                  <path d="M12 5Q12 12 5 12Q12 12 12 19Q12 12 19 12Q12 12 12 5Z" fill="currentColor" fill-opacity="0.12" />
+                  <line x1="12" y1="1" x2="12" y2="3.5" />
+                  <line x1="12" y1="20.5" x2="12" y2="23" />
+                  <line x1="1" y1="12" x2="3.5" y2="12" />
+                  <line x1="20.5" y1="12" x2="23" y2="12" />
+                  <line x1="17" y1="7" x2="19" y2="5" />
+                  <line x1="7" y1="7" x2="5" y2="5" />
+                  <line x1="17" y1="17" x2="19" y2="19" />
+                  <line x1="7" y1="17" x2="5" y2="19" />
+                  <circle cx="15.5" cy="3.5" r="0.75" fill="currentColor" stroke="none" />
+                  <circle cx="8.5" cy="3.5" r="0.75" fill="currentColor" stroke="none" />
+                  <circle cx="20.5" cy="8.5" r="0.75" fill="currentColor" stroke="none" />
+                  <circle cx="20.5" cy="15.5" r="0.75" fill="currentColor" stroke="none" />
+                  <circle cx="15.5" cy="20.5" r="0.75" fill="currentColor" stroke="none" />
+                  <circle cx="8.5" cy="20.5" r="0.75" fill="currentColor" stroke="none" />
+                  <circle cx="3.5" cy="8.5" r="0.75" fill="currentColor" stroke="none" />
+                  <circle cx="3.5" cy="15.5" r="0.75" fill="currentColor" stroke="none" />
+                </svg>
               </button>
             </div>
           </div>
@@ -1425,7 +1445,25 @@
         <div class="yt-related-header">
           <div class="yt-related-header-left">
             <div style="display: flex; align-items: center; gap: 4px; color: var(--accent); opacity: 0.8;">
-              <span class="material-symbols-outlined" style="font-size: 16px;">stock_media</span>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="spark-custom-svg" style="width: 16px; height: 16px; vertical-align: middle;">
+                <path d="M12 5Q12 12 5 12Q12 12 12 19Q12 12 19 12Q12 12 12 5Z" fill="currentColor" fill-opacity="0.12" />
+                <line x1="12" y1="1" x2="12" y2="3.5" />
+                <line x1="12" y1="20.5" x2="12" y2="23" />
+                <line x1="1" y1="12" x2="3.5" y2="12" />
+                <line x1="20.5" y1="12" x2="23" y2="12" />
+                <line x1="17" y1="7" x2="19" y2="5" />
+                <line x1="7" y1="7" x2="5" y2="5" />
+                <line x1="17" y1="17" x2="19" y2="19" />
+                <line x1="7" y1="17" x2="5" y2="19" />
+                <circle cx="15.5" cy="3.5" r="0.75" fill="currentColor" stroke="none" />
+                <circle cx="8.5" cy="3.5" r="0.75" fill="currentColor" stroke="none" />
+                <circle cx="20.5" cy="8.5" r="0.75" fill="currentColor" stroke="none" />
+                <circle cx="20.5" cy="15.5" r="0.75" fill="currentColor" stroke="none" />
+                <circle cx="15.5" cy="20.5" r="0.75" fill="currentColor" stroke="none" />
+                <circle cx="8.5" cy="20.5" r="0.75" fill="currentColor" stroke="none" />
+                <circle cx="3.5" cy="8.5" r="0.75" fill="currentColor" stroke="none" />
+                <circle cx="3.5" cy="15.5" r="0.75" fill="currentColor" stroke="none" />
+              </svg>
               <span id="ytRelatedCount" class="yt-related-count" style="margin: 0;">0</span>
             </div>
             <div class="preset-dropdown-wrap" style="min-width: 80px; width: fit-content;">

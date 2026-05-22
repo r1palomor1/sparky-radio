@@ -4420,6 +4420,15 @@ body.light .filter-chip {
 }
 
 .btn-yt-queue .material-symbols-outlined { font-size: 20px; }
+.btn-yt-queue svg {
+  width: 20px;
+  height: 20px;
+  stroke-width: 1.75;
+  transition: filter 0.2s ease, transform 0.2s ease;
+}
+.btn-yt-queue.active svg {
+  filter: drop-shadow(0 0 5px var(--accent));
+}
 
 /* Duplicate .yt-view removed â€” canonical definition is above in Phase 2 section */
 
@@ -5590,8 +5599,10 @@ google-cast-launcher:hover {
   display: flex !important;
   flex-direction: column !important;
   gap: 6px !important;
-  max-height: 200px !important;
+  max-height: 320px !important;
   padding-right: 4px !important;
+  scrollbar-width: thin !important;
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent !important;
 }
 .artist-assign-scroll-list::-webkit-scrollbar {
   width: 4px !important;

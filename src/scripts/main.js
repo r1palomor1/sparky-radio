@@ -1426,10 +1426,11 @@ function updateNowPlaying(st) {
   const trend = document.getElementById('npTrend');
   const codec = document.getElementById('npCodec');
 
-  if (trend) trend.textContent = (st?.clicktrend !== undefined) ? (st.clicktrend > 0 ? '+' + st.clicktrend : st.clicktrend) : 'â€”';
+  const isCustom = st && (!st.stationuuid || (st.sparkyId && st.sparkyId.startsWith('s_')));
+  if (trend) trend.textContent = isCustom ? 'N/A' : ((st?.clicktrend !== undefined) ? (st.clicktrend > 0 ? '+' + st.clicktrend : st.clicktrend) : '—');
   if (codec) codec.textContent = (st?.codec || 'MP3').toUpperCase();
-  if (votes) votes.textContent = fmtK(st?.votes || 0);
-  if (clicks) clicks.textContent = fmtK(st?.clickcount || 0);
+  if (votes) votes.textContent = isCustom ? 'N/A' : fmtK(st?.votes || 0);
+  if (clicks) clicks.textContent = isCustom ? 'N/A' : fmtK(st?.clickcount || 0);
 }
 
 function jumpToCategoryShortcut(st) {
@@ -1925,7 +1926,10 @@ function renderStations() {
     const pwr = Math.min(100, Math.round(rank * 100));
     const trending = (st.clicktrend || 0) > 50 ? '<span class="pl-status-badge trending">Trending</span>' : '';
     let primary = { id: 'pwr', icon: 'bolt', val: `${pwr}%`, color: 'var(--text)' };
-    if (sortMode === 'vote') { primary = { id: 'vot', icon: 'thumb_up', val: fmtK(st.votes), color: 'var(--text)' }; }
+    if (sortMode === 'vote') {
+      const isCustom = !st.stationuuid || (st.sparkyId && st.sparkyId.startsWith('s_'));
+      primary = { id: 'vot', icon: 'thumb_up', val: isCustom ? 'N/A' : fmtK(st.votes), color: 'var(--text)' };
+    }
 
     const tagArr = (st.tags || '').split(',').map(t => t.trim()).filter(t => t);
     let dispTags = tagArr.slice(0, 2);
@@ -1949,7 +1953,7 @@ function renderStations() {
       </div>
       <div class="pl-main-col">
         <div class="pl-item-name">${esc(st.name)}</div>
-        <div class="pl-item-meta">${esc(st.countrycode || '--')} \u00B7 ${esc(finalTags)}</div>
+        <div class="pl-item-meta">${esc(finalTags)}</div>
         <div class="pl-item-stats">
           <span class="pl-stat-power" style="color:${primary.color}"><span class="material-symbols-outlined" style="font-size:12px; vertical-align:middle;">${primary.icon}</span> ${primary.val}</span>
           ${(Number(st.bitrate || 0) >= 128) ? '<span class="hd-badge-inline">HD</span>' : ''}
@@ -2184,7 +2188,10 @@ function renderFavs() {
     const isManual = sortMode === 'custom' && !isRecent;
     const trending = (st.clicktrend || 0) > 50 ? '<span class="pl-status-badge trending">Trending</span>' : '';
     let primary = { id: 'pwr', icon: 'bolt', val: isRecent ? `${st.count} plays` : `${pwr}%`, color: 'var(--accent)' };
-    if (sortMode === 'vote' && !isRecent) { primary = { id: 'vot', icon: 'thumb_up', val: fmtK(st.votes), color: 'var(--fav)' }; }
+    if (sortMode === 'vote' && !isRecent) {
+      const isCustom = !st.stationuuid || (st.sparkyId && st.sparkyId.startsWith('s_'));
+      primary = { id: 'vot', icon: 'thumb_up', val: isCustom ? 'N/A' : fmtK(st.votes), color: 'var(--fav)' };
+    }
 
     const tagArr = (st.tags || '').split(',').map(t => t.trim()).filter(t => t);
     let dispTags = tagArr.slice(0, 2);
@@ -2206,7 +2213,7 @@ function renderFavs() {
       </div>
       <div class="pl-main-col">
         <div class="pl-item-name">${esc(st.name)}</div>
-        <div class="pl-item-meta">${esc(st.countrycode || '--')} \u00B7 ${esc(finalTags)}</div>
+        <div class="pl-item-meta">${esc(finalTags)}</div>
         <div class="pl-item-stats">
           <span class="pl-stat-power" style="color:${primary.color}"><span class="material-symbols-outlined" style="font-size:12px; vertical-align:middle;">${primary.icon}</span> ${primary.val}</span>
           ${(Number(st.bitrate || 0) >= 128) ? '<span class="hd-badge-inline">HD</span>' : ''}
@@ -2460,7 +2467,10 @@ function renderGroupedFavs(pl) {
       const pwr = Math.min(100, Math.round(rank * 100));
       const trending = (st.clicktrend || 0) > 50 ? '<span class="pl-status-badge trending">Trending</span>' : '';
       let primary = { id: 'pwr', icon: 'bolt', val: isRecent ? `${st.count} plays` : `${pwr}%`, color: 'var(--text)' };
-      if (sortMode === 'vote' && !isRecent) { primary = { id: 'vot', icon: 'thumb_up', val: fmtK(st.votes), color: 'var(--text)' }; }
+      if (sortMode === 'vote' && !isRecent) {
+        const isCustom = !st.stationuuid || (st.sparkyId && st.sparkyId.startsWith('s_'));
+        primary = { id: 'vot', icon: 'thumb_up', val: isCustom ? 'N/A' : fmtK(st.votes), color: 'var(--text)' };
+      }
       const tagArr = (st.tags || '').split(',').map(t => t.trim()).filter(t => t);
       const finalTags = tagArr.slice(0, 3).join(', ') || 'Radio';
       const rescued = st.isRescued ? ' rescued' : '';
@@ -2472,7 +2482,7 @@ function renderGroupedFavs(pl) {
               <div class="pl-favicon-col">${renderFavicon(st)}</div>
               <div class="pl-main-col">
                 <div class="pl-item-name">${esc(st.name)}</div>
-                <div class="pl-item-meta">${esc(st.countrycode || '--')} \u00B7 ${esc(finalTags)}</div>
+                <div class="pl-item-meta">${esc(finalTags)}</div>
                 <div class="pl-item-stats">
                   <span class="pl-stat-power" style="color:${primary.color}"><span class="material-symbols-outlined" style="font-size:12px; vertical-align:middle;">${primary.icon}</span> ${primary.val}</span>
                   ${(Number(st.bitrate || 0) >= 128) ? '<span class="hd-badge-inline">HD</span>' : ''}
@@ -4463,7 +4473,7 @@ const sparkyYtState = {
   autocompleteResults: [], // V-U7: Tier 2 autocomplete results
   smartSuggestions: [], // V-U7: Tier 3 context suggestions
   hubSortMode: 'date', // 'date' | 'az' | 'artist'
-  hubGroupMode: 'list' // 'list' | 'grouped'
+  hubGroupMode: 'grouped' // 'list' | 'grouped'
 };
 
 function saveYtSessionState() {
@@ -4497,6 +4507,12 @@ function restoreYtSessionState() {
         sparkyYtState.playlistCache.query = parsed.playlistCache.query || '';
         sparkyYtState.playlistCache.results = parsed.playlistCache.results || [];
       }
+    }
+    const savedGroupMode = localStorage.getItem('sparky_yt_hub_group_mode');
+    if (savedGroupMode) {
+      sparkyYtState.hubGroupMode = savedGroupMode;
+    } else {
+      sparkyYtState.hubGroupMode = 'grouped';
     }
   } catch (e) {
     console.error('Error restoring YT session state:', e);
@@ -5346,6 +5362,7 @@ function renderYtHub(showTooltip = false) {
   if (groupBtn) {
     groupBtn.addEventListener('click', () => {
       sparkyYtState.hubGroupMode = sparkyYtState.hubGroupMode === 'grouped' ? 'list' : 'grouped';
+      localStorage.setItem('sparky_yt_hub_group_mode', sparkyYtState.hubGroupMode);
       renderYtHub();
     });
   }
@@ -6155,7 +6172,9 @@ function attachYtCardListeners(container) {
       if (e.target.closest('.yt-card-fav') || e.target.closest('.yt-card-add')) return;
 
       // Resolve full queue from container at click-time to support pagination
-      const allCards = Array.from(container.querySelectorAll('.yt-card'));
+      const groupCardsContainer = card.closest('.hub-group-cards');
+      const queueContainer = groupCardsContainer || container;
+      const allCards = Array.from(queueContainer.querySelectorAll('.yt-card'));
       const queue = allCards.map(c => ({
         id: c.dataset.id,
         type: c.dataset.type,
@@ -6239,9 +6258,13 @@ function attachYtCardListeners(container) {
           return;
         }
 
-        sparkyYtState.activePlaylistId = null;
+        const isHub = container && container.id === 'ytHub';
+        sparkyYtState.activePlaylistId = isHub ? 'hub' : null;
         const btnQueue = document.getElementById('btnYtQueue');
-        if (btnQueue) btnQueue.classList.add('hidden');
+        if (btnQueue) {
+          if (isHub) btnQueue.classList.remove('hidden');
+          else btnQueue.classList.add('hidden');
+        }
 
         sparkyYtState.currentQueue = queue;
         sparkyYtState.originalQueue = [...queue];
