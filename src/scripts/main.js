@@ -1426,7 +1426,7 @@ function updateNowPlaying(st) {
   const trend = document.getElementById('npTrend');
   const codec = document.getElementById('npCodec');
 
-  const isCustom = st && (!st.stationuuid || (st.sparkyId && st.sparkyId.startsWith('s_')));
+  const isCustom = st && !st.stationuuid && !st.id;
   if (trend) trend.textContent = isCustom ? 'N/A' : ((st?.clicktrend !== undefined) ? (st.clicktrend > 0 ? '+' + st.clicktrend : st.clicktrend) : '—');
   if (codec) codec.textContent = (st?.codec || 'MP3').toUpperCase();
   if (votes) votes.textContent = isCustom ? 'N/A' : fmtK(st?.votes || 0);
@@ -1927,7 +1927,7 @@ function renderStations() {
     const trending = (st.clicktrend || 0) > 50 ? '<span class="pl-status-badge trending">Trending</span>' : '';
     let primary = { id: 'pwr', icon: 'bolt', val: `${pwr}%`, color: 'var(--text)' };
     if (sortMode === 'vote') {
-      const isCustom = !st.stationuuid || (st.sparkyId && st.sparkyId.startsWith('s_'));
+      const isCustom = !st.stationuuid && !st.id;
       primary = { id: 'vot', icon: 'thumb_up', val: isCustom ? 'N/A' : fmtK(st.votes), color: 'var(--text)' };
     }
 
@@ -2189,7 +2189,7 @@ function renderFavs() {
     const trending = (st.clicktrend || 0) > 50 ? '<span class="pl-status-badge trending">Trending</span>' : '';
     let primary = { id: 'pwr', icon: 'bolt', val: isRecent ? `${st.count} plays` : `${pwr}%`, color: 'var(--accent)' };
     if (sortMode === 'vote' && !isRecent) {
-      const isCustom = !st.stationuuid || (st.sparkyId && st.sparkyId.startsWith('s_'));
+      const isCustom = !st.stationuuid && !st.id;
       primary = { id: 'vot', icon: 'thumb_up', val: isCustom ? 'N/A' : fmtK(st.votes), color: 'var(--fav)' };
     }
 
@@ -2468,7 +2468,7 @@ function renderGroupedFavs(pl) {
       const trending = (st.clicktrend || 0) > 50 ? '<span class="pl-status-badge trending">Trending</span>' : '';
       let primary = { id: 'pwr', icon: 'bolt', val: isRecent ? `${st.count} plays` : `${pwr}%`, color: 'var(--text)' };
       if (sortMode === 'vote' && !isRecent) {
-        const isCustom = !st.stationuuid || (st.sparkyId && st.sparkyId.startsWith('s_'));
+        const isCustom = !st.stationuuid && !st.id;
         primary = { id: 'vot', icon: 'thumb_up', val: isCustom ? 'N/A' : fmtK(st.votes), color: 'var(--text)' };
       }
       const tagArr = (st.tags || '').split(',').map(t => t.trim()).filter(t => t);
@@ -3308,9 +3308,25 @@ function expandFilters() {
 // â•â• SETTINGS & UI (Logic defined here, bound in INIT) â•â•
 function handleExport() {
   const exportPayload = {
-    version: 2,
+    version: 3,
+    timestamp: new Date().toISOString(),
+    // Core Radio Data
     favorites: loadFavs(),
-    usageStats: loadUsage()
+    customCategories: JSON.parse(localStorage.getItem('sparky_custom_categories') || '[]'),
+    searchPresets: JSON.parse(localStorage.getItem('sparky_search_presets') || '[]'),
+    usageStats: loadUsage(),
+    
+    // Core YouTube Data
+    ytFavorites: JSON.parse(localStorage.getItem('sparky_yt_favorites') || '[]'),
+    ytHistory: JSON.parse(localStorage.getItem('sparky_yt_history') || '[]'),
+    
+    // Equalizer & Audio Profiles
+    eqPresets: JSON.parse(localStorage.getItem('sparky_eq_presets') || '[]'),
+    activeEqPreset: localStorage.getItem('sparky_active_preset') || 'flat',
+    
+    // Styling Settings
+    panelColor: localStorage.getItem('sparky_panel_color') || '#061021',
+    textScale: localStorage.getItem('sparky_text_scale') || '1'
   };
   const data = JSON.stringify(exportPayload, null, 2);
   const blob = new Blob([data], { type: 'application/json' });
@@ -3322,7 +3338,7 @@ function handleExport() {
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
-  sparkyAlert("Favorites Vault and Recent History exported.", "EXPORT SUCCESSFUL");
+  sparkyAlert("Entire Sparky Settings Vault exported successfully.", "EXPORT SUCCESSFUL");
 }
 
 function handleImport(e) {
@@ -3334,29 +3350,104 @@ function handleImport(e) {
       const data = JSON.parse(re.target.result);
       let newFavs = [];
       let newUsage = null;
+      let newCustomCategories = null;
+      let newSearchPresets = null;
+      let newYtFavorites = null;
+      let newYtHistory = null;
+      let newEqPresets = null;
+      let newActiveEqPreset = null;
+      let newPanelColor = null;
+      let newTextScale = null;
 
       if (Array.isArray(data)) {
         newFavs = data; // Legacy v1 backup
-      } else if (data && data.favorites && Array.isArray(data.favorites)) {
-        newFavs = data.favorites; // New v2 backup
+      } else if (data && typeof data === 'object') {
+        if (data.favorites && Array.isArray(data.favorites)) {
+          newFavs = data.favorites;
+        }
         if (data.usageStats) newUsage = data.usageStats;
+        
+        // v3 specific elements
+        if (data.version === 3) {
+          if (data.customCategories) newCustomCategories = data.customCategories;
+          if (data.searchPresets) newSearchPresets = data.searchPresets;
+          if (data.ytFavorites) newYtFavorites = data.ytFavorites;
+          if (data.ytHistory) newYtHistory = data.ytHistory;
+          if (data.eqPresets) newEqPresets = data.eqPresets;
+          if (data.activeEqPreset) newActiveEqPreset = data.activeEqPreset;
+          if (data.panelColor) newPanelColor = data.panelColor;
+          if (data.textScale) newTextScale = data.textScale;
+        }
       } else {
         throw new Error();
       }
 
-      sparkyConfirm(`Restore ${newFavs.length} stations from file? This will overwrite current favorites${newUsage ? ' and recent history' : ''}.`, () => {
+      let confirmMsg = `Restore ${newFavs.length} stations from file? This will overwrite current favorites${newUsage ? ' and recent history' : ''}.`;
+      if (data.version === 3) {
+        confirmMsg = `Restore entire Sparky Settings Vault (v3)? This will restore all Radio/YouTube bookmarks, equalizer presets, and styling settings.`;
+      }
+
+      sparkyConfirm(confirmMsg, () => {
+        // Save Radio core
         saveFavs(newFavs);
         if (newUsage) saveUsage(newUsage);
+        
+        // Save upgraded elements if present in v3 backup
+        if (newCustomCategories) localStorage.setItem('sparky_custom_categories', JSON.stringify(newCustomCategories));
+        if (newSearchPresets) localStorage.setItem('sparky_search_presets', JSON.stringify(newSearchPresets));
+        if (newYtFavorites) localStorage.setItem('sparky_yt_favorites', JSON.stringify(newYtFavorites));
+        if (newYtHistory) localStorage.setItem('sparky_yt_history', JSON.stringify(newYtHistory));
+        if (newEqPresets) localStorage.setItem('sparky_eq_presets', JSON.stringify(newEqPresets));
+        if (newActiveEqPreset) {
+          localStorage.setItem('sparky_active_preset', newActiveEqPreset);
+          // Apply EQ live
+          if (typeof setEqPreset === 'function') setEqPreset(newActiveEqPreset);
+        }
+        if (newPanelColor) {
+          localStorage.setItem('sparky_panel_color', newPanelColor);
+          // Apply panel color live
+          const root = document.documentElement;
+          if (root) {
+            root.style.setProperty('--panel-bg', newPanelColor);
+            root.style.setProperty('--panel-bg-80', newPanelColor + 'cc');
+            root.style.setProperty('--panel-bg-95', newPanelColor + 'f2');
+            root.style.setProperty('--panel-bg-darker', shiftColor(newPanelColor, -15));
+            root.style.setProperty('--panel-border', shiftColor(newPanelColor, 8));
+          }
+          const picker = document.getElementById('panelColorPicker');
+          if (picker) picker.value = newPanelColor;
+        }
+        if (newTextScale) {
+          localStorage.setItem('sparky_text_scale', newTextScale);
+          // Apply text scale live
+          document.documentElement.style.setProperty('--font-scale', newTextScale);
+          const slider = document.getElementById('textScaleSlider');
+          if (slider) slider.value = newTextScale;
+        }
+
+        // Live refresh UI badges and containers
         refreshFavBadge();
-        if (activeTab === 'favs') renderFavs();
-        sparkyAlert("Vault Restored Successfully!", "RESTORE COMPLETE");
+        loadPresets(); // Re-loads Radio presets
+        
+        if (activeTab === 'favs') {
+          renderFavs();
+        } else if (activeTab === 'yt') {
+          syncYtTabCounts();
+          if (sparkyYtState.currentSubMode === 'favs') {
+            renderYtHub();
+          }
+        }
+        
+        sparkyAlert("Settings Vault Restored Successfully!", "RESTORE COMPLETE");
       }, "CONFIRM RESTORE");
     } catch (err) {
       sparkyAlert("Invalid JSON file. Please use a valid Sparky Radio backup.", "RESTORE FAILED");
     }
   };
+  reader.onloadend = () => {
+    e.target.value = '';
+  };
   reader.readAsText(file);
-  e.target.value = '';
 }
 
 function shiftColor(hex, percent) {
@@ -4472,7 +4563,8 @@ const sparkyYtState = {
   dropdownOpen: false, // V-U7: Dropdown visibility state
   autocompleteResults: [], // V-U7: Tier 2 autocomplete results
   smartSuggestions: [], // V-U7: Tier 3 context suggestions
-  hubSortMode: 'date', // 'date' | 'az' | 'artist'
+  hubSortModeList: 'date', // 'date' | 'az' | 'artist'
+  hubSortModeGroup: 'date', // 'date' | 'az' | 'artist'
   hubGroupMode: 'grouped' // 'list' | 'grouped'
 };
 
@@ -4513,6 +4605,18 @@ function restoreYtSessionState() {
       sparkyYtState.hubGroupMode = savedGroupMode;
     } else {
       sparkyYtState.hubGroupMode = 'grouped';
+    }
+    const savedGroupSort = localStorage.getItem('sparky_yt_hub_sort_group');
+    if (savedGroupSort) {
+      sparkyYtState.hubSortModeGroup = savedGroupSort;
+    } else {
+      sparkyYtState.hubSortModeGroup = 'date';
+    }
+    const savedListSort = localStorage.getItem('sparky_yt_hub_sort_list');
+    if (savedListSort) {
+      sparkyYtState.hubSortModeList = savedListSort;
+    } else {
+      sparkyYtState.hubSortModeList = 'date';
     }
   } catch (e) {
     console.error('Error restoring YT session state:', e);
@@ -5216,7 +5320,7 @@ function syncYtTabCounts() {
 }
 
 function _hubSortFavs(favs) {
-  const m = sparkyYtState.hubSortMode;
+  const m = sparkyYtState.hubSortModeList;
   return [...favs].sort((a, b) => {
     if (m === 'az') return (a.title || '').localeCompare(b.title || '');
     if (m === 'artist') return (a.artistOverride || a.channel || '').localeCompare(b.artistOverride || b.channel || '');
@@ -5258,11 +5362,9 @@ function renderYtHub(showTooltip = false) {
     return;
   }
 
-  const sort = sparkyYtState.hubSortMode;
   const group = sparkyYtState.hubGroupMode;
-  
-  // Icon and title based on group mode
   const isGrouped = group === 'grouped';
+  const sort = isGrouped ? sparkyYtState.hubSortModeGroup : sparkyYtState.hubSortModeList;
   const groupIcon = isGrouped ? 'grid_view' : 'format_list_bulleted';
   const groupTitle = isGrouped ? 'Current View: Grouped' : 'Current View: List';
 
@@ -5303,13 +5405,31 @@ function renderYtHub(showTooltip = false) {
   if (isGrouped) {
     // Group by channel or artistOverride
     const groups = {};
-    sorted.forEach(item => {
+    favs.forEach(item => {
       const key = item.artistOverride || item.channel || 'Unknown Artist';
       if (!groups[key]) groups[key] = [];
       groups[key].push(item);
     });
+
+    // 1. Group rows themselves are ALWAYS alphabetized by display name
+    let entries = Object.entries(groups);
+    entries.sort((a, b) => a[0].localeCompare(b[0]));
+
+    // 2. Sort the videos within each group container based on selected sort option
+    entries.forEach(([artist, items]) => {
+      if (sort === 'az') {
+        items.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+      } else if (sort === 'artist') {
+        // Sort inside group by actual channel name, regardless of group's display name
+        items.sort((a, b) => (a.channel || '').localeCompare(b.channel || ''));
+      } else {
+        // date mode: newest first
+        items.sort((a, b) => (b.addedAt || 0) - (a.addedAt || 0));
+      }
+    });
+
     // Artist (count) chevron layout. Initially collapsed.
-    cardsHtml = Object.entries(groups).map(([artist, items]) =>
+    cardsHtml = entries.map(([artist, items]) =>
       `<div class="hub-group collapsed">
         <div class="hub-group-header">
           <span class="hub-group-artist">${artist} (${items.length})</span>
@@ -5330,8 +5450,15 @@ function renderYtHub(showTooltip = false) {
     sortBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       const modes = ['date', 'az', 'artist'];
-      const nextIdx = (modes.indexOf(sparkyYtState.hubSortMode) + 1) % modes.length;
-      sparkyYtState.hubSortMode = modes[nextIdx];
+      if (isGrouped) {
+        const nextIdx = (modes.indexOf(sparkyYtState.hubSortModeGroup) + 1) % modes.length;
+        sparkyYtState.hubSortModeGroup = modes[nextIdx];
+        localStorage.setItem('sparky_yt_hub_sort_group', sparkyYtState.hubSortModeGroup);
+      } else {
+        const nextIdx = (modes.indexOf(sparkyYtState.hubSortModeList) + 1) % modes.length;
+        sparkyYtState.hubSortModeList = modes[nextIdx];
+        localStorage.setItem('sparky_yt_hub_sort_list', sparkyYtState.hubSortModeList);
+      }
       renderYtHub(true);
     });
   }
@@ -5496,62 +5623,100 @@ function removeCustomGroup(name) {
 }
 
 function renderSettingsCustomGroups() {
-  const container = document.getElementById('settingsCustomGroupsList');
+  const container = document.getElementById('settingsCustomGroupsContainer');
   if (!container) return;
 
   const customGroups = loadCustomGroups();
+  const favs = loadYtFavs();
+
   if (customGroups.length === 0) {
     container.innerHTML = `
-      <div style="font-size: 10px; color: var(--dim); font-family: 'Share Tech Mono', monospace; text-align: center; padding: 10px 0;">NO CUSTOM GROUPS DEFINED</div>
+      <select class="settings-custom-group-select" style="flex: 1; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); color: var(--dim); border-radius: 4px; padding: 8px 10px; font-family: 'Share Tech Mono', monospace; font-size: 11px; outline: none; cursor: not-allowed;" disabled>
+        <option>NO CUSTOM GROUPS DEFINED</option>
+      </select>
+      <button class="settings-custom-group-action-btn" style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); color: rgba(255, 255, 255, 0.2); border-radius: 4px; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; cursor: not-allowed; opacity: 0.3;" disabled>
+        <span class="material-symbols-outlined" style="font-size: 16px;">delete</span>
+      </button>
     `;
     return;
   }
 
-  const favs = loadYtFavs();
-
-  container.innerHTML = customGroups.map(group => {
-    // Check if group is empty or populated
+  // Pre-calculate active status
+  const groupStats = customGroups.map(group => {
     const hasVideos = favs.some(f => f.artistOverride === group);
-    if (hasVideos) {
-      return `
-        <div class="settings-custom-group-item" style="display: flex; justify-content: space-between; align-items: center; padding: 6px 10px; background: rgba(255,255,255,0.03); border-radius: 4px; border: 1px solid rgba(255,255,255,0.05); font-family: 'Share Tech Mono', monospace; font-size: 11px; color: var(--text);">
-          <span>${group}</span>
-          <span class="custom-group-locked-badge" style="font-size: 9px; color: var(--accent); background: rgba(0, 242, 255, 0.1); border: 1px solid rgba(0, 242, 255, 0.2); padding: 1px 4px; border-radius: 4px; text-transform: uppercase; font-weight: bold; font-family: 'Share Tech Mono', monospace;">Active</span>
-        </div>
-      `;
-    } else {
-      return `
-        <div class="settings-custom-group-item" style="display: flex; justify-content: space-between; align-items: center; padding: 6px 10px; background: rgba(255,255,255,0.03); border-radius: 4px; border: 1px solid rgba(255,255,255,0.05); font-family: 'Share Tech Mono', monospace; font-size: 11px; color: var(--text);">
-          <span>${group}</span>
-          <button class="settings-custom-group-del-btn" data-artist="${group.replace(/"/g, '&quot;')}" style="background: none; border: none; color: rgba(255,255,255,0.4); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 2px; transition: color 0.2s;"><span class="material-symbols-outlined" style="font-size: 14px; pointer-events: none;">close</span></button>
-        </div>
-      `;
-    }
+    return { name: group, active: hasVideos };
+  });
+
+  const optionsHtml = groupStats.map(g => {
+    const suffix = g.active ? ' (ACTIVE)' : '';
+    return `<option value="${g.name.replace(/"/g, '&quot;')}" data-active="${g.active}">${g.name}${suffix}</option>`;
   }).join('');
 
-  // Add click listeners to delete empty groups
-  container.querySelectorAll('.settings-custom-group-del-btn').forEach(btn => {
-    btn.addEventListener('click', (ev) => {
-      ev.stopPropagation();
-      const targetGroup = btn.dataset.artist;
-      sparkyConfirm(
-        `Are you sure you want to remove the custom group "${targetGroup}"?`,
-        () => {
-          removeCustomGroup(targetGroup);
-          // Reset any overrides that might match this group (safety fallback)
-          const currentFavs = loadYtFavs();
-          currentFavs.forEach(f => {
-            if (f.artistOverride === targetGroup) {
-              f.artistOverride = null;
-            }
-          });
-          saveYtFavs(currentFavs);
-          renderSettingsCustomGroups();
-          renderYtHub();
-        },
-        "REMOVE GROUP"
-      );
-    });
+  container.innerHTML = `
+    <select id="settingsCustomGroupSelect" style="flex: 1; background: #061021; border: 1px solid rgba(255, 255, 255, 0.08); color: var(--text); border-radius: 4px; padding: 8px 10px; font-family: 'Share Tech Mono', monospace; font-size: 11px; outline: none; cursor: pointer;">
+      ${optionsHtml}
+    </select>
+    <button id="settingsCustomGroupDelBtn" style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); color: rgba(255, 255, 255, 0.6); border-radius: 4px; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;">
+      <span class="material-symbols-outlined" id="settingsCustomGroupDelIcon" style="font-size: 16px;">delete</span>
+    </button>
+  `;
+
+  const select = document.getElementById('settingsCustomGroupSelect');
+  const btn = document.getElementById('settingsCustomGroupDelBtn');
+  const icon = document.getElementById('settingsCustomGroupDelIcon');
+
+  function updateBtnState() {
+    if (!select || !btn || !icon) return;
+    const selectedOpt = select.options[select.selectedIndex];
+    if (!selectedOpt) return;
+    const isActive = selectedOpt.getAttribute('data-active') === 'true';
+
+    if (isActive) {
+      btn.style.color = 'var(--accent)';
+      btn.style.borderColor = 'rgba(0, 242, 255, 0.2)';
+      btn.style.background = 'rgba(0, 242, 255, 0.05)';
+      btn.title = "Active group cannot be deleted";
+      icon.textContent = 'lock';
+    } else {
+      btn.style.color = 'rgba(255, 255, 255, 0.6)';
+      btn.style.borderColor = 'rgba(255, 255, 255, 0.08)';
+      btn.style.background = 'rgba(255, 255, 255, 0.03)';
+      btn.title = "Delete Custom Group";
+      icon.textContent = 'delete';
+    }
+  }
+
+  select.addEventListener('change', updateBtnState);
+  updateBtnState();
+
+  btn.addEventListener('click', (ev) => {
+    ev.stopPropagation();
+    const selectedOpt = select.options[select.selectedIndex];
+    if (!selectedOpt) return;
+    const targetGroup = select.value;
+    const isActive = selectedOpt.getAttribute('data-active') === 'true';
+
+    if (isActive) {
+      sparkyAlert("This group contains active favorite videos. Please reassign or delete the videos from this group before removing it.", "GROUP ACTIVE");
+      return;
+    }
+
+    sparkyConfirm(
+      `Are you sure you want to remove the custom group "${targetGroup}"?`,
+      () => {
+        removeCustomGroup(targetGroup);
+        const currentFavs = loadYtFavs();
+        currentFavs.forEach(f => {
+          if (f.artistOverride === targetGroup) {
+            f.artistOverride = null;
+          }
+        });
+        saveYtFavs(currentFavs);
+        renderSettingsCustomGroups();
+        renderYtHub();
+      },
+      "REMOVE GROUP"
+    );
   });
 }
 
