@@ -1343,7 +1343,7 @@ input[type=range]::-moz-range-thumb {
 
 .tab.active {
   color: var(--accent);
-  background: var(--tab-active);
+  background: transparent;
   border: 1px solid var(--accent);
   opacity: 1;
   box-shadow: 0 0 15px var(--panel-glow);
@@ -5694,7 +5694,7 @@ google-cast-launcher:hover {
 
 /* --- Quick-Tune Scrollable Horizontal Chip Bar --- */
 .qt-chip-container {
-  display: flex !important;
+  display: flex;
   flex-direction: row !important;
   gap: 8px;
   overflow-x: auto;
@@ -5813,4 +5813,13 @@ google-cast-launcher:hover {
   font-weight: bold !important;
   background: rgba(0, 242, 255, 0.08) !important;
   opacity: 1 !important;
+}
+
+/* Custom layouts for header optimizations */
+#plLabel {
+  display: none !important;
+}
+
+.yt-hub .playlist-header {
+  grid-column: 1 / -1;
 }

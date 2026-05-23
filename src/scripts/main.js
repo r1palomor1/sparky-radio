@@ -542,13 +542,16 @@ function switchTab(tab) {
   if (hr) hr.style.display = tab === 'favs' ? 'flex' : 'none';
   if (tab === 'favs') updateViewToggleUI();
 
+  const qt = document.getElementById('qtChipContainer');
   if (tab === 'stations') {
     sortMode = 'pwr';
     document.getElementById('plLabel').textContent = 'Stations';
+    if (qt) qt.style.display = 'flex';
     renderStations();
   } else {
     sortMode = favSortMode;
     document.getElementById('plLabel').textContent = 'Favorites';
+    if (qt) qt.style.display = 'none';
     renderFavs();
     backgroundSyncFavs();
   }
