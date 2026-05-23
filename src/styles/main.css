@@ -1827,11 +1827,9 @@ body.light input[type=text] {
 }
 
 .pl-sort-btn {
-  width: 44px;
-  /* Increased from 32px */
-  background: rgba(255, 255, 255, 0.02);
+  width: 24px;
+  background: none;
   border: none;
-  border-right: 1px solid var(--border);
   color: var(--text);
   cursor: pointer;
   display: flex;
@@ -1839,12 +1837,12 @@ body.light input[type=text] {
   justify-content: center;
   transition: all .15s;
   position: relative;
+  margin-left: 1px;
 }
 
 .pl-sort-btn:hover {
   color: var(--accent);
-  background: rgba(255, 255, 255, 0.05);
-  border-right-color: var(--accent);
+  background: none;
 }
 
 .pl-sort-btn .material-symbols-outlined {
@@ -1853,7 +1851,7 @@ body.light input[type=text] {
 
 .pl-sort-tooltip {
   position: absolute;
-  left: 34px;
+  left: 14px;
   top: 0;
   background: var(--panel);
   border: 1px solid var(--accent);
@@ -5692,4 +5690,127 @@ google-cast-launcher:hover {
 }
 .artist-assign-add-btn:hover {
   background: #fff !important;
+}
+
+/* --- Quick-Tune Scrollable Horizontal Chip Bar --- */
+.qt-chip-container {
+  display: flex !important;
+  flex-direction: row !important;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none; /* Hide scrollbar on Firefox */
+  padding: 0 4px;
+  flex: 1;
+  align-items: center;
+  max-width: 100%;
+}
+.qt-chip-container::-webkit-scrollbar {
+  display: none; /* Hide scrollbar on Chrome/Safari/Webkit */
+}
+
+.qt-chip {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: calc(9.5px * var(--text-scale));
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  user-select: none;
+}
+.qt-chip:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: var(--accent);
+}
+.qt-chip.active {
+  background: rgba(0, 242, 255, 0.12);
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: 0 0 8px rgba(0, 242, 255, 0.2);
+}
+.qt-chip.add-chip {
+  background: rgba(0, 242, 255, 0.04);
+  border: 1px dashed rgba(0, 242, 255, 0.25);
+  color: var(--accent);
+}
+.qt-chip.add-chip:hover {
+  background: rgba(0, 242, 255, 0.1);
+  border-color: var(--accent);
+}
+
+.qt-chip-del {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 8px;
+  color: var(--dim);
+  transition: color 0.2s;
+  padding: 2px;
+  margin-left: 2px;
+}
+.qt-chip-del:hover {
+  color: #ff5555;
+}
+
+/* Remove standard solid orange border around YouTube search magnifying glass */
+.btn-yt-icon-search {
+  border: none !important;
+  background: transparent !important;
+  color: var(--dim) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 6px !important;
+  min-width: 32px !important;
+  height: 32px !important;
+  border-radius: 4px !important;
+  box-shadow: none !important;
+  transition: all 0.2s ease !important;
+}
+.btn-yt-icon-search:hover {
+  color: var(--accent) !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+}
+.btn-yt-icon-search .material-symbols-outlined {
+  font-size: calc(18px * var(--text-scale)) !important;
+}
+
+/* Make YouTube search sort trigger borderless and transparent, matching Favs Hub style */
+.yt-left-sort-btn {
+  width: 24px !important;
+  height: 24px !important;
+  background: none !important;
+  border: none !important;
+  color: var(--text) !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: all .15s !important;
+  position: relative !important;
+  margin-left: 1px !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+}
+.yt-left-sort-btn:hover {
+  color: var(--accent) !important;
+  background: none !important;
+}
+.yt-left-sort-btn .material-symbols-outlined {
+  font-size: calc(14px * var(--text-scale)) !important;
+}
+
+/* Add high-contrast highlighting for active preset sorting options on cycle/click */
+.preset-opt.active {
+  color: var(--accent) !important;
+  font-weight: bold !important;
+  background: rgba(0, 242, 255, 0.08) !important;
+  opacity: 1 !important;
 }

@@ -1261,31 +1261,7 @@
         </div>
         <button class="btn btn-search" id="btnSearch">Scan</button>
       </div>
-      <!-- PERSISTENT FILTERS (Always Visible) -->
-      <div class="filters-area">
-        <div class="preset-dropdown-wrap preset-qt-wrap">
-          <div class="preset-trigger" id="presetTrigger">Quick-Tune</div>
-          <div class="preset-options" id="presetOptions"></div>
-        </div>
-        <div class="preset-dropdown-wrap preset-cl-wrap">
-          <div class="preset-trigger" id="filterCountryTrigger">
-            <span class="material-symbols-outlined">public</span>
-          </div>
-          <div class="preset-options" id="filterCountryOptions"></div>
-        </div>
-        <div class="preset-dropdown-wrap preset-cl-wrap">
-          <div class="preset-trigger" id="filterLangTrigger">
-            <span class="material-symbols-outlined">language</span>
-          </div>
-          <div class="preset-options" id="filterLangOptions"></div>
-        </div>
-
-
-        <button class="btn-hifi" id="btnHifi" title="Force 128kbps+ Streams">
-          <span class="material-symbols-outlined" style="font-size: 18px;">high_quality</span>
-        </button>
-
-      </div>
+      <!-- PERSISTENT FILTERS (Moved to Settings & Playlist Header) -->
     </div>
 
     <!-- LOWER RACK (Collapsible) -->
@@ -1298,6 +1274,7 @@
             <span class="material-symbols-outlined">sort</span>
           </button>
           <div class="pl-label" id="plLabel">Stations</div>
+          <div class="qt-chip-container" id="qtChipContainer"></div>
         </div>
         <div class="pl-header-right" id="plHeaderRight" style="display:none">
           <button class="pl-view-btn" id="btnViewToggle" title="Toggle View Mode">
@@ -1339,12 +1316,25 @@
       <!-- YT Search Bar (hidden on Hub tab) -->
       <div class="yt-search-wrap" id="ytSearchWrap">
         <div class="yt-search-main">
-          <span class="yt-search-icon">&#128269;</span>
+          <div class="preset-dropdown-wrap yt-left-sort-dropdown-wrap">
+            <button class="yt-left-sort-btn" id="ytSortTrigger" title="Sort Videos">
+              <span class="material-symbols-outlined">sort</span>
+            </button>
+            <div class="preset-options" id="ytSortOptions">
+               <div class="preset-opt active" data-sort="relevance">Relevance</div>
+               <div class="preset-opt" data-sort="views">Views</div>
+               <div class="preset-opt" data-sort="timeframe">Timeframe</div>
+               <div class="preset-opt" data-sort="artist">Artist</div>
+               <div class="preset-opt" data-sort="duration">Duration</div>
+            </div>
+          </div>
           <div class="yt-input-container">
             <input type="text" id="ytSearchInput" placeholder="Search YouTube..." autocomplete="off" />
-            <button class="search-clear" id="btnYtSearchClear" style="display:none" title="Clear search">&#10006;</button>
+            <button class="search-clear" id="btnYtSearchClear" style="display:none;" title="Clear search">&#10006;</button>
           </div>
-          <button class="btn btn-search" id="btnYtSearch">Search</button>
+          <button class="btn btn-search btn-yt-icon-search" id="btnYtSearch" title="Search">
+            <span class="material-symbols-outlined">search</span>
+          </button>
         </div>
         <!-- V-U7: 3-Tier Hybrid Search Dropdown -->
         <div id="ytSearchDropdown" class="yt-search-dropdown hidden">
@@ -1367,22 +1357,7 @@
         <!-- Legacy recent searches (kept for backward compat, will be hidden) -->
         <div id="ytRecentSearches" class="yt-recent-searches hidden"></div>
         
-        <!-- PERSISTENT FILTERS (Always Visible in Video Mode) -->
-        <div class="yt-filters-area" id="ytFiltersArea">
-          <div class="preset-dropdown-wrap preset-qt-wrap" style="min-width: 120px;">
-            <div class="preset-trigger" id="ytSortTrigger">
-               <span class="material-symbols-outlined" style="font-size:14px; margin-right:4px;">sort</span>
-               <span id="ytSortLabel">Relevance</span>
-            </div>
-            <div class="preset-options" id="ytSortOptions">
-               <div class="preset-opt active" data-sort="relevance">Relevance</div>
-               <div class="preset-opt" data-sort="views">Views</div>
-               <div class="preset-opt" data-sort="timeframe">Timeframe</div>
-               <div class="preset-opt" data-sort="artist">Artist</div>
-               <div class="preset-opt" data-sort="duration">Duration</div>
-            </div>
-          </div>
-        </div>
+        <!-- PERSISTENT FILTERS (Moved to Inline Sort Trigger) -->
       </div>
 
       <!-- Results / Hub Container -->
@@ -1715,6 +1690,17 @@
               <div class="preset-options" id="defaultLangOptions"></div>
             </div>
           </div>
+        </div>
+        <!-- Force HD Audio Toggle -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px;">
+          <div style="display: flex; flex-direction: column; gap: 2px;">
+            <div style="font-size: calc(9px * var(--text-scale)); color: var(--text); font-weight: 500;">FORCE HD STREAMS</div>
+            <div style="font-size: calc(7px * var(--text-scale)); color: var(--dim); letter-spacing: 0.5px;">Filter out low-quality audio streams</div>
+          </div>
+          <label class="switch" style="position: relative; display: inline-block; width: 34px; height: 20px;">
+            <input type="checkbox" id="defaultHifiToggle" style="opacity: 0; width: 0; height: 0;">
+            <span class="slider round" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--border); transition: .3s; border-radius: 20px;"></span>
+          </label>
         </div>
         <!-- Standardized to Full Telemetry view -->
       </div>

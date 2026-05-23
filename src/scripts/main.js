@@ -165,8 +165,8 @@ let shuffle = false;
 let repeat = false;
 let rafId, hls;
 let isCasting = false;
-let filterCountry = 'ALL';
-let filterLang = 'ALL';
+let filterCountry = localStorage.getItem('sparky_default_country') || 'ALL';
+let filterLang = localStorage.getItem('sparky_default_lang') || 'ALL';
 let panelColor = localStorage.getItem('sparky_panel_color') || '#061021';
 let searchQuery = '';
 let filterHiFi = false;
@@ -3578,61 +3578,86 @@ const defaultPresets = ["Jazz", "Blues", "Rock", "Pop", "Classical", "News", "Co
 function loadPresets() {
   const custom = JSON.parse(localStorage.getItem('sparky_search_presets') || '[]');
   const all = [...new Set([...defaultPresets, ...custom])].sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
-  const container = document.getElementById('presetOptions');
+  const container = document.getElementById('qtChipContainer');
   if (!container) return;
-  let html = `<div class="preset-opt add-opt" data-val="ADD">+ Add new tune</div>`;
+  
+  let html = `<div class="qt-chip add-chip" data-val="ADD">+ Add</div>`;
   all.forEach(p => {
     const isDefault = defaultPresets.includes(p);
-    html += `<div class="preset-opt" data-val="${p}"><span>${p}</span>${!isDefault ? `<span class="preset-del" data-del="${p}">âœ•</span>` : ''}</div>`;
+    const isActive = activeSearchPreset === p;
+    html += `
+      <div class="qt-chip${isActive ? ' active' : ''}" data-val="${p}">
+        <span class="qt-chip-name">${p}</span>
+        ${!isDefault ? `<span class="qt-chip-del" data-del="${p}">✕</span>` : ''}
+      </div>
+    `;
   });
   container.innerHTML = html;
-  container.querySelectorAll('.preset-opt').forEach(opt => opt.onclick = (e) => {
-    if (e.target.classList.contains('preset-del')) return;
 
-    // New Search Intent: Clear HD filter
-    filterHiFi = false;
-    const btn = document.getElementById('btnHifi');
-    if (btn) btn.classList.remove('active');
-
-    handlePresetSelect(opt.dataset.val);
-  });
-  container.querySelectorAll('.preset-del').forEach(btn => btn.onclick = (e) => {
-    e.stopPropagation();
-    const val = btn.dataset.del;
-    sparkyConfirm(`Remove [${val}] from Quick-Tunes?`, () => {
-      const up = JSON.parse(localStorage.getItem('sparky_search_presets') || '[]').filter(x => x !== val);
-      localStorage.setItem('sparky_search_presets', JSON.stringify(up));
-
-      const trigger = document.getElementById('presetTrigger');
-      if (trigger && trigger.textContent === val) {
-        trigger.textContent = 'Quick-Tune';
+  container.querySelectorAll('.qt-chip').forEach(chip => {
+    chip.onclick = (e) => {
+      if (e.target.classList.contains('qt-chip-del')) return;
+      
+      const val = chip.dataset.val;
+      if (val === 'ADD') {
+        handleAddPreset();
+      } else {
+        // Toggle preset off if already active
+        if (activeSearchPreset === val) {
+          activeSearchPreset = '';
+          const si = document.getElementById('searchInput');
+          if (si) si.value = '';
+          searchStations('', true);
+        } else {
+          // New Search Intent: Reset HD filter to persistent default setting
+          filterHiFi = localStorage.getItem('sparky_default_hifi') === 'true';
+          const defaultHifiToggle = document.getElementById('defaultHifiToggle');
+          if (defaultHifiToggle) defaultHifiToggle.checked = filterHiFi;
+          
+          activeSearchPreset = val;
+          const si = document.getElementById('searchInput');
+          if (si) {
+            si.value = val;
+            if (window.syncSearchUI) window.syncSearchUI();
+          }
+          searchStations(val, true);
+        }
+        loadPresets(); // Re-render chips to show active state
       }
+    };
+  });
 
-      loadPresets();
-    });
+  container.querySelectorAll('.qt-chip-del').forEach(btn => {
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      const val = btn.dataset.del;
+      sparkyConfirm(`Remove [${val}] from Quick-Tunes?`, () => {
+        const up = JSON.parse(localStorage.getItem('sparky_search_presets') || '[]').filter(x => x !== val);
+        localStorage.setItem('sparky_search_presets', JSON.stringify(up));
+
+        if (activeSearchPreset === val) {
+          activeSearchPreset = '';
+          const si = document.getElementById('searchInput');
+          if (si) si.value = '';
+          searchStations('', true);
+        }
+
+        loadPresets();
+      });
+    };
   });
 }
 
-function handlePresetSelect(val) {
-  const container = document.getElementById('presetOptions');
-  if (val === 'ADD') {
-    sparkyPrompt("Enter new tune name (e.g. Jazz, 80s):", "ADD QUICK-TUNE", (name) => {
-      if (!name) return;
-      const c = JSON.parse(localStorage.getItem('sparky_search_presets') || '[]');
-      if (!c.includes(name)) { c.push(name); localStorage.setItem('sparky_search_presets', JSON.stringify(c)); loadPresets(); }
-    });
-  }
-  else {
-    activeSearchPreset = val;
-    const si = document.getElementById('searchInput');
-    if (si) {
-      si.value = val;
-      if (window.syncSearchUI) window.syncSearchUI();
+function handleAddPreset() {
+  sparkyPrompt("Enter new tune name (e.g. Jazz, 80s):", "ADD QUICK-TUNE", (name) => {
+    if (!name) return;
+    const c = JSON.parse(localStorage.getItem('sparky_search_presets') || '[]');
+    if (!c.includes(name)) {
+      c.push(name);
+      localStorage.setItem('sparky_search_presets', JSON.stringify(c));
+      loadPresets();
     }
-    searchStations(val, true);
-    document.getElementById('presetTrigger').textContent = val;
-    container.classList.remove('show');
-  }
+  });
 }
 
 
@@ -3664,20 +3689,35 @@ function loadSettingsOptions() {
   dcCont.querySelectorAll('.preset-opt').forEach(o => o.onclick = () => {
     const val = o.dataset.val;
     localStorage.setItem('sparky_default_country', val);
+    filterCountry = val;
     document.getElementById('defaultCountryTrigger').textContent = val;
     dcCont.classList.remove('show');
     loadSettingsOptions();
-    loadFilterOptions(); // Sync filter list order
+    if (activeTab === 'favs') {
+      renderFavs();
+    } else {
+      searchStations(document.getElementById('searchInput').value);
+    }
   });
 
   dlCont.querySelectorAll('.preset-opt').forEach(o => o.onclick = () => {
     const val = o.dataset.val;
     localStorage.setItem('sparky_default_lang', val);
+    filterLang = val;
     document.getElementById('defaultLangTrigger').textContent = val === 'ALL' ? 'ALL' : val.substring(0, 3).toUpperCase();
     dlCont.classList.remove('show');
     loadSettingsOptions();
-    loadFilterOptions(); // Sync filter list order
+    if (activeTab === 'favs') {
+      renderFavs();
+    } else {
+      searchStations(document.getElementById('searchInput').value);
+    }
   });
+
+  const defaultHifiToggle = document.getElementById('defaultHifiToggle');
+  if (defaultHifiToggle) {
+    defaultHifiToggle.checked = localStorage.getItem('sparky_default_hifi') === 'true';
+  }
 
 }
 // â•â• APP INITIALIZATION â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
@@ -3728,9 +3768,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Background maintenance tasks
   healFavoritesFavicons();
-  filterHiFi = false; // Standardizing to Discovery-First startup
-  const bhf = document.getElementById('btnHifi');
-  if (bhf) bhf.classList.toggle('active', filterHiFi);
+  filterHiFi = localStorage.getItem('sparky_default_hifi') === 'true';
+  const defaultHifiToggle = document.getElementById('defaultHifiToggle');
+  if (defaultHifiToggle) defaultHifiToggle.checked = filterHiFi;
 
   loadFilterOptions();
   loadSettingsOptions();
@@ -3779,10 +3819,6 @@ document.addEventListener('DOMContentLoaded', () => {
   };
   searchInput.onkeypress = (e) => {
     if (e.key === 'Enter') {
-      // New Search Intent: Clear HD filter
-      filterHiFi = false;
-      const btn = document.getElementById('btnHifi');
-      if (btn) btn.classList.remove('active');
       switchTab('stations');
       searchStations(searchInput.value, true);
       closeRadioSearchDropdown();
@@ -3822,7 +3858,8 @@ document.addEventListener('DOMContentLoaded', () => {
     searchInput.value = '';
     searchInput.focus();
     toggleSearchClear();
-    document.getElementById('presetTrigger').textContent = 'Quick-Tune';
+    activeSearchPreset = '';
+    loadPresets();
     searchStations('', false); // Explicit clear
     closeRadioSearchDropdown();
   };
@@ -3924,10 +3961,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   bind('btnSearch', () => {
     const q = document.getElementById('searchInput').value.trim();
-    // New Search Intent: Clear HD filter
-    filterHiFi = false;
-    const btn = document.getElementById('btnHifi');
-    if (btn) btn.classList.remove('active');
     expandFilters(); if (q) { switchTab('stations'); searchStations(q, true); closeRadioSearchDropdown(); }
   });
 
@@ -3939,10 +3972,10 @@ document.addEventListener('DOMContentLoaded', () => {
   bind('btnRemove', handleRemoveStation);
   bind('filterCountryTrigger', (e) => { e.stopPropagation(); document.getElementById('filterCountryOptions')?.classList.toggle('show'); });
   bind('filterLangTrigger', (e) => { e.stopPropagation(); document.getElementById('filterLangOptions')?.classList.toggle('show'); });
-  bind('btnHifi', () => {
-    filterHiFi = !filterHiFi;
-    const btn = document.getElementById('btnHifi');
-    if (btn) btn.classList.toggle('active', filterHiFi);
+  
+  bind('defaultHifiToggle', (e) => {
+    filterHiFi = e.target.checked;
+    localStorage.setItem('sparky_default_hifi', filterHiFi.toString());
 
     // Reactive Badge Sync
     refreshFavBadge();
@@ -3960,13 +3993,12 @@ document.addEventListener('DOMContentLoaded', () => {
       renderFavs();
     } else {
       if (q || filterCountry !== 'ALL' || filterLang !== 'ALL') {
-        searchStations(q, true);
+        searchStations(q, false);
       } else {
         stations = []; renderStations();
       }
     }
-  });
-  bind('presetTrigger', (e) => { e.stopPropagation(); document.getElementById('presetOptions')?.classList.toggle('show'); });
+  }, 'onchange');
 
   // â• â•  BACKDROP CLICK LISTENER â• â• 
   window.addEventListener('click', () => {
@@ -7719,12 +7751,38 @@ document.querySelectorAll('.yt-tab').forEach(btn => {
 // YT LOCAL SORT LOGIC
 const ytSortTrigger = document.getElementById('ytSortTrigger');
 const ytSortOptions = document.getElementById('ytSortOptions');
-const ytSortLabel = document.getElementById('ytSortLabel');
+let ytSortTooltipTimeout = null;
 
 if (ytSortTrigger) {
   ytSortTrigger.addEventListener('click', (e) => {
     e.stopPropagation();
-    ytSortOptions.classList.toggle('show');
+    if (!ytSortOptions) return;
+
+    // Cycle modes
+    const modes = ['relevance', 'views', 'timeframe', 'artist', 'duration'];
+    const activeOpt = ytSortOptions.querySelector('.preset-opt.active') || ytSortOptions.querySelector('.preset-opt');
+    const currentMode = activeOpt ? activeOpt.dataset.sort : 'relevance';
+    const nextIdx = (modes.indexOf(currentMode) + 1) % modes.length;
+    const nextMode = modes[nextIdx];
+
+    // Update active class
+    ytSortOptions.querySelectorAll('.preset-opt').forEach(opt => {
+      if (opt.dataset.sort === nextMode) {
+        opt.classList.add('active');
+      } else {
+        opt.classList.remove('active');
+      }
+    });
+
+    // Sort local results
+    sortYtResultsLocal(nextMode);
+
+    // Show tooltip briefly (1500ms)
+    ytSortOptions.classList.add('show');
+    if (ytSortTooltipTimeout) clearTimeout(ytSortTooltipTimeout);
+    ytSortTooltipTimeout = setTimeout(() => {
+      if (ytSortOptions) ytSortOptions.classList.remove('show');
+    }, 1500);
   });
 }
 
@@ -7772,7 +7830,8 @@ if (ytSortOptions) {
       ytSortOptions.querySelectorAll('.preset-opt').forEach(i => i.classList.remove('active'));
       item.classList.add('active');
       const sortMode = item.dataset.sort;
-      ytSortLabel.textContent = item.textContent;
+      const feedbackVal = document.getElementById('ytSortFeedbackVal');
+      if (feedbackVal) feedbackVal.textContent = item.textContent;
       ytSortOptions.classList.remove('show');
       sortYtResultsLocal(sortMode);
     });
