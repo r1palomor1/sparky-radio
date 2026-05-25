@@ -44,6 +44,9 @@ export default async function handler(req, res) {
                     published = basic.published;
                 }
 
+                // Parse first 3 keywords/tags
+                const keywords = Array.isArray(basic?.keywords) ? basic.keywords.slice(0, 3) : [];
+
                 // Fetch related videos (first choice: watch_next_feed, fallback: youtube.search)
                 const related_videos = [];
                 try {
@@ -58,11 +61,11 @@ export default async function handler(req, res) {
                             // Skip playlist items
                             const viewsText = item.metadata?.metadata?.metadata_rows?.[1]?.metadata_parts?.[0]?.text?.text || '';
                             if (viewsText.toLowerCase().includes('playlist')) continue;
-
+ 
                             // Skip Mixes and Playlist items
                             const title = item.metadata?.title?.text || '';
                             if (title.toLowerCase().startsWith('mix - ')) continue;
-
+ 
                             const thumb = item.content_image?.image?.[0]?.url || 
                                           item.content_image?.image?.[1]?.url || 
                                           item.content_image?.image?.sources?.[0]?.url ||
@@ -131,7 +134,8 @@ export default async function handler(req, res) {
                     id: videoId,
                     views: shortenMetadata(views),
                     published: shortenMetadata(published),
-                    related_videos: related_videos
+                    related_videos: related_videos,
+                    keywords: keywords
                 };
             } catch (err) {
                 console.error(`[HYDRATE] Failed for ID ${videoId}:`, err.message);
@@ -139,7 +143,8 @@ export default async function handler(req, res) {
                     id: videoId,
                     views: '',
                     published: '',
-                    related_videos: []
+                    related_videos: [],
+                    keywords: []
                 };
             }
         }

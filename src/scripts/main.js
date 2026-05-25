@@ -3322,6 +3322,8 @@ function handleExport() {
     // Core YouTube Data
     ytFavorites: JSON.parse(localStorage.getItem('sparky_yt_favorites') || '[]'),
     ytHistory: JSON.parse(localStorage.getItem('sparky_yt_history') || '[]'),
+    customGroups: JSON.parse(localStorage.getItem('sparky_custom_groups') || '[]'),
+    customGenres: JSON.parse(localStorage.getItem('sparky_custom_genres') || '[]'),
     
     // Equalizer & Audio Profiles
     eqPresets: JSON.parse(localStorage.getItem('sparky_eq_presets') || '[]'),
@@ -3357,6 +3359,8 @@ function handleImport(e) {
       let newSearchPresets = null;
       let newYtFavorites = null;
       let newYtHistory = null;
+      let newCustomGroups = null;
+      let newCustomGenres = null;
       let newEqPresets = null;
       let newActiveEqPreset = null;
       let newPanelColor = null;
@@ -3376,6 +3380,8 @@ function handleImport(e) {
           if (data.searchPresets) newSearchPresets = data.searchPresets;
           if (data.ytFavorites) newYtFavorites = data.ytFavorites;
           if (data.ytHistory) newYtHistory = data.ytHistory;
+          if (data.customGroups) newCustomGroups = data.customGroups;
+          if (data.customGenres) newCustomGenres = data.customGenres;
           if (data.eqPresets) newEqPresets = data.eqPresets;
           if (data.activeEqPreset) newActiveEqPreset = data.activeEqPreset;
           if (data.panelColor) newPanelColor = data.panelColor;
@@ -3400,6 +3406,8 @@ function handleImport(e) {
         if (newSearchPresets) localStorage.setItem('sparky_search_presets', JSON.stringify(newSearchPresets));
         if (newYtFavorites) localStorage.setItem('sparky_yt_favorites', JSON.stringify(newYtFavorites));
         if (newYtHistory) localStorage.setItem('sparky_yt_history', JSON.stringify(newYtHistory));
+        if (newCustomGroups) localStorage.setItem('sparky_custom_groups', JSON.stringify(newCustomGroups));
+        if (newCustomGenres) localStorage.setItem('sparky_custom_genres', JSON.stringify(newCustomGenres));
         if (newEqPresets) localStorage.setItem('sparky_eq_presets', JSON.stringify(newEqPresets));
         if (newActiveEqPreset) {
           localStorage.setItem('sparky_active_preset', newActiveEqPreset);
@@ -3432,11 +3440,14 @@ function handleImport(e) {
         refreshFavBadge();
         loadPresets(); // Re-loads Radio presets
         
+        renderSettingsCustomGroups();
+        renderSettingsCustomGenres();
+        
         if (activeTab === 'favs') {
           renderFavs();
         } else if (activeTab === 'yt') {
           syncYtTabCounts();
-          if (sparkyYtState.currentSubMode === 'favs') {
+          if (sparkyYtState.currentSubMode === 'hub') {
             renderYtHub();
           }
         }
@@ -4025,9 +4036,14 @@ document.addEventListener('DOMContentLoaded', () => {
       sm.style.display = 'flex';
       updateDeploymentUI();
       renderSettingsCustomGroups();
+      renderSettingsCustomGenres();
     }
   });
   bind('btnSettingsClose', () => {
+    const sm = document.getElementById('settingsModal');
+    if (sm) sm.style.display = 'none';
+  });
+  bind('btnSettingsCloseX', () => {
     const sm = document.getElementById('settingsModal');
     if (sm) sm.style.display = 'none';
   });
@@ -4598,9 +4614,9 @@ const sparkyYtState = {
   dropdownOpen: false, // V-U7: Dropdown visibility state
   autocompleteResults: [], // V-U7: Tier 2 autocomplete results
   smartSuggestions: [], // V-U7: Tier 3 context suggestions
-  hubSortModeList: 'date', // 'date' | 'az' | 'artist'
-  hubSortModeGroup: 'date', // 'date' | 'az' | 'artist'
-  hubGroupMode: 'grouped' // 'list' | 'grouped'
+  hubSortModeList: 'date', // 'date' | 'az' | 'artist' | 'genre'
+  hubSortModeGroup: 'date', // 'date' | 'az' | 'artist' | 'genre'
+  hubGroupMode: 'grouped-genre' // 'list' | 'grouped-artist' | 'grouped-genre'
 };
 
 function saveYtSessionState() {
@@ -4637,9 +4653,13 @@ function restoreYtSessionState() {
     }
     const savedGroupMode = localStorage.getItem('sparky_yt_hub_group_mode');
     if (savedGroupMode) {
-      sparkyYtState.hubGroupMode = savedGroupMode;
+      if (savedGroupMode === 'grouped') {
+        sparkyYtState.hubGroupMode = 'grouped-genre';
+      } else {
+        sparkyYtState.hubGroupMode = savedGroupMode;
+      }
     } else {
-      sparkyYtState.hubGroupMode = 'grouped';
+      sparkyYtState.hubGroupMode = 'grouped-genre';
     }
     const savedGroupSort = localStorage.getItem('sparky_yt_hub_sort_group');
     if (savedGroupSort) {
@@ -5359,6 +5379,17 @@ function _hubSortFavs(favs) {
   return [...favs].sort((a, b) => {
     if (m === 'az') return (a.title || '').localeCompare(b.title || '');
     if (m === 'artist') return (a.artistOverride || a.channel || '').localeCompare(b.artistOverride || b.channel || '');
+    if (m === 'genre') {
+      const genA = a.genre || 'Various';
+      const genB = b.genre || 'Various';
+      const compGenre = genA.localeCompare(genB);
+      if (compGenre !== 0) return compGenre;
+      const artA = a.artistOverride || a.channel || '';
+      const artB = b.artistOverride || b.channel || '';
+      const compArt = artA.localeCompare(artB);
+      if (compArt !== 0) return compArt;
+      return (a.title || '').localeCompare(b.title || '');
+    }
     return (b.addedAt || 0) - (a.addedAt || 0); // date (default)
   });
 }
@@ -5390,7 +5421,24 @@ function _hubCardHtml(item) {
 function renderYtHub(showTooltip = false) {
   const hub = document.getElementById('ytHub');
   if (!hub) return;
+
+  const expandedGroups = new Set();
+  hub.querySelectorAll('.hub-group').forEach(groupEl => {
+    if (!groupEl.classList.contains('collapsed')) {
+      const headerTextEl = groupEl.querySelector('.hub-group-artist');
+      if (headerTextEl) {
+        const fullText = headerTextEl.textContent.trim();
+        const match = fullText.match(/^(.*?)\s*\(\d+\)$/);
+        const name = match ? match[1] : fullText;
+        expandedGroups.add(name);
+      }
+    }
+  });
+
   const favs = loadYtFavs();
+  if (favs.some(f => !f.genre)) {
+    setTimeout(hydrateYtHubGenres, 100);
+  }
   if (!favs.length) {
     hub.innerHTML = `<div class="pl-empty"><div class="pl-empty-icon">&#128420;</div><div>No saved videos yet &mdash; heart a video to save it here in your Favs Hub</div></div>`;
     syncYtTabCounts();
@@ -5398,10 +5446,23 @@ function renderYtHub(showTooltip = false) {
   }
 
   const group = sparkyYtState.hubGroupMode;
-  const isGrouped = group === 'grouped';
+  const isGrouped = group === 'grouped-artist' || group === 'grouped-genre';
+  if (isGrouped) {
+    hub.classList.add('hub-grouped-layout');
+  } else {
+    hub.classList.remove('hub-grouped-layout');
+  }
   const sort = isGrouped ? sparkyYtState.hubSortModeGroup : sparkyYtState.hubSortModeList;
-  const groupIcon = isGrouped ? 'grid_view' : 'format_list_bulleted';
-  const groupTitle = isGrouped ? 'Current View: Grouped' : 'Current View: List';
+
+  let groupIcon = 'format_list_bulleted';
+  let groupTitle = 'Current View: List';
+  if (group === 'grouped-artist') {
+    groupIcon = 'group';
+    groupTitle = 'Current View: Grouped by Artist';
+  } else if (group === 'grouped-genre') {
+    groupIcon = 'sell';
+    groupTitle = 'Current View: Grouped by Genre';
+  }
 
   // Toolbar HTML Re-using the exact layout/classes from .playlist-header (aligned to edges, no label duplicate)
   const toolbar = `
@@ -5431,6 +5492,10 @@ function renderYtHub(showTooltip = false) {
         <span class="material-symbols-outlined" style="font-size:14px;">person</span>
         <span class="sort-desc">ARTIST</span>
       </div>
+      <div class="pl-sort-row${sort === 'genre' ? ' active' : ''}" data-hub-sort="genre">
+        <span class="material-symbols-outlined" style="font-size:14px;">sell</span>
+        <span class="sort-desc">GENRE</span>
+      </div>
     </div>
   </div>`;
 
@@ -5438,10 +5503,14 @@ function renderYtHub(showTooltip = false) {
   let cardsHtml = '';
 
   if (isGrouped) {
-    // Group by channel or artistOverride
     const groups = {};
     favs.forEach(item => {
-      const key = item.artistOverride || item.channel || 'Unknown Artist';
+      let key;
+      if (group === 'grouped-artist') {
+        key = item.artistOverride || item.channel || 'Unknown Artist';
+      } else {
+        key = item.genre || 'Various';
+      }
       if (!groups[key]) groups[key] = [];
       groups[key].push(item);
     });
@@ -5451,28 +5520,45 @@ function renderYtHub(showTooltip = false) {
     entries.sort((a, b) => a[0].localeCompare(b[0]));
 
     // 2. Sort the videos within each group container based on selected sort option
-    entries.forEach(([artist, items]) => {
+    entries.forEach(([groupName, items]) => {
       if (sort === 'az') {
         items.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
       } else if (sort === 'artist') {
-        // Sort inside group by actual channel name, regardless of group's display name
-        items.sort((a, b) => (a.channel || '').localeCompare(b.channel || ''));
+        items.sort((a, b) => {
+          const artA = a.artistOverride || a.channel || '';
+          const artB = b.artistOverride || b.channel || '';
+          return artA.localeCompare(artB);
+        });
+      } else if (sort === 'genre') {
+        items.sort((a, b) => {
+          const genA = a.genre || 'Various';
+          const genB = b.genre || 'Various';
+          const compGenre = genA.localeCompare(genB);
+          if (compGenre !== 0) return compGenre;
+          const artA = a.artistOverride || a.channel || '';
+          const artB = b.artistOverride || b.channel || '';
+          const compArt = artA.localeCompare(artB);
+          if (compArt !== 0) return compArt;
+          return (a.title || '').localeCompare(b.title || '');
+        });
       } else {
         // date mode: newest first
         items.sort((a, b) => (b.addedAt || 0) - (a.addedAt || 0));
       }
     });
 
-    // Artist (count) chevron layout. Initially collapsed.
-    cardsHtml = entries.map(([artist, items]) =>
-      `<div class="hub-group collapsed">
+    // Count and chevron layout. Initially collapsed unless pre-expanded.
+    cardsHtml = entries.map(([groupName, items]) => {
+      const isExpanded = expandedGroups.has(groupName);
+      const collapsedClass = isExpanded ? '' : ' collapsed';
+      return `<div class="hub-group${collapsedClass}">
         <div class="hub-group-header">
-          <span class="hub-group-artist">${artist} (${items.length})</span>
+          <span class="hub-group-artist">${groupName} (${items.length})</span>
           <span class="material-symbols-outlined hub-group-arrow">expand_more</span>
         </div>
         <div class="hub-group-cards">${items.map(_hubCardHtml).join('')}</div>
-      </div>`
-    ).join('');
+      </div>`;
+    }).join('');
   } else {
     cardsHtml = sorted.map(_hubCardHtml).join('');
   }
@@ -5484,7 +5570,7 @@ function renderYtHub(showTooltip = false) {
   if (sortBtn) {
     sortBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      const modes = ['date', 'az', 'artist'];
+      const modes = ['date', 'az', 'artist', 'genre'];
       if (isGrouped) {
         const nextIdx = (modes.indexOf(sparkyYtState.hubSortModeGroup) + 1) % modes.length;
         sparkyYtState.hubSortModeGroup = modes[nextIdx];
@@ -5523,7 +5609,14 @@ function renderYtHub(showTooltip = false) {
   const groupBtn = hub.querySelector('#btnHubViewToggle');
   if (groupBtn) {
     groupBtn.addEventListener('click', () => {
-      sparkyYtState.hubGroupMode = sparkyYtState.hubGroupMode === 'grouped' ? 'list' : 'grouped';
+      // Cycle: list ➔ grouped-artist ➔ grouped-genre
+      if (sparkyYtState.hubGroupMode === 'list') {
+        sparkyYtState.hubGroupMode = 'grouped-artist';
+      } else if (sparkyYtState.hubGroupMode === 'grouped-artist') {
+        sparkyYtState.hubGroupMode = 'grouped-genre';
+      } else {
+        sparkyYtState.hubGroupMode = 'list';
+      }
       localStorage.setItem('sparky_yt_hub_group_mode', sparkyYtState.hubGroupMode);
       renderYtHub();
     });
@@ -5531,7 +5624,7 @@ function renderYtHub(showTooltip = false) {
 
 
 
-  // Assign Artist Group centered glass modal click listener
+  // Assign Artist & Genre stacked dual-purpose centered modal click listener
   hub.querySelectorAll('.yt-card-hub-assign').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -5542,45 +5635,110 @@ function renderYtHub(showTooltip = false) {
       const item = favs.find(f => f.id === cardId);
       if (!item) return;
 
-      // Collect all active artists currently in the hub
-      const activeArtists = new Set();
-      favs.forEach(f => {
-        const art = f.artistOverride || f.channel;
-        if (art) activeArtists.add(art);
-      });
+      // 1. Gather all active/custom artists
+      const getArtistOptions = () => {
+        const activeArtists = new Set();
+        favs.forEach(f => {
+          const art = f.artistOverride || f.channel;
+          if (art) activeArtists.add(art);
+        });
+        const customGroups = loadCustomGroups();
+        const combinedArtists = Array.from(new Set([...activeArtists, ...customGroups])).sort();
+        return combinedArtists;
+      };
 
-      // Load custom persistent groups
-      const customGroups = loadCustomGroups();
-
-      // Combine them for listing
-      const combinedArtists = Array.from(new Set([...activeArtists, ...customGroups])).sort();
+      // 2. Gather all predefined/custom genres
+      const getGenreOptions = () => {
+        const predefinedGenres = MASTER_GENRES.map(g => g.charAt(0).toUpperCase() + g.slice(1));
+        const customGenres = loadCustomGenres();
+        const combinedGenres = Array.from(new Set([...predefinedGenres, ...customGenres])).sort();
+        return combinedGenres;
+      };
 
       // Create beautiful spacious centered modal instead of nested overlay
       const modal = document.createElement('div');
       modal.className = 'artist-assign-modal';
 
-      // Generate items HTML (pure selection list)
-      const itemsHtml = combinedArtists.map(art => `
-        <div class="artist-assign-item" data-artist="${art.replace(/"/g, '&quot;')}">${art}</div>
-      `).join('');
-
       modal.innerHTML = `
-        <div class="artist-assign-content">
+        <style>
+          .artist-assign-modal select {
+            background-color: #0b121f !important;
+            color: #ffffff !important;
+            border: 1px solid rgba(0, 242, 255, 0.2) !important;
+          }
+          .artist-assign-modal option {
+            background-color: #0b121f !important;
+            color: #ffffff !important;
+          }
+        </style>
+        <div class="artist-assign-content" style="max-width: 380px !important;">
           <div class="artist-assign-header">
-            <span>Assign Artist Group</span>
+            <span>Assign Artist & Genre</span>
             <button class="artist-assign-close">&times;</button>
           </div>
-          <div class="artist-assign-body">
-            <div class="artist-assign-scroll-list">
-              ${itemsHtml}
+          <div class="artist-assign-body" style="gap: 16px !important; overflow-y: auto !important; max-height: 70vh !important; padding: 4px 0 !important;">
+            
+            <!-- SECTION A: ARTIST GROUP -->
+            <div>
+              <div style="font-size: 11px; font-family: 'Orbitron', sans-serif; color: var(--accent); margin-bottom: 6px; letter-spacing: 1px;">ARTIST GROUP</div>
+              <select id="modalArtistSelect" class="artist-assign-input" style="width: 100%; margin-bottom: 8px; background: #0b121f !important; border: 1px solid rgba(255,255,255,0.15); border-radius: 4px; padding: 8px; color: #fff !important; font-family: 'Share Tech Mono', monospace; font-size: 12px; outline: none; cursor: pointer;">
+                <!-- Loaded Dynamically -->
+              </select>
+              <div style="display: flex; gap: 8px;">
+                <input type="text" id="modalNewArtistInput" placeholder="Create new artist group..." class="artist-assign-input" style="flex: 1; padding: 8px; border-radius: 4px; font-family: 'Outfit', sans-serif; font-size: 12px;">
+                <button id="modalNewArtistAddBtn" class="artist-assign-add-btn" style="padding: 6px 12px; border-radius: 4px; font-size: 11px;">ADD</button>
+              </div>
             </div>
-            <div class="artist-assign-footer">
-              <input type="text" placeholder="Create new group..." class="artist-assign-input">
-              <button class="artist-assign-add-btn">Add</button>
+
+            <!-- SECTION B: GENRE GROUP -->
+            <div style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 14px;">
+              <div style="font-size: 11px; font-family: 'Orbitron', sans-serif; color: var(--accent); margin-bottom: 6px; letter-spacing: 1px;">GENRE</div>
+              <select id="modalGenreSelect" class="artist-assign-input" style="width: 100%; margin-bottom: 8px; background: #0b121f !important; border: 1px solid rgba(255,255,255,0.15); border-radius: 4px; padding: 8px; color: #fff !important; font-family: 'Share Tech Mono', monospace; font-size: 12px; outline: none; cursor: pointer;">
+                <!-- Loaded Dynamically -->
+              </select>
+              <div style="display: flex; gap: 8px;">
+                <input type="text" id="modalNewGenreInput" placeholder="Create new genre..." class="artist-assign-input" style="flex: 1; padding: 8px; border-radius: 4px; font-family: 'Outfit', sans-serif; font-size: 12px;">
+                <button id="modalNewGenreAddBtn" class="artist-assign-add-btn" style="padding: 6px 12px; border-radius: 4px; font-size: 11px;">ADD</button>
+              </div>
             </div>
+
+            <!-- SECTION C: ACTION FOOTER -->
+            <div style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 14px; margin-top: 4px;">
+              <button id="modalApplyBtn" class="artist-assign-add-btn" style="width: 100%; padding: 12px; border-radius: 6px; background: var(--accent) !important; color: #000 !important; font-family: 'Share Tech Mono', monospace; font-weight: bold; text-transform: uppercase; font-size: 12px; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 12px rgba(0,242,255,0.15);">
+                APPLY ASSIGNMENTS
+              </button>
+            </div>
+
           </div>
         </div>
       `;
+
+      const artistSelect = modal.querySelector('#modalArtistSelect');
+      const genreSelect = modal.querySelector('#modalGenreSelect');
+
+      // Populate Artist dropdown helper
+      const populateArtists = (selectedVal) => {
+        const artists = getArtistOptions();
+        const optionHtml = `<option value="" style="background: #0b121f !important; color: #fff !important;">-- DEFAULT CHANNEL / NO GROUP --</option>` + artists.map(art => {
+          const isSelected = selectedVal === art ? ' selected' : '';
+          return `<option value="${art.replace(/"/g, '&quot;')}"${isSelected} style="background: #0b121f !important; color: #fff !important;">${art}</option>`;
+        }).join('');
+        artistSelect.innerHTML = optionHtml;
+      };
+
+      // Populate Genre dropdown helper
+      const populateGenres = (selectedVal) => {
+        const genres = getGenreOptions();
+        const optionHtml = `<option value="" style="background: #0b121f !important; color: #fff !important;">-- UNASSIGNED / VARIOUS --</option>` + genres.map(gen => {
+          const isSelected = selectedVal === gen ? ' selected' : '';
+          return `<option value="${gen.replace(/"/g, '&quot;')}"${isSelected} style="background: #0b121f !important; color: #fff !important;">${gen}</option>`;
+        }).join('');
+        genreSelect.innerHTML = optionHtml;
+      };
+
+      // Initial populate
+      populateArtists(item.artistOverride);
+      populateGenres(item.genre);
 
       // Handle close
       const closeModal = () => modal.remove();
@@ -5589,42 +5747,57 @@ function renderYtHub(showTooltip = false) {
         if (ev.target === modal) closeModal();
       });
 
-      // Handle selection of existing artist
-      modal.querySelectorAll('.artist-assign-item').forEach(opt => {
-        opt.addEventListener('click', (ev) => {
-          ev.stopPropagation();
-          const selected = opt.dataset.artist;
-          item.artistOverride = selected;
-          saveYtFavs(favs);
-          closeModal();
-          renderYtHub();
-        });
-      });
-
-      // Handle adding a brand new group/artist name
-      const input = modal.querySelector('.artist-assign-input');
-      const addBtn = modal.querySelector('.artist-assign-add-btn');
-      
+      // Handle adding new artist group
+      const newArtistInput = modal.querySelector('#modalNewArtistInput');
+      const newArtistAddBtn = modal.querySelector('#modalNewArtistAddBtn');
       const submitNewArtist = () => {
-        const val = input.value.trim();
+        const val = newArtistInput.value.trim();
         if (val) {
           addCustomGroup(val);
-          item.artistOverride = val;
-          saveYtFavs(favs);
-          closeModal();
-          renderYtHub();
+          newArtistInput.value = '';
+          populateArtists(val); // Re-populate and select the new artist group
         }
       };
-
-      input.addEventListener('click', (ev) => ev.stopPropagation());
-      input.addEventListener('keydown', (ev) => {
+      newArtistInput.addEventListener('click', (ev) => ev.stopPropagation());
+      newArtistInput.addEventListener('keydown', (ev) => {
         ev.stopPropagation();
         if (ev.key === 'Enter') submitNewArtist();
       });
-
-      addBtn.addEventListener('click', (ev) => {
+      newArtistAddBtn.addEventListener('click', (ev) => {
         ev.stopPropagation();
         submitNewArtist();
+      });
+
+      // Handle adding new genre
+      const newGenreInput = modal.querySelector('#modalNewGenreInput');
+      const newGenreAddBtn = modal.querySelector('#modalNewGenreAddBtn');
+      const submitNewGenre = () => {
+        const val = newGenreInput.value.trim();
+        if (val) {
+          addCustomGenre(val);
+          newGenreInput.value = '';
+          populateGenres(val); // Re-populate and select the new genre
+        }
+      };
+      newGenreInput.addEventListener('click', (ev) => ev.stopPropagation());
+      newGenreInput.addEventListener('keydown', (ev) => {
+        ev.stopPropagation();
+        if (ev.key === 'Enter') submitNewGenre();
+      });
+      newGenreAddBtn.addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        submitNewGenre();
+      });
+
+      // Handle Apply Assignments
+      const applyBtn = modal.querySelector('#modalApplyBtn');
+      applyBtn.addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        item.artistOverride = artistSelect.value || null;
+        item.genre = genreSelect.value || null;
+        saveYtFavs(favs);
+        closeModal();
+        renderYtHub();
       });
 
       document.body.appendChild(modal);
@@ -5635,7 +5808,72 @@ function renderYtHub(showTooltip = false) {
   syncYtTabCounts();
 }
 
+const MASTER_GENRES = ["rock", "pop", "metal", "electronic", "dance", "country", "jazz", "blues", "hip hop", "rap", "r&b", "soul", "funk", "latin", "classical", "lofi", "ambient", "indie", "alternative"];
+let isHydratingGenres = false;
+async function hydrateYtHubGenres() {
+  if (isHydratingGenres) return;
+  isHydratingGenres = true;
+  
+  try {
+    const favs = loadYtFavs();
+    const toHydrate = favs.filter(f => !f.genre);
+    if (toHydrate.length === 0) {
+      isHydratingGenres = false;
+      return;
+    }
 
+    console.log(`[YT-GENRE-HYDRATOR] Found ${toHydrate.length} items missing genre tags. Starting batch hydration...`);
+    
+    // Process in chunks of 15
+    const chunkSize = 15;
+    for (let i = 0; i < toHydrate.length; i += chunkSize) {
+      const chunk = toHydrate.slice(i, i + chunkSize);
+      const ids = chunk.map(item => item.id).join(',');
+      
+      try {
+        const response = await fetch(`/api/hydrateTags?ids=${encodeURIComponent(ids)}`);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+        
+        if (data && Array.isArray(data.results)) {
+          // Reload favs inside loop to avoid concurrency issues
+          const currentFavs = loadYtFavs();
+          let modified = false;
+
+          data.results.forEach(res => {
+            const keywords = Array.isArray(res.keywords) ? res.keywords : [];
+            const matchedGenre = MASTER_GENRES.find(genre => 
+              keywords.some(kw => typeof kw === 'string' && kw.toLowerCase().includes(genre.toLowerCase()))
+            );
+
+            console.log('[YT-GENRE-HYDRATOR] Hydrated ID:', res.id, 'Fetched Keywords:', keywords, 'Matched Genre Result:', matchedGenre || 'None (Fallback to Various)');
+
+            const favItem = currentFavs.find(f => f.id === res.id);
+            if (favItem && !favItem.genre) {
+              favItem.genre = matchedGenre ? (matchedGenre.charAt(0).toUpperCase() + matchedGenre.slice(1)) : "Various";
+              modified = true;
+            }
+          });
+
+          if (modified) {
+            saveYtFavs(currentFavs);
+            // Trigger UI reload if we are still looking at the hub
+            const activeTab = document.querySelector('.yt-tab.active')?.dataset.mode;
+            if (activeTab === 'hub' && sparkyYtState.currentSubMode === 'hub') {
+              renderYtHub();
+            }
+          }
+        }
+      } catch (chunkErr) {
+        console.error('[YT-GENRE-HYDRATOR] Chunk hydration failed:', chunkErr);
+      }
+    }
+  } catch (err) {
+    console.error('[YT-GENRE-HYDRATOR] Error in background hydrator:', err);
+  } finally {
+    isHydratingGenres = false;
+  }
+}
 
 const CUSTOM_GROUPS_KEY = 'sparky_custom_groups';
 function loadCustomGroups() {
@@ -5751,6 +5989,124 @@ function renderSettingsCustomGroups() {
         renderYtHub();
       },
       "REMOVE GROUP"
+    );
+  });
+}
+
+const CUSTOM_GENRES_KEY = 'sparky_custom_genres';
+function loadCustomGenres() {
+  try { return JSON.parse(localStorage.getItem(CUSTOM_GENRES_KEY)) || []; } catch { return []; }
+}
+function saveCustomGenres(genres) {
+  try { localStorage.setItem(CUSTOM_GENRES_KEY, JSON.stringify(genres)); } catch (e) { console.error('[YT] Save custom genres failed:', e); }
+}
+function addCustomGenre(name) {
+  const genres = loadCustomGenres();
+  const trimmed = name.trim();
+  if (trimmed && !genres.includes(trimmed)) {
+    genres.push(trimmed);
+    saveCustomGenres(genres);
+  }
+}
+function removeCustomGenre(name) {
+  const genres = loadCustomGenres().filter(g => g !== name);
+  saveCustomGenres(genres);
+}
+
+function renderSettingsCustomGenres() {
+  const container = document.getElementById('settingsCustomGenresContainer');
+  if (!container) return;
+
+  const customGenres = loadCustomGenres();
+  const favs = loadYtFavs();
+
+  if (customGenres.length === 0) {
+    container.innerHTML = `
+      <select class="settings-custom-genre-select" style="flex: 1; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); color: var(--dim); border-radius: 4px; padding: 8px 10px; font-family: 'Share Tech Mono', monospace; font-size: 11px; outline: none; cursor: not-allowed;" disabled>
+        <option>NO CUSTOM GENRES DEFINED</option>
+      </select>
+      <button class="settings-custom-genre-action-btn" style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); color: rgba(255, 255, 255, 0.2); border-radius: 4px; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; cursor: not-allowed; opacity: 0.3;" disabled>
+        <span class="material-symbols-outlined" style="font-size: 16px;">delete</span>
+      </button>
+    `;
+    return;
+  }
+
+  // Pre-calculate active status based on favs
+  const genreStats = customGenres.map(genre => {
+    const hasVideos = favs.some(f => f.genre === genre);
+    return { name: genre, active: hasVideos };
+  });
+
+  const optionsHtml = genreStats.map(g => {
+    const suffix = g.active ? ' (ACTIVE)' : '';
+    return `<option value="${g.name.replace(/"/g, '&quot;')}" data-active="${g.active}">${g.name}${suffix}</option>`;
+  }).join('');
+
+  container.innerHTML = `
+    <select id="settingsCustomGenreSelect" style="flex: 1; background: #061021; border: 1px solid rgba(255, 255, 255, 0.08); color: var(--text); border-radius: 4px; padding: 8px 10px; font-family: 'Share Tech Mono', monospace; font-size: 11px; outline: none; cursor: pointer;">
+      ${optionsHtml}
+    </select>
+    <button id="settingsCustomGenreDelBtn" style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); color: rgba(255, 255, 255, 0.6); border-radius: 4px; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;">
+      <span class="material-symbols-outlined" id="settingsCustomGenreDelIcon" style="font-size: 16px;">delete</span>
+    </button>
+  `;
+
+  const select = document.getElementById('settingsCustomGenreSelect');
+  const btn = document.getElementById('settingsCustomGenreDelBtn');
+  const icon = document.getElementById('settingsCustomGenreDelIcon');
+
+  function updateBtnState() {
+    if (!select || !btn || !icon) return;
+    const selectedOpt = select.options[select.selectedIndex];
+    if (!selectedOpt) return;
+    const isActive = selectedOpt.getAttribute('data-active') === 'true';
+
+    if (isActive) {
+      btn.style.color = 'var(--accent)';
+      btn.style.borderColor = 'rgba(0, 242, 255, 0.2)';
+      btn.style.background = 'rgba(0, 242, 255, 0.05)';
+      btn.title = "Active genre cannot be deleted";
+      icon.textContent = 'lock';
+    } else {
+      btn.style.color = 'rgba(255, 255, 255, 0.6)';
+      btn.style.borderColor = 'rgba(255, 255, 255, 0.08)';
+      btn.style.background = 'rgba(255, 255, 255, 0.03)';
+      btn.title = "Delete Custom Genre";
+      icon.textContent = 'delete';
+    }
+  }
+
+  select.addEventListener('change', updateBtnState);
+  updateBtnState();
+
+  btn.addEventListener('click', (ev) => {
+    ev.stopPropagation();
+    const selectedOpt = select.options[select.selectedIndex];
+    if (!selectedOpt) return;
+    const targetGenre = select.value;
+    const isActive = selectedOpt.getAttribute('data-active') === 'true';
+
+    if (isActive) {
+      sparkyAlert("This genre is assigned to active favorite videos. Please reassign or delete the videos from this genre before removing it.", "GENRE ACTIVE");
+      return;
+    }
+
+    sparkyConfirm(
+      `Are you sure you want to remove the custom genre "${targetGenre}"?`,
+      () => {
+        removeCustomGenre(targetGenre);
+        const currentFavs = loadYtFavs();
+        currentFavs.forEach(f => {
+          if (f.genre === targetGenre) {
+            f.genre = null;
+          }
+        });
+        saveYtFavs(currentFavs);
+        renderSettingsCustomGenres();
+        renderYtHub();
+      },
+      "REMOVE GENRE"
     );
   });
 }

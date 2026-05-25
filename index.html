@@ -38,6 +38,7 @@
       border-radius: 6px;
       background: rgba(255, 255, 255, 0.01);
       overflow: hidden;
+      grid-column: 1 / -1 !important;
     }
     .hub-group-header {
       display: flex;
@@ -1552,7 +1553,10 @@
   </div>
 
   <div class="modal-overlay" id="settingsModal" style="display:none">
-    <div class="modal-content" style="max-width:320px; padding: 15px;">
+    <div class="modal-content" style="max-width:320px; padding: 15px; max-height: 85vh; overflow-y: auto; position: relative;">
+      <button id="btnSettingsCloseX" style="position: absolute; top: 15px; right: 15px; background: transparent; border: none; color: var(--dim); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 4px; transition: color 0.2s;" title="Close Settings">
+        <span class="material-symbols-outlined" style="font-size: 20px;">close</span>
+      </button>
       <div class="modal-header" style="margin-bottom: 20px;">COMMAND CENTER</div>
       <div style="padding-top: 15px; margin-bottom: 20px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
@@ -1721,6 +1725,15 @@
         <div style="font-size: calc(10px * var(--text-scale)); color: var(--accent); letter-spacing: 1.5px; font-weight: 500; margin-bottom: 12px;">
           CUSTOM FAVORITE GROUPS</div>
         <div id="settingsCustomGroupsContainer" style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
+          <!-- Loaded in JS -->
+        </div>
+      </div>
+
+      <!-- Custom Genres Management -->
+      <div style="border-top: 1px solid var(--border); padding-top: 15px; margin-bottom: 20px;">
+        <div style="font-size: calc(10px * var(--text-scale)); color: var(--accent); letter-spacing: 1.5px; font-weight: 500; margin-bottom: 12px;">
+          CUSTOM FAVORITE GENRES</div>
+        <div id="settingsCustomGenresContainer" style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
           <!-- Loaded in JS -->
         </div>
       </div>
