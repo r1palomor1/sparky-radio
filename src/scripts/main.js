@@ -155,6 +155,7 @@ let collapsedCategories = JSON.parse(localStorage.getItem('sparky_collapsed_cats
 let lastRenderedList = []; // Cache of exactly what is on screen
 let currentIdx = -1;
 let isSearching = false;
+let isSearchEscalated = false;
 let currentSrc = null;
 let isPlaying = false;
 let activeSearchPreset = '';
@@ -1811,10 +1812,10 @@ function renderStations() {
   if (filterHiFi) {
     displayStations = displayStations.filter(s => Number(s.bitrate || 0) >= 128);
   }
-  if (filterCountry && filterCountry !== 'ALL') {
+  if (!isSearchEscalated && filterCountry && filterCountry !== 'ALL') {
     displayStations = displayStations.filter(s => (s.countrycode || '').toUpperCase() === filterCountry.toUpperCase());
   }
-  if (filterLang && filterLang !== 'ALL') {
+  if (!isSearchEscalated && filterLang && filterLang !== 'ALL') {
     displayStations = displayStations.filter(s => (s.language || '').toLowerCase() === filterLang.toLowerCase());
   }
 
@@ -3197,6 +3198,9 @@ function closeRadioSearchDropdown() {
 
 async function searchStations(q, isManual = false) {
   if (isSearching) return;
+  if (arguments[2] !== true) {
+    isSearchEscalated = false;
+  }
   searchQuery = (q || "").trim();
 
   localStorage.setItem('sparky_last_query', q || '');
@@ -3204,8 +3208,8 @@ async function searchStations(q, isManual = false) {
     saveRadioRecentSearch(searchQuery);
   }
   const hasFilters = filterCountry !== 'ALL' || filterLang !== 'ALL' || filterHiFi;
-  if (!q && !hasFilters && !isManual) { stations = []; renderStations(); return; }
-  if (q === '' && !isManual) { stations = []; renderStations(); return; } // Explicit empty = clear
+  if (!q && !hasFilters && !isManual) { stations = []; isSearchEscalated = false; renderStations(); return; }
+  if (q === '' && !isManual) { stations = []; isSearchEscalated = false; renderStations(); return; } // Explicit empty = clear
   isSearching = true;
   const pl = document.getElementById('playlist');
   if (pl && activeTab === 'stations') pl.innerHTML = '<div class="pl-loading"><div class="spinner"></div>SMART SCANNING...</div>';
@@ -3266,6 +3270,7 @@ async function searchStations(q, isManual = false) {
       if (filtered.length === 0 && !isEscalated && (filterCountry !== 'ALL' || filterLang !== 'ALL')) {
         console.log(`[SEARCH] No results in ${filterCountry}/${filterLang}. Escalating to Global Deep Scan...`);
         isSearching = false; // Reset for recursion
+        isSearchEscalated = true;
         return searchStations(q, isManual, true);
       }
 
