@@ -52,7 +52,7 @@
     const q = st.name.split('-')[0].trim();
     for (const m of mirrors) {
       try {
-        const res = await fetch(`https://${m}/json/stations/byname/${encodeURIComponent(q)}`);
+        const res = await fetchRadioBrowser(m, `/json/stations/byname/${encodeURIComponent(q)}`);
         if (!res.ok) continue;
         const results = await res.json();
         const match = results.find(r => norm(r.url_resolved || r.url) === norm(st.url));
@@ -143,6 +143,16 @@
 })();
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+// Robust, self-healing HTTPS-to-HTTP protocol fallback fetcher
+async function fetchRadioBrowser(srv, path, init = {}) {
+  try {
+    return await fetch(`https://${srv}${path}`, init);
+  } catch (e) {
+    console.warn(`[API] HTTPS fetch failed for ${srv}${path}. Falling back to HTTP...`, e);
+    return await fetch(`http://${srv}${path}`, init);
+  }
+}
 
 // â•â• STATE â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 const audioEl = document.getElementById('audioEl');
@@ -583,7 +593,7 @@ async function backgroundSyncFavs() {
       for (let o of orphans) {
         const m = mirrors[Math.floor(Math.random() * mirrors.length)];
         try {
-          const sr = await fetch(`https://${m}/json/stations/byurl?url=${encodeURIComponent(o.url.split('?')[0])}`);
+          const sr = await fetchRadioBrowser(m, `/json/stations/byurl?url=${encodeURIComponent(o.url.split('?')[0])}`);
           const res = await sr.json();
           if (res && res.length) {
             let id = res[0].stationuuid;
@@ -599,7 +609,7 @@ async function backgroundSyncFavs() {
       const validUuids = fv.map(f => f.id || f.stationuuid).filter(Boolean);
       if (validUuids.length > 0) {
         const m = mirrors[Math.floor(Math.random() * mirrors.length)];
-        const r = await fetch(`https://${m}/json/stations/byuuid/${validUuids.join(',')}`, { cache: 'no-store' });
+        const r = await fetchRadioBrowser(m, `/json/stations/byuuid/${validUuids.join(',')}`, { cache: 'no-store' });
         const batchData = await r.json();
         
         if (batchData && batchData.length) {
@@ -3196,11 +3206,9 @@ function closeRadioSearchDropdown() {
   if (dropdown) dropdown.classList.add('hidden');
 }
 
-async function searchStations(q, isManual = false) {
+async function searchStations(q, isManual = false, isEscalated = false) {
   if (isSearching) return;
-  if (arguments[2] !== true) {
-    isSearchEscalated = false;
-  }
+  isSearchEscalated = isEscalated;
   searchQuery = (q || "").trim();
 
   localStorage.setItem('sparky_last_query', q || '');
@@ -3231,7 +3239,7 @@ async function searchStations(q, isManual = false) {
   }
 
   let success = false;
-  const isEscalated = arguments[2] === true; // Internal flag for deep scan
+  // isEscalated is a formal parameter
 
   for (const srv of mirrors) {
     try {
@@ -3245,10 +3253,10 @@ async function searchStations(q, isManual = false) {
 
       const searchTasks = [];
       if (apiQ) {
-        searchTasks.push(fetch(`https://${srv}/json/stations/search?` + new URLSearchParams({ ...baseParams, name: apiQ })));
-        searchTasks.push(fetch(`https://${srv}/json/stations/search?` + new URLSearchParams({ ...baseParams, tag: apiQ })));
+        searchTasks.push(fetchRadioBrowser(srv, `/json/stations/search?` + new URLSearchParams({ ...baseParams, name: apiQ })));
+        searchTasks.push(fetchRadioBrowser(srv, `/json/stations/search?` + new URLSearchParams({ ...baseParams, tag: apiQ })));
       } else {
-        searchTasks.push(fetch(`https://${srv}/json/stations/search?` + new URLSearchParams(baseParams)));
+        searchTasks.push(fetchRadioBrowser(srv, `/json/stations/search?` + new URLSearchParams(baseParams)));
       }
 
       const responses = await Promise.all(searchTasks);
