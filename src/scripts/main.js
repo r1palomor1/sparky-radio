@@ -4383,6 +4383,13 @@ document.addEventListener('DOMContentLoaded', () => {
   function handleVideoScrollCollapse(e) {
     if (!npPanel || ignoreScrollCollapse) return;
     if (typeof sparkyYtState === 'undefined' || !sparkyYtState.isModeActive) return;
+
+    // Only allow collapse if a video is actively loaded/playing
+    if (!sparkyYtState.currentItemId) {
+      npPanel.classList.remove('compact-video');
+      return;
+    }
+
     if (document.querySelector('.app')?.classList.contains('immersive-cinema-mode')) {
       npPanel.classList.remove('compact-video');
       return;
