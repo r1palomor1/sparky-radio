@@ -537,8 +537,8 @@
     .radio-cinema-title {
       font-family: 'Outfit', sans-serif;
       font-size: calc(18px * var(--text-scale));
-      font-weight: 800;
-      color: #fff;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.55);
       text-align: left;
       white-space: nowrap;
       display: inline-block;
@@ -668,19 +668,11 @@
       justify-content: center;
       cursor: pointer;
       transition: all 0.2s ease;
-    }
-
-    .radio-cinema-btn:hover {
-      color: #fff;
-      transform: scale(1.15);
+      opacity: 0.6;
     }
 
     .radio-cinema-btn.secondary {
       color: rgba(255, 255, 255, 0.4);
-    }
-
-    .radio-cinema-btn.secondary:hover {
-      color: var(--accent);
     }
 
     .radio-cinema-play-btn {
@@ -696,13 +688,7 @@
       cursor: pointer;
       transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
       box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05);
-    }
-
-    .radio-cinema-play-btn:hover {
-      background: rgba(255, 255, 255, 0.12);
-      border-color: rgba(255, 255, 255, 0.2);
-      transform: scale(1.1);
-      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+      opacity: 0.75;
     }
 
     .radio-cinema-btn .material-symbols-outlined {
@@ -1063,7 +1049,7 @@
           <div class="np-name-container">
             <div id="npName" class="np-name">Select a station</div>
           </div>
-          <div class="np-sub-meta" id="npSubMeta">Location · Genre</div>
+          <div class="np-sub-meta" id="npSubMeta">Genre</div>
 
           <!-- INTEGRATED VISUALIZER -->
           <div class="np-viz-container">
@@ -1194,7 +1180,7 @@
                 <div class="radio-cinema-title-container">
                   <div id="radioCinemaTitle" class="radio-cinema-title">SELECT A STATION</div>
                 </div>
-                <div id="radioCinemaMeta" class="radio-cinema-meta">Location · Genre</div>
+                <div id="radioCinemaMeta" class="radio-cinema-meta">Genre</div>
               </div>
               
               <!-- Animated voice/spectrum waveform (premium 10-bar format) -->

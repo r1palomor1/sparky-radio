@@ -1396,6 +1396,23 @@ function setStatus(state, txt) {
 }
 
 // â•â• NOW PLAYING â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+function getDisplayTags(st) {
+  if (!st) return [];
+  const tagArr = (st.tags || '').split(',').map(t => t.trim()).filter(t => t);
+  const qInput = document.getElementById('searchInput');
+  const query = qInput ? qInput.value.trim().toLowerCase() : '';
+  
+  let dispTags = tagArr.slice(0, 2);
+  if (query) {
+    let match = tagArr.find(t => t.toLowerCase().includes(query));
+    if (!match && st.name.toLowerCase().includes(query)) match = query;
+    if (match && !dispTags.some(dt => dt.toLowerCase().includes(query))) {
+      dispTags.push(match);
+    }
+  }
+  return dispTags.slice(0, 3);
+}
+
 function updateNowPlaying(st) {
   const nm = document.getElementById('npName');
   const sm = document.getElementById('npSubMeta');
@@ -1426,10 +1443,10 @@ function updateNowPlaying(st) {
 
   if (sm) {
     if (st) {
-      const location = st.countrycode || st.country || 'Global';
-      const genre = (st.tags || 'Various').split(',')[0].trim();
+      const dispTags = getDisplayTags(st);
+      const tagsList = dispTags.length > 0 ? dispTags.join(', ') : 'Various';
       const hdBadge = (Number(st?.bitrate || 0) >= 128) ? '<span class="hd-badge-inline" style="margin-left: 8px; vertical-align: middle;">HD</span>' : '';
-      sm.innerHTML = `${location.toUpperCase()} \u00B7 ${genre}${hdBadge}`;
+      sm.innerHTML = `${tagsList}${hdBadge}`;
     } else {
       sm.textContent = '—';
     }
@@ -1945,15 +1962,8 @@ function renderStations() {
       primary = { id: 'vot', icon: 'thumb_up', val: isCustom ? 'N/A' : fmtK(st.votes), color: 'var(--text)' };
     }
 
-    const tagArr = (st.tags || '').split(',').map(t => t.trim()).filter(t => t);
-    let dispTags = tagArr.slice(0, 2);
-    if (searchQuery) {
-      const q = searchQuery.toLowerCase();
-      let match = tagArr.find(t => t.toLowerCase().includes(q));
-      if (!match && st.name.toLowerCase().includes(q)) match = searchQuery;
-      if (match && !dispTags.some(dt => dt.toLowerCase().includes(q))) dispTags.push(match);
-    }
-    const finalTags = dispTags.slice(0, 3).join(', ') || 'Radio';
+    const dispTags = getDisplayTags(st);
+    const finalTags = dispTags.join(', ') || 'Radio';
     const rescued = st.isRescued ? ' rescued' : '';
 
     const ambientStyle = actv && st.favicon && st.favicon.trim() !== '' 
@@ -2207,15 +2217,8 @@ function renderFavs() {
       primary = { id: 'vot', icon: 'thumb_up', val: isCustom ? 'N/A' : fmtK(st.votes), color: 'var(--fav)' };
     }
 
-    const tagArr = (st.tags || '').split(',').map(t => t.trim()).filter(t => t);
-    let dispTags = tagArr.slice(0, 2);
-    if (searchQuery) {
-      const q = searchQuery.toLowerCase();
-      let match = tagArr.find(t => t.toLowerCase().includes(q));
-      if (!match && st.name.toLowerCase().includes(q)) match = searchQuery;
-      if (match && !dispTags.some(dt => dt.toLowerCase().includes(q))) dispTags.push(match);
-    }
-    const finalTags = dispTags.slice(0, 3).join(', ') || 'Radio';
+    const dispTags = getDisplayTags(st);
+    const finalTags = dispTags.join(', ') || 'Radio';
     const rescued = st.isRescued ? ' rescued' : '';
 
     const ambientStyle = actv && st.favicon && st.favicon.trim() !== '' ? ` style="--ambient-bg: url('${esc(st.favicon)}');"` : '';
@@ -3843,6 +3846,10 @@ document.addEventListener('DOMContentLoaded', () => {
     toggleSearchClear();
     renderRadioRecentSearches();
     openRadioSearchDropdown();
+    if (currentSrc) {
+      updateNowPlaying(currentSrc);
+      updateRadioCinemaDetails();
+    }
   };
   searchInput.onkeypress = (e) => {
     if (e.key === 'Enter') {
@@ -3889,6 +3896,10 @@ document.addEventListener('DOMContentLoaded', () => {
     loadPresets();
     searchStations('', false); // Explicit clear
     closeRadioSearchDropdown();
+    if (currentSrc) {
+      updateNowPlaying(currentSrc);
+      updateRadioCinemaDetails();
+    }
   };
 
   // Expose toggle for programmatic use
@@ -4796,10 +4807,9 @@ function updateRadioCinemaDetails() {
 
   if (titleEl) applyConditionalScrolling(titleEl, st.name);
   if (metaEl) {
-    const loc = st.countrycode || st.country || '';
-    const tags = st.tags || st.category || '';
-    const parts = [loc, tags].filter(p => p.trim() !== '');
-    metaEl.textContent = parts.join(' · ');
+    const dispTags = getDisplayTags(st);
+    const tagsList = dispTags.length > 0 ? dispTags.join(', ') : 'Various';
+    metaEl.textContent = tagsList;
   }
 
   if (thumbEl) {
