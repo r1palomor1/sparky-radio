@@ -4,6 +4,14 @@ import fetchPlaylist from './api/fetchPlaylist.js';
 import searchVideos from './api/searchVideos.js';
 import hydrateTags from './api/hydrateTags.js';
 
+// Bulletproof crash protection to prevent InnerTube library parser crashes from killing the dev server
+process.on('uncaughtException', (err) => {
+    console.error('🔥 [BULLETPROOF] Uncaught Exception caught to prevent server crash:', err);
+});
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('🔥 [BULLETPROOF] Unhandled Rejection caught to prevent server crash:', reason);
+});
+
 const app = express();
 const port = 3002;
 
