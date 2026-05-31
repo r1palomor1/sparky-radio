@@ -5872,3 +5872,19 @@ google-cast-launcher:hover {
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6), 0 0 12px rgba(0, 242, 255, 0.35);
   }
 }
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.spin-animate {
+  animation: spin 1s linear infinite !important;
+  display: inline-block !important;
+}
+.hub-various-refresh-btn {
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+.hub-various-refresh-btn:hover {
+  transform: scale(1.15);
+  opacity: 0.9;
+}

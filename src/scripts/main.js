@@ -5509,7 +5509,7 @@ function renderYtHub(showTooltip = false) {
   });
 
   const favs = loadYtFavs();
-  if (favs.some(f => !f.genre)) {
+  if (favs.some(f => !f.genre || (f.genre === 'Various' && !f.genreHydrated))) {
     setTimeout(hydrateYtHubGenres, 100);
   }
   if (!favs.length) {
@@ -5624,9 +5624,15 @@ function renderYtHub(showTooltip = false) {
     cardsHtml = entries.map(([groupName, items]) => {
       const isExpanded = expandedGroups.has(groupName);
       const collapsedClass = isExpanded ? '' : ' collapsed';
+      const isVarious = groupName === 'Various';
+      const actionHtml = isVarious ? `<button class="hub-various-refresh-btn" title="Re-hydrate Various genres" style="margin-left: 8px; padding: 4px; background: transparent; border: none; color: var(--accent); cursor: pointer; display: flex; align-items: center; justify-content: center; outline: none; border-radius: 50%;"><span class="material-symbols-outlined" style="font-size: 16px;">autorenew</span></button>` : '';
+
       return `<div class="hub-group${collapsedClass}">
-        <div class="hub-group-header">
-          <span class="hub-group-artist">${groupName} (${items.length})</span>
+        <div class="hub-group-header" style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+          <div style="display: flex; align-items: center;">
+            <span class="hub-group-artist">${groupName} (${items.length})</span>
+            ${actionHtml}
+          </div>
           <span class="material-symbols-outlined hub-group-arrow">expand_more</span>
         </div>
         <div class="hub-group-cards">${items.map(_hubCardHtml).join('')}</div>
@@ -5671,9 +5677,35 @@ function renderYtHub(showTooltip = false) {
   // Accordion Header Expansion Click Listener
   hub.querySelectorAll('.hub-group-header').forEach(header => {
     header.addEventListener('click', (e) => {
+      if (e.target.closest('.hub-various-refresh-btn')) return;
       const groupEl = header.closest('.hub-group');
       if (groupEl) {
         groupEl.classList.toggle('collapsed');
+      }
+    });
+  });
+
+  // Various self-healing refresh button click handler
+  hub.querySelectorAll('.hub-various-refresh-btn').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const icon = btn.querySelector('.material-symbols-outlined');
+      if (icon) {
+        icon.classList.add('spin-animate');
+      }
+      btn.disabled = true;
+      btn.style.opacity = '0.5';
+      
+      try {
+        await hydrateYtHubGenres();
+      } catch (err) {
+        console.error('[YT] Refresh genres failed:', err);
+      } finally {
+        if (icon) {
+          icon.classList.remove('spin-animate');
+        }
+        btn.disabled = false;
+        btn.style.opacity = '1';
       }
     });
   });
@@ -5887,21 +5919,21 @@ function resolveGenreFromKeywords(searchStrings) {
   const lowercaseStrings = searchStrings.map(str => typeof str === 'string' ? str.toLowerCase() : '');
   
   const genreMappings = {
-    "rock": ["rock", "grunge", "punk", "hardrock", "psychedelic"],
+    "rock": ["rock", "grunge", "punk", "hardrock", "psychedelic", "pink floyd", "led zeppelin", "nirvana", "queen", "beatles", "ac/dc"],
     "pop": ["pop", "synthpop", "indiepop"],
-    "metal": ["metal", "thrash", "deathcore", "doom", "heavy metal", "metallica"],
+    "metal": ["metal", "thrash", "deathcore", "doom", "heavy metal", "metallica", "megadeth", "slayer", "pantera", "iron maiden", "black sabbath"],
     "electronic": ["electronic", "edm", "techno", "house", "trance", "dubstep", "synthwave", "drum & bass", "dnb", "electro"],
     "dance": ["dance", "disco", "club"],
-    "country": ["country", "bluegrass", "folk"],
+    "country": ["country", "bluegrass", "folk", "jelly roll"],
     "jazz": ["jazz", "bebop", "swing"],
     "blues": ["blues"],
-    "hip hop": ["hip hop", "hiphop", "boom bap"],
-    "rap": ["rap", "trap"],
+    "hip hop": ["hip hop", "hiphop", "boom bap", "2pac", "tupac", "eminem", "snoop dogg", "jay-z", "dr. dre"],
+    "rap": ["rap", "trap", "2pac", "tupac", "eminem", "snoop dogg", "jay-z", "dr. dre"],
     "r&b": ["r&b", "r & b", "rb", "rhythm and blues"],
     "soul": ["soul", "motown"],
     "funk": ["funk"],
-    "latin": ["latin", "reggaeton", "salsa", "bachata"],
-    "classical": ["classical", "orchestra", "piano", "violin", "symphony"],
+    "latin": ["latin", "reggaeton", "salsa", "bachata", "bad bunny"],
+    "classical": ["classical", "orchestra", "piano", "violin", "symphony", "chopin", "mozart", "beethoven"],
     "lofi": ["lofi", "lo-fi", "chillhop"],
     "ambient": ["ambient", "chillout", "drone"],
     "indie": ["indie", "shoegaze", "dream pop"],
@@ -5910,7 +5942,17 @@ function resolveGenreFromKeywords(searchStrings) {
 
   for (const genre of MASTER_GENRES) {
     const keywordsForGenre = genreMappings[genre] || [genre];
-    if (lowercaseStrings.some(str => keywordsForGenre.some(kw => str.includes(kw)))) {
+    if (lowercaseStrings.some(str => keywordsForGenre.some(kw => {
+      if (kw === 'rb') {
+        // Enforce word boundaries for 'rb' so it doesn't match 'urban', 'carbon', etc.
+        return (/\brb\b/i).test(str);
+      }
+      if (kw === 'rap') {
+        // Enforce word boundaries for 'rap' or 'trap' so it doesn't match 'therapy', 'scraper', etc.
+        return (/\brap\b|\btrap\b/i).test(str);
+      }
+      return str.includes(kw);
+    }))) {
       return genre;
     }
   }
@@ -5924,7 +5966,7 @@ async function hydrateYtHubGenres() {
   
   try {
     const favs = loadYtFavs();
-    const toHydrate = favs.filter(f => !f.genre || f.genre === 'Various');
+    const toHydrate = favs.filter(f => !f.genre || (f.genre === 'Various' && !f.genreHydrated));
     if (toHydrate.length === 0) {
       isHydratingGenres = false;
       return;
@@ -5950,7 +5992,7 @@ async function hydrateYtHubGenres() {
 
           data.results.forEach(res => {
             const favItem = currentFavs.find(f => f.id === res.id);
-            if (favItem && (!favItem.genre || favItem.genre === "Various")) {
+            if (favItem && (!favItem.genre || (favItem.genre === "Various" && !favItem.genreHydrated))) {
               const keywords = Array.isArray(res.keywords) ? res.keywords : [];
               const searchStrings = [
                 ...keywords,
@@ -5965,10 +6007,13 @@ async function hydrateYtHubGenres() {
               // Assign matched genre or keep Various if no match was found
               const newGenre = matchedGenre ? (matchedGenre.charAt(0).toUpperCase() + matchedGenre.slice(1)) : "Various";
               
+              // Set the hydrated flag so we never process it again
+              favItem.genreHydrated = true;
+              
               if (favItem.genre !== newGenre) {
                 favItem.genre = newGenre;
-                modified = true;
               }
+              modified = true;
             }
           });
 
@@ -6259,6 +6304,9 @@ function addYtFav(item) {
     f.push({ ...item, addedAt: Date.now() });
   }
   saveYtFavs(f);
+  
+  // Trigger background genre hydration instantly upon favoriting
+  setTimeout(hydrateYtHubGenres, 100);
 }
 function removeYtFav(id) { saveYtFavs(loadYtFavs().filter(f => f.id !== id)); }
 
