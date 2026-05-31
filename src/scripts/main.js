@@ -4384,8 +4384,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!npPanel || ignoreScrollCollapse) return;
     if (typeof sparkyYtState === 'undefined' || !sparkyYtState.isModeActive) return;
 
-    // Only allow collapse if a video is actively loaded/playing
-    if (!sparkyYtState.currentItemId) {
+    // Only allow collapse if a video is actively loaded/playing in this session
+    if (!sparkyYtState.currentItemId || !sparkyYtState.playerInstance) {
       npPanel.classList.remove('compact-video');
       return;
     }
@@ -4399,6 +4399,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Only collapse if scrolling down
     if (scrollTop > 50 && scrollTop > lastScrollTop) {
       npPanel.classList.add('compact-video');
+      if (typeof triggerCompactTooltip === 'function') {
+        triggerCompactTooltip();
+      }
     } else if (scrollTop <= 10) {
       npPanel.classList.remove('compact-video');
     }
@@ -4432,6 +4435,9 @@ document.addEventListener('DOMContentLoaded', () => {
         ignoreScrollCollapse = true;
         isAutoScrolling = true;
         npPanel.classList.remove('compact-radio', 'compact-video');
+        if (typeof dismissCompactTooltip === 'function') {
+          dismissCompactTooltip();
+        }
         if (compactInactivityTimer) clearTimeout(compactInactivityTimer);
         
         // Wake up from immersive cinema mode to ensure main UI is fully restored
@@ -4452,6 +4458,17 @@ document.addEventListener('DOMContentLoaded', () => {
           ignoreScrollCollapse = false;
           isAutoScrolling = false;
         }, 2500); // 2.5s lock protects against programmatic scroll and scroll inertia
+      }
+    });
+  }
+
+  // Setup click binding for the compact video touch tooltip
+  const tooltipEl = document.getElementById('compactVideoTooltip');
+  if (tooltipEl) {
+    tooltipEl.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (typeof dismissCompactTooltip === 'function') {
+        dismissCompactTooltip();
       }
     });
   }
@@ -7603,6 +7620,14 @@ async function playYtItem(item, isFromRelated = false) {
   // V-U11 & R-U14: Dynamic Adaptive Ambient Glow for Now Playing panel
   updateAmbientGlow(item.thumb || item.thumbnail || item.thumbnail_url);
 
+  // If already in compact video mode, trigger tooltip onboarding
+  const np = document.querySelector('.now-playing');
+  if (np && np.classList.contains('compact-video')) {
+    if (typeof triggerCompactTooltip === 'function') {
+      triggerCompactTooltip();
+    }
+  }
+
   // Handle Playlist Expansion
   if (item.type === 'playlist') {
     console.log(`[YT-DEBUG] Expanding playlist for playback: ${item.id}`);
@@ -8642,3 +8667,35 @@ function autoRepairEncoding() {
   }
 }
 autoRepairEncoding();
+
+// COMPACT VIDEO TOUCH TOOLTIP MANAGEMENT
+function triggerCompactTooltip() {
+  const count = parseInt(sessionStorage.getItem('sparky_compact_tooltip_count') || '0', 10);
+  if (count >= 3) return;
+
+  const tooltip = document.getElementById('compactVideoTooltip');
+  if (!tooltip) return;
+
+  tooltip.classList.remove('hidden');
+  void tooltip.offsetWidth; // Force layout reflow
+  tooltip.classList.add('visible');
+
+  sessionStorage.setItem('sparky_compact_tooltip_count', (count + 1).toString());
+
+  if (window.compactTooltipTimeout) clearTimeout(window.compactTooltipTimeout);
+  window.compactTooltipTimeout = setTimeout(() => {
+    dismissCompactTooltip();
+  }, 2000);
+}
+
+function dismissCompactTooltip() {
+  const tooltip = document.getElementById('compactVideoTooltip');
+  if (!tooltip) return;
+
+  tooltip.classList.remove('visible');
+  setTimeout(() => {
+    if (tooltip && !tooltip.classList.contains('visible')) {
+      tooltip.classList.add('hidden');
+    }
+  }, 300);
+}
