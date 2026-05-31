@@ -12,23 +12,110 @@ export default async function handler(req, res) {
         const { id, ids } = req.query;
         if (!id && !ids) return res.status(400).json({ error: 'ID or IDs required' });
 
-        const youtube = await getYoutubeClient();
+        // 1. Blazing fast, Vercel-friendly public watch page HTML scraper
+        async function scrapeWatchPage(videoId) {
+            try {
+                const url = `https://www.youtube.com/watch?v=${videoId}`;
+                const res = await fetch(url, {
+                    headers: {
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                        'Accept-Language': 'en-US,en;q=0.9'
+                    }
+                });
+                if (!res.ok) return null;
+                const html = await res.text();
+
+                // Extract Keywords
+                const metaRegex = /<meta name="keywords" content="([^"]+)"/i;
+                const metaMatch = html.match(metaRegex);
+                let keywords = [];
+                if (metaMatch) {
+                    keywords = metaMatch[1].split(',').map(s => s.trim()).filter(Boolean);
+                }
+
+                // Extract Views
+                const viewsRegex = /"viewCount":"(\d+)"/i;
+                const viewsMatch = html.match(viewsRegex);
+                let views = viewsMatch ? viewsMatch[1] : '';
+
+                // Extract Published Date
+                const relDateRegex = /"relativeDateText"\s*:\s*\{\s*"simpleText"\s*:\s*"([^"]+)"/i;
+                const relDateMatch = html.match(relDateRegex);
+                let published = relDateMatch ? relDateMatch[1] : '';
+
+                if (!published) {
+                    const dateRegex = /<meta itemprop="datePublished" content="([^"]+)"/i;
+                    const dateMatch = html.match(dateRegex);
+                    if (dateMatch) published = dateMatch[1];
+                }
+
+                const titleRegex = /<meta name="title" content="([^"]+)"/i;
+                const titleMatch = html.match(titleRegex);
+                const title = titleMatch ? titleMatch[1] : '';
+
+                if (keywords.length > 0 || views) {
+                    console.log(`[SCRAPER] Successfully resolved metadata for ID: ${videoId} using ultra-fast HTML parser`);
+                    return {
+                        id: videoId,
+                        title: title,
+                        views: shortenMetadata(views),
+                        published: shortenMetadata(published),
+                        keywords: keywords,
+                        related_videos: []
+                    };
+                }
+                return null;
+            } catch (err) {
+                console.error(`[SCRAPER] HTML parser error for ID ${videoId}:`, err.message);
+                return null;
+            }
+        }
 
         // Helper function to hydrate a single video
         async function fetchSingleInfo(videoId) {
+            // First Path: Ultra-fast HTML GET parser (No files written, 200ms, never blocks on Vercel)
+            const scraped = await scrapeWatchPage(videoId);
+            if (scraped) {
+                // If it is single view (not batch) and related videos are needed, fetch them via simple fallback search
+                if (!ids) {
+                    try {
+                        const youtube = await getYoutubeClient();
+                        const videoTitle = scraped.title || 'related';
+                        console.log(`[HYDRATE] Fetching related videos for single view using fallback search`);
+                        const searchResult = await youtube.search(videoTitle, { limit: 12 });
+                        const videos = searchResult?.videos || searchResult?.results || [];
+                        videos.forEach(result => {
+                            const rId = result.id || result.video_id;
+                            if (rId && rId !== videoId) {
+                                scraped.related_videos.push({
+                                    id: rId,
+                                    title: result.title?.text || result.title || 'Unknown Title',
+                                    thumb: result.thumbnails?.[0]?.url || '',
+                                    channel: result.author?.name || '',
+                                    views: shortenMetadata(result.short_view_count?.text || ''),
+                                    duration: shortenMetadata(result.length_text?.text || '')
+                                });
+                            }
+                        });
+                    } catch (e) {
+                        // Keep empty related videos on fallback failure
+                    }
+                }
+                return scraped;
+            }
+
+            // Second Path: Heavy youtubei.js engine (Fallback for local dev or detailed info)
             try {
-                // PATH A: getInfo — most complete
+                const youtube = await getYoutubeClient();
                 const info = await youtube.getInfo(videoId);
                 const basic = info.basic_info;
                 const views = basic?.view_count?.toString() || '';
 
-                // Timeframe
                 let published =
                     info.primary_info?.relative_date?.text ||
                     info.primary_info?.published?.text ||
                     '';
 
-                // PATH B: microformat absolute date → relative conversion
                 if (!published) {
                     const mf = info.microformat?.microformat_data_renderer ||
                                info.microformat?.playerMicroformatRenderer ||
@@ -39,39 +126,31 @@ export default async function handler(req, res) {
                     }
                 }
 
-                // PATH C: basic_info.published
                 if (!published && basic?.published) {
                     published = basic.published;
                 }
 
-                // Parse all keywords/tags to maximize genre-matching precision
                 const keywords = Array.isArray(basic?.keywords) ? basic.keywords : [];
-
-                // Fetch related videos (first choice: watch_next_feed, fallback: youtube.search)
                 const related_videos = [];
+                
                 try {
                     if (info.watch_next_feed && info.watch_next_feed.length > 0) {
-                        console.log(`[HYDRATE] Extracting related videos from watch_next_feed for ${videoId}`);
                         for (const item of info.watch_next_feed) {
                             if (item.type !== 'LockupView') continue;
                             
                             const id = item.content_id || item.renderer_context?.command_context?.on_tap?.payload?.videoId;
                             if (!id || id === videoId) continue;
                             
-                            // Skip playlist items
                             const viewsText = item.metadata?.metadata?.metadata_rows?.[1]?.metadata_parts?.[0]?.text?.text || '';
                             if (viewsText.toLowerCase().includes('playlist')) continue;
- 
-                            // Skip Mixes and Playlist items
+         
                             const title = item.metadata?.title?.text || '';
                             if (title.toLowerCase().startsWith('mix - ')) continue;
- 
+         
                             const thumb = item.content_image?.image?.[0]?.url || 
                                           item.content_image?.image?.[1]?.url || 
                                           item.content_image?.image?.sources?.[0]?.url ||
-                                          item.content_image?.image?.sources?.[1]?.url ||
                                           item.thumbnail?.[0]?.url ||
-                                          item.thumbnails?.[0]?.url ||
                                           '';
                             const channel = item.metadata?.metadata?.metadata_rows?.[0]?.metadata_parts?.[0]?.text?.text || '';
                             const duration = item.content_image?.overlays?.[0]?.badges?.[0]?.text || '';
@@ -87,14 +166,12 @@ export default async function handler(req, res) {
                         }
                     }
                 } catch (feedErr) {
-                    console.error('[HYDRATE] Watch next feed extraction failed, falling back:', feedErr.message);
+                    console.error('[HYDRATE] Watch next feed extraction failed:', feedErr.message);
                 }
 
-                // Fallback to youtube.search if watch next feed returned too few videos
                 if (related_videos.length < 3) {
                     try {
                         const videoTitle = basic?.title || 'related';
-                        console.log(`[HYDRATE] Fallback: Searching for related videos using: "${videoTitle}"`);
                         const searchResult = await youtube.search(videoTitle, { limit: 15 });
                         const videos = searchResult?.videos || searchResult?.results || [];
                         
@@ -111,25 +188,23 @@ export default async function handler(req, res) {
                                     related_videos.push({
                                         id,
                                         title: title || 'Unknown Title',
-                                        thumb: result.thumbnails?.[0]?.url || result.thumbnail?.[0]?.url || '',
-                                        channel: result.author?.name || result.channel?.name || result.author || '',
-                                        views: shortenMetadata(result.short_view_count?.text || result.views || ''),
-                                        duration: shortenMetadata(result.length_text?.text || result.duration || '')
+                                        thumb: result.thumbnails?.[0]?.url || '',
+                                        channel: result.author?.name || '',
+                                        views: shortenMetadata(result.short_view_count?.text || ''),
+                                        duration: shortenMetadata(result.length_text?.text || '')
                                     });
                                     
                                     if (related_videos.length >= 12) break;
                                 } catch (e) {
-                                    // Skip malformed result
+                                    // Ignore malformed search item
                                 }
                             }
                         }
                     } catch (searchErr) {
-                        console.error('[HYDRATE] Fallback search for related videos failed:', searchErr.message);
+                        console.error('[HYDRATE] Fallback search failed:', searchErr.message);
                     }
                 }
                 
-                console.log(`[HYDRATE] Found ${related_videos.length} related videos`);
-
                 return {
                     id: videoId,
                     views: shortenMetadata(views),
@@ -138,7 +213,7 @@ export default async function handler(req, res) {
                     keywords: keywords
                 };
             } catch (err) {
-                console.error(`[HYDRATE] Failed for ID ${videoId}:`, err.message);
+                console.error(`[HYDRATE] Heavy fallback failed for ID ${videoId}:`, err.message);
                 return {
                     id: videoId,
                     views: '',
