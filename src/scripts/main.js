@@ -5697,6 +5697,19 @@ function renderYtHub(showTooltip = false) {
       btn.style.opacity = '0.5';
       
       try {
+        // Reset the hydrated flag for Various items so manual click forces a re-attempt
+        const currentFavs = loadYtFavs();
+        let modified = false;
+        currentFavs.forEach(f => {
+          if (f.genre === 'Various' && f.genreHydrated) {
+            f.genreHydrated = false;
+            modified = true;
+          }
+        });
+        if (modified) {
+          saveYtFavs(currentFavs);
+        }
+
         await hydrateYtHubGenres();
       } catch (err) {
         console.error('[YT] Refresh genres failed:', err);
