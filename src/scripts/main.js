@@ -5509,7 +5509,8 @@ function renderYtHub(showTooltip = false) {
   });
 
   const favs = loadYtFavs();
-  if (favs.some(f => !f.genre || (f.genre === 'Various' && !f.genreHydrated))) {
+  // Trigger hydration for: items with no genre, OR items stuck as Various without a confirmed genre match
+  if (favs.some(f => !f.genre || f.genre === 'Various')) {
     setTimeout(hydrateYtHubGenres, 100);
   }
   if (!favs.length) {
@@ -5926,46 +5927,57 @@ function renderYtHub(showTooltip = false) {
   syncYtTabCounts();
 }
 
-const MASTER_GENRES = ["rock", "pop", "metal", "electronic", "dance", "country", "jazz", "blues", "hip hop", "rap", "r&b", "soul", "funk", "latin", "classical", "lofi", "ambient", "indie", "alternative"];
+const MASTER_GENRES = ["rock", "pop", "metal", "electronic", "dance", "country", "jazz", "blues", "hip hop", "rap", "r&b", "soul", "funk", "latin", "gospel", "classical", "lofi", "ambient", "indie", "alternative"];
 
+/**
+ * Dynamic subgenre detection engine.
+ * Scans video tags, title, and channel name for real musical style keywords
+ * and maps them to the 20 MASTER_GENRES. Uses word-boundary rules for short
+ * or ambiguous keywords to prevent false-positive matches.
+ */
 function resolveGenreFromKeywords(searchStrings) {
   const lowercaseStrings = searchStrings.map(str => typeof str === 'string' ? str.toLowerCase() : '');
-  
+
+  // Priority-ordered genre → subgenre lexicon.
+  // Latin/Gospel listed before generic pop to win on overlapping content.
   const genreMappings = {
-    "rock": ["rock", "grunge", "punk", "hardrock", "psychedelic"],
-    "pop": ["pop", "synthpop", "indiepop"],
-    "metal": ["metal", "thrash", "deathcore", "doom", "heavy metal"],
-    "electronic": ["electronic", "edm", "techno", "house", "trance", "dubstep", "synthwave", "drum & bass", "dnb", "electro"],
-    "dance": ["dance", "disco", "club"],
-    "country": ["country", "bluegrass", "folk"],
-    "jazz": ["jazz", "bebop", "swing"],
-    "blues": ["blues"],
-    "hip hop": ["hip hop", "hiphop", "boom bap"],
-    "rap": ["rap", "trap"],
-    "r&b": ["r&b", "r & b", "rb", "rhythm and blues"],
-    "soul": ["soul", "motown"],
-    "funk": ["funk"],
-    "latin": ["latin", "latino", "reggaeton", "salsa", "bachata", "mariachi", "banda", "bandamax", "cumbia", "bolero", "cristiana", "alabanza", "adoracion"],
-    "classical": ["classical", "orchestra", "piano", "violin", "symphony"],
-    "lofi": ["lofi", "lo-fi", "chillhop"],
-    "ambient": ["ambient", "chillout", "drone"],
-    "indie": ["indie", "shoegaze", "dream pop"],
-    "alternative": ["alternative", "grunge", "indie rock"]
+    "gospel":      ["gospel", "worship", "praise", "christian", "christianity", "hillsong", "elevation", "ccm", "contemporary christian", "inspirational"],
+    "latin":       ["latin", "latino", "latina", "reggaeton", "salsa", "bachata", "mariachi", "banda", "bandamax", "cumbia", "bolero", "corrido", "ranchera", "nortena", "norteña", "grupero", "vallenato", "merengue", "tango", "flamenco", "bossa nova", "bossanova", "samba", "cristiana", "alabanza", "adoracion", "adoración", "música cristiana", "música mexicana", "música regional", "estudio bible", "biblia"],
+    "metal":       ["metal", "thrash", "deathcore", "doom", "heavy metal", "black metal", "death metal", "metalcore", "nu-metal", "nu metal", "speed metal"],
+    "rock":        ["rock", "grunge", "punk", "hard rock", "hardrock", "psychedelic", "arena rock", "classic rock", "garage rock", "soft rock"],
+    "electronic":  ["electronic", "edm", "techno", "house", "trance", "dubstep", "synthwave", "drum & bass", "dnb", "electro", "drum and bass", "garage", "breakbeat", "jungle", "future bass", "bass music", "industrial"],
+    "dance":       ["dance", "disco", "club", "dancefloor", "eurodance"],
+    "hip hop":     ["hip hop", "hiphop", "hip-hop", "boom bap", "underground hip hop"],
+    "rap":         ["rap", "trap", "drill", "mumble rap", "conscious rap"],
+    "r&b":         ["r&b", "r & b", "rhythm and blues", "contemporary r&b", "new jack swing"],
+    "soul":        ["soul", "motown", "neo-soul", "neo soul"],
+    "funk":        ["funk", "p-funk", "new funk"],
+    "jazz":        ["jazz", "bebop", "swing", "big band", "smooth jazz", "fusion jazz", "bop"],
+    "blues":       ["blues", "delta blues", "chicago blues", "electric blues"],
+    "country":     ["country", "bluegrass", "folk", "americana", "outlaw country", "country pop"],
+    "classical":   ["classical", "orchestra", "piano", "violin", "symphony", "concerto", "sonata", "opera", "choir", "chamber music", "baroque"],
+    "lofi":        ["lofi", "lo-fi", "lo fi", "chillhop", "chill hop", "study music", "lofi hip hop"],
+    "ambient":     ["ambient", "chillout", "chill out", "drone", "new age", "meditation music", "relaxing music", "sleep music"],
+    "pop":         ["pop", "synthpop", "synth-pop", "indiepop", "indie pop", "dance pop", "teen pop", "bubblegum", "k-pop", "kpop"],
+    "indie":       ["indie", "shoegaze", "dream pop", "indie folk"],
+    "alternative": ["alternative", "alt rock", "indie rock", "post punk", "post-punk", "emo", "post-rock"]
   };
+
+  // Short keywords that need strict word-boundary matching to avoid false positives
+  const WORD_BOUNDARY_KEYWORDS = new Set(['rb', 'rap', 'trap', 'pop', 'folk', 'funk', 'soul', 'dnb', 'bop', 'emo', 'samba']);
 
   for (const genre of MASTER_GENRES) {
     const keywordsForGenre = genreMappings[genre] || [genre];
-    if (lowercaseStrings.some(str => keywordsForGenre.some(kw => {
-      if (kw === 'rb') {
-        // Enforce word boundaries for 'rb' so it doesn't match 'urban', 'carbon', etc.
-        return (/\brb\b/i).test(str);
-      }
-      if (kw === 'rap') {
-        // Enforce word boundaries for 'rap' or 'trap' so it doesn't match 'therapy', 'scraper', etc.
-        return (/\brap\b|\btrap\b/i).test(str);
-      }
-      return str.includes(kw);
-    }))) {
+    if (lowercaseStrings.some(str =>
+      keywordsForGenre.some(kw => {
+        if (WORD_BOUNDARY_KEYWORDS.has(kw)) {
+          // Use word boundary regex for short/ambiguous keywords
+          const escaped = kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          return new RegExp(`\\b${escaped}\\b`, 'i').test(str);
+        }
+        return str.includes(kw);
+      })
+    )) {
       return genre;
     }
   }
@@ -6011,31 +6023,40 @@ async function hydrateYtHubGenres() {
           data.results.forEach(res => {
             const favItem = currentFavs.find(f => f.id === res.id);
             if (favItem && (!favItem.genre || (favItem.genre === "Various" && !favItem.genreHydrated))) {
-              // If the network call failed completely (views and keywords are both empty due to block/error), skip marking it as hydrated so we can retry!
+              // If the network call failed completely (views and keywords are both empty due to block/error),
+              // skip marking as hydrated so we can retry on the next cycle.
               if (!res.views && (!res.keywords || res.keywords.length === 0)) {
                 console.warn('[YT-GENRE-HYDRATOR] Hydration failed/empty for ID:', res.id, '- skipping flag update to retry later');
                 return;
               }
 
               const keywords = Array.isArray(res.keywords) ? res.keywords : [];
+              // Include title words and channel individually to broaden genre signal surface area
+              const titleWords = (favItem.title || '').split(/[\s\-|:,]+/).filter(w => w.length > 2);
               const searchStrings = [
                 ...keywords,
                 favItem.title || '',
-                favItem.channel || favItem.author || ''
+                favItem.channel || favItem.author || '',
+                ...titleWords
               ];
 
               const matchedGenre = resolveGenreFromKeywords(searchStrings);
 
-              console.log('[YT-GENRE-HYDRATOR] Hydrated ID:', res.id, 'Fetched Keywords:', keywords, 'Matched Genre Result:', matchedGenre || 'None (Fallback to Various)');
+              console.log('[YT-GENRE-HYDRATOR] ID:', res.id,
+                '| Keywords:', keywords.slice(0, 6).join(', '),
+                '| Matched:', matchedGenre || 'None → Various');
 
-              // Assign matched genre or keep Various if no match was found
-              const newGenre = matchedGenre ? (matchedGenre.charAt(0).toUpperCase() + matchedGenre.slice(1)) : "Various";
-              
-              // Set the hydrated flag so we never process it again
-              favItem.genreHydrated = true;
-              
-              if (favItem.genre !== newGenre) {
+              if (matchedGenre) {
+                // STRUCTURAL FIX: Only lock genreHydrated=true when we actually matched a real genre.
+                // Videos that fall back to 'Various' remain retryable on next hydration cycle.
+                const newGenre = matchedGenre.charAt(0).toUpperCase() + matchedGenre.slice(1);
                 favItem.genre = newGenre;
+                favItem.genreHydrated = true;
+              } else {
+                // No genre match found — assign Various but do NOT set genreHydrated
+                // so this video stays eligible for re-hydration on future sessions.
+                favItem.genre = 'Various';
+                // genreHydrated intentionally left false/unset
               }
               modified = true;
             }

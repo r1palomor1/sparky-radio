@@ -16,13 +16,21 @@ export default async function handler(req, res) {
         async function scrapeWatchPage(videoId) {
             try {
                 const url = `https://www.youtube.com/watch?v=${videoId}`;
-                const res = await fetch(url, {
-                    headers: {
-                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                        'Accept-Language': 'en-US,en;q=0.9'
-                    }
-                });
-                if (!res.ok) return null;
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 6000);
+                let res;
+                try {
+                    res = await fetch(url, {
+                        signal: controller.signal,
+                        headers: {
+                            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                            'Accept-Language': 'en-US,en;q=0.9'
+                        }
+                    });
+                } finally {
+                    clearTimeout(timeoutId);
+                }
+                if (!res || !res.ok) return null;
                 const html = await res.text();
 
                 // Extract Keywords
@@ -228,9 +236,14 @@ export default async function handler(req, res) {
             const idList = ids.split(',').map(s => s.trim()).filter(Boolean);
             if (idList.length === 0) return res.status(400).json({ error: 'Valid IDs required' });
 
-            console.log(`[HYDRATE] Batch hydrating ${idList.length} video IDs`);
-            // Run in parallel
-            const results = await Promise.all(idList.map(fetchSingleInfo));
+            console.log(`[HYDRATE] Batch hydrating ${idList.length} video IDs (sequential with timeout guards)`);
+            // Process sequentially instead of parallel to avoid hammering YouTube's rate limiter
+            // on Vercel serverless where all requests originate from similar IPs
+            const results = [];
+            for (const videoId of idList) {
+                const result = await fetchSingleInfo(videoId);
+                results.push(result);
+            }
             return res.status(200).json({ results });
         } else {
             console.log(`[HYDRATE] Single hydration for ID: ${id}`);
