@@ -44,8 +44,8 @@ export default async function handler(req, res) {
                     published = basic.published;
                 }
 
-                // Parse first 3 keywords/tags
-                const keywords = Array.isArray(basic?.keywords) ? basic.keywords.slice(0, 3) : [];
+                // Parse all keywords/tags to maximize genre-matching precision
+                const keywords = Array.isArray(basic?.keywords) ? basic.keywords : [];
 
                 // Fetch related videos (first choice: watch_next_feed, fallback: youtube.search)
                 const related_videos = [];

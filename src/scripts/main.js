@@ -5882,6 +5882,41 @@ function renderYtHub(showTooltip = false) {
 }
 
 const MASTER_GENRES = ["rock", "pop", "metal", "electronic", "dance", "country", "jazz", "blues", "hip hop", "rap", "r&b", "soul", "funk", "latin", "classical", "lofi", "ambient", "indie", "alternative"];
+
+function resolveGenreFromKeywords(searchStrings) {
+  const lowercaseStrings = searchStrings.map(str => typeof str === 'string' ? str.toLowerCase() : '');
+  
+  const genreMappings = {
+    "rock": ["rock", "grunge", "punk", "hardrock", "psychedelic"],
+    "pop": ["pop", "synthpop", "indiepop"],
+    "metal": ["metal", "thrash", "deathcore", "doom", "heavy metal", "metallica"],
+    "electronic": ["electronic", "edm", "techno", "house", "trance", "dubstep", "synthwave", "drum & bass", "dnb", "electro"],
+    "dance": ["dance", "disco", "club"],
+    "country": ["country", "bluegrass", "folk"],
+    "jazz": ["jazz", "bebop", "swing"],
+    "blues": ["blues"],
+    "hip hop": ["hip hop", "hiphop", "boom bap"],
+    "rap": ["rap", "trap"],
+    "r&b": ["r&b", "r & b", "rb", "rhythm and blues"],
+    "soul": ["soul", "motown"],
+    "funk": ["funk"],
+    "latin": ["latin", "reggaeton", "salsa", "bachata"],
+    "classical": ["classical", "orchestra", "piano", "violin", "symphony"],
+    "lofi": ["lofi", "lo-fi", "chillhop"],
+    "ambient": ["ambient", "chillout", "drone"],
+    "indie": ["indie", "shoegaze", "dream pop"],
+    "alternative": ["alternative", "grunge", "indie rock"]
+  };
+
+  for (const genre of MASTER_GENRES) {
+    const keywordsForGenre = genreMappings[genre] || [genre];
+    if (lowercaseStrings.some(str => keywordsForGenre.some(kw => str.includes(kw)))) {
+      return genre;
+    }
+  }
+  return null;
+}
+
 let isHydratingGenres = false;
 async function hydrateYtHubGenres() {
   if (isHydratingGenres) return;
@@ -5889,13 +5924,13 @@ async function hydrateYtHubGenres() {
   
   try {
     const favs = loadYtFavs();
-    const toHydrate = favs.filter(f => !f.genre);
+    const toHydrate = favs.filter(f => !f.genre || f.genre === 'Various');
     if (toHydrate.length === 0) {
       isHydratingGenres = false;
       return;
     }
 
-    console.log(`[YT-GENRE-HYDRATOR] Found ${toHydrate.length} items missing genre tags. Starting batch hydration...`);
+    console.log(`[YT-GENRE-HYDRATOR] Found ${toHydrate.length} items missing or tagged 'Various'. Starting batch hydration...`);
     
     // Process in chunks of 15
     const chunkSize = 15;
@@ -5914,17 +5949,26 @@ async function hydrateYtHubGenres() {
           let modified = false;
 
           data.results.forEach(res => {
-            const keywords = Array.isArray(res.keywords) ? res.keywords : [];
-            const matchedGenre = MASTER_GENRES.find(genre => 
-              keywords.some(kw => typeof kw === 'string' && kw.toLowerCase().includes(genre.toLowerCase()))
-            );
-
-            console.log('[YT-GENRE-HYDRATOR] Hydrated ID:', res.id, 'Fetched Keywords:', keywords, 'Matched Genre Result:', matchedGenre || 'None (Fallback to Various)');
-
             const favItem = currentFavs.find(f => f.id === res.id);
-            if (favItem && !favItem.genre) {
-              favItem.genre = matchedGenre ? (matchedGenre.charAt(0).toUpperCase() + matchedGenre.slice(1)) : "Various";
-              modified = true;
+            if (favItem && (!favItem.genre || favItem.genre === "Various")) {
+              const keywords = Array.isArray(res.keywords) ? res.keywords : [];
+              const searchStrings = [
+                ...keywords,
+                favItem.title || '',
+                favItem.channel || favItem.author || ''
+              ];
+
+              const matchedGenre = resolveGenreFromKeywords(searchStrings);
+
+              console.log('[YT-GENRE-HYDRATOR] Hydrated ID:', res.id, 'Fetched Keywords:', keywords, 'Matched Genre Result:', matchedGenre || 'None (Fallback to Various)');
+
+              // Assign matched genre or keep Various if no match was found
+              const newGenre = matchedGenre ? (matchedGenre.charAt(0).toUpperCase() + matchedGenre.slice(1)) : "Various";
+              
+              if (favItem.genre !== newGenre) {
+                favItem.genre = newGenre;
+                modified = true;
+              }
             }
           });
 
