@@ -5932,21 +5932,21 @@ function resolveGenreFromKeywords(searchStrings) {
   const lowercaseStrings = searchStrings.map(str => typeof str === 'string' ? str.toLowerCase() : '');
   
   const genreMappings = {
-    "rock": ["rock", "grunge", "punk", "hardrock", "psychedelic", "pink floyd", "led zeppelin", "nirvana", "queen", "beatles", "ac/dc"],
+    "rock": ["rock", "grunge", "punk", "hardrock", "psychedelic"],
     "pop": ["pop", "synthpop", "indiepop"],
-    "metal": ["metal", "thrash", "deathcore", "doom", "heavy metal", "metallica", "megadeth", "slayer", "pantera", "iron maiden", "black sabbath"],
+    "metal": ["metal", "thrash", "deathcore", "doom", "heavy metal"],
     "electronic": ["electronic", "edm", "techno", "house", "trance", "dubstep", "synthwave", "drum & bass", "dnb", "electro"],
     "dance": ["dance", "disco", "club"],
-    "country": ["country", "bluegrass", "folk", "jelly roll"],
+    "country": ["country", "bluegrass", "folk"],
     "jazz": ["jazz", "bebop", "swing"],
     "blues": ["blues"],
-    "hip hop": ["hip hop", "hiphop", "boom bap", "2pac", "tupac", "eminem", "snoop dogg", "jay-z", "dr. dre"],
-    "rap": ["rap", "trap", "2pac", "tupac", "eminem", "snoop dogg", "jay-z", "dr. dre"],
+    "hip hop": ["hip hop", "hiphop", "boom bap"],
+    "rap": ["rap", "trap"],
     "r&b": ["r&b", "r & b", "rb", "rhythm and blues"],
     "soul": ["soul", "motown"],
     "funk": ["funk"],
-    "latin": ["latin", "reggaeton", "salsa", "bachata", "bad bunny"],
-    "classical": ["classical", "orchestra", "piano", "violin", "symphony", "chopin", "mozart", "beethoven"],
+    "latin": ["latin", "latino", "reggaeton", "salsa", "bachata", "mariachi", "banda", "bandamax", "cumbia", "bolero", "cristiana", "alabanza", "adoracion"],
+    "classical": ["classical", "orchestra", "piano", "violin", "symphony"],
     "lofi": ["lofi", "lo-fi", "chillhop"],
     "ambient": ["ambient", "chillout", "drone"],
     "indie": ["indie", "shoegaze", "dream pop"],
@@ -5987,9 +5987,14 @@ async function hydrateYtHubGenres() {
 
     console.log(`[YT-GENRE-HYDRATOR] Found ${toHydrate.length} items missing or tagged 'Various'. Starting batch hydration...`);
     
-    // Process in chunks of 15
-    const chunkSize = 15;
+    // Process in chunks of 3 with a 1.5-second cooldown delay to respect YouTube rate limits
+    const chunkSize = 3;
     for (let i = 0; i < toHydrate.length; i += chunkSize) {
+      // Add cooldown delay for subsequent chunks to naturally space requests
+      if (i > 0) {
+        await new Promise(resolve => setTimeout(resolve, 1500));
+      }
+
       const chunk = toHydrate.slice(i, i + chunkSize);
       const ids = chunk.map(item => item.id).join(',');
       
@@ -6006,6 +6011,12 @@ async function hydrateYtHubGenres() {
           data.results.forEach(res => {
             const favItem = currentFavs.find(f => f.id === res.id);
             if (favItem && (!favItem.genre || (favItem.genre === "Various" && !favItem.genreHydrated))) {
+              // If the network call failed completely (views and keywords are both empty due to block/error), skip marking it as hydrated so we can retry!
+              if (!res.views && (!res.keywords || res.keywords.length === 0)) {
+                console.warn('[YT-GENRE-HYDRATOR] Hydration failed/empty for ID:', res.id, '- skipping flag update to retry later');
+                return;
+              }
+
               const keywords = Array.isArray(res.keywords) ? res.keywords : [];
               const searchStrings = [
                 ...keywords,
@@ -6032,11 +6043,8 @@ async function hydrateYtHubGenres() {
 
           if (modified) {
             saveYtFavs(currentFavs);
-            // Trigger UI reload if we are still looking at the hub
-            const activeTab = document.querySelector('.yt-tab.active')?.dataset.mode;
-            if (activeTab === 'hub' && sparkyYtState.currentSubMode === 'hub') {
-              renderYtHub();
-            }
+            // Trigger UI reload immediately to show countdown dropping in real-time
+            renderYtHub();
           }
         }
       } catch (chunkErr) {
