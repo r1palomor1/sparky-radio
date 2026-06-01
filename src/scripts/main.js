@@ -4696,7 +4696,9 @@ const sparkyYtState = {
   smartSuggestions: [], // V-U7: Tier 3 context suggestions
   hubSortModeList: 'date', // 'date' | 'az' | 'artist' | 'genre'
   hubSortModeGroup: 'date', // 'date' | 'az' | 'artist' | 'genre'
-  hubGroupMode: 'grouped-genre' // 'list' | 'grouped-artist' | 'grouped-genre'
+  hubGroupMode: 'grouped-genre', // 'list' | 'grouped-artist' | 'grouped-genre'
+  bulkEditMode: false,
+  bulkSelectedIds: new Set()
 };
 
 function saveYtSessionState() {
@@ -5367,6 +5369,13 @@ function switchYtTab(mode) {
 
   const isHub = mode === 'hub';
 
+  if (!isHub) {
+    sparkyYtState.bulkEditMode = false;
+    sparkyYtState.bulkSelectedIds.clear();
+    const footer = document.querySelector('.footer');
+    if (footer) footer.classList.remove('bulk-active');
+  }
+
   if (searchWrap) searchWrap.classList.toggle('hidden', isHub);
   if (results) results.classList.toggle('hidden', isHub);
   if (hub) hub.classList.toggle('hidden', !isHub);
@@ -5479,7 +5488,18 @@ function _hubCardHtml(item) {
   const ambientClass = isAct && item.thumb ? ' has-ambient-bg' : '';
   const inQueue = sparkyYtState.temporaryQueue.some(v => v.id === item.id);
   const displayArtist = item.artistOverride || item.channel || 'Unknown Artist';
-  return `<div class="yt-card${isAct ? ' active' : ''}${ambientClass}" data-id="${item.id}" data-type="${item.type}" data-title="${item.title.replace(/"/g, '&quot;')}" data-channel="${displayArtist.replace(/"/g, '&quot;')}" data-thumb="${item.thumb}" data-duration="${item.duration || ''}" data-views="${item.views || ''}" data-published="${item.published || ''}" data-video-count="${item.video_count || ''}"${ambientStyle}>
+
+  let checkboxHtml = '';
+  let bulkClass = '';
+  if (sparkyYtState.bulkEditMode) {
+    const isChecked = sparkyYtState.bulkSelectedIds.has(item.id);
+    const checkIcon = isChecked ? 'check_box' : 'check_box_outline_blank';
+    checkboxHtml = `<div class="yt-card-checkbox" style="display: flex; align-items: center; justify-content: center; color: ${isChecked ? 'var(--accent)' : 'var(--dim)'}; padding-right: 8px; cursor: pointer; transition: color 0.2s;"><span class="material-symbols-outlined">${checkIcon}</span></div>`;
+    bulkClass = isChecked ? ' bulk-selected' : ' bulk-unselected';
+  }
+
+  return `<div class="yt-card${isAct ? ' active' : ''}${ambientClass}${bulkClass}" data-id="${item.id}" data-type="${item.type}" data-title="${item.title.replace(/"/g, '&quot;')}" data-channel="${displayArtist.replace(/"/g, '&quot;')}" data-thumb="${item.thumb}" data-duration="${item.duration || ''}" data-views="${item.views || ''}" data-published="${item.published || ''}" data-video-count="${item.video_count || ''}"${ambientStyle}>
+    ${checkboxHtml}
     <img class="yt-card-thumb" src="${item.thumb}" alt="" loading="lazy">
     <div class="yt-card-info">
       <div class="yt-card-title">${item.title}</div>
@@ -5489,7 +5509,7 @@ function _hubCardHtml(item) {
            <span class="mobile-stats">${item.views || ''}${item.published ? (item.views ? ' &middot; ' : '') + item.published : ''}${displayArtist ? (item.views || item.published ? ' &middot; ' : '') + displayArtist : ''}</span>`}
       </div>
     </div>
-    <div class="yt-card-actions">
+    <div class="yt-card-actions"${sparkyYtState.bulkEditMode ? ' style="display: none !important;"' : ''}>
       <button class="yt-card-fav yt-card-delete active" data-id="${item.id}" title="Delete from Hub"><span class="material-symbols-outlined">delete</span></button>
       <button class="yt-card-fav yt-card-hub-assign active" data-id="${item.id}" title="Assign Artist Group" style="color:var(--accent) !important;"><span class="material-symbols-outlined">person</span></button>
       <button class="yt-card-add yt-card-hub-queue${inQueue ? ' active' : ''}" data-id="${item.id}" title="${inQueue ? 'Remove from Queue' : 'Add to Queue'}"><span class="material-symbols-outlined">${inQueue ? 'remove_from_queue' : 'add_to_queue'}</span></button>
@@ -5500,6 +5520,23 @@ function _hubCardHtml(item) {
 function renderYtHub(showSortTooltip = false, showViewTooltip = false) {
   const hub = document.getElementById('ytHub');
   if (!hub) return;
+
+  // Inject persistent styles if they don't exist yet to enable smooth blurred transitions
+  if (!document.getElementById('yt-bulk-global-styles')) {
+    const styleEl = document.createElement('style');
+    styleEl.id = 'yt-bulk-global-styles';
+    styleEl.textContent = `
+      .footer {
+        transition: filter 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1) !important;
+      }
+      .footer.bulk-active {
+        filter: blur(5px) grayscale(45%) !important;
+        opacity: 0.15 !important;
+        pointer-events: none !important;
+      }
+    `;
+    document.head.appendChild(styleEl);
+  }
 
   // Immediately expand player if in a grouped layout to prevent layout shifts
   const groupMode = sparkyYtState.hubGroupMode;
@@ -5559,7 +5596,10 @@ function renderYtHub(showSortTooltip = false, showViewTooltip = false) {
         <span class="material-symbols-outlined">sort</span>
       </button>
     </div>
-    <div class="pl-header-right" style="display: flex; align-items: center;">
+    <div class="pl-header-right" style="display: flex; align-items: center; gap: 8px;">
+      <button class="pl-view-btn${sparkyYtState.bulkEditMode ? ' active' : ''}" id="btnHubBulkToggle" title="Bulk Selection Mode" style="margin: 0 !important; padding: 0 !important; background: transparent; border: none; color: ${sparkyYtState.bulkEditMode ? 'var(--accent)' : 'var(--dim)'}; text-shadow: ${sparkyYtState.bulkEditMode ? 'var(--glow)' : 'none'}; transition: all 0.2s;">
+        <span class="material-symbols-outlined">checklist</span>
+      </button>
       <button class="pl-view-btn" id="btnHubViewToggle" title="${groupTitle}" style="margin: 0 !important; padding: 0 !important; background: transparent; border: none;">
         <span class="material-symbols-outlined" id="hubViewToggleIcon">${groupIcon}</span>
       </button>
@@ -5657,9 +5697,33 @@ function renderYtHub(showSortTooltip = false, showViewTooltip = false) {
       const isVariousGenre = groupName === 'Various' && group === 'grouped-genre';
       const actionHtml = isVariousGenre ? `<button class="hub-various-refresh-btn" title="Re-hydrate Various genres" style="margin-left: 8px; padding: 4px; background: transparent; border: none; color: var(--accent); cursor: pointer; display: flex; align-items: center; justify-content: center; outline: none; border-radius: 50%;"><span class="material-symbols-outlined" style="font-size: 16px;">autorenew</span></button>` : '';
 
+      let groupCheckboxHtml = '';
+      if (sparkyYtState.bulkEditMode) {
+        const groupVideoIds = items.map(f => f.id);
+        const selectedInGroup = groupVideoIds.filter(id => sparkyYtState.bulkSelectedIds.has(id));
+        
+        let iconName = 'check_box_outline_blank';
+        let iconColor = 'var(--dim)';
+        
+        if (selectedInGroup.length === groupVideoIds.length) {
+          iconName = 'check_box';
+          iconColor = 'var(--accent)';
+        } else if (selectedInGroup.length > 0) {
+          iconName = 'indeterminate_check_box';
+          iconColor = 'var(--accent)';
+        }
+        
+        groupCheckboxHtml = `
+          <button class="yt-group-checkbox" data-group-name="${groupName.replace(/"/g, '&quot;')}" style="background: transparent; border: none; padding: 0; margin-right: 8px; color: ${iconColor}; cursor: pointer; display: flex; align-items: center; justify-content: center; outline: none; transition: color 0.2s;">
+            <span class="material-symbols-outlined" style="font-size: 20px;">${iconName}</span>
+          </button>
+        `;
+      }
+
       return `<div class="hub-group${collapsedClass}">
         <div class="hub-group-header" style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
           <div style="display: flex; align-items: center;">
+            ${groupCheckboxHtml}
             <span class="hub-group-artist">${groupName} (${items.length})</span>
             ${actionHtml}
           </div>
@@ -5672,7 +5736,399 @@ function renderYtHub(showSortTooltip = false, showViewTooltip = false) {
     cardsHtml = sorted.map(_hubCardHtml).join('');
   }
 
-  hub.innerHTML = toolbar + cardsHtml;
+  let bulkBarHtml = '';
+  if (sparkyYtState.bulkEditMode) {
+    const selCount = sparkyYtState.bulkSelectedIds.size;
+    bulkBarHtml = `
+      <style>
+        @keyframes slideUpPill {
+          from { transform: translate(-50%, 30px); opacity: 0; }
+          to { transform: translate(-50%, 0); opacity: 1; }
+        }
+        .yt-bulk-pill-btn {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 32px;
+          height: 32px;
+          border-radius: 50%;
+          background: rgba(255,255,255,0.03) !important;
+          border: 1px solid rgba(255,255,255,0.08) !important;
+          color: #fff !important;
+          cursor: pointer;
+          transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .yt-bulk-pill-btn:hover:not(:disabled), .yt-bulk-pill-btn:active:not(:disabled) {
+          background: rgba(0, 242, 255, 0.1) !important;
+          border-color: var(--accent) !important;
+          color: var(--accent) !important;
+          box-shadow: 0 0 10px rgba(0, 242, 255, 0.35);
+          transform: translateY(-1px);
+        }
+        .yt-bulk-pill-btn:disabled {
+          opacity: 0.25;
+          cursor: not-allowed;
+          border-color: rgba(255,255,255,0.03) !important;
+        }
+        .yt-bulk-pill-btn.delete-btn:hover:not(:disabled), .yt-bulk-pill-btn.delete-btn:active:not(:disabled) {
+          background: rgba(255, 82, 82, 0.1) !important;
+          border-color: #ff5252 !important;
+          color: #ff5252 !important;
+          box-shadow: 0 0 10px rgba(255, 82, 82, 0.35);
+        }
+        .yt-bulk-pill-badge {
+          cursor: pointer;
+          transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .yt-bulk-pill-badge:hover {
+          transform: scale(1.03);
+          filter: brightness(1.15);
+        }
+      </style>
+      <div class="yt-bulk-bar" style="grid-column: 1 / -1; position: fixed; bottom: 12px; left: 50%; transform: translateX(-50%); width: calc(100% - 24px); max-width: 360px; background: rgba(5, 7, 12, 0.85) !important; backdrop-filter: blur(20px) saturate(180%); -webkit-backdrop-filter: blur(20px) saturate(180%); border: 1px solid rgba(0, 242, 255, 0.25); border-radius: 30px; padding: 6px 12px; z-index: 1200; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 8px 32px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.05); margin: 0 auto; animation: slideUpPill 0.3s cubic-bezier(0.16, 1, 0.3, 1);">
+        <div id="btnBulkSelectAll" class="yt-bulk-pill-badge" title="${selCount === loadYtFavs().length ? 'Deselect All Items' : 'Select All Items'}" style="display: flex; align-items: center; gap: 8px; padding: 4px 10px; background: rgba(0, 242, 255, 0.08); border: 1px solid rgba(0, 242, 255, 0.2); border-radius: 20px;">
+          <span style="font-family: 'Orbitron', sans-serif; font-size: 12px; font-weight: bold; color: var(--accent); text-shadow: var(--glow); line-height: 1;">${selCount}</span>
+          <span style="font-family: 'Share Tech Mono', monospace; font-size: 8px; color: rgba(255, 255, 255, 0.8); letter-spacing: 0.5px; text-transform: uppercase; font-weight: 500;">SELECTED</span>
+        </div>
+        <div style="display: flex; gap: 6px; align-items: center;">
+          <button id="btnBulkAssign" class="yt-bulk-pill-btn" title="Bulk Assign Metadata" ${selCount === 0 ? 'disabled' : ''}>
+            <span class="material-symbols-outlined" style="font-size: 16px;">person_add</span>
+          </button>
+          <button id="btnBulkQueue" class="yt-bulk-pill-btn" title="Bulk Queue Selected" ${selCount === 0 ? 'disabled' : ''}>
+            <span class="material-symbols-outlined" style="font-size: 16px;">playlist_add</span>
+          </button>
+          <button id="btnBulkDelete" class="yt-bulk-pill-btn delete-btn" title="Bulk Delete Selected" ${selCount === 0 ? 'disabled' : ''}>
+            <span class="material-symbols-outlined" style="font-size: 16px;">delete</span>
+          </button>
+          <div style="width: 1px; height: 16px; background: rgba(255,255,255,0.12); margin: 0 2px;"></div>
+          <button id="btnBulkCancel" class="yt-bulk-pill-btn" title="Exit Bulk Selection" style="background: transparent !important; border-color: transparent !important; opacity: 0.7;">
+            <span class="material-symbols-outlined" style="font-size: 16px; color: rgba(255,255,255,0.6);">close</span>
+          </button>
+        </div>
+      </div>
+    `;
+    cardsHtml += `<div style="height: 50px; grid-column: 1 / -1;"></div>`;
+  }
+
+  hub.innerHTML = toolbar + cardsHtml + bulkBarHtml;
+
+  const footer = document.querySelector('.footer');
+  if (footer) {
+    footer.classList.toggle('bulk-active', !!sparkyYtState.bulkEditMode);
+  }
+
+  // Header Bulk Toggle Button Listener
+  const bulkToggleBtn = hub.querySelector('#btnHubBulkToggle');
+  if (bulkToggleBtn) {
+    bulkToggleBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      sparkyYtState.bulkEditMode = !sparkyYtState.bulkEditMode;
+      if (!sparkyYtState.bulkEditMode) {
+        sparkyYtState.bulkSelectedIds.clear();
+      }
+      renderYtHub();
+    });
+  }
+
+  // Bulk Actions Listeners
+  if (sparkyYtState.bulkEditMode) {
+    // Select / Deselect All
+    const selectAllBtn = hub.querySelector('#btnBulkSelectAll');
+    if (selectAllBtn) {
+      selectAllBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const favs = loadYtFavs();
+        if (sparkyYtState.bulkSelectedIds.size === favs.length) {
+          sparkyYtState.bulkSelectedIds.clear();
+        } else {
+          favs.forEach(f => sparkyYtState.bulkSelectedIds.add(f.id));
+        }
+        renderYtHub();
+      });
+    }
+
+    // Cancel Bulk Mode
+    const cancelBtn = hub.querySelector('#btnBulkCancel');
+    if (cancelBtn) {
+      cancelBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        sparkyYtState.bulkEditMode = false;
+        sparkyYtState.bulkSelectedIds.clear();
+        renderYtHub();
+      });
+    }
+
+    // Bulk Queue
+    const queueBtn = hub.querySelector('#btnBulkQueue');
+    if (queueBtn) {
+      queueBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const favs = loadYtFavs();
+        const selectedItems = favs.filter(f => sparkyYtState.bulkSelectedIds.has(f.id));
+        
+        let addedCount = 0;
+        selectedItems.forEach(item => {
+          if (!sparkyYtState.temporaryQueue.some(v => v.id === item.id)) {
+            sparkyYtState.temporaryQueue.push({
+              id: item.id,
+              type: item.type || 'video',
+              title: item.title,
+              thumb: item.thumb,
+              channel: item.channel,
+              duration: item.duration || '',
+              views: item.views || '',
+              published: item.published || '',
+              video_count: item.video_count || ''
+            });
+            addedCount++;
+          }
+        });
+        
+        sparkyAlert(`Added ${addedCount} selected items to queue!`, "BULK QUEUE");
+        
+        sparkyYtState.bulkEditMode = false;
+        sparkyYtState.bulkSelectedIds.clear();
+        renderYtHub();
+        
+        const btnQueue = document.getElementById('btnYtQueue');
+        if (btnQueue) {
+          btnQueue.classList.remove('hidden');
+          btnQueue.classList.add('available');
+        }
+        renderYtQueue();
+      });
+    }
+
+    // Bulk Delete
+    const deleteBtn = hub.querySelector('#btnBulkDelete');
+    if (deleteBtn) {
+      deleteBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const count = sparkyYtState.bulkSelectedIds.size;
+        sparkyConfirm(`Are you sure you want to remove ${count} selected items from Favorites?`, () => {
+          const favs = loadYtFavs();
+          const remaining = favs.filter(f => !sparkyYtState.bulkSelectedIds.has(f.id));
+          saveYtFavs(remaining);
+          
+          sparkyYtState.bulkEditMode = false;
+          sparkyYtState.bulkSelectedIds.clear();
+          renderYtHub();
+          syncYtTabCounts();
+        }, "BULK DELETE FROM HUB");
+      });
+    }
+
+    // Bulk Assign Artist Group / Genre Stacked Modal
+    const assignBtn = hub.querySelector('#btnBulkAssign');
+    if (assignBtn) {
+      assignBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const favs = loadYtFavs();
+        const selectedIds = Array.from(sparkyYtState.bulkSelectedIds);
+
+        const getArtistOptions = () => {
+          const activeArtists = new Set();
+          favs.forEach(f => {
+            const art = f.artistOverride || f.channel;
+            if (art) activeArtists.add(art);
+          });
+          const customGroups = loadCustomGroups();
+          return Array.from(new Set([...activeArtists, ...customGroups])).sort();
+        };
+
+        const getGenreOptions = () => {
+          const predefinedGenres = MASTER_GENRES.map(g => g.charAt(0).toUpperCase() + g.slice(1));
+          const customGenres = loadCustomGenres();
+          return Array.from(new Set([...predefinedGenres, ...customGenres])).sort();
+        };
+
+        const modal = document.createElement('div');
+        modal.className = 'artist-assign-modal';
+        modal.innerHTML = `
+          <style>
+            .artist-assign-modal select {
+              background-color: #0b121f !important;
+              color: #ffffff !important;
+              border: 1px solid rgba(0, 242, 255, 0.2) !important;
+            }
+            .artist-assign-modal option {
+              background-color: #0b121f !important;
+              color: #ffffff !important;
+            }
+          </style>
+          <div class="artist-assign-content" style="max-width: 380px !important;">
+            <div class="artist-assign-header">
+              <span>Bulk Assign (${selectedIds.length} Items)</span>
+              <button class="artist-assign-close">&times;</button>
+            </div>
+            <div class="artist-assign-body" style="gap: 16px !important; overflow-y: auto !important; max-height: 70vh !important; padding: 4px 0 !important;">
+              
+              <!-- SECTION A: ARTIST GROUP -->
+              <div>
+                <div style="font-size: 11px; font-family: 'Orbitron', sans-serif; color: var(--accent); margin-bottom: 6px; letter-spacing: 1px;">ARTIST GROUP</div>
+                <select id="bulkArtistSelect" class="artist-assign-input" style="width: 100%; margin-bottom: 8px; background: #0b121f !important; border: 1px solid rgba(255,255,255,0.15); border-radius: 4px; padding: 8px; color: #fff !important; font-family: 'Share Tech Mono', monospace; font-size: 12px; outline: none; cursor: pointer;">
+                  <option value="keep">-- KEEP ORIGINAL (No Change) --</option>
+                  <option value="clear">-- CLEAR ASSIGNMENT (Reset to Default) --</option>
+                  <!-- Loaded Dynamically -->
+                </select>
+                <div style="display: flex; gap: 8px;">
+                  <input type="text" id="bulkNewArtistInput" placeholder="Create new artist group..." class="artist-assign-input" style="flex: 1; padding: 8px; border-radius: 4px; font-family: 'Outfit', sans-serif; font-size: 12px;">
+                  <button id="bulkNewArtistAddBtn" class="artist-assign-add-btn" style="padding: 6px 12px; border-radius: 4px; font-size: 11px;">ADD</button>
+                </div>
+              </div>
+
+              <!-- SECTION B: GENRE GROUP -->
+              <div style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 14px;">
+                <div style="font-size: 11px; font-family: 'Orbitron', sans-serif; color: var(--accent); margin-bottom: 6px; letter-spacing: 1px;">GENRE</div>
+                <select id="bulkGenreSelect" class="artist-assign-input" style="width: 100%; margin-bottom: 8px; background: #0b121f !important; border: 1px solid rgba(255,255,255,0.15); border-radius: 4px; padding: 8px; color: #fff !important; font-family: 'Share Tech Mono', monospace; font-size: 12px; outline: none; cursor: pointer;">
+                  <option value="keep">-- KEEP ORIGINAL (No Change) --</option>
+                  <option value="clear">-- CLEAR ASSIGNMENT (Reset to Various) --</option>
+                  <!-- Loaded Dynamically -->
+                </select>
+                <div style="display: flex; gap: 8px;">
+                  <input type="text" id="bulkNewGenreInput" placeholder="Create new genre..." class="artist-assign-input" style="flex: 1; padding: 8px; border-radius: 4px; font-family: 'Outfit', sans-serif; font-size: 12px;">
+                  <button id="bulkNewGenreAddBtn" class="artist-assign-add-btn" style="padding: 6px 12px; border-radius: 4px; font-size: 11px;">ADD</button>
+                </div>
+              </div>
+
+              <!-- SECTION C: ACTION FOOTER -->
+              <div style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 14px; margin-top: 4px;">
+                <button id="bulkApplyBtn" class="artist-assign-add-btn" style="width: 100%; padding: 12px; border-radius: 6px; background: var(--accent) !important; color: #000 !important; font-family: 'Share Tech Mono', monospace; font-weight: bold; text-transform: uppercase; font-size: 12px; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 12px rgba(0,242,255,0.15);">
+                  APPLY ASSIGNMENTS
+                </button>
+              </div>
+
+            </div>
+          </div>
+        `;
+
+        const artistSelect = modal.querySelector('#bulkArtistSelect');
+        const genreSelect = modal.querySelector('#bulkGenreSelect');
+
+        const populateArtists = (selectedVal) => {
+          const artists = getArtistOptions();
+          const optionHtml = `
+            <option value="keep">-- KEEP ORIGINAL (No Change) --</option>
+            <option value="clear">-- CLEAR ASSIGNMENT (Reset to Default) --</option>
+          ` + artists.map(art => {
+            const isSelected = selectedVal === art ? ' selected' : '';
+            return `<option value="${art.replace(/"/g, '&quot;')}"${isSelected} style="background: #0b121f !important; color: #fff !important;">${art}</option>`;
+          }).join('');
+          artistSelect.innerHTML = optionHtml;
+        };
+
+        const populateGenres = (selectedVal) => {
+          const genres = getGenreOptions();
+          const optionHtml = `
+            <option value="keep">-- KEEP ORIGINAL (No Change) --</option>
+            <option value="clear">-- CLEAR ASSIGNMENT (Reset to Various) --</option>
+          ` + genres.map(gen => {
+            const isSelected = selectedVal === gen ? ' selected' : '';
+            return `<option value="${gen.replace(/"/g, '&quot;')}"${isSelected} style="background: #0b121f !important; color: #fff !important;">${gen}</option>`;
+          }).join('');
+          genreSelect.innerHTML = optionHtml;
+        };
+
+        populateArtists('keep');
+        populateGenres('keep');
+
+        const closeModal = () => modal.remove();
+        modal.querySelector('.artist-assign-close').addEventListener('click', closeModal);
+        modal.addEventListener('click', (ev) => {
+          if (ev.target === modal) closeModal();
+        });
+
+        // Add New Artist
+        const newArtistInput = modal.querySelector('#bulkNewArtistInput');
+        const newArtistAddBtn = modal.querySelector('#bulkNewArtistAddBtn');
+        const submitNewArtist = () => {
+          const val = newArtistInput.value.trim();
+          if (val) {
+            addCustomGroup(val);
+            newArtistInput.value = '';
+            populateArtists(val);
+          }
+        };
+        newArtistInput.addEventListener('click', (ev) => ev.stopPropagation());
+        newArtistInput.addEventListener('keydown', (ev) => {
+          ev.stopPropagation();
+          if (ev.key === 'Enter') submitNewArtist();
+        });
+        newArtistAddBtn.addEventListener('click', (ev) => {
+          ev.stopPropagation();
+          submitNewArtist();
+        });
+
+        // Add New Genre
+        const newGenreInput = modal.querySelector('#bulkNewGenreInput');
+        const newGenreAddBtn = modal.querySelector('#bulkNewGenreAddBtn');
+        const submitNewGenre = () => {
+          const val = newGenreInput.value.trim();
+          if (val) {
+            addCustomGenre(val);
+            newGenreInput.value = '';
+            populateGenres(val);
+          }
+        };
+        newGenreInput.addEventListener('click', (ev) => ev.stopPropagation());
+        newGenreInput.addEventListener('keydown', (ev) => {
+          ev.stopPropagation();
+          if (ev.key === 'Enter') submitNewGenre();
+        });
+        newGenreAddBtn.addEventListener('click', (ev) => {
+          ev.stopPropagation();
+          submitNewGenre();
+        });
+
+        // Apply
+        const applyBtn = modal.querySelector('#bulkApplyBtn');
+        applyBtn.addEventListener('click', (ev) => {
+          ev.stopPropagation();
+          const currentFavs = loadYtFavs();
+          let modified = false;
+
+          const targetArtist = artistSelect.value;
+          const targetGenre = genreSelect.value;
+
+          currentFavs.forEach(item => {
+            if (sparkyYtState.bulkSelectedIds.has(item.id)) {
+              if (targetArtist === 'clear') {
+                item.artistOverride = null;
+                modified = true;
+              } else if (targetArtist !== 'keep') {
+                item.artistOverride = targetArtist;
+                modified = true;
+              }
+
+              if (targetGenre === 'clear') {
+                item.genre = 'Various';
+                item.genreHydrated = false;
+                modified = true;
+              } else if (targetGenre !== 'keep') {
+                item.genre = targetGenre;
+                item.genreHydrated = true;
+                modified = true;
+              }
+            }
+          });
+
+          if (modified) {
+            saveYtFavs(currentFavs);
+            if (targetGenre === 'clear') {
+              setTimeout(hydrateYtHubGenres, 100);
+            }
+          }
+
+          closeModal();
+          sparkyYtState.bulkEditMode = false;
+          sparkyYtState.bulkSelectedIds.clear();
+          renderYtHub();
+        });
+
+        document.body.appendChild(modal);
+      });
+    }
+  }
 
   // Exact Radio sort cycling logic: cycles sort mode directly and shows tooltip briefly
   const sortBtn = hub.querySelector('#btnHubSortMode');
@@ -5719,12 +6175,46 @@ function renderYtHub(showSortTooltip = false, showViewTooltip = false) {
   hub.querySelectorAll('.hub-group-header').forEach(header => {
     header.addEventListener('click', (e) => {
       if (e.target.closest('.hub-various-refresh-btn')) return;
+      if (e.target.closest('.yt-group-checkbox')) return;
       const groupEl = header.closest('.hub-group');
       if (groupEl) {
         groupEl.classList.toggle('collapsed');
       }
     });
   });
+
+  // Group Header Bulk Checkbox Click Listener
+  if (sparkyYtState.bulkEditMode) {
+    hub.querySelectorAll('.yt-group-checkbox').forEach(chk => {
+      chk.addEventListener('click', (e) => {
+        e.stopPropagation();
+        
+        const groupName = chk.dataset.groupName;
+        const groupMode = sparkyYtState.hubGroupMode;
+        
+        // Find all items belonging to this group
+        const groupFavs = favs.filter(item => {
+          if (groupMode === 'grouped-artist') {
+            return (item.artistOverride || item.channel || 'Unknown Artist') === groupName;
+          } else {
+            return (item.genre || 'Various') === groupName;
+          }
+        });
+        
+        const groupIds = groupFavs.map(f => f.id);
+        const selectedInGroup = groupIds.filter(id => sparkyYtState.bulkSelectedIds.has(id));
+        
+        // If all or some are selected, deselect all in group. Otherwise, select all.
+        if (selectedInGroup.length > 0) {
+          groupIds.forEach(id => sparkyYtState.bulkSelectedIds.delete(id));
+        } else {
+          groupIds.forEach(id => sparkyYtState.bulkSelectedIds.add(id));
+        }
+        
+        renderYtHub();
+      });
+    });
+  }
 
   // Various self-healing refresh button click handler
   hub.querySelectorAll('.hub-various-refresh-btn').forEach(btn => {
@@ -6969,10 +7459,51 @@ function attachYtCardListeners(container) {
 
   newCards.forEach((card) => {
     card.setAttribute('data-bound', 'true');
+    const isHub = container && container.id === 'ytHub';
 
-    // Card body click â†’ play
+    let pressTimer = null;
+    const startPress = () => {
+      if (!isHub) return;
+      if (sparkyYtState.bulkEditMode) return;
+      pressTimer = setTimeout(() => {
+        sparkyYtState.bulkEditMode = true;
+        sparkyYtState.bulkSelectedIds.add(card.dataset.id);
+        renderYtHub();
+        if (navigator.vibrate) {
+          navigator.vibrate(50);
+        }
+      }, 750);
+    };
+
+    const cancelPress = () => {
+      if (pressTimer) {
+        clearTimeout(pressTimer);
+        pressTimer = null;
+      }
+    };
+
+    card.addEventListener('mousedown', startPress);
+    card.addEventListener('touchstart', startPress, { passive: true });
+    card.addEventListener('mouseup', cancelPress);
+    card.addEventListener('mouseleave', cancelPress);
+    card.addEventListener('touchend', cancelPress);
+    card.addEventListener('touchmove', cancelPress);
+
+    // Card body click â†’ play or toggle bulk selection
     card.addEventListener('click', async e => {
       if (e.target.closest('.yt-card-fav') || e.target.closest('.yt-card-add')) return;
+
+      if (sparkyYtState.bulkEditMode) {
+        e.stopPropagation();
+        const id = card.dataset.id;
+        if (sparkyYtState.bulkSelectedIds.has(id)) {
+          sparkyYtState.bulkSelectedIds.delete(id);
+        } else {
+          sparkyYtState.bulkSelectedIds.add(id);
+        }
+        renderYtHub();
+        return;
+      }
 
       // Resolve full queue from container at click-time to support pagination
       const groupCardsContainer = card.closest('.hub-group-cards');
