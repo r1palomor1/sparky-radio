@@ -6008,10 +6008,10 @@ async function hydrateYtHubGenres() {
       }
 
       const chunk = toHydrate.slice(i, i + chunkSize);
-      const ids = chunk.map(item => item.id).join(',');
+      const payload = chunk.map(item => ({ id: item.id, title: item.title }));
       
       try {
-        const response = await fetch(`/api/hydrateTags?ids=${encodeURIComponent(ids)}`);
+        const response = await fetch(`/api/hydrateTags?payload=${encodeURIComponent(JSON.stringify(payload))}`);
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const data = await response.json();
         

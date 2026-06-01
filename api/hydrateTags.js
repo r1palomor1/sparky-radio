@@ -9,8 +9,8 @@ export default async function handler(req, res) {
     if (req.method === 'OPTIONS') return res.status(200).end();
 
     try {
-        const { id, ids } = req.query;
-        if (!id && !ids) return res.status(400).json({ error: 'ID or IDs required' });
+        const { id, ids, payload } = req.query;
+        if (!id && !ids && !payload) return res.status(400).json({ error: 'ID, IDs or payload required' });
 
         // 1. Blazing fast, Vercel-friendly public watch page HTML scraper
         async function scrapeWatchPage(videoId) {
@@ -108,175 +108,167 @@ export default async function handler(req, res) {
             }
         }
 
-        // Helper function to hydrate a single video
-        async function fetchSingleInfo(videoId) {
-            // First Path: Ultra-fast HTML GET parser (No files written, 200ms, never blocks on Vercel)
-            const scraped = await scrapeWatchPage(videoId);
-            if (scraped) {
-                // If it is single view (not batch) and related videos are needed, fetch them via simple fallback search
-                if (!ids) {
-                    try {
-                        const youtube = await getYoutubeClient();
-                        const videoTitle = scraped.title || 'related';
-                        console.log(`[HYDRATE] Fetching related videos for single view using fallback search`);
-                        const searchResult = await youtube.search(videoTitle, { limit: 12 });
-                        const videos = searchResult?.videos || searchResult?.results || [];
-                        videos.forEach(result => {
-                            const rId = result.id || result.video_id;
-                            if (rId && rId !== videoId) {
-                                scraped.related_videos.push({
-                                    id: rId,
-                                    title: result.title?.text || result.title || 'Unknown Title',
-                                    thumb: result.thumbnails?.[0]?.url || '',
-                                    channel: result.author?.name || '',
-                                    views: shortenMetadata(result.short_view_count?.text || ''),
-                                    duration: shortenMetadata(result.length_text?.text || '')
-                                });
+        // Clean title search terms for iTunes and MusicBrainz
+        function cleanSearchQuery(title) {
+            if (!title) return '';
+            let query = title;
+            // Replace dash or pipe with space to separate artist and track clearly
+            query = query.replace(/[\-\|]/g, ' ');
+            // Remove brackets/parentheses and everything inside them
+            query = query.replace(/\([^)]*\)/g, '');
+            // Remove brackets
+            query = query.replace(/\[[^\]]*\]/g, '');
+            // Remove common YouTube fluff
+            query = query.replace(/\b(feat|ft|official|video|audio|lyrics|hd|4k|music video|lyric video|mixed|mix)\b.*/gi, '');
+            // Replace non-alphanumeric with spaces, collapse spaces
+            query = query.replace(/[^a-zA-Z0-9\s']/g, ' ');
+            query = query.replace(/\s+/g, ' ').trim();
+            return query;
+        }
+
+        // Fetch genres from iTunes (primary) or MusicBrainz (fallback)
+        async function fetchGenreFromApis(title) {
+            if (!title) return [];
+            
+            // Path A: iTunes Search API (100% free, fast, datacenter-friendly)
+            try {
+                const cleaned = cleanSearchQuery(title);
+                if (cleaned) {
+                    const url = `https://itunes.apple.com/search?term=${encodeURIComponent(cleaned)}&entity=song&limit=1`;
+                    const itunesRes = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
+                    if (itunesRes.ok) {
+                        const data = await itunesRes.json();
+                        if (data.results && data.results.length > 0) {
+                            const genre = data.results[0].primaryGenreName;
+                            if (genre) {
+                                console.log(`[HYDRATE-GENRE] iTunes hit for "${title}": ${genre}`);
+                                return [genre];
                             }
-                        });
-                    } catch (e) {
-                        // Keep empty related videos on fallback failure
+                        }
                     }
                 }
-                return scraped;
+            } catch (err) {
+                console.error('[HYDRATE-GENRE] iTunes API error:', err.message);
             }
 
-            // Second Path: Heavy youtubei.js engine (Fallback for local dev or detailed info)
+            // Path B: MusicBrainz fallback (extremely reliable database open by design)
             try {
-                const youtube = await getYoutubeClient();
-                const info = await youtube.getInfo(videoId);
-                const basic = info.basic_info;
-                const views = basic?.view_count?.toString() || '';
-
-                let published =
-                    info.primary_info?.relative_date?.text ||
-                    info.primary_info?.published?.text ||
-                    '';
-
-                if (!published) {
-                    const mf = info.microformat?.microformat_data_renderer ||
-                               info.microformat?.playerMicroformatRenderer ||
-                               info.microformat;
-                    const rawDate = mf?.publish_date || mf?.publishDate || mf?.upload_date || mf?.uploadDate || '';
-                    if (rawDate) {
-                        published = absoluteToRelative(rawDate);
-                    }
-                }
-
-                if (!published && basic?.published) {
-                    published = basic.published;
-                }
-
-                const keywords = Array.isArray(basic?.keywords) ? basic.keywords : [];
-                const related_videos = [];
-                
-                try {
-                    if (info.watch_next_feed && info.watch_next_feed.length > 0) {
-                        for (const item of info.watch_next_feed) {
-                            if (item.type !== 'LockupView') continue;
-                            
-                            const id = item.content_id || item.renderer_context?.command_context?.on_tap?.payload?.videoId;
-                            if (!id || id === videoId) continue;
-                            
-                            const viewsText = item.metadata?.metadata?.metadata_rows?.[1]?.metadata_parts?.[0]?.text?.text || '';
-                            if (viewsText.toLowerCase().includes('playlist')) continue;
-         
-                            const title = item.metadata?.title?.text || '';
-                            if (title.toLowerCase().startsWith('mix - ')) continue;
-         
-                            const thumb = item.content_image?.image?.[0]?.url || 
-                                          item.content_image?.image?.[1]?.url || 
-                                          item.content_image?.image?.sources?.[0]?.url ||
-                                          item.thumbnail?.[0]?.url ||
-                                          '';
-                            const channel = item.metadata?.metadata?.metadata_rows?.[0]?.metadata_parts?.[0]?.text?.text || '';
-                            const duration = item.content_image?.overlays?.[0]?.badges?.[0]?.text || '';
-                            
-                            related_videos.push({
-                                id,
-                                title,
-                                thumb,
-                                channel,
-                                views: shortenMetadata(viewsText),
-                                duration: shortenMetadata(duration)
-                            });
-                        }
-                    }
-                } catch (feedErr) {
-                    console.error('[HYDRATE] Watch next feed extraction failed:', feedErr.message);
-                }
-
-                if (related_videos.length < 3) {
-                    try {
-                        const videoTitle = basic?.title || 'related';
-                        const searchResult = await youtube.search(videoTitle, { limit: 15 });
-                        const videos = searchResult?.videos || searchResult?.results || [];
-                        
-                        if (videos.length > 0) {
-                            for (const result of videos) {
-                                try {
-                                    const id = result.id || result.video_id;
-                                    if (!id || id === videoId) continue;
-
-                                    const title = result.title?.text || result.title || '';
-                                    if (title.toLowerCase().startsWith('mix - ')) continue;
-                                    if (title.toLowerCase().includes('playlist')) continue;
-                                    
-                                    related_videos.push({
-                                        id,
-                                        title: title || 'Unknown Title',
-                                        thumb: result.thumbnails?.[0]?.url || '',
-                                        channel: result.author?.name || '',
-                                        views: shortenMetadata(result.short_view_count?.text || ''),
-                                        duration: shortenMetadata(result.length_text?.text || '')
-                                    });
-                                    
-                                    if (related_videos.length >= 12) break;
-                                } catch (e) {
-                                    // Ignore malformed search item
-                                }
+                const cleaned = cleanSearchQuery(title);
+                if (cleaned) {
+                    const url = `https://musicbrainz.org/ws/2/recording/?query=${encodeURIComponent(cleaned)}&fmt=json`;
+                    const mbRes = await fetch(url, { 
+                        headers: { 'User-Agent': 'SparkyRadio/2.3 ( palomor1@gmail.com )' }
+                    });
+                    if (mbRes.ok) {
+                        const data = await mbRes.json();
+                        if (data.recordings && data.recordings.length > 0) {
+                            const rec = data.recordings[0];
+                            const tags = (rec.tags || []).map(t => t.name).filter(Boolean);
+                            if (tags.length > 0) {
+                                console.log(`[HYDRATE-GENRE] MusicBrainz hit for "${title}": ${tags.join(', ')}`);
+                                return tags;
                             }
                         }
-                    } catch (searchErr) {
-                        console.error('[HYDRATE] Fallback search failed:', searchErr.message);
                     }
                 }
-                
-                return {
-                    id: videoId,
-                    views: shortenMetadata(views),
-                    published: shortenMetadata(published),
-                    related_videos: related_videos,
-                    keywords: keywords
-                };
             } catch (err) {
-                console.error(`[HYDRATE] Heavy fallback failed for ID ${videoId}:`, err.message);
-                return {
+                console.error('[HYDRATE-GENRE] MusicBrainz API error:', err.message);
+            }
+            
+            return [];
+        }
+
+        // Helper function to hydrate a single video
+        async function fetchSingleInfo(videoId, videoTitle) {
+            // First Path: Ultra-fast HTML GET parser (No files written, 200ms, never blocks on Vercel)
+            let scraped = await scrapeWatchPage(videoId);
+            if (!scraped) {
+                scraped = {
                     id: videoId,
+                    title: videoTitle || '',
                     views: '',
                     published: '',
-                    related_videos: [],
-                    keywords: []
+                    keywords: [],
+                    related_videos: []
                 };
+            }
+
+            // Always look up iTunes/MusicBrainz genre using title
+            const finalTitle = videoTitle || scraped.title;
+            if (finalTitle) {
+                const apiGenres = await fetchGenreFromApis(finalTitle);
+                if (apiGenres.length > 0) {
+                    // Merge YouTube scraped keywords and iTunes/MusicBrainz API genres
+                    scraped.keywords = [...new Set([...(scraped.keywords || []), ...apiGenres])];
+                }
+            }
+
+            // If it is single view (not batch) and related videos are needed, fetch them via simple fallback search
+            if (!ids && !payload) {
+                try {
+                    const youtube = await getYoutubeClient();
+                    const searchTitle = scraped.title || 'related';
+                    console.log(`[HYDRATE] Fetching related videos for single view using fallback search`);
+                    const searchResult = await youtube.search(searchTitle, { limit: 12 });
+                    const videos = searchResult?.videos || searchResult?.results || [];
+                    videos.forEach(result => {
+                        const rId = result.id || result.video_id;
+                        if (rId && rId !== videoId) {
+                            scraped.related_videos.push({
+                                id: rId,
+                                title: result.title?.text || result.title || 'Unknown Title',
+                                thumb: result.thumbnails?.[0]?.url || '',
+                                channel: result.author?.name || '',
+                                views: shortenMetadata(result.short_view_count?.text || ''),
+                                duration: shortenMetadata(result.length_text?.text || '')
+                            });
+                        }
+                    });
+                } catch (e) {
+                    // Keep empty related videos on fallback failure
+                }
+            }
+            
+            return scraped;
+        }
+
+        // Process request variables: support payload array (V-E4) or traditional ids/id GET fields
+        let itemsToProcess = [];
+        if (payload) {
+            try {
+                itemsToProcess = JSON.parse(payload);
+            } catch (e) {
+                console.error('[HYDRATE] Failed to parse payload JSON:', e.message);
+            }
+        }
+        
+        if (itemsToProcess.length === 0) {
+            if (id) {
+                itemsToProcess.push({ id });
+            } else if (ids) {
+                const idList = ids.split(',').map(s => s.trim()).filter(Boolean);
+                idList.forEach(idVal => {
+                    itemsToProcess.push({ id: idVal });
+                });
             }
         }
 
-        if (ids) {
-            const idList = ids.split(',').map(s => s.trim()).filter(Boolean);
-            if (idList.length === 0) return res.status(400).json({ error: 'Valid IDs required' });
+        if (itemsToProcess.length === 0) {
+            return res.status(400).json({ error: 'Valid ID, IDs, or payload required' });
+        }
 
-            console.log(`[HYDRATE] Batch hydrating ${idList.length} video IDs (sequential with timeout guards)`);
-            // Process sequentially instead of parallel to avoid hammering YouTube's rate limiter
-            // on Vercel serverless where all requests originate from similar IPs
+        if (itemsToProcess.length > 1) {
+            console.log(`[HYDRATE] Batch hydrating ${itemsToProcess.length} videos (sequential with timeout guards)`);
             const results = [];
-            for (const videoId of idList) {
-                const result = await fetchSingleInfo(videoId);
+            for (const item of itemsToProcess) {
+                const result = await fetchSingleInfo(item.id, item.title);
                 results.push(result);
             }
             return res.status(200).json({ results });
         } else {
-            console.log(`[HYDRATE] Single hydration for ID: ${id}`);
-            const result = await fetchSingleInfo(id);
+            const singleItem = itemsToProcess[0];
+            console.log(`[HYDRATE] Single hydration for ID: ${singleItem.id} | Title: ${singleItem.title || 'none'}`);
+            const result = await fetchSingleInfo(singleItem.id, singleItem.title);
             return res.status(200).json(result);
         }
 
