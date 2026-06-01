@@ -5654,8 +5654,8 @@ function renderYtHub(showSortTooltip = false, showViewTooltip = false) {
     cardsHtml = entries.map(([groupName, items]) => {
       const isExpanded = expandedGroups.has(groupName);
       const collapsedClass = isExpanded ? '' : ' collapsed';
-      const isVarious = groupName === 'Various';
-      const actionHtml = isVarious ? `<button class="hub-various-refresh-btn" title="Re-hydrate Various genres" style="margin-left: 8px; padding: 4px; background: transparent; border: none; color: var(--accent); cursor: pointer; display: flex; align-items: center; justify-content: center; outline: none; border-radius: 50%;"><span class="material-symbols-outlined" style="font-size: 16px;">autorenew</span></button>` : '';
+      const isVariousGenre = groupName === 'Various' && group === 'grouped-genre';
+      const actionHtml = isVariousGenre ? `<button class="hub-various-refresh-btn" title="Re-hydrate Various genres" style="margin-left: 8px; padding: 4px; background: transparent; border: none; color: var(--accent); cursor: pointer; display: flex; align-items: center; justify-content: center; outline: none; border-radius: 50%;"><span class="material-symbols-outlined" style="font-size: 16px;">autorenew</span></button>` : '';
 
       return `<div class="hub-group${collapsedClass}">
         <div class="hub-group-header" style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
