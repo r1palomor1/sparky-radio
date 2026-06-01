@@ -33,12 +33,41 @@ export default async function handler(req, res) {
                 if (!res || !res.ok) return null;
                 const html = await res.text();
 
-                // Extract Keywords
+                // GENERIC BOT-GATE FINGERPRINT: YouTube serves a consent/bot-detection page to
+                // datacenter IPs (like Vercel) whose meta keywords are always these exact 6 tokens.
+                // Detect this and fall through to the ytInitialData JSON path instead.
+                const BOT_GATE_KEYWORDS = new Set(['video', 'sharing', 'camera phone', 'video phone', 'free', 'upload']);
                 const metaRegex = /<meta name="keywords" content="([^"]+)"/i;
                 const metaMatch = html.match(metaRegex);
-                let keywords = [];
+                let metaKeywords = [];
                 if (metaMatch) {
-                    keywords = metaMatch[1].split(',').map(s => s.trim()).filter(Boolean);
+                    metaKeywords = metaMatch[1].split(',').map(s => s.trim()).filter(Boolean);
+                }
+
+                // Check if this is the generic bot-gate page (all keywords are in the fingerprint set)
+                const isGenericPage = metaKeywords.length > 0 &&
+                    metaKeywords.every(k => BOT_GATE_KEYWORDS.has(k.toLowerCase()));
+
+                // PATH A: Use meta keywords only if they are real/specific (not the bot-gate set)
+                let keywords = isGenericPage ? [] : metaKeywords;
+
+                // PATH B: Extract from ytInitialData JSON blob — richer, survives bot-gating
+                // YouTube embeds a "keywords":[...] array in the page's inline JSON even on gated pages
+                if (keywords.length === 0) {
+                    const ytDataMatch = html.match(/"keywords"\s*:\s*\[([^\]]+)\]/);
+                    if (ytDataMatch) {
+                        try {
+                            const rawArr = JSON.parse(`[${ytDataMatch[1]}]`);
+                            keywords = rawArr.filter(k => typeof k === 'string' && k.trim().length > 0);
+                            if (keywords.length > 0) {
+                                console.log(`[SCRAPER] ytInitialData keyword extraction succeeded for ID: ${videoId} (${keywords.length} keywords)`);
+                            }
+                        } catch (parseErr) {
+                            // JSON parse failed — try regex extraction of quoted strings
+                            const pieces = ytDataMatch[1].match(/"([^"]+)"/g) || [];
+                            keywords = pieces.map(p => p.replace(/^"|"$/g, '').trim()).filter(Boolean);
+                        }
+                    }
                 }
 
                 // Extract Views
@@ -62,7 +91,7 @@ export default async function handler(req, res) {
                 const title = titleMatch ? titleMatch[1] : '';
 
                 if (keywords.length > 0 || views) {
-                    console.log(`[SCRAPER] Successfully resolved metadata for ID: ${videoId} using ultra-fast HTML parser`);
+                    console.log(`[SCRAPER] Resolved metadata for ID: ${videoId} | keywords: ${keywords.length} | bot-gated: ${isGenericPage}`);
                     return {
                         id: videoId,
                         title: title,
