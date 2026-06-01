@@ -4384,6 +4384,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!npPanel || ignoreScrollCollapse) return;
     if (typeof sparkyYtState === 'undefined' || !sparkyYtState.isModeActive) return;
 
+    // Safety gate: do not allow compact player mode in grouped genre/artist accordion views (Option A)
+    if (sparkyYtState.currentSubMode === 'hub' && (sparkyYtState.hubGroupMode === 'grouped-genre' || sparkyYtState.hubGroupMode === 'grouped-artist')) {
+      npPanel.classList.remove('compact-video');
+      return;
+    }
+
     // Only allow collapse if a video is actively loaded/playing in this session
     if (!sparkyYtState.currentItemId || !sparkyYtState.playerInstance) {
       npPanel.classList.remove('compact-video');
@@ -5494,6 +5500,13 @@ function _hubCardHtml(item) {
 function renderYtHub(showTooltip = false) {
   const hub = document.getElementById('ytHub');
   if (!hub) return;
+
+  // Immediately expand player if in a grouped layout to prevent layout shifts
+  const groupMode = sparkyYtState.hubGroupMode;
+  if (groupMode === 'grouped-genre' || groupMode === 'grouped-artist') {
+    const npPanel = document.querySelector('.now-playing');
+    if (npPanel) npPanel.classList.remove('compact-video');
+  }
 
   const expandedGroups = new Set();
   hub.querySelectorAll('.hub-group').forEach(groupEl => {
