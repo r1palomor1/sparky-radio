@@ -5497,7 +5497,7 @@ function _hubCardHtml(item) {
   </div>`;
 }
 
-function renderYtHub(showTooltip = false) {
+function renderYtHub(showSortTooltip = false, showViewTooltip = false) {
   const hub = document.getElementById('ytHub');
   if (!hub) return;
 
@@ -5566,7 +5566,7 @@ function renderYtHub(showTooltip = false) {
     </div>
     
     <!-- Custom Sort Dropdown Tooltip matching the Radio style exactly -->
-    <div id="hubSortTooltip" class="pl-sort-tooltip">
+    <div id="hubSortTooltip" class="pl-sort-tooltip" style="left: 36px; top: 6px;">
       <div class="pl-sort-row${sort === 'date' ? ' active' : ''}" data-hub-sort="date">
         <span class="material-symbols-outlined" style="font-size:14px;">schedule</span>
         <span class="sort-desc">DATE ADDED</span>
@@ -5582,6 +5582,22 @@ function renderYtHub(showTooltip = false) {
       <div class="pl-sort-row${sort === 'genre' ? ' active' : ''}" data-hub-sort="genre">
         <span class="material-symbols-outlined" style="font-size:14px;">sell</span>
         <span class="sort-desc">GENRE</span>
+      </div>
+    </div>
+
+    <!-- Custom View Dropdown Tooltip matching the Sort styling but aligned to the right -->
+    <div id="hubViewTooltip" class="pl-sort-tooltip" style="left: auto; right: 36px; top: 6px;">
+      <div class="pl-sort-row${group === 'list' ? ' active' : ''}" data-hub-view="list">
+        <span class="material-symbols-outlined" style="font-size:14px;">format_list_bulleted</span>
+        <span class="sort-desc">LIST VIEW</span>
+      </div>
+      <div class="pl-sort-row${group === 'grouped-artist' ? ' active' : ''}" data-hub-view="grouped-artist">
+        <span class="material-symbols-outlined" style="font-size:14px;">group</span>
+        <span class="sort-desc">BY ARTIST</span>
+      </div>
+      <div class="pl-sort-row${group === 'grouped-genre' ? ' active' : ''}" data-hub-view="grouped-genre">
+        <span class="material-symbols-outlined" style="font-size:14px;">sell</span>
+        <span class="sort-desc">BY GENRE</span>
       </div>
     </div>
   </div>`;
@@ -5673,17 +5689,28 @@ function renderYtHub(showTooltip = false) {
         sparkyYtState.hubSortModeList = modes[nextIdx];
         localStorage.setItem('sparky_yt_hub_sort_list', sparkyYtState.hubSortModeList);
       }
-      renderYtHub(true);
+      renderYtHub(true, false);
     });
   }
 
   // Handle temporary sort tooltip visibility (1500ms autohide)
-  const tooltip = hub.querySelector('#hubSortTooltip');
-  if (showTooltip && tooltip) {
-    tooltip.classList.add('show');
+  const sortTooltip = hub.querySelector('#hubSortTooltip');
+  if (showSortTooltip && sortTooltip) {
+    sortTooltip.classList.add('show');
     if (window.hubSortTooltipTimeout) clearTimeout(window.hubSortTooltipTimeout);
     window.hubSortTooltipTimeout = setTimeout(() => {
       const t = document.getElementById('hubSortTooltip');
+      if (t) t.classList.remove('show');
+    }, 1500);
+  }
+
+  // Handle temporary view tooltip visibility (1500ms autohide)
+  const viewTooltip = hub.querySelector('#hubViewTooltip');
+  if (showViewTooltip && viewTooltip) {
+    viewTooltip.classList.add('show');
+    if (window.hubViewTooltipTimeout) clearTimeout(window.hubViewTooltipTimeout);
+    window.hubViewTooltipTimeout = setTimeout(() => {
+      const t = document.getElementById('hubViewTooltip');
       if (t) t.classList.remove('show');
     }, 1500);
   }
@@ -5750,7 +5777,7 @@ function renderYtHub(showTooltip = false) {
         sparkyYtState.hubGroupMode = 'list';
       }
       localStorage.setItem('sparky_yt_hub_group_mode', sparkyYtState.hubGroupMode);
-      renderYtHub();
+      renderYtHub(false, true);
     });
   }
 
