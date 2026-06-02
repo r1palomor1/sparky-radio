@@ -5366,6 +5366,7 @@ function switchYtTab(mode) {
   const searchWrap = document.getElementById('ytSearchWrap');
   const results = document.getElementById('ytResults');
   const hub = document.getElementById('ytHub');
+  const hubToolbar = document.getElementById('ytHubToolbar');
 
   const isHub = mode === 'hub';
 
@@ -5376,9 +5377,11 @@ function switchYtTab(mode) {
     if (footer) footer.classList.remove('bulk-active');
   }
 
+  const hubToolbarEl = document.getElementById('ytHubToolbar');
   if (searchWrap) searchWrap.classList.toggle('hidden', isHub);
   if (results) results.classList.toggle('hidden', isHub);
   if (hub) hub.classList.toggle('hidden', !isHub);
+  if (hubToolbarEl) hubToolbarEl.classList.toggle('hidden', !isHub);
 
   const input = document.getElementById('ytSearchInput');
 
@@ -5440,7 +5443,7 @@ function syncYtTabCounts() {
       vidTab.insertAdjacentHTML('beforeend', `<span class="yt-tab-count"></span>`);
       countEl = vidTab.querySelector('.yt-tab-count');
     }
-    countEl.textContent = vidCount > 0 ? ` (${vidCount})` : '';
+    countEl.textContent = vidCount;
   }
 
   if (plTab) {
@@ -5449,7 +5452,7 @@ function syncYtTabCounts() {
       plTab.insertAdjacentHTML('beforeend', `<span class="yt-tab-count"></span>`);
       countEl = plTab.querySelector('.yt-tab-count');
     }
-    countEl.textContent = plCount > 0 ? ` (${plCount})` : '';
+    countEl.textContent = plCount;
   }
 
   if (hubTab) {
@@ -5458,7 +5461,7 @@ function syncYtTabCounts() {
       hubTab.insertAdjacentHTML('beforeend', `<span class="yt-tab-count"></span>`);
       countEl = hubTab.querySelector('.yt-tab-count');
     }
-    countEl.textContent = hubCount > 0 ? ` (${hubCount})` : '';
+    countEl.textContent = hubCount;
   }
 }
 
@@ -5519,6 +5522,7 @@ function _hubCardHtml(item) {
 
 function renderYtHub(showSortTooltip = false, showViewTooltip = false) {
   const hub = document.getElementById('ytHub');
+  const hubToolbar = document.getElementById('ytHubToolbar');
   if (!hub) return;
 
   // Inject persistent styles if they don't exist yet to enable smooth blurred transitions
@@ -5588,11 +5592,10 @@ function renderYtHub(showSortTooltip = false, showViewTooltip = false) {
     groupTitle = 'Current View: Grouped by Genre';
   }
 
-  // Toolbar HTML Re-using the exact layout/classes from .playlist-header (aligned to edges, no label duplicate)
   const toolbar = `
-  <div class="playlist-header" style="position: relative; background: #05070a !important; z-index: 300; display: flex; justify-content: space-between; align-items: center; padding: 10px 0px !important;">
+  <div class="playlist-header" style="display: flex; justify-content: space-between; align-items: center; padding: 10px 12px;">
     <div class="pl-header-left" style="display: flex; align-items: center;">
-      <button class="pl-sort-btn" id="btnHubSortMode" title="Quick-Sort Mode" style="margin: 0 !important; padding: 0 !important; background: transparent; border: none;">
+      <button class="pl-view-btn" id="btnHubSortMode" title="Quick-Sort Mode: ${sort.toUpperCase()}" style="margin: 0 !important; padding: 0 !important; background: transparent; border: none; color: ${sort !== 'date' ? 'var(--accent)' : 'var(--dim)'}; text-shadow: ${sort !== 'date' ? 'var(--glow)' : 'none'}; transition: all 0.2s;">
         <span class="material-symbols-outlined">sort</span>
       </button>
     </div>
@@ -5600,9 +5603,10 @@ function renderYtHub(showSortTooltip = false, showViewTooltip = false) {
       <button class="pl-view-btn${sparkyYtState.bulkEditMode ? ' active' : ''}" id="btnHubBulkToggle" title="Bulk Selection Mode" style="margin: 0 !important; padding: 0 !important; background: transparent; border: none; color: ${sparkyYtState.bulkEditMode ? 'var(--accent)' : 'var(--dim)'}; text-shadow: ${sparkyYtState.bulkEditMode ? 'var(--glow)' : 'none'}; transition: all 0.2s;">
         <span class="material-symbols-outlined">checklist</span>
       </button>
-      <button class="pl-view-btn" id="btnHubViewToggle" title="${groupTitle}" style="margin: 0 !important; padding: 0 !important; background: transparent; border: none;">
+      <button class="pl-view-btn${group !== 'list' ? ' active' : ''}" id="btnHubViewToggle" title="${groupTitle}" style="margin: 0 !important; padding: 0 !important; background: transparent; border: none; color: ${group !== 'list' ? 'var(--accent)' : 'var(--dim)'}; text-shadow: ${group !== 'list' ? 'var(--glow)' : 'none'}; transition: all 0.2s;">
         <span class="material-symbols-outlined" id="hubViewToggleIcon">${groupIcon}</span>
       </button>
+
     </div>
     
     <!-- Custom Sort Dropdown Tooltip matching the Radio style exactly -->
@@ -5810,7 +5814,8 @@ function renderYtHub(showSortTooltip = false, showViewTooltip = false) {
     cardsHtml += `<div style="height: 50px; grid-column: 1 / -1;"></div>`;
   }
 
-  hub.innerHTML = toolbar + cardsHtml + bulkBarHtml;
+  if (hubToolbar) hubToolbar.innerHTML = toolbar;
+  hub.innerHTML = cardsHtml + bulkBarHtml;
 
   const footer = document.querySelector('.footer');
   if (footer) {
@@ -5818,7 +5823,7 @@ function renderYtHub(showSortTooltip = false, showViewTooltip = false) {
   }
 
   // Header Bulk Toggle Button Listener
-  const bulkToggleBtn = hub.querySelector('#btnHubBulkToggle');
+  const bulkToggleBtn = (hubToolbar || hub).querySelector('#btnHubBulkToggle');
   if (bulkToggleBtn) {
     bulkToggleBtn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -6131,7 +6136,7 @@ function renderYtHub(showSortTooltip = false, showViewTooltip = false) {
   }
 
   // Exact Radio sort cycling logic: cycles sort mode directly and shows tooltip briefly
-  const sortBtn = hub.querySelector('#btnHubSortMode');
+  const sortBtn = (hubToolbar || hub).querySelector('#btnHubSortMode');
   if (sortBtn) {
     sortBtn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -6150,7 +6155,7 @@ function renderYtHub(showSortTooltip = false, showViewTooltip = false) {
   }
 
   // Handle temporary sort tooltip visibility (1500ms autohide)
-  const sortTooltip = hub.querySelector('#hubSortTooltip');
+  const sortTooltip = (hubToolbar || hub).querySelector('#hubSortTooltip');
   if (showSortTooltip && sortTooltip) {
     sortTooltip.classList.add('show');
     if (window.hubSortTooltipTimeout) clearTimeout(window.hubSortTooltipTimeout);
@@ -6161,7 +6166,7 @@ function renderYtHub(showSortTooltip = false, showViewTooltip = false) {
   }
 
   // Handle temporary view tooltip visibility (1500ms autohide)
-  const viewTooltip = hub.querySelector('#hubViewTooltip');
+  const viewTooltip = (hubToolbar || hub).querySelector('#hubViewTooltip');
   if (showViewTooltip && viewTooltip) {
     viewTooltip.classList.add('show');
     if (window.hubViewTooltipTimeout) clearTimeout(window.hubViewTooltipTimeout);
@@ -6255,7 +6260,7 @@ function renderYtHub(showSortTooltip = false, showViewTooltip = false) {
   });
 
   // Group toggle listener
-  const groupBtn = hub.querySelector('#btnHubViewToggle');
+  const groupBtn = (hubToolbar || hub).querySelector('#btnHubViewToggle');
   if (groupBtn) {
     groupBtn.addEventListener('click', () => {
       // Cycle: list ➔ grouped-artist ➔ grouped-genre
@@ -6527,8 +6532,6 @@ async function hydrateYtHubGenres() {
       return;
     }
 
-    console.log(`[YT-GENRE-HYDRATOR] Found ${toHydrate.length} items missing or tagged 'Various'. Starting batch hydration...`);
-    
     // Process in chunks of 3 with a 1.5-second cooldown delay to respect YouTube rate limits
     const chunkSize = 3;
     for (let i = 0; i < toHydrate.length; i += chunkSize) {
@@ -6556,7 +6559,6 @@ async function hydrateYtHubGenres() {
               // If the network call failed completely (views and keywords are both empty due to block/error),
               // skip marking as hydrated so we can retry on the next cycle.
               if (!res.views && (!res.keywords || res.keywords.length === 0)) {
-                console.warn('[YT-GENRE-HYDRATOR] Hydration failed/empty for ID:', res.id, '- skipping flag update to retry later');
                 return;
               }
 
@@ -6571,10 +6573,6 @@ async function hydrateYtHubGenres() {
               ];
 
               const matchedGenre = resolveGenreFromKeywords(searchStrings);
-
-              console.log('[YT-GENRE-HYDRATOR] ID:', res.id,
-                '| Keywords:', keywords.slice(0, 6).join(', '),
-                '| Matched:', matchedGenre || 'None → Various');
 
               if (matchedGenre) {
                 // STRUCTURAL FIX: Only lock genreHydrated=true when we actually matched a real genre.
@@ -7834,6 +7832,7 @@ function highlightYtCard(id, shouldScroll = false) {
         }
         if (container.id === 'ytHub') {
           const hub = document.getElementById('ytHub');
+  const hubToolbar = document.getElementById('ytHubToolbar');
           if (hub && hub.classList.contains('hidden')) return;
         }
 

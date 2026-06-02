@@ -1,4 +1,4 @@
-/* 
+﻿/* 
   SPARKY RADIO MODULAR STYLESHEET
   1:1 FIDELITY RESTORATION FROM index.html.bak (L14-1877)
   AUTHENTIC INDUSTRIAL DESIGN SYSTEM
@@ -3096,7 +3096,7 @@ body.light .footer {
   border-radius: 20px !important;
   padding: 0 16px !important;
   min-width: 80px !important;
-  flex-direction: row !important;
+  flex-direction: row;
   gap: 8px !important;
   height: 40px !important;
   margin-top: -5px;
@@ -3940,22 +3940,23 @@ body.light .filter-chip {
   background: var(--bg);
 }
 
-/* â”€â”€ YT Sub-mode Tab Row â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* -- YT Sub-mode Tab Row (canonical single definition) -- */
 .yt-tab-row {
   display: flex;
   gap: 0;
-  border-bottom: 1px solid var(--border);
   background: var(--panel);
+  border-bottom: 1px solid var(--border);
   flex-shrink: 0;
 }
 
 .yt-tab {
   flex: 1;
   display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
-  gap: 5px;
-  padding: 9px 6px;
+  gap: 6px;
+  padding: 10px 6px;
   background: transparent;
   border: none;
   border-bottom: 2px solid transparent;
@@ -3966,48 +3967,10 @@ body.light .filter-chip {
   letter-spacing: 0.5px;
   text-transform: uppercase;
   cursor: pointer;
-  transition: all 0.18s ease;
+  transition: all 0.2s ease;
 }
 
 .yt-tab .material-symbols-outlined { font-size: 16px; }
-
-.yt-tab:hover {
-  color: var(--text);
-  background: rgba(255, 255, 255, 0.03);
-}
-
-.yt-tab.active {
-  color: var(--accent);
-  border-bottom-color: var(--accent);
-  background: var(--tab-active);
-}
-
-/* â”€â”€ YT Sub-mode Tabs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
-.yt-tab-row {
-  display: flex;
-  background: var(--tab-bg);
-  border-bottom: 1px solid var(--border);
-  flex-shrink: 0;
-}
-
-.yt-tab {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 12px;
-  background: none;
-  border: none;
-  border-bottom: 2px solid transparent;
-  color: var(--dim);
-  font-family: 'Share Tech Mono', monospace;
-  font-size: calc(11px * var(--text-scale));
-  cursor: pointer;
-  transition: all 0.2s;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
 
 .yt-tab:hover {
   color: var(--text);
@@ -4054,9 +4017,29 @@ body.light .filter-chip {
   grid-auto-rows: max-content;
   align-content: start;
   overflow-y: auto;
-  padding: 10px 12px;
+  background: var(--bg);
   gap: 8px;
   min-height: 0;
+}
+
+/* Results: normal top padding (no sticky toolbar) */
+.yt-results {
+  padding: 10px 12px;
+}
+
+/* Hub: pure scroll container - toolbar is a static sibling outside.
+   Full padding is safe. No leakage possible. */
+.yt-hub {
+  padding: 10px 12px;
+}
+
+/* Hub Toolbar: static flex strip, sibling of .yt-tab-row.
+   Two block elements in a flex column = zero gap. Physics. */
+.yt-hub-toolbar {
+  flex-shrink: 0;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  position: relative;
 }
 
 .yt-results .pl-empty,
@@ -5496,37 +5479,64 @@ google-cast-launcher:hover {
   border-radius: 50%;
 }
 
-/* Stacking tab button layout vertically to prevent Favs Hub tab overflow on mobile devices */
+/* --- PREMIUM YT TAB STYLING WITH INTEGRATED BADGES --- */
+.yt-tab-count {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9px;
+  font-weight: bold;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.85);
+  padding: 1px 5px;
+  border-radius: 6px;
+  margin-left: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  transition: all 0.2s ease;
+}
+.yt-tab.active .yt-tab-count {
+  background: rgba(0, 242, 255, 0.15);
+  color: var(--accent);
+  box-shadow: 0 0 4px rgba(0, 242, 255, 0.1);
+}
+
+/* Compact row layout on mobile devices to prevent Favs Hub tab overflow */
 @media (max-width: 480px) {
   .yt-tab-row {
     gap: 0;
   }
   .yt-tab {
-    flex-direction: column !important;
-    gap: 2px !important;
-    padding: 8px 4px !important;
+    flex-direction: row;
+    gap: 4px !important;
+    padding: 8px 2px !important;
     height: auto !important;
     align-items: center !important;
     justify-content: center !important;
+    font-size: 9px !important;
+    letter-spacing: 0.5px !important;
   }
   .yt-tab .material-symbols-outlined {
-    font-size: 14px !important;
+    font-size: 13px !important;
   }
   .yt-tab-count {
-    font-size: 9px !important;
-    opacity: 0.6;
-    margin-left: 0 !important;
-    margin-top: 2px !important;
-    font-weight: 500;
-    background: rgba(255, 255, 255, 0.1);
-    padding: 0px 4px;
-    border-radius: 4px;
-    display: inline-block;
+    font-size: 8px !important;
+    opacity: 0.75;
+    margin-left: 4px !important;
+    margin-top: 0 !important;
+    font-weight: bold;
+    background: rgba(255, 255, 255, 0.08);
+    padding: 1px 4px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
   }
   .yt-tab.active .yt-tab-count {
-    opacity: 0.9;
+    opacity: 1;
     color: var(--accent);
-    background: rgba(255, 255, 255, 0.15);
+    background: rgba(0, 242, 255, 0.15);
   }
 }
 
@@ -5695,7 +5705,7 @@ google-cast-launcher:hover {
 /* --- Quick-Tune Scrollable Horizontal Chip Bar --- */
 .qt-chip-container {
   display: flex;
-  flex-direction: row !important;
+  flex-direction: row;
   gap: 8px;
   overflow-x: auto;
   scrollbar-width: none; /* Hide scrollbar on Firefox */
