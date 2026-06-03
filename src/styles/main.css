@@ -4077,6 +4077,43 @@ body.light .filter-chip {
 }
 
 /* â”€â”€ YT Video / Playlist Card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* Tablet Card Density Adjustments: move actions to horizontal bottom row to prevent text squeezing */
+@media (min-width: 600px) and (max-width: 899px) {
+  .yt-card {
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    padding: 8px 10px !important;
+  }
+  .yt-card-thumb {
+    order: 2;
+  }
+  .yt-card-info {
+    order: 3;
+    flex: 1 1 0% !important;
+    min-width: 100px;
+  }
+  .yt-card-actions {
+    order: 4;
+    width: 100% !important;
+    flex-direction: row !important;
+    justify-content: space-around !important;
+    border-top: 1px solid var(--border);
+    padding-top: 6px;
+    margin-top: 6px;
+    gap: 16px;
+  }
+  .yt-card-actions button {
+    opacity: 0.45 !important;
+    transition: opacity 0.2s ease !important;
+  }
+  .yt-card-actions button:hover {
+    opacity: 1 !important;
+  }
+  .yt-card-checkbox {
+    order: 1;
+  }
+}
+
 .yt-card {
   display: flex;
   align-items: center;
@@ -4167,6 +4204,14 @@ body.light .filter-chip {
 .yt-card-remove { color: #e44; }
 .yt-card-fav .material-symbols-outlined,
 .yt-card-remove .material-symbols-outlined { font-size: 18px; }
+
+.yt-card-actions button {
+  opacity: 0.45;
+  transition: opacity 0.2s ease;
+}
+.yt-card-actions button:hover {
+  opacity: 1;
+}
 
 .yt-card-actions {
   display: flex;
