@@ -4697,6 +4697,7 @@ const sparkyYtState = {
   hubSortModeList: 'date', // 'date' | 'az' | 'artist' | 'genre'
   hubSortModeGroup: 'date', // 'date' | 'az' | 'artist' | 'genre'
   hubGroupMode: 'grouped-genre', // 'list' | 'grouped-artist' | 'grouped-genre'
+  hubGenreFilter: 'ALL', // 'ALL' or a specific genre name (Title case); applied in List & Artist modes only
   bulkEditMode: false,
   bulkSelectedIds: new Set()
 };
@@ -4755,6 +4756,8 @@ function restoreYtSessionState() {
     } else {
       sparkyYtState.hubSortModeList = 'date';
     }
+    const savedGenreFilter = localStorage.getItem('sparky_yt_hub_genre_filter');
+    sparkyYtState.hubGenreFilter = savedGenreFilter || 'ALL';
   } catch (e) {
     console.error('Error restoring YT session state:', e);
   }
@@ -5562,19 +5565,24 @@ function renderYtHub(showSortTooltip = false, showViewTooltip = false) {
     }
   });
 
-  const favs = loadYtFavs();
+  const allFavsRaw = loadYtFavs();
   // Trigger hydration for: items with no genre, OR items stuck as Various without a confirmed genre match
-  if (favs.some(f => !f.genre || f.genre === 'Various')) {
+  if (allFavsRaw.some(f => !f.genre || f.genre === 'Various')) {
     setTimeout(hydrateYtHubGenres, 100);
   }
-  if (!favs.length) {
+  if (!allFavsRaw.length) {
     hub.innerHTML = `<div class="pl-empty"><div class="pl-empty-icon">&#128420;</div><div>No saved videos yet &mdash; heart a video to save it here in your Favs Hub</div></div>`;
     syncYtTabCounts();
     return;
   }
-
   const group = sparkyYtState.hubGroupMode;
   const isGrouped = group === 'grouped-artist' || group === 'grouped-genre';
+
+  // Apply genre chip filter — active only in List and Artist modes (Genre mode already groups by genre)
+  const _hubGenreFilter = sparkyYtState.hubGenreFilter || 'ALL';
+  const favs = (_hubGenreFilter !== 'ALL' && group !== 'grouped-genre')
+    ? allFavsRaw.filter(f => (f.genre || 'Various') === _hubGenreFilter)
+    : allFavsRaw;
   if (isGrouped) {
     hub.classList.add('hub-grouped-layout');
   } else {
@@ -5592,12 +5600,26 @@ function renderYtHub(showSortTooltip = false, showViewTooltip = false) {
     groupTitle = 'Current View: Grouped by Genre';
   }
 
+  // Genre chip row — shown in List and Artist modes only; Genre mode already organizes by genre so chips are redundant
+  let genreChipRowHtml = '';
+  if (group === 'list' || group === 'grouped-artist') {
+    const genreSet = new Set();
+    allFavsRaw.forEach(f => {
+      if (f.genre && f.genre !== 'Various') genreSet.add(f.genre);
+    });
+    if (allFavsRaw.some(f => !f.genre || f.genre === 'Various')) genreSet.add('Various');
+    const availableGenres = ['ALL', ...Array.from(genreSet).sort()];
+    const chipFilter = sparkyYtState.hubGenreFilter || 'ALL';
+    genreChipRowHtml = `
+      <div class="qt-chip-container" id="hubGenreChipRow" style="padding: 4px 12px 8px 12px; border-top: 1px solid rgba(255,255,255,0.05);">
+        ${availableGenres.map(g => `<button class="qt-chip${chipFilter === g ? ' active' : ''}" data-hub-genre="${g}">${g}</button>`).join('')}
+      </div>`;
+  }
+
   const toolbar = `
   <div class="playlist-header" style="display: flex; justify-content: space-between; align-items: center; padding: 10px 12px;">
     <div class="pl-header-left" style="display: flex; align-items: center;">
-      <button class="pl-view-btn" id="btnHubSortMode" title="Quick-Sort Mode: ${sort.toUpperCase()}" style="margin: 0 !important; padding: 0 !important; background: transparent; border: none; color: ${sort !== 'date' ? 'var(--accent)' : 'var(--dim)'}; text-shadow: ${sort !== 'date' ? 'var(--glow)' : 'none'}; transition: all 0.2s;">
-        <span class="material-symbols-outlined">sort</span>
-      </button>
+      ${group === 'list' ? `<button class="pl-view-btn" id="btnHubSortMode" title="Quick-Sort Mode: ${sort.toUpperCase()}" style="margin: 0 !important; padding: 0 !important; background: transparent; border: none; color: ${sort !== 'date' ? 'var(--accent)' : 'var(--dim)'}; text-shadow: ${sort !== 'date' ? 'var(--glow)' : 'none'}; transition: all 0.2s;"><span class="material-symbols-outlined">sort</span></button>` : ''}
     </div>
     <div class="pl-header-right" style="display: flex; align-items: center; gap: 8px;">
       <button class="pl-view-btn${sparkyYtState.bulkEditMode ? ' active' : ''}" id="btnHubBulkToggle" title="Bulk Selection Mode" style="margin: 0 !important; padding: 0 !important; background: transparent; border: none; color: ${sparkyYtState.bulkEditMode ? 'var(--accent)' : 'var(--dim)'}; text-shadow: ${sparkyYtState.bulkEditMode ? 'var(--glow)' : 'none'}; transition: all 0.2s;">
@@ -5606,19 +5628,10 @@ function renderYtHub(showSortTooltip = false, showViewTooltip = false) {
       <button class="pl-view-btn${group !== 'list' ? ' active' : ''}" id="btnHubViewToggle" title="${groupTitle}" style="margin: 0 !important; padding: 0 !important; background: transparent; border: none; color: ${group !== 'list' ? 'var(--accent)' : 'var(--dim)'}; text-shadow: ${group !== 'list' ? 'var(--glow)' : 'none'}; transition: all 0.2s;">
         <span class="material-symbols-outlined" id="hubViewToggleIcon">${groupIcon}</span>
       </button>
-
     </div>
-    
-    <!-- Custom Sort Dropdown Tooltip matching the Radio style exactly -->
+
+    <!-- Custom Sort Dropdown Tooltip: Artist → Genre → A-Z → Date Added -->
     <div id="hubSortTooltip" class="pl-sort-tooltip" style="left: 36px; top: 6px;">
-      <div class="pl-sort-row${sort === 'date' ? ' active' : ''}" data-hub-sort="date">
-        <span class="material-symbols-outlined" style="font-size:14px;">schedule</span>
-        <span class="sort-desc">DATE ADDED</span>
-      </div>
-      <div class="pl-sort-row${sort === 'az' ? ' active' : ''}" data-hub-sort="az">
-        <span class="material-symbols-outlined" style="font-size:14px;">sort_by_alpha</span>
-        <span class="sort-desc">A-Z</span>
-      </div>
       <div class="pl-sort-row${sort === 'artist' ? ' active' : ''}" data-hub-sort="artist">
         <span class="material-symbols-outlined" style="font-size:14px;">person</span>
         <span class="sort-desc">ARTIST</span>
@@ -5627,9 +5640,17 @@ function renderYtHub(showSortTooltip = false, showViewTooltip = false) {
         <span class="material-symbols-outlined" style="font-size:14px;">sell</span>
         <span class="sort-desc">GENRE</span>
       </div>
+      <div class="pl-sort-row${sort === 'az' ? ' active' : ''}" data-hub-sort="az">
+        <span class="material-symbols-outlined" style="font-size:14px;">sort_by_alpha</span>
+        <span class="sort-desc">A-Z</span>
+      </div>
+      <div class="pl-sort-row${sort === 'date' ? ' active' : ''}" data-hub-sort="date">
+        <span class="material-symbols-outlined" style="font-size:14px;">schedule</span>
+        <span class="sort-desc">DATE ADDED</span>
+      </div>
     </div>
 
-    <!-- Custom View Dropdown Tooltip matching the Sort styling but aligned to the right -->
+    <!-- Custom View Dropdown Tooltip -->
     <div id="hubViewTooltip" class="pl-sort-tooltip" style="left: auto; right: 36px; top: 6px;">
       <div class="pl-sort-row${group === 'list' ? ' active' : ''}" data-hub-view="list">
         <span class="material-symbols-outlined" style="font-size:14px;">format_list_bulleted</span>
@@ -5644,7 +5665,8 @@ function renderYtHub(showSortTooltip = false, showViewTooltip = false) {
         <span class="sort-desc">BY GENRE</span>
       </div>
     </div>
-  </div>`;
+  </div>
+  ${genreChipRowHtml}`;
 
   const sorted = _hubSortFavs(favs);
   let cardsHtml = '';
@@ -6140,7 +6162,7 @@ function renderYtHub(showSortTooltip = false, showViewTooltip = false) {
   if (sortBtn) {
     sortBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      const modes = ['date', 'az', 'artist', 'genre'];
+      const modes = ['artist', 'genre', 'az', 'date']; // Artist → Genre → A-Z → Date Added
       if (isGrouped) {
         const nextIdx = (modes.indexOf(sparkyYtState.hubSortModeGroup) + 1) % modes.length;
         sparkyYtState.hubSortModeGroup = modes[nextIdx];
@@ -6151,6 +6173,20 @@ function renderYtHub(showSortTooltip = false, showViewTooltip = false) {
         localStorage.setItem('sparky_yt_hub_sort_list', sparkyYtState.hubSortModeList);
       }
       renderYtHub(true, false);
+    });
+  }
+
+  // Genre chip filter click handler — wired on every render since toolbar is rebuilt via innerHTML
+  const genreChipRow = (hubToolbar || hub).querySelector('#hubGenreChipRow');
+  if (genreChipRow) {
+    genreChipRow.addEventListener('click', (e) => {
+      const chip = e.target.closest('[data-hub-genre]');
+      if (!chip) return;
+      e.stopPropagation();
+      const genre = chip.dataset.hubGenre;
+      sparkyYtState.hubGenreFilter = genre;
+      localStorage.setItem('sparky_yt_hub_genre_filter', genre);
+      renderYtHub();
     });
   }
 
@@ -6268,6 +6304,9 @@ function renderYtHub(showSortTooltip = false, showViewTooltip = false) {
         sparkyYtState.hubGroupMode = 'grouped-artist';
       } else if (sparkyYtState.hubGroupMode === 'grouped-artist') {
         sparkyYtState.hubGroupMode = 'grouped-genre';
+        // Reset genre filter when entering Genre mode — chips are hidden there so stale filter would silently block data
+        sparkyYtState.hubGenreFilter = 'ALL';
+        localStorage.setItem('sparky_yt_hub_genre_filter', 'ALL');
       } else {
         sparkyYtState.hubGroupMode = 'list';
       }
