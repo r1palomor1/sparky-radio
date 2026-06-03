@@ -9,7 +9,7 @@ export default async function handler(req, res) {
     if (req.method === 'OPTIONS') return res.status(200).end();
 
     try {
-        const { id, ids, payload } = req.query;
+        const { id, ids, payload, title: queryTitle } = req.query;
         if (!id && !ids && !payload) return res.status(400).json({ error: 'ID, IDs or payload required' });
 
         // 1. Blazing fast, Vercel-friendly public watch page HTML scraper
@@ -205,27 +205,36 @@ export default async function handler(req, res) {
 
             // If it is single view (not batch) and related videos are needed, fetch them via simple fallback search
             if (!ids && !payload) {
-                try {
-                    const youtube = await getYoutubeClient();
-                    const searchTitle = scraped.title || 'related';
-                    console.log(`[HYDRATE] Fetching related videos for single view using fallback search`);
-                    const searchResult = await youtube.search(searchTitle, { limit: 12 });
-                    const videos = searchResult?.videos || searchResult?.results || [];
-                    videos.forEach(result => {
-                        const rId = result.id || result.video_id;
-                        if (rId && rId !== videoId) {
-                            scraped.related_videos.push({
-                                id: rId,
-                                title: result.title?.text || result.title || 'Unknown Title',
-                                thumb: result.thumbnails?.[0]?.url || '',
-                                channel: result.author?.name || '',
-                                views: shortenMetadata(result.short_view_count?.text || ''),
-                                duration: shortenMetadata(result.length_text?.text || '')
-                            });
-                        }
-                    });
-                } catch (e) {
-                    // Keep empty related videos on fallback failure
+                // Use frontend-provided title first (most reliable — not affected by bot-gating),
+                // then fall back to scraped title. NEVER use a generic fallback like 'related'.
+                const searchTitle = (queryTitle && queryTitle.trim().length >= 3 ? queryTitle.trim() : null)
+                    || (scraped.title && scraped.title.trim().length >= 3 ? scraped.title.trim() : null);
+
+                if (!searchTitle) {
+                    console.warn(`[HYDRATE] No valid title available for related search on ID: ${videoId}. Skipping to avoid junk results.`);
+                    // Return empty related_videos — better than poisoning the panel
+                } else {
+                    try {
+                        const youtube = await getYoutubeClient();
+                        console.log(`[HYDRATE] Fetching related videos for single view using fallback search: "${searchTitle}"`);
+                        const searchResult = await youtube.search(searchTitle, { limit: 12 });
+                        const videos = searchResult?.videos || searchResult?.results || [];
+                        videos.forEach(result => {
+                            const rId = result.id || result.video_id;
+                            if (rId && rId !== videoId) {
+                                scraped.related_videos.push({
+                                    id: rId,
+                                    title: result.title?.text || result.title || 'Unknown Title',
+                                    thumb: result.thumbnails?.[0]?.url || '',
+                                    channel: result.author?.name || '',
+                                    views: shortenMetadata(result.short_view_count?.text || ''),
+                                    duration: shortenMetadata(result.length_text?.text || '')
+                                });
+                            }
+                        });
+                    } catch (e) {
+                        // Keep empty related videos on fallback failure
+                    }
                 }
             }
             
@@ -267,8 +276,10 @@ export default async function handler(req, res) {
             return res.status(200).json({ results });
         } else {
             const singleItem = itemsToProcess[0];
-            console.log(`[HYDRATE] Single hydration for ID: ${singleItem.id} | Title: ${singleItem.title || 'none'}`);
-            const result = await fetchSingleInfo(singleItem.id, singleItem.title);
+            // Prefer the payload's embedded title, then fall back to the ?title= query param
+            const resolvedTitle = singleItem.title || queryTitle || null;
+            console.log(`[HYDRATE] Single hydration for ID: ${singleItem.id} | Title: ${resolvedTitle || 'none'}`);
+            const result = await fetchSingleInfo(singleItem.id, resolvedTitle);
             return res.status(200).json(result);
         }
 

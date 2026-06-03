@@ -7910,7 +7910,8 @@ async function fetchRelatedVideos() {
 
   try {
     console.log(`[YT Related DEBUG] Fetching from API for: ${currentItem.id} ("${currentItem.title}")`);
-    const res = await fetch(`/api/hydrateTags?id=${encodeURIComponent(currentItem.id)}`);
+    const titleParam = currentItem.title ? `&title=${encodeURIComponent(currentItem.title)}` : '';
+    const res = await fetch(`/api/hydrateTags?id=${encodeURIComponent(currentItem.id)}${titleParam}`);
     console.log('[YT Related DEBUG] HTTP Response Status:', res.status, 'OK:', res.ok);
     
     if (!res.ok) throw new Error(`API fetch failed with status ${res.status}`);
