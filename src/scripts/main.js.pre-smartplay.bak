@@ -175,7 +175,6 @@ let isAutoScrolling = false; // Flag to prevent compact mode during programmatic
 let shuffle = false;
 let repeat = false;
 let rafId, hls;
-let sparkyPlaySession = 0; // Incremented on every play+stop to invalidate stale onPlayError callbacks
 let isCasting = false;
 let filterCountry = localStorage.getItem('sparky_default_country') || 'ALL';
 let filterLang = localStorage.getItem('sparky_default_lang') || 'ALL';
@@ -1588,7 +1587,6 @@ function playStationObj(st) {
   if (hls) { hls.destroy(); hls = null; }
   audioEl.pause();
   const url = st.url_resolved || st.url;
-  const mySession = ++sparkyPlaySession; // Capture session ID — stale callbacks will not match
   const vol = document.getElementById('volSlider').value;
   audioEl.volume = vol / 100;
   if (sparkyYtState.playerInstance && typeof sparkyYtState.playerInstance.setVolume === 'function') {
@@ -1597,161 +1595,28 @@ function playStationObj(st) {
   setStatus('buffering', 'Buffering');
   updateNowPlaying(st);
   updateMediaSession(st);
-  // ── SMART STREAM ENGINE ──────────────────────────────────────────────────
-  // Resolves M3U/PLS wrapper files, detects HLS via content-type (not just
-  // extension), and plays using hls.js or native audio as appropriate.
-  // On failure, retries via server-side CORS proxy before falling back to
-  // the legacy active-rescue system.
-  // ─────────────────────────────────────────────────────────────────────────
-
-  /**
-   * Extracts the first valid http(s) stream URL from an M3U playlist body.
-   * Handles both basic M3U (bare URLs) and extended M3U (#EXTINF entries).
-   */
-  function unwrapM3U(text) {
-    const lines = text.split(/\r?\n/);
-    for (const line of lines) {
-      const t = line.trim();
-      if (t && !t.startsWith('#') && /^https?:\/\//i.test(t)) return t;
-    }
-    return null;
-  }
-
-  /**
-   * Extracts the first File= URL from a PLS (Shoutcast/Icecast) playlist body.
-   */
-  function unwrapPLS(text) {
-    const m = text.match(/^File\d+=(.+)$/im);
-    return (m && /^https?:\/\//i.test(m[1].trim())) ? m[1].trim() : null;
-  }
-
-  /**
-   * Attaches hls.js to audioEl with production-hardened config.
-   * @param {string} hlsUrl - The resolved HLS manifest URL to load.
-   */
-  function attachHls(hlsUrl) {
-    if (hls) { hls.destroy(); hls = null; }
-    hls = new Hls({
-      enableWorker: true,       // Offload muxing to Web Worker — better mobile perf
-      lowLatencyMode: false,    // Optimised for radio (live streams, not sports)
-      backBufferLength: 90,     // Keep 90s of decoded audio behind current position
-      maxBufferLength: 60,      // Buffer up to 60s ahead
-      manifestLoadingTimeOut: 12000,
-      manifestLoadingMaxRetry: 3,
-      levelLoadingTimeOut: 12000,
-      levelLoadingMaxRetry: 3,
-    });
-    hls.loadSource(hlsUrl);
-    hls.attachMedia(audioEl);
+  if (url.toLowerCase().includes('.m3u8') && Hls.isSupported()) {
+    hls = new Hls(); hls.loadSource(url); hls.attachMedia(audioEl);
     hls.on(Hls.Events.MANIFEST_PARSED, () => audioEl.play().then(onPlaySuccess).catch(onPlayError));
-    hls.on(Hls.Events.ERROR, (ev, data) => { if (data.fatal) { hls.destroy(); hls = null; onPlayError(); } });
+    hls.on(Hls.Events.ERROR, (ev, data) => { if (data.fatal) onPlayError(); });
+  } else {
+    audioEl.src = url;
+    audioEl.play().then(onPlaySuccess).catch(onPlayError);
+    localStorage.setItem('sparky_last_station', JSON.stringify(st));
   }
-
-  /**
-   * Main play dispatcher — decides between HLS and native audio.
-   * Accepts an optional viaProxy flag to route through the CORS relay.
-   * @param {string} playUrl
-   * @param {boolean} [viaProxy=false]
-   */
-  async function dispatchPlay(playUrl, viaProxy = false) {
-    const u = playUrl.toLowerCase().split('?')[0];
-    const proxyBase = '/api/proxy?url=';
-    const finalUrl = viaProxy ? `${proxyBase}${encodeURIComponent(playUrl)}` : playUrl;
-
-    // ── Step 1: Unwrap playlist wrapper formats ──────────────────────────
-    // If URL ends in .m3u (basic playlist) or .pls, fetch and extract the
-    // first real stream URL before proceeding.
-    if (u.endsWith('.pls') || (u.endsWith('.m3u') && !u.endsWith('.m3u8'))) {
-      console.log(`[SMART_PLAY] Detected playlist wrapper: ${u.endsWith('.pls') ? 'PLS' : 'M3U'} — unwrapping...`);
-      try {
-        const r = await fetch(finalUrl, { headers: { 'Accept': '*/*' } });
-        if (r.ok) {
-          const text = await r.text();
-          const extracted = u.endsWith('.pls') ? unwrapPLS(text) : unwrapM3U(text);
-          if (extracted) {
-            console.log(`[SMART_PLAY] Unwrapped → ${extracted}`);
-            // Update the station's stored URL to the real stream for future plays
-            st.url_resolved = extracted;
-            return dispatchPlay(extracted, viaProxy);
-          }
-        }
-      } catch (e) {
-        console.warn('[SMART_PLAY] Playlist unwrap failed, falling through.', e);
-      }
-    }
-
-    // ── Step 2: Detect HLS via content-type sniff (not extension-only) ───
-    // Many live radio HLS streams have URLs with no file extension at all.
-    // We do a lightweight HEAD request server-side to read the real MIME type.
-    const mightBeHls = u.includes('.m3u8') ||
-      u.includes('m3u8') ||
-      u.endsWith('/hls') ||
-      u.endsWith('/stream') ||
-      u.endsWith('/live') ||
-      u.endsWith('/audio');
-
-    let isHls = u.includes('.m3u8'); // Fast path: extension is definitive
-
-    if (!isHls && mightBeHls && !viaProxy) {
-      // HEAD sniff: ask the server what this URL really is
-      try {
-        const headRes = await fetch(`/api/proxy?url=${encodeURIComponent(playUrl)}`, {
-          method: 'HEAD',
-          signal: AbortSignal.timeout(5000),
-        }).catch(() => null);
-
-        if (headRes) {
-          const ct = (headRes.headers.get('content-type') || '').toLowerCase();
-          isHls = ct.includes('mpegurl') || ct.includes('x-mpegurl') || ct.includes('vnd.apple.mpegurl');
-          if (isHls) console.log(`[SMART_PLAY] Content-type sniff identified HLS: ${ct}`);
-        }
-      } catch (e) {
-        // HEAD sniff failed — fall through to native attempt
-      }
-    }
-
-    // ── Step 3: Play ─────────────────────────────────────────────────────
-    if (isHls && Hls.isSupported()) {
-      console.log(`[SMART_PLAY] → HLS.js${viaProxy ? ' (proxied)' : ''}: ${finalUrl}`);
-      attachHls(finalUrl);
-    } else if (isHls && audioEl.canPlayType('application/vnd.apple.mpegurl')) {
-      // Safari native HLS
-      console.log(`[SMART_PLAY] → Native HLS (Safari)${viaProxy ? ' (proxied)' : ''}: ${finalUrl}`);
-      audioEl.src = finalUrl;
-      audioEl.play().then(onPlaySuccess).catch(onPlayError);
-    } else {
-      // Native audio (MP3, AAC, Ogg, etc.)
-      console.log(`[SMART_PLAY] → Native audio${viaProxy ? ' (proxied)' : ''}: ${finalUrl}`);
-      audioEl.src = finalUrl;
-      audioEl.play().then(onPlaySuccess).catch(onPlayError);
-      if (!viaProxy) localStorage.setItem('sparky_last_station', JSON.stringify(st));
-    }
-  }
-
-  // Kick off the smart play pipeline with the resolved URL
-  dispatchPlay(url);
-
   function onPlaySuccess() {
     isPlaying = true; setStatus('playing', 'Connected');
     syncPlayBtns();
     cancelAnimationFrame(rafId); drawViz();
-    localStorage.setItem('sparky_last_station', JSON.stringify(st));
   }
   async function onPlayError() {
-    // Guard: if the user stopped or switched stations, this session is stale — bail immediately.
-    if (sparkyPlaySession !== mySession) {
-      console.log(`[PLAY_ERROR] Ignored — session ${mySession} is stale (current: ${sparkyPlaySession}).`);
-      return;
-    }
-
     if (!navigator.onLine) {
       wasPlayingBeforeOffline = true;
       setStatus('error', 'Offline');
-      console.log(`[PLAY_ERROR] Network offline. Staging for auto-resume: ${st.name}`);
+      console.log(`[PLAY_ERROR] Playback failed because network is offline. Staging for auto-resume: ${st.name}`);
       return;
     }
 
-    // Stage 1 — Transient retry: re-attempt the original URL once
     if (!st._retryAttempted) {
       console.log(`[PLAY_ERROR] Transient error for ${st.name}. Retrying original link...`);
       setStatus('buffering', 'Reconnecting...');
@@ -1761,19 +1626,6 @@ function playStationObj(st) {
       return;
     }
 
-    // Stage 2 — CORS Proxy retry: route the same URL through /api/proxy
-    // This fixes streams blocked by missing Access-Control-Allow-Origin headers.
-    if (!st._proxyAttempted) {
-      console.log(`[PLAY_ERROR] Direct play failed for ${st.name}. Retrying via CORS proxy...`);
-      setStatus('buffering', 'Trying proxy...');
-      st._proxyAttempted = true;
-      const rawUrl = st.url_resolved || st.url;
-      await sleep(800);
-      dispatchPlay(rawUrl, true /* viaProxy */);
-      return;
-    }
-
-    // Stage 3 — Active Rescue: search backup M3U repository for a working URL
     if (!st._rescueAttempted) {
       setStatus('buffering', 'Active Rescue...');
       st._rescueAttempted = true;
@@ -1814,8 +1666,6 @@ function stopPlayback() {
     idleViz(); renderCurrent();
     return;
   }
-  sparkyPlaySession++; // Invalidate any in-flight onPlayError callbacks from the prior session
-  if (hls) { hls.destroy(); hls = null; } // Prevent hls.js fatal errors from firing into stale callbacks
   audioEl.pause(); audioEl.src = '';
   isPlaying = false;
   wasPlayingBeforeOffline = false; // Reset network reconnect state on manual stop

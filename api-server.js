@@ -3,6 +3,7 @@ import cors from 'cors';
 import fetchPlaylist from './api/fetchPlaylist.js';
 import searchVideos from './api/searchVideos.js';
 import hydrateTags from './api/hydrateTags.js';
+import proxy from './api/proxy.js';
 
 // Bulletproof crash protection to prevent InnerTube library parser crashes from killing the dev server
 process.on('uncaughtException', (err) => {
@@ -57,12 +58,24 @@ app.all('/api/hydrateTags', async (req, res) => {
     }
 });
 
+app.all('/api/proxy', async (req, res) => {
+    try {
+        await proxy(req, res);
+    } catch (err) {
+        console.error('[API Server] proxy Error:', err);
+        if (!res.headersSent) {
+            res.status(500).json({ error: 'Internal Server Error', message: err.message });
+        }
+    }
+});
+
 const server = app.listen(port, () => {
     console.log(`\n🚀 Local API Server running at http://localhost:${port}`);
     console.log(`📡 Endpoints:`);
     console.log(`   - http://localhost:${port}/api/fetchPlaylist`);
     console.log(`   - http://localhost:${port}/api/searchVideos`);
     console.log(`   - http://localhost:${port}/api/hydrateTags`);
+    console.log(`   - http://localhost:${port}/api/proxy?url=<encoded>`);
     console.log(`\n[Vite Integration] Proxied automatically via vite.config.js\n`);
 });
 
