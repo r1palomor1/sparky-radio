@@ -4069,7 +4069,7 @@ body.light .filter-chip {
 /* OPT-4: Cap YT player height on tablet (600-899px) so more cards show pre-compact.
    User can open Cinema Mode for the full immersive view. */
 @media (min-width: 600px) and (max-width: 899px) {
-  .app.yt-mode-active .yt-player-container-inner {
+  .app.yt-mode-active:not(.immersive-cinema-mode) .yt-player-container-inner {
     aspect-ratio: unset !important;
     height: 200px !important;
     max-height: 200px !important;
