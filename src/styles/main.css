@@ -4069,20 +4069,34 @@ body.light .filter-chip {
 /* OPT-4: Cap YT player height on tablet (600-899px) so more cards show pre-compact.
    User can open Cinema Mode for the full immersive view. */
 @media (min-width: 600px) and (max-width: 899px) {
+  .now-playing {
+    padding: 8px 10px 4px 10px !important;
+  }
+  .sparky-yt-player-wrap {
+    gap: 4px !important;
+    padding: 2px 0 !important;
+  }
+  .btn-yt-queue {
+    padding: 3px !important;
+  }
   .app.yt-mode-active:not(.immersive-cinema-mode) .yt-player-container-inner {
     aspect-ratio: unset !important;
-    height: 200px !important;
-    max-height: 200px !important;
+    height: 180px !important;
+    max-height: 180px !important;
   }
 }
 
 /* â”€â”€ YT Video / Playlist Card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 /* Tablet Card Density Adjustments: move actions to horizontal bottom row to prevent text squeezing */
 @media (min-width: 600px) and (max-width: 899px) {
+  .yt-results, .yt-hub {
+    padding: 6px 8px !important;
+    gap: 6px !important;
+  }
   .yt-card {
     flex-wrap: wrap !important;
     align-items: center !important;
-    padding: 8px 10px !important;
+    padding: 6px 8px 3px 8px !important;
   }
   .yt-card-thumb {
     order: 2;
@@ -4097,14 +4111,15 @@ body.light .filter-chip {
     width: 100% !important;
     flex-direction: row !important;
     justify-content: space-around !important;
-    border-top: 1px solid var(--border);
-    padding-top: 6px;
-    margin-top: 6px;
+    border-top: none !important;
+    padding-top: 3px !important;
+    margin-top: 3px !important;
     gap: 16px;
   }
   .yt-card-actions button {
     opacity: 0.45 !important;
     transition: opacity 0.2s ease !important;
+    padding: 2px !important;
   }
   .yt-card-actions button:hover {
     opacity: 1 !important;
