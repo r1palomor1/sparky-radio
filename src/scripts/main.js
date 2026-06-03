@@ -8317,6 +8317,15 @@ async function playYtItem(item, isFromRelated = false) {
   if (!isFromRelated) {
     sparkyYtState.relatedVideos = [];
     syncYtRelatedBtn();
+    // FIX: If the related overlay is already open when we switch videos, show a loading spinner
+    // immediately so the user sees feedback. fetchRelatedVideos() will replace it when done.
+    const relatedOverlay = document.getElementById('ytRelatedOverlay');
+    if (relatedOverlay && !relatedOverlay.classList.contains('hidden')) {
+      const relatedList = document.getElementById('ytRelatedList');
+      if (relatedList) {
+        relatedList.innerHTML = '<div class="yt-loading"><div class="yt-spinner"></div><span>Loading related...</span></div>';
+      }
+    }
   }
   pauseRadioForYt();
   highlightYtCard(item.id, true);
@@ -9312,9 +9321,19 @@ function updateAmbientGlow(imageUrl) {
         const finalHsl = adjustHslForModifier(hsl.h, hsl.s, hsl.l);
         npPanel.style.setProperty('--accent', `hsl(${finalHsl.h}, ${finalHsl.s}%, ${finalHsl.l}%)`);
         npPanel.style.setProperty('--accent-glow', `rgba(${hslToRgbString(finalHsl.h, finalHsl.s, finalHsl.l)}, 0.35)`);
+        // ICON CONTRAST ENGINE: Compute adaptive icon opacity from perceptual brightness.
+        // Darker/more-saturated themes (e.g. deep reds, dark purples) suppress the default
+        // --dim color making icons nearly invisible. We boost opacity proportionally.
+        // Formula: perceptual luminance from HSL → map [0..100] to opacity [0.75..0.55]
+        // i.e. very dark themes get 0.75, very bright themes keep 0.55.
+        const percL = finalHsl.l; // lightness 0-100
+        const iconContrast = 0.75 - ((percL / 100) * 0.20); // 0.75 at L=0, 0.55 at L=100
+        const clamped = Math.max(0.55, Math.min(0.82, iconContrast));
+        npPanel.style.setProperty('--np-icon-contrast', clamped.toFixed(2));
       } else {
         npPanel.style.removeProperty('--accent');
         npPanel.style.removeProperty('--accent-glow');
+        npPanel.style.removeProperty('--np-icon-contrast');
       }
     });
   } else {
@@ -9322,6 +9341,7 @@ function updateAmbientGlow(imageUrl) {
     npPanel.classList.remove('has-ambient-bg');
     npPanel.style.removeProperty('--accent');
     npPanel.style.removeProperty('--accent-glow');
+    npPanel.style.removeProperty('--np-icon-contrast');
   }
 }
 
