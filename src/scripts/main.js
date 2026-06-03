@@ -4402,8 +4402,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const scrollTop = e.currentTarget.scrollTop;
-    // Only collapse if scrolling down
-    if (scrollTop > 50 && scrollTop > lastScrollTop) {
+    // OPT-1: Lower threshold for snappier compact trigger on tablet/desktop (was 50)
+    if (scrollTop > 20 && scrollTop > lastScrollTop) {
       npPanel.classList.add('compact-video');
       if (typeof triggerCompactTooltip === 'function') {
         triggerCompactTooltip();

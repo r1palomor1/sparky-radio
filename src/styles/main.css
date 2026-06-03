@@ -4053,9 +4053,26 @@ body.light .filter-chip {
   }
 }
 
+/* OPT-3: 3-column grid at tablet width (Fold5 ~690px+, iPad ~768px+) */
+@media (min-width: 700px) {
+  .yt-results, .yt-hub {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
 @media (min-width: 900px) {
   .yt-results, .yt-hub {
     grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* OPT-4: Cap YT player height on tablet (600-899px) so more cards show pre-compact.
+   User can open Cinema Mode for the full immersive view. */
+@media (min-width: 600px) and (max-width: 899px) {
+  .app.yt-mode-active .yt-player-container-inner {
+    aspect-ratio: unset !important;
+    height: 200px !important;
+    max-height: 200px !important;
   }
 }
 
